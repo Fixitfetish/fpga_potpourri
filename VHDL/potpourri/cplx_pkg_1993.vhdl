@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_1993.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 23/Oct/2016
--- VERSION : 0.3
+-- DATE    : 25/Oct/2016
+-- VERSION : 0.4
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -66,6 +66,16 @@ package cplx_pkg is
     ovf : std_logic; -- data overflow (or clipping)
   end record;
 
+  -- complex 2x22 type
+  type cplx22 is
+  record
+    rst : std_logic; -- reset
+    vld : std_logic; -- data valid
+    re  : signed(21 downto 0); -- data real component
+    im  : signed(21 downto 0); -- data imaginary component 
+    ovf : std_logic; -- data overflow (or clipping)
+  end record;
+
   -- complex 2x16 vector type
   type cplx16_vector is array(integer range <>) of cplx16;
 
@@ -75,16 +85,75 @@ package cplx_pkg is
   -- complex 2x20 vector type
   type cplx20_vector is array(integer range <>) of cplx20;
 
+  -- complex 2x20 vector type
+  type cplx22_vector is array(integer range <>) of cplx22;
+
   type cplx_mode is (
     STD     , -- standard (truncate, wrap, no overflow detection)
     OVF     , -- just overflow/underflow detection
-    CLP     , -- just clipping
+    CLP     , -- just clipping/saturation
     RND     , -- rounding
     CLP_OVF   -- clipping including overflow/underflow detection
   );
 
   ------------------------------------------
-  -- ADDITION
+  -- RESIZE DOWN
+  ------------------------------------------
+
+  -- resize from CPLX18 down to CPLX16
+  function resize (arg:cplx18; m:cplx_mode:=STD) return cplx16;
+  -- resize from CPLX20 down to CPLX16
+  function resize (arg:cplx20; m:cplx_mode:=STD) return cplx16;
+  -- resize from CPLX20 down to CPLX18
+  function resize (arg:cplx20; m:cplx_mode:=STD) return cplx18;
+
+  ------------------------------------------
+  -- RESIZE DOWN VECTOR
+  ------------------------------------------
+
+  -- vector resize from CPLX18 down to CPLX16
+  function resize (arg:cplx18_vector; m:cplx_mode:=STD) return cplx16_vector;
+  -- vector resize from CPLX20 down to CPLX16
+  function resize (arg:cplx20_vector; m:cplx_mode:=STD) return cplx16_vector;
+  -- vector resize from CPLX20 down to CPLX18
+  function resize (arg:cplx20_vector; m:cplx_mode:=STD) return cplx18_vector;
+
+  ------------------------------------------
+  -- RESIZE UP
+  ------------------------------------------
+
+  -- resize from CPLX16 up to CPLX18 
+  function resize (arg:cplx16) return cplx18;
+  -- resize from CPLX16 up to CPLX20 
+  function resize (arg:cplx16) return cplx20;
+  -- resize from CPLX16 up to CPLX22 
+  function resize (arg:cplx16) return cplx22;
+  -- resize from CPLX18 up to CPLX20 
+  function resize (arg:cplx18) return cplx20;
+  -- resize from CPLX18 up to CPLX22 
+  function resize (arg:cplx18) return cplx22;
+  -- resize from CPLX20 up to CPLX22 
+  function resize (arg:cplx20) return cplx22;
+
+  ------------------------------------------
+  -- RESIZE UP VECTOR
+  ------------------------------------------
+
+  -- vector resize from CPLX16 up to CPLX18 
+  function resize (arg:cplx16_vector) return cplx18_vector;
+  -- vector resize from CPLX16 up to CPLX20 
+  function resize (arg:cplx16_vector) return cplx20_vector;
+  -- vector resize from CPLX16 up to CPLX22 
+  function resize (arg:cplx16_vector) return cplx22_vector;
+  -- vector resize from CPLX18 up to CPLX20 
+  function resize (arg:cplx18_vector) return cplx20_vector;
+  -- vector resize from CPLX18 up to CPLX22 
+  function resize (arg:cplx18_vector) return cplx22_vector;
+  -- vector resize from CPLX20 up to CPLX22 
+  function resize (arg:cplx20_vector) return cplx22_vector;
+
+  ------------------------------------------
+  -- ADDITION and ACCUMULATION
   ------------------------------------------
 
   -- complex addition with optional clipping and overflow detection
@@ -93,11 +162,25 @@ package cplx_pkg is
   function add (l,r: cplx18; m:cplx_mode:=STD) return cplx18;
   -- complex addition with optional clipping and overflow detection
   function add (l,r: cplx20; m:cplx_mode:=STD) return cplx20;
+  -- complex addition with optional clipping and overflow detection
+  function add (l,r: cplx22; m:cplx_mode:=STD) return cplx22;
 
+  -- complex addition with wrap and overflow detection
   function "+" (l,r: cplx16) return cplx16;
+  -- complex addition with wrap and overflow detection
   function "+" (l,r: cplx18) return cplx18;
+  -- complex addition with wrap and overflow detection
   function "+" (l,r: cplx20) return cplx20;
-    
+  -- complex addition with wrap and overflow detection
+  function "+" (l,r: cplx22) return cplx22;
+
+  -- sum of vector elements (max 4 elements for timing closure reasons)
+  function sum (arg: cplx16_vector) return cplx18;
+  -- sum of vector elements (max 4 elements for timing closure reasons)
+  function sum (arg: cplx18_vector) return cplx20;
+  -- sum of vector elements (max 4 elements for timing closure reasons)
+  function sum (arg: cplx20_vector) return cplx22;
+
   ------------------------------------------
   -- SUBSTRACTION
   ------------------------------------------
@@ -108,10 +191,13 @@ package cplx_pkg is
   function sub (l,r: cplx18; m:cplx_mode:=STD) return cplx18;
   -- complex subtraction with optional clipping and overflow detection
   function sub (l,r: cplx20; m:cplx_mode:=STD) return cplx20;
+  -- complex subtraction with optional clipping and overflow detection
+  function sub (l,r: cplx22; m:cplx_mode:=STD) return cplx22;
 
   function "-" (l,r: cplx16) return cplx16;
   function "-" (l,r: cplx18) return cplx18;
   function "-" (l,r: cplx20) return cplx20;
+  function "-" (l,r: cplx22) return cplx22;
 
   ------------------------------------------
   -- SHIFT RIGHT (similar to NUMERIC_STD)
@@ -177,9 +263,12 @@ package cplx_pkg is
  
   -- convert cplx16 to SLV (real = 16 LSBs, imaginary = 16 MSBs)
   function to_slv (arg:cplx16) return std_logic_vector;
-
   -- convert cplx18 to SLV (real = 18 LSBs, imaginary = 18 MSBs)
   function to_slv (arg:cplx18) return std_logic_vector;
+  -- convert cplx20 to SLV (real = 20 LSBs, imaginary = 20 MSBs)
+  function to_slv (arg:cplx20) return std_logic_vector;
+  -- convert cplx22 to SLV (real = 22 LSBs, imaginary = 22 MSBs)
+  function to_slv (arg:cplx22) return std_logic_vector;
 
   ------------------------------------------
   -- CPLX VECTOR to STD_LOGIC_VECTOR
@@ -187,45 +276,12 @@ package cplx_pkg is
 
   -- convert cplx16 array to SLV (output is multiple of 32 bits)
   function to_slv (arg:cplx16_vector) return std_logic_vector;
-  
   -- convert cplx18 array to SLV (output is multiple of 36 bits)
   function to_slv (arg:cplx18_vector) return std_logic_vector;
-
-  ------------------------------------------
-  -- RESIZE DOWN
-  ------------------------------------------
-
-  -- resize from CPLX18 down to CPLX16
-  function resize (arg:cplx18; m:cplx_mode:=STD) return cplx16;
-  -- resize from CPLX20 down to CPLX16
-  function resize (arg:cplx20; m:cplx_mode:=STD) return cplx16;
-  -- resize from CPLX20 down to CPLX18
-  function resize (arg:cplx20; m:cplx_mode:=STD) return cplx18;
-
-  ------------------------------------------
-  -- RESIZE DOWN VECTOR
-  ------------------------------------------
-
-  -- vector resize from CPLX18 down to CPLX16
-  function resize (arg:cplx18_vector; m:cplx_mode:=STD) return cplx16_vector;
-
-  ------------------------------------------
-  -- RESIZE UP
-  ------------------------------------------
-
-  -- resize from CPLX16 up to CPLX18 
-  function resize (arg:cplx16) return cplx18;
-  -- resize from CPLX16 up to CPLX20 
-  function resize (arg:cplx16) return cplx20;
-  -- resize from CPLX18 up to CPLX20 
-  function resize (arg:cplx18) return cplx20;
-
-  ------------------------------------------
-  -- RESIZE UP VECTOR
-  ------------------------------------------
-
-  -- vector resize from CPLX16 up to CPLX18 
-  function resize (arg:cplx16_vector) return cplx18_vector;
+  -- convert cplx20 array to SLV (output is multiple of 40 bits)
+  function to_slv (arg:cplx20_vector) return std_logic_vector;
+  -- convert cplx22 array to SLV (output is multiple of 44 bits)
+  function to_slv (arg:cplx22_vector) return std_logic_vector;
 
 end package;
 
@@ -233,9 +289,9 @@ end package;
 
 package body cplx_pkg is
 
-  --------------------
+  ------------------------------------------
   -- local auxiliary
-  --------------------
+  ------------------------------------------
 
   function max (l,r: integer) return integer is
   begin
@@ -378,9 +434,227 @@ package body cplx_pkg is
     dout := r_dout;
   end procedure;
 
-  ---------------------------
-  -- ADDITION
-  ---------------------------
+  ------------------------------------------
+  -- RESIZE DOWN
+  ------------------------------------------
+
+  function resize (arg:cplx18; m:cplx_mode:=STD) return cplx16
+  is
+    variable ovfl_re, ovfl_im : std_logic;
+    variable res : cplx16;
+  begin
+    res.rst := arg.rst;
+    res.vld := arg.vld;
+    RESIZE(din=>arg.re, dout=>res.re, ovfl=>ovfl_re, m=>m);
+    RESIZE(din=>arg.im, dout=>res.im, ovfl=>ovfl_im, m=>m);
+    if m=OVF or m=CLP_OVF then
+      res.ovf := arg.ovf or ovfl_re or ovfl_im;
+    else
+      res.ovf := arg.ovf; -- overflow detection disabled
+    end if;
+    return res;
+  end function;
+
+  function resize (arg:cplx20; m:cplx_mode:=STD) return cplx16
+  is
+    variable ovfl_re, ovfl_im : std_logic;
+    variable res : cplx16;
+  begin
+    res.rst := arg.rst;
+    res.vld := arg.vld;
+    RESIZE(din=>arg.re, dout=>res.re, ovfl=>ovfl_re, m=>m);
+    RESIZE(din=>arg.im, dout=>res.im, ovfl=>ovfl_im, m=>m);
+    if m=OVF or m=CLP_OVF then
+      res.ovf := arg.ovf or ovfl_re or ovfl_im;
+    else
+      res.ovf := arg.ovf; -- overflow detection disabled
+    end if;
+    return res;
+  end function;
+
+  function resize (arg:cplx20; m:cplx_mode:=STD) return cplx18
+  is
+    variable ovfl_re, ovfl_im : std_logic;
+    variable res : cplx18;
+  begin
+    res.rst := arg.rst;
+    res.vld := arg.vld;
+    RESIZE(din=>arg.re, dout=>res.re, ovfl=>ovfl_re, m=>m);
+    RESIZE(din=>arg.im, dout=>res.im, ovfl=>ovfl_im, m=>m);
+    if m=OVF or m=CLP_OVF then
+      res.ovf := arg.ovf or ovfl_re or ovfl_im;
+    else
+      res.ovf := arg.ovf; -- overflow detection disabled
+    end if;
+    return res;
+  end function;
+
+  ------------------------------------------
+  -- RESIZE DOWN VECTOR
+  ------------------------------------------
+
+  function resize (arg:cplx18_vector; m:cplx_mode:=STD) return cplx16_vector
+  is
+    variable res : cplx16_vector(arg'range);
+  begin
+    for i in arg'range loop res(i) := resize(arg=>arg(i), m=>m); end loop;
+    return res;
+  end function;
+
+  function resize (arg:cplx20_vector; m:cplx_mode:=STD) return cplx16_vector
+  is
+    variable res : cplx16_vector(arg'range);
+  begin
+    for i in arg'range loop res(i) := resize(arg=>arg(i), m=>m); end loop;
+    return res;
+  end function;
+
+  function resize (arg:cplx20_vector; m:cplx_mode:=STD) return cplx18_vector
+  is
+    variable res : cplx18_vector(arg'range);
+  begin
+    for i in arg'range loop res(i) := resize(arg=>arg(i), m=>m); end loop;
+    return res;
+  end function;
+
+  ------------------------------------------
+  -- RESIZE UP
+  ------------------------------------------
+
+  function resize (arg:cplx16) return cplx18
+  is
+    constant LOUT : positive := 18;
+    variable res : cplx18;
+  begin
+    res.rst := arg.rst;
+    res.vld := arg.vld;
+    res.re  := RESIZE(arg.re,LOUT);
+    res.im  := RESIZE(arg.im,LOUT);
+    res.ovf := arg.ovf; -- increasing size cannot cause overflow 
+    return res;
+  end function;
+
+  function resize (arg:cplx16) return cplx20
+  is
+    constant LOUT : positive := 20;
+    variable res : cplx20;
+  begin
+    res.rst := arg.rst;
+    res.vld := arg.vld;
+    res.re  := RESIZE(arg.re,LOUT);
+    res.im  := RESIZE(arg.im,LOUT);
+    res.ovf := arg.ovf; -- increasing size cannot cause overflow 
+    return res;
+  end function;
+
+  function resize (arg:cplx16) return cplx22
+  is
+    constant LOUT : positive := 22;
+    variable res : cplx22;
+  begin
+    res.rst := arg.rst;
+    res.vld := arg.vld;
+    res.re  := RESIZE(arg.re,LOUT);
+    res.im  := RESIZE(arg.im,LOUT);
+    res.ovf := arg.ovf; -- increasing size cannot cause overflow 
+    return res;
+  end function;
+
+  function resize (arg:cplx18) return cplx20
+  is
+    constant LOUT : positive := 20;
+    variable res : cplx20;
+  begin
+    res.rst := arg.rst;
+    res.vld := arg.vld;
+    res.re  := RESIZE(arg.re,LOUT);
+    res.im  := RESIZE(arg.im,LOUT);
+    res.ovf := arg.ovf; -- increasing size cannot cause overflow 
+    return res;
+  end function;
+
+  function resize (arg:cplx18) return cplx22
+  is
+    constant LOUT : positive := 22;
+    variable res : cplx22;
+  begin
+    res.rst := arg.rst;
+    res.vld := arg.vld;
+    res.re  := RESIZE(arg.re,LOUT);
+    res.im  := RESIZE(arg.im,LOUT);
+    res.ovf := arg.ovf; -- increasing size cannot cause overflow 
+    return res;
+  end function;
+
+  function resize (arg:cplx20) return cplx22
+  is
+    constant LOUT : positive := 22;
+    variable res : cplx22;
+  begin
+    res.rst := arg.rst;
+    res.vld := arg.vld;
+    res.re  := RESIZE(arg.re,LOUT);
+    res.im  := RESIZE(arg.im,LOUT);
+    res.ovf := arg.ovf; -- increasing size cannot cause overflow 
+    return res;
+  end function;
+
+  ------------------------------------------
+  -- RESIZE UP VECTOR
+  ------------------------------------------
+
+  function resize (arg:cplx16_vector) return cplx18_vector
+  is
+    variable res : cplx18_vector(arg'range);
+  begin
+    for i in arg'range loop res(i) := resize(arg(i)); end loop;
+    return res;
+  end function;
+
+  function resize (arg:cplx16_vector) return cplx20_vector
+  is
+    variable res : cplx20_vector(arg'range);
+  begin
+    for i in arg'range loop res(i) := resize(arg(i)); end loop;
+    return res;
+  end function;
+
+  function resize (arg:cplx16_vector) return cplx22_vector
+  is
+    variable res : cplx22_vector(arg'range);
+  begin
+    for i in arg'range loop res(i) := resize(arg(i)); end loop;
+    return res;
+  end function;
+
+  function resize (arg:cplx18_vector) return cplx20_vector
+  is
+    variable res : cplx20_vector(arg'range);
+  begin
+    for i in arg'range loop res(i) := resize(arg(i)); end loop;
+    return res;
+  end function;
+
+  function resize (arg:cplx18_vector) return cplx22_vector
+  is
+    variable res : cplx22_vector(arg'range);
+  begin
+    for i in arg'range loop res(i) := resize(arg(i)); end loop;
+    return res;
+  end function;
+
+  function resize (arg:cplx20_vector) return cplx22_vector
+  is
+    variable res : cplx22_vector(arg'range);
+  begin
+    for i in arg'range loop res(i) := resize(arg(i)); end loop;
+    return res;
+  end function;
+
+  ------------------------------------------
+  -- ADDITION and ACCUMULATION
+  ------------------------------------------
+
   function add (l,r: cplx16; m:cplx_mode:=STD) return cplx16
   is 
     variable ovfl_re, ovfl_im : std_logic;
@@ -420,24 +694,90 @@ package body cplx_pkg is
     return res;
   end function;
 
+  function add (l,r: cplx22; m:cplx_mode:=STD) return cplx22
+  is 
+    variable ovfl_re, ovfl_im : std_logic;
+    variable res : cplx22;
+  begin
+    res.rst := l.rst or r.rst;
+    res.vld := l.vld and r.vld;
+    ADD_CLP_OVF(l=>l.re, r=>r.re, s=>res.re, ovfl=>ovfl_re, m=>m);
+    ADD_CLP_OVF(l=>l.im, r=>r.im, s=>res.im, ovfl=>ovfl_im, m=>m);
+    res.ovf := l.ovf or r.ovf or ovfl_re or ovfl_im;
+    return res;
+  end function;
+
   function "+" (l,r: cplx16) return cplx16 is
   begin
-    return add(l, r, m=>STD);
+    return add(l, r, m=>OVF);
   end function;
 
   function "+" (l,r: cplx18) return cplx18 is
   begin
-    return add(l, r, m=>STD);
+    return add(l, r, m=>OVF);
   end function;
 
   function "+" (l,r: cplx20) return cplx20 is
   begin
-    return add(l, r, m=>STD);
+    return add(l, r, m=>OVF);
   end function;
 
-  ---------------------------
+  function "+" (l,r: cplx22) return cplx22 is
+  begin
+    return add(l, r, m=>OVF);
+  end function;
+
+  function sum (arg: cplx16_vector) return cplx18
+  is
+    constant L : positive := arg'length;
+    alias xarg : cplx16_vector(0 to L-1) is arg; -- default range
+    variable res : cplx18;
+  begin
+    assert L<=4
+      report "ERROR: Only up to 4 vector elements can be summed up."
+      severity error;
+    res := resize(xarg(0));
+    if L>1 then
+      for i in 1 to L-1 loop res:=res+resize(xarg(i)); end loop;
+    end if;
+    return res;
+  end function;
+
+  function sum (arg: cplx18_vector) return cplx20
+  is
+    constant L : positive := arg'length;
+    alias xarg : cplx18_vector(0 to L-1) is arg; -- default range
+    variable res : cplx20;
+  begin
+    assert L<=4
+      report "ERROR: Only up to 4 vector elements can be summed up."
+      severity error;
+    res := resize(xarg(0));
+    if L>1 then
+      for i in 1 to L-1 loop res:=res+resize(xarg(i)); end loop;
+    end if;
+    return res;
+  end function;
+
+  function sum (arg: cplx20_vector) return cplx22
+  is
+    constant L : positive := arg'length;
+    alias xarg : cplx20_vector(0 to L-1) is arg; -- default range
+    variable res : cplx22;
+  begin
+    assert L<=4
+      report "ERROR: Only up to 4 vector elements can be summed up."
+      severity error;
+    res := resize(xarg(0));
+    if L>1 then
+      for i in 1 to L-1 loop res:=res+resize(xarg(i)); end loop;
+    end if;
+    return res;
+  end function;
+
+  ------------------------------------------
   -- SUBSTRACTION
-  ---------------------------
+  ------------------------------------------
   function sub (l,r: cplx16; m:cplx_mode:=STD) return cplx16
   is 
     variable ovfl_re, ovfl_im : std_logic;
@@ -477,6 +817,19 @@ package body cplx_pkg is
     return res;
   end function;
 
+  function sub (l,r: cplx22; m:cplx_mode:=STD) return cplx22
+  is 
+    variable ovfl_re, ovfl_im : std_logic;
+    variable res : cplx22;
+  begin
+    res.rst := l.rst or r.rst;
+    res.vld := l.vld and r.vld;
+    SUB_CLP_OVF(l=>l.re, r=>r.re, s=>res.re, ovfl=>ovfl_re, m=>m);
+    SUB_CLP_OVF(l=>l.im, r=>r.im, s=>res.im, ovfl=>ovfl_im, m=>m);
+    res.ovf := l.ovf or r.ovf or ovfl_re or ovfl_im;
+    return res;
+  end function;
+
   function "-" (l,r: cplx16) return cplx16 is
   begin
     return sub(l, r, m=>STD);
@@ -492,9 +845,14 @@ package body cplx_pkg is
     return sub(l, r, m=>STD);
   end function;
 
-  ---------------------------
+  function "-" (l,r: cplx22) return cplx22 is
+  begin
+    return sub(l, r, m=>STD);
+  end function;
+
+  ------------------------------------------
   -- SHIFT RIGHT
-  ---------------------------
+  ------------------------------------------
 
   function shift_right (arg:cplx16 ; n:natural; m:cplx_mode:=STD) return cplx16
   is
@@ -547,9 +905,9 @@ package body cplx_pkg is
     return res;
   end function;
 
-  ---------------------------
+  ------------------------------------------
   -- SHIFT LEFT
-  ---------------------------
+  ------------------------------------------
 
   function shift_left (arg:cplx16 ; n:natural; m:cplx_mode:=STD) return cplx16
   is
@@ -733,6 +1091,26 @@ package body cplx_pkg is
     return slv;
   end function;
 
+  function to_slv (arg : cplx20) return std_logic_vector
+  is
+    constant BITS : integer := 20;
+    variable slv : std_logic_vector(2*BITS-1 downto 0);
+  begin
+    slv(  BITS-1 downto    0) := std_logic_vector(arg.re);
+    slv(2*BITS-1 downto BITS) := std_logic_vector(arg.im);
+    return slv;
+  end function;
+
+  function to_slv (arg : cplx22) return std_logic_vector
+  is
+    constant BITS : integer := 22;
+    variable slv : std_logic_vector(2*BITS-1 downto 0);
+  begin
+    slv(  BITS-1 downto    0) := std_logic_vector(arg.re);
+    slv(2*BITS-1 downto BITS) := std_logic_vector(arg.im);
+    return slv;
+  end function;
+
   ------------------------------------------
   -- CPLX VECTOR to STD_LOGIC_VECTOR
   ------------------------------------------
@@ -765,127 +1143,32 @@ package body cplx_pkg is
     return slv;
   end function;
 
-
-  ------------------------------------------
-  -- RESIZE DOWN
-  ------------------------------------------
-
-  function resize (arg:cplx18; m:cplx_mode:=STD) return cplx16
+  function to_slv (arg : cplx20_vector) return std_logic_vector
   is
-    variable ovfl_re, ovfl_im : std_logic;
-    variable res : cplx16;
+    constant BITS : integer := 20;
+    constant N : integer := arg'length;
+    variable slv : std_logic_vector(2*BITS*N-1 downto 0);
+    variable i : integer range 0 to N := 0;
   begin
-    res.rst := arg.rst;
-    res.vld := arg.vld;
-    RESIZE(din=>arg.re, dout=>res.re, ovfl=>ovfl_re, m=>m);
-    RESIZE(din=>arg.im, dout=>res.im, ovfl=>ovfl_im, m=>m);
-    if m=OVF or m=CLP_OVF then
-      res.ovf := arg.ovf or ovfl_re or ovfl_im;
-    else
-      res.ovf := arg.ovf; -- overflow detection disabled
-    end if;
-    return res;
+    for e in arg'range loop 
+      slv(2*BITS*(i+1)-1 downto 2*BITS*i) := to_slv(arg(e));
+      i := i+1;
+    end loop;
+    return slv;
   end function;
 
-  function resize (arg:cplx20; m:cplx_mode:=STD) return cplx16
+  function to_slv (arg : cplx22_vector) return std_logic_vector
   is
-    variable ovfl_re, ovfl_im : std_logic;
-    variable res : cplx16;
+    constant BITS : integer := 22;
+    constant N : integer := arg'length;
+    variable slv : std_logic_vector(2*BITS*N-1 downto 0);
+    variable i : integer range 0 to N := 0;
   begin
-    res.rst := arg.rst;
-    res.vld := arg.vld;
-    RESIZE(din=>arg.re, dout=>res.re, ovfl=>ovfl_re, m=>m);
-    RESIZE(din=>arg.im, dout=>res.im, ovfl=>ovfl_im, m=>m);
-    if m=OVF or m=CLP_OVF then
-      res.ovf := arg.ovf or ovfl_re or ovfl_im;
-    else
-      res.ovf := arg.ovf; -- overflow detection disabled
-    end if;
-    return res;
-  end function;
-
-  function resize (arg:cplx20; m:cplx_mode:=STD) return cplx18
-  is
-    variable ovfl_re, ovfl_im : std_logic;
-    variable res : cplx18;
-  begin
-    res.rst := arg.rst;
-    res.vld := arg.vld;
-    RESIZE(din=>arg.re, dout=>res.re, ovfl=>ovfl_re, m=>m);
-    RESIZE(din=>arg.im, dout=>res.im, ovfl=>ovfl_im, m=>m);
-    if m=OVF or m=CLP_OVF then
-      res.ovf := arg.ovf or ovfl_re or ovfl_im;
-    else
-      res.ovf := arg.ovf; -- overflow detection disabled
-    end if;
-    return res;
-  end function;
-
-  ------------------------------------------
-  -- RESIZE DOWN VECTOR
-  ------------------------------------------
-
-  function resize (arg:cplx18_vector; m:cplx_mode:=STD) return cplx16_vector
-  is
-    variable res : cplx16_vector(arg'range);
-  begin
-    for i in arg'range loop res(i) := resize(arg=>arg(i), m=>m); end loop;
-    return res;
-  end function;
-
-  ------------------------------------------
-  -- RESIZE UP
-  ------------------------------------------
-
-  function resize (arg:cplx16) return cplx18
-  is
-    constant LOUT : positive := 18;
-    variable res : cplx18;
-  begin
-    res.rst := arg.rst;
-    res.vld := arg.vld;
-    res.re  := RESIZE(arg.re,LOUT);
-    res.im  := RESIZE(arg.im,LOUT);
-    res.ovf := arg.ovf; -- increasing size cannot cause overflow 
-    return res;
-  end function;
-
-  function resize (arg:cplx16) return cplx20
-  is
-    constant LOUT : positive := 20;
-    variable res : cplx20;
-  begin
-    res.rst := arg.rst;
-    res.vld := arg.vld;
-    res.re  := RESIZE(arg.re,LOUT);
-    res.im  := RESIZE(arg.im,LOUT);
-    res.ovf := arg.ovf; -- increasing size cannot cause overflow 
-    return res;
-  end function;
-
-  function resize (arg:cplx18) return cplx20
-  is
-    constant LOUT : positive := 20;
-    variable res : cplx20;
-  begin
-    res.rst := arg.rst;
-    res.vld := arg.vld;
-    res.re  := RESIZE(arg.re,LOUT);
-    res.im  := RESIZE(arg.im,LOUT);
-    res.ovf := arg.ovf; -- increasing size cannot cause overflow 
-    return res;
-  end function;
-
-  ------------------------------------------
-  -- RESIZE UP VECTOR
-  ------------------------------------------
-
-  function resize (arg:cplx16_vector) return cplx18_vector
-  is
-    variable res : cplx18_vector(arg'range);
-  begin
-    for i in arg'range loop res(i) := resize(arg(i)); end loop;
-    return res;
+    for e in arg'range loop 
+      slv(2*BITS*(i+1)-1 downto 2*BITS*i) := to_slv(arg(e));
+      i := i+1;
+    end loop;
+    return slv;
   end function;
 
 end package body;
