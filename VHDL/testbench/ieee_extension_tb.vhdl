@@ -2,7 +2,7 @@
 -- FILE    : ieee_extension_tb.vhdl
 -- AUTHOR  : Fixitfetish
 -- DATE    : 31/Oct/2016
--- VERSION : 0.1
+-- VERSION : 0.2
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -131,6 +131,7 @@ begin
    variable din : unsigned(LIN-1 downto 0);
    variable dout : unsigned(LOUT-1 downto 0);
    variable ovfl : std_logic;
+   variable clip : boolean := false;
    variable r : integer;
    variable wline : line;
  begin
@@ -141,19 +142,19 @@ begin
      for i in LIN_MIN to LIN_MAX loop
        din := to_unsigned(i,LIN);
        write(wline, integer'image(i),right, 3); write(wline,string'(" "),right, 3);
-       dout := shift_right_round(din=>din, n=>n, rnd=>floor);
+       shift_right_round(din=>din, n=>n, dout=>dout, ovfl=>ovfl, clip=>clip, rnd=>floor);
        r := to_integer(dout);
        write(wline, integer'image(r),right, 6);
-       dout := shift_right_round(din=>din, n=>n, rnd=>nearest);
+       shift_right_round(din=>din, n=>n, dout=>dout, ovfl=>ovfl, clip=>clip, rnd=>nearest);
        r := to_integer(dout);
        write(wline, integer'image(r),right, 6);
-       dout := shift_right_round(din=>din, n=>n, rnd=>ceil);
+       shift_right_round(din=>din, n=>n, dout=>dout, ovfl=>ovfl, clip=>clip, rnd=>ceil);
        r := to_integer(dout);
        write(wline, integer'image(r),right, 6);
-       dout := shift_right_round(din=>din, n=>n, rnd=>truncate);
+       shift_right_round(din=>din, n=>n, dout=>dout, ovfl=>ovfl, clip=>clip, rnd=>truncate);
        r := to_integer(dout);
        write(wline, integer'image(r),right, 6);
-       dout := shift_right_round(din=>din, n=>n, rnd=>infinity);
+       shift_right_round(din=>din, n=>n, dout=>dout, ovfl=>ovfl, clip=>clip, rnd=>infinity);
        r := to_integer(dout);
        write(wline, integer'image(r),right, 6);
        writeline(SRRU,wline);
@@ -176,6 +177,7 @@ begin
    variable din : signed(LIN-1 downto 0);
    variable dout : signed(LOUT-1 downto 0);
    variable ovfl : std_logic;
+   variable clip : boolean := false;
    variable r : integer;
    variable wline : line;
  begin
@@ -186,19 +188,19 @@ begin
      for i in LIN_MIN to LIN_MAX loop
        din := to_signed(i,LIN);
        write(wline, integer'image(i),right, 3); write(wline,string'(" "),right, 3);
-       dout := shift_right_round(din=>din, n=>n, rnd=>floor);
+       shift_right_round(din=>din, n=>n, dout=>dout, ovfl=>ovfl, clip=>clip, rnd=>floor);
        r := to_integer(dout);
        write(wline, integer'image(r),right, 6);
-       dout := shift_right_round(din=>din, n=>n, rnd=>nearest);
+       shift_right_round(din=>din, n=>n, dout=>dout, ovfl=>ovfl, clip=>clip, rnd=>nearest);
        r := to_integer(dout);
        write(wline, integer'image(r),right, 6);
-       dout := shift_right_round(din=>din, n=>n, rnd=>ceil);
+       shift_right_round(din=>din, n=>n, dout=>dout, ovfl=>ovfl, clip=>clip, rnd=>ceil);
        r := to_integer(dout);
        write(wline, integer'image(r),right, 6);
-       dout := shift_right_round(din=>din, n=>n, rnd=>truncate);
+       shift_right_round(din=>din, n=>n, dout=>dout, ovfl=>ovfl, clip=>clip, rnd=>truncate);
        r := to_integer(dout);
        write(wline, integer'image(r),right, 6);
-       dout := shift_right_round(din=>din, n=>n, rnd=>infinity);
+       shift_right_round(din=>din, n=>n, dout=>dout, ovfl=>ovfl, clip=>clip, rnd=>infinity);
        r := to_integer(dout);
        write(wline, integer'image(r),right, 6);
        writeline(SRRS,wline);
