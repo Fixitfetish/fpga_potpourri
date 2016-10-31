@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- FILE    : ieee_extension_1993_tb.vhdl
+-- FILE    : ieee_extension_tb.vhdl
 -- AUTHOR  : Fixitfetish
 -- DATE    : 31/Oct/2016
 -- VERSION : 0.1

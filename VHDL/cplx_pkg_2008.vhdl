@@ -30,7 +30,7 @@ library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
 library fixitfetish;
- use fixitfetish.ieee_extension_1993.all;
+ use fixitfetish.ieee_extension.all;
 
 package cplx_pkg is
 
