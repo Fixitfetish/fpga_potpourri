@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_2008.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 25/Oct/2016
--- VERSION : 0.2
+-- DATE    : 31/Oct/2016
+-- VERSION : 0.3
 -- VHDL    : 2008
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -29,6 +29,8 @@
 library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
+library fixitfetish;
+ use fixitfetish.ieee_extension_1993.all;
 
 package cplx_pkg is
 
@@ -59,6 +61,33 @@ package cplx_pkg is
   subtype cplx20_vector is cplx_vector(open)(re(19 downto 0), im(19 downto 0));
   subtype cplx22_vector is cplx_vector(open)(re(21 downto 0), im(21 downto 0));
 
+  type cplx_option is (
+    '-', -- don't care, use defaults
+    'R', -- use reset on RE/IM (set RE=0 and IM=0)
+    'O', -- enable overflow/underflow detection (by default off)
+    'S', -- enable saturation/clipping (by default off)
+    'D', -- round down towards minus infinity, floor (default, just remove LSBs)
+    'N', -- round to nearest (standard rounding, i.e. +0.5 and then remove LSBs)
+    'U', -- round up towards plus infinity, ceil
+    'Z', -- round towards zero, truncate
+    'I'  -- round towards plus/minus infinity, i.e. away from zero
+--  'F'  -- flush, required/needed ?
+--  'C'  -- clear, required/needed ?
+  );
+  
+  -- Complex operations can be used with one or more the following options.
+  -- Note that some options can not be combined, e.g. different rounding options.
+  -- '-' -- don't care, use defaults
+  -- 'R' -- use reset on RE/IM (set RE=0 and IM=0)
+  -- 'O' -- enable overflow/underflow detection (by default off)
+  -- 'S' -- enable saturation/clipping (by default off)
+  -- 'D' -- round down towards minus infinity, floor (default, just remove LSBs)
+  -- 'N' -- round to nearest (standard rounding, i.e. +0.5 and then remove LSBs)
+  -- 'U' -- round up towards plus infinity, ceil
+  -- 'Z' -- round towards zero, truncate
+  -- 'I' -- round towards plus/minus infinity, i.e. away from zero
+  type cplx_switch is array(integer range <>) of cplx_option;
+  
   type cplx_mode is (
     STD     , -- standard (truncate, wrap, no overflow detection)
     OVF     , -- just overflow/underflow detection
@@ -121,6 +150,13 @@ package cplx_pkg is
   -- SUBSTRACTION
   ------------------------------------------
 
+  ------------------------------------------
+  -- SHIFT RIGHT and ROUNDING
+  ------------------------------------------
+
+  -- complex signed shift right with optional rounding
+  function shift_right (arg:cplx ; n:natural; m:cplx_switch:="-") return cplx;
+
 end package;
 
 -------------------------------------------------------------------------------
@@ -130,6 +166,15 @@ package body cplx_pkg is
   ------------------------------------------
   -- local auxiliary
   ------------------------------------------
+
+  function "=" (l:cplx_switch; r:cplx_option) return boolean is
+    variable res : boolean := false;
+  begin
+    for i in l'range loop
+      res := res or (l(i)=r);
+    end loop;
+    return res;
+  end function;
 
   function max (l,r: integer) return integer is
   begin
@@ -308,5 +353,49 @@ package body cplx_pkg is
   ------------------------------------------
   -- SUBSTRACTION
   ------------------------------------------
+
+  ------------------------------------------
+  -- SHIFT RIGHT and ROUNDING
+  ------------------------------------------
+
+  function shift_right (arg:cplx; n:natural; m:cplx_switch:="-") return cplx
+  is
+    constant SIZE_RE : positive := arg.re'length;
+    constant SIZE_IM : positive := arg.im'length;
+    variable res : cplx(re(SIZE_RE-1 downto 0),im(SIZE_IM-1 downto 0));
+  begin
+    -- data signals
+    if m='R' and arg.rst='1' then
+      res.re := (SIZE_RE-1 downto 0 =>'0');
+      res.im := (SIZE_IM-1 downto 0 =>'0');
+    elsif m='N' then
+      res.re := SHIFT_RIGHT_ROUND(arg.re, n, nearest); -- real part
+      res.im := SHIFT_RIGHT_ROUND(arg.im, n, nearest); -- imaginary part
+    elsif m='U' then
+      res.re := SHIFT_RIGHT_ROUND(arg.re, n, ceil); -- real part
+      res.im := SHIFT_RIGHT_ROUND(arg.im, n, ceil); -- imaginary part
+    elsif m='Z' then
+      res.re := SHIFT_RIGHT_ROUND(arg.re, n, truncate); -- real part
+      res.im := SHIFT_RIGHT_ROUND(arg.im, n, truncate); -- imaginary part
+    elsif m='I' then
+      res.re := SHIFT_RIGHT_ROUND(arg.re, n, infinity); -- real part
+      res.im := SHIFT_RIGHT_ROUND(arg.im, n, infinity); -- imaginary part
+    else
+      -- by default standard rounding, i.e. floor
+      res.re := shift_right(arg.re, n); -- real part
+      res.im := shift_right(arg.im, n); -- imaginary part
+    end if;
+    -- control signals
+    res.rst := arg.rst;
+    if m='R' and arg.rst='1' then
+      res.vld := '0';
+      res.ovf := '0';
+    else
+      res.vld := arg.vld;
+      res.ovf := arg.ovf; -- shift right cannot cause overflow
+    end if;  
+    return res;
+  end function;
+
 
 end package body;
