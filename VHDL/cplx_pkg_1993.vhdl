@@ -2,7 +2,7 @@
 -- FILE    : cplx_pkg_1993.vhdl
 -- AUTHOR  : Fixitfetish
 -- DATE    : 31/Oct/2016
--- VERSION : 0.5
+-- VERSION : 0.51
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -123,29 +123,29 @@ package cplx_pkg is
   -- 'U' -- round up towards plus infinity, ceil
   -- 'Z' -- round towards zero, truncate
   -- 'I' -- round towards plus/minus infinity, i.e. away from zero
-  type cplx_switch is array(integer range <>) of cplx_option;
+  type cplx_mode is array(integer range <>) of cplx_option;
   
   ------------------------------------------
   -- RESIZE DOWN AND SATURATE/CLIP
   ------------------------------------------
 
   -- resize from CPLX18 down to CPLX16 with optional saturation/clipping and overflow detection
-  function resize (arg:cplx18; m:cplx_switch:="-") return cplx16;
+  function resize (arg:cplx18; m:cplx_mode:="-") return cplx16;
   -- resize from CPLX20 down to CPLX16 with optional saturation/clipping and overflow detection
-  function resize (arg:cplx20; m:cplx_switch:="-") return cplx16;
+  function resize (arg:cplx20; m:cplx_mode:="-") return cplx16;
   -- resize from CPLX20 down to CPLX18 with optional saturation/clipping and overflow detection
-  function resize (arg:cplx20; m:cplx_switch:="-") return cplx18;
+  function resize (arg:cplx20; m:cplx_mode:="-") return cplx18;
 
   ------------------------------------------
   -- RESIZE DOWN VECTOR AND SATURATE/CLIP
   ------------------------------------------
 
   -- vector resize from CPLX18 down to CPLX16 with optional saturation/clipping and overflow detection
-  function resize (arg:cplx18_vector; m:cplx_switch:="-") return cplx16_vector;
+  function resize (arg:cplx18_vector; m:cplx_mode:="-") return cplx16_vector;
   -- vector resize from CPLX20 down to CPLX16 with optional saturation/clipping and overflow detection
-  function resize (arg:cplx20_vector; m:cplx_switch:="-") return cplx16_vector;
+  function resize (arg:cplx20_vector; m:cplx_mode:="-") return cplx16_vector;
   -- vector resize from CPLX20 down to CPLX18 with optional saturation/clipping and overflow detection
-  function resize (arg:cplx20_vector; m:cplx_switch:="-") return cplx18_vector;
+  function resize (arg:cplx20_vector; m:cplx_mode:="-") return cplx18_vector;
 
   ------------------------------------------
   -- RESIZE UP
@@ -186,13 +186,13 @@ package cplx_pkg is
   ------------------------------------------
 
   -- complex addition with optional clipping and overflow detection
-  function add (l,r: cplx16; m:cplx_switch:="-") return cplx16;
+  function add (l,r: cplx16; m:cplx_mode:="-") return cplx16;
   -- complex addition with optional clipping and overflow detection
-  function add (l,r: cplx18; m:cplx_switch:="-") return cplx18;
+  function add (l,r: cplx18; m:cplx_mode:="-") return cplx18;
   -- complex addition with optional clipping and overflow detection
-  function add (l,r: cplx20; m:cplx_switch:="-") return cplx20;
+  function add (l,r: cplx20; m:cplx_mode:="-") return cplx20;
   -- complex addition with optional clipping and overflow detection
-  function add (l,r: cplx22; m:cplx_switch:="-") return cplx22;
+  function add (l,r: cplx22; m:cplx_mode:="-") return cplx22;
 
   -- complex addition with wrap and overflow detection
   function "+" (l,r: cplx16) return cplx16;
@@ -215,13 +215,13 @@ package cplx_pkg is
   ------------------------------------------
 
   -- complex subtraction with optional clipping and overflow detection
-  function sub (l,r: cplx16; m:cplx_switch:="-") return cplx16;
+  function sub (l,r: cplx16; m:cplx_mode:="-") return cplx16;
   -- complex subtraction with optional clipping and overflow detection
-  function sub (l,r: cplx18; m:cplx_switch:="-") return cplx18;
+  function sub (l,r: cplx18; m:cplx_mode:="-") return cplx18;
   -- complex subtraction with optional clipping and overflow detection
-  function sub (l,r: cplx20; m:cplx_switch:="-") return cplx20;
+  function sub (l,r: cplx20; m:cplx_mode:="-") return cplx20;
   -- complex subtraction with optional clipping and overflow detection
-  function sub (l,r: cplx22; m:cplx_switch:="-") return cplx22;
+  function sub (l,r: cplx22; m:cplx_mode:="-") return cplx22;
 
   function "-" (l,r: cplx16) return cplx16;
   function "-" (l,r: cplx18) return cplx18;
@@ -233,22 +233,22 @@ package cplx_pkg is
   ------------------------------------------
 
   -- complex signed shift left with optional clipping/saturation and overflow detection
-  function shift_left (arg:cplx16 ; n:natural; m:cplx_switch:="-") return cplx16;
+  function shift_left (arg:cplx16 ; n:natural; m:cplx_mode:="-") return cplx16;
   -- complex signed shift left with optional clipping/saturation and overflow detection
-  function shift_left (arg:cplx18 ; n:natural; m:cplx_switch:="-") return cplx18;
+  function shift_left (arg:cplx18 ; n:natural; m:cplx_mode:="-") return cplx18;
   -- complex signed shift left with optional clipping/saturation and overflow detection
-  function shift_left (arg:cplx20 ; n:natural; m:cplx_switch:="-") return cplx20;
+  function shift_left (arg:cplx20 ; n:natural; m:cplx_mode:="-") return cplx20;
 
   ------------------------------------------
   -- SHIFT RIGHT and ROUND
   ------------------------------------------
 
   -- complex signed shift right with optional rounding
-  function shift_right (arg:cplx16 ; n:natural; m:cplx_switch:="-") return cplx16;
+  function shift_right (arg:cplx16 ; n:natural; m:cplx_mode:="-") return cplx16;
   -- complex signed shift right with optional rounding
-  function shift_right (arg:cplx18 ; n:natural; m:cplx_switch:="-") return cplx18;
+  function shift_right (arg:cplx18 ; n:natural; m:cplx_mode:="-") return cplx18;
   -- complex signed shift right with optional rounding
-  function shift_right (arg:cplx20 ; n:natural; m:cplx_switch:="-") return cplx20;
+  function shift_right (arg:cplx20 ; n:natural; m:cplx_mode:="-") return cplx20;
 
   ------------------------------------------
   -- STD_LOGIC_VECTOR to CPLX
@@ -322,7 +322,7 @@ package body cplx_pkg is
   -- local auxiliary
   ------------------------------------------
 
-  function "=" (l:cplx_switch; r:cplx_option) return boolean is
+  function "=" (l:cplx_mode; r:cplx_option) return boolean is
     variable res : boolean := false;
   begin
     for i in l'range loop res := res or (l(i)=r); end loop;
@@ -333,7 +333,7 @@ package body cplx_pkg is
   -- RESIZE DOWN AND SATURATE/CLIP
   ------------------------------------------
 
-  function resize (arg:cplx18; m:cplx_switch:="-") return cplx16 is
+  function resize (arg:cplx18; m:cplx_mode:="-") return cplx16 is
     variable ovfl_re, ovfl_im : std_logic;
     variable res : cplx16;
   begin
@@ -360,7 +360,7 @@ package body cplx_pkg is
     return res;
   end function;
 
-  function resize (arg:cplx20; m:cplx_switch:="-") return cplx16 is
+  function resize (arg:cplx20; m:cplx_mode:="-") return cplx16 is
     variable ovfl_re, ovfl_im : std_logic;
     variable res : cplx16;
   begin
@@ -387,7 +387,7 @@ package body cplx_pkg is
     return res;
   end function;
 
-  function resize (arg:cplx20; m:cplx_switch:="-") return cplx18 is
+  function resize (arg:cplx20; m:cplx_mode:="-") return cplx18 is
     variable ovfl_re, ovfl_im : std_logic;
     variable res : cplx18;
   begin
@@ -418,21 +418,21 @@ package body cplx_pkg is
   -- RESIZE DOWN VECTOR AND SATURATE/CLIP
   ------------------------------------------
 
-  function resize (arg:cplx18_vector; m:cplx_switch:="-") return cplx16_vector is
+  function resize (arg:cplx18_vector; m:cplx_mode:="-") return cplx16_vector is
     variable res : cplx16_vector(arg'range);
   begin
     for i in arg'range loop res(i) := resize(arg=>arg(i), m=>m); end loop;
     return res;
   end function;
 
-  function resize (arg:cplx20_vector; m:cplx_switch:="-") return cplx16_vector is
+  function resize (arg:cplx20_vector; m:cplx_mode:="-") return cplx16_vector is
     variable res : cplx16_vector(arg'range);
   begin
     for i in arg'range loop res(i) := resize(arg=>arg(i), m=>m); end loop;
     return res;
   end function;
 
-  function resize (arg:cplx20_vector; m:cplx_switch:="-") return cplx18_vector is
+  function resize (arg:cplx20_vector; m:cplx_mode:="-") return cplx18_vector is
     variable res : cplx18_vector(arg'range);
   begin
     for i in arg'range loop res(i) := resize(arg=>arg(i), m=>m); end loop;
@@ -565,7 +565,7 @@ package body cplx_pkg is
   -- ADDITION and ACCUMULATION
   ------------------------------------------
 
-  function add (l,r: cplx16; m:cplx_switch:="-") return cplx16 is 
+  function add (l,r: cplx16; m:cplx_mode:="-") return cplx16 is 
     variable ovfl_re, ovfl_im : std_logic;
     variable res : cplx16;
   begin
@@ -590,7 +590,7 @@ package body cplx_pkg is
     return res;
   end function;
 
-  function add (l,r: cplx18; m:cplx_switch:="-") return cplx18 is 
+  function add (l,r: cplx18; m:cplx_mode:="-") return cplx18 is 
     variable ovfl_re, ovfl_im : std_logic;
     variable res : cplx18;
   begin
@@ -615,7 +615,7 @@ package body cplx_pkg is
     return res;
   end function;
 
-  function add (l,r: cplx20; m:cplx_switch:="-") return cplx20 is 
+  function add (l,r: cplx20; m:cplx_mode:="-") return cplx20 is 
     variable ovfl_re, ovfl_im : std_logic;
     variable res : cplx20;
   begin
@@ -640,7 +640,7 @@ package body cplx_pkg is
     return res;
   end function;
 
-  function add (l,r: cplx22; m:cplx_switch:="-") return cplx22 is 
+  function add (l,r: cplx22; m:cplx_mode:="-") return cplx22 is 
     variable ovfl_re, ovfl_im : std_logic;
     variable res : cplx22;
   begin
@@ -734,7 +734,7 @@ package body cplx_pkg is
   -- SUBSTRACTION
   ------------------------------------------
 
-  function sub (l,r: cplx16; m:cplx_switch:="-") return cplx16 is 
+  function sub (l,r: cplx16; m:cplx_mode:="-") return cplx16 is 
     variable ovfl_re, ovfl_im : std_logic;
     variable res : cplx16;
   begin
@@ -759,7 +759,7 @@ package body cplx_pkg is
     return res;
   end function;
 
-  function sub (l,r: cplx18; m:cplx_switch:="-") return cplx18 is 
+  function sub (l,r: cplx18; m:cplx_mode:="-") return cplx18 is 
     variable ovfl_re, ovfl_im : std_logic;
     variable res : cplx18;
   begin
@@ -784,7 +784,7 @@ package body cplx_pkg is
     return res;
   end function;
 
-  function sub (l,r: cplx20; m:cplx_switch:="-") return cplx20 is 
+  function sub (l,r: cplx20; m:cplx_mode:="-") return cplx20 is 
     variable ovfl_re, ovfl_im : std_logic;
     variable res : cplx20;
   begin
@@ -809,7 +809,7 @@ package body cplx_pkg is
     return res;
   end function;
 
-  function sub (l,r: cplx22; m:cplx_switch:="-") return cplx22 is 
+  function sub (l,r: cplx22; m:cplx_mode:="-") return cplx22 is 
     variable ovfl_re, ovfl_im : std_logic;
     variable res : cplx22;
   begin
@@ -858,7 +858,7 @@ package body cplx_pkg is
  -- SHIFT LEFT AND SATURATE/CLIP
   ------------------------------------------
 
-  function shift_left (arg:cplx16 ; n:natural; m:cplx_switch:="-") return cplx16 is
+  function shift_left (arg:cplx16 ; n:natural; m:cplx_mode:="-") return cplx16 is
     variable ovf_re, ovf_im : std_logic;
     variable res : cplx16;
   begin
@@ -883,7 +883,7 @@ package body cplx_pkg is
     return res;
   end function;
 
-  function shift_left (arg:cplx18 ; n:natural; m:cplx_switch:="-") return cplx18 is
+  function shift_left (arg:cplx18 ; n:natural; m:cplx_mode:="-") return cplx18 is
     variable ovf_re, ovf_im : std_logic;
     variable res : cplx18;
   begin
@@ -908,7 +908,7 @@ package body cplx_pkg is
     return res;
   end function;
 
-  function shift_left (arg:cplx20 ; n:natural; m:cplx_switch:="-") return cplx20 is
+  function shift_left (arg:cplx20 ; n:natural; m:cplx_mode:="-") return cplx20 is
     variable ovf_re, ovf_im : std_logic;
     variable res : cplx20;
   begin
@@ -937,7 +937,7 @@ package body cplx_pkg is
   -- SHIFT RIGHT and ROUND
   ------------------------------------------
 
-  function shift_right (arg:cplx16; n:natural; m:cplx_switch:="-") return cplx16 is
+  function shift_right (arg:cplx16; n:natural; m:cplx_mode:="-") return cplx16 is
     variable res : cplx16;
   begin
     -- data signals
@@ -973,7 +973,7 @@ package body cplx_pkg is
     return res;
   end function;
 
-  function shift_right (arg:cplx18 ; n:natural; m:cplx_switch:="-") return cplx18 is
+  function shift_right (arg:cplx18 ; n:natural; m:cplx_mode:="-") return cplx18 is
     variable res : cplx18;
   begin
     -- data signals
@@ -1009,7 +1009,7 @@ package body cplx_pkg is
     return res;
   end function;
 
-  function shift_right (arg:cplx20 ; n:natural; m:cplx_switch:="-") return cplx20 is
+  function shift_right (arg:cplx20 ; n:natural; m:cplx_mode:="-") return cplx20 is
     variable res : cplx20;
   begin
     -- data signals
