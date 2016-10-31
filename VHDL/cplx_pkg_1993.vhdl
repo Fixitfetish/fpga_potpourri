@@ -2,7 +2,7 @@
 -- FILE    : cplx_pkg_1993.vhdl
 -- AUTHOR  : Fixitfetish
 -- DATE    : 31/Oct/2016
--- VERSION : 0.51
+-- VERSION : 0.6
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -130,56 +130,56 @@ package cplx_pkg is
   ------------------------------------------
 
   -- resize from CPLX18 down to CPLX16 with optional saturation/clipping and overflow detection
-  function resize (arg:cplx18; m:cplx_mode:="-") return cplx16;
+  function resize (din:cplx18; m:cplx_mode:="-") return cplx16;
   -- resize from CPLX20 down to CPLX16 with optional saturation/clipping and overflow detection
-  function resize (arg:cplx20; m:cplx_mode:="-") return cplx16;
+  function resize (din:cplx20; m:cplx_mode:="-") return cplx16;
   -- resize from CPLX20 down to CPLX18 with optional saturation/clipping and overflow detection
-  function resize (arg:cplx20; m:cplx_mode:="-") return cplx18;
+  function resize (din:cplx20; m:cplx_mode:="-") return cplx18;
 
   ------------------------------------------
   -- RESIZE DOWN VECTOR AND SATURATE/CLIP
   ------------------------------------------
 
   -- vector resize from CPLX18 down to CPLX16 with optional saturation/clipping and overflow detection
-  function resize (arg:cplx18_vector; m:cplx_mode:="-") return cplx16_vector;
+  function resize (din:cplx18_vector; m:cplx_mode:="-") return cplx16_vector;
   -- vector resize from CPLX20 down to CPLX16 with optional saturation/clipping and overflow detection
-  function resize (arg:cplx20_vector; m:cplx_mode:="-") return cplx16_vector;
+  function resize (din:cplx20_vector; m:cplx_mode:="-") return cplx16_vector;
   -- vector resize from CPLX20 down to CPLX18 with optional saturation/clipping and overflow detection
-  function resize (arg:cplx20_vector; m:cplx_mode:="-") return cplx18_vector;
+  function resize (din:cplx20_vector; m:cplx_mode:="-") return cplx18_vector;
 
   ------------------------------------------
   -- RESIZE UP
   ------------------------------------------
 
   -- resize from CPLX16 up to CPLX18 
-  function resize (arg:cplx16) return cplx18;
+  function resize (din:cplx16) return cplx18;
   -- resize from CPLX16 up to CPLX20 
-  function resize (arg:cplx16) return cplx20;
+  function resize (din:cplx16) return cplx20;
   -- resize from CPLX16 up to CPLX22 
-  function resize (arg:cplx16) return cplx22;
+  function resize (din:cplx16) return cplx22;
   -- resize from CPLX18 up to CPLX20 
-  function resize (arg:cplx18) return cplx20;
+  function resize (din:cplx18) return cplx20;
   -- resize from CPLX18 up to CPLX22 
-  function resize (arg:cplx18) return cplx22;
+  function resize (din:cplx18) return cplx22;
   -- resize from CPLX20 up to CPLX22 
-  function resize (arg:cplx20) return cplx22;
+  function resize (din:cplx20) return cplx22;
 
   ------------------------------------------
   -- RESIZE UP VECTOR
   ------------------------------------------
 
   -- vector resize from CPLX16 up to CPLX18 
-  function resize (arg:cplx16_vector) return cplx18_vector;
+  function resize (din:cplx16_vector) return cplx18_vector;
   -- vector resize from CPLX16 up to CPLX20 
-  function resize (arg:cplx16_vector) return cplx20_vector;
+  function resize (din:cplx16_vector) return cplx20_vector;
   -- vector resize from CPLX16 up to CPLX22 
-  function resize (arg:cplx16_vector) return cplx22_vector;
+  function resize (din:cplx16_vector) return cplx22_vector;
   -- vector resize from CPLX18 up to CPLX20 
-  function resize (arg:cplx18_vector) return cplx20_vector;
+  function resize (din:cplx18_vector) return cplx20_vector;
   -- vector resize from CPLX18 up to CPLX22 
-  function resize (arg:cplx18_vector) return cplx22_vector;
+  function resize (din:cplx18_vector) return cplx22_vector;
   -- vector resize from CPLX20 up to CPLX22 
-  function resize (arg:cplx20_vector) return cplx22_vector;
+  function resize (din:cplx20_vector) return cplx22_vector;
 
   ------------------------------------------
   -- ADDITION and ACCUMULATION
@@ -333,109 +333,109 @@ package body cplx_pkg is
   -- RESIZE DOWN AND SATURATE/CLIP
   ------------------------------------------
 
-  function resize (arg:cplx18; m:cplx_mode:="-") return cplx16 is
+  function resize (din:cplx18; m:cplx_mode:="-") return cplx16 is
     variable ovfl_re, ovfl_im : std_logic;
-    variable res : cplx16;
+    variable dout : cplx16;
   begin
     -- data signals
-    if m='R' and arg.rst='1' then
-      res.re := (others=>'0');
-      res.im := (others=>'0');
+    if m='R' and din.rst='1' then
+      dout.re := (others=>'0');
+      dout.im := (others=>'0');
     else
-      RESIZE_CLIP(din=>arg.re, dout=>res.re, ovfl=>ovfl_re, clip=>(m='S'));
-      RESIZE_CLIP(din=>arg.im, dout=>res.im, ovfl=>ovfl_im, clip=>(m='S'));
+      RESIZE_CLIP(din=>din.re, dout=>dout.re, ovfl=>ovfl_re, clip=>(m='S'));
+      RESIZE_CLIP(din=>din.im, dout=>dout.im, ovfl=>ovfl_im, clip=>(m='S'));
     end if;
-    res.rst := arg.rst;
-    res.vld := arg.vld;
+    dout.rst := din.rst;
+    dout.vld := din.vld;
     -- control signals
-    res.rst := arg.rst;
-    if m='R' and arg.rst='1' then
-      res.vld := '0';
-      res.ovf := '0';
+    dout.rst := din.rst;
+    if m='R' and din.rst='1' then
+      dout.vld := '0';
+      dout.ovf := '0';
     else
-      res.vld := arg.vld; 
-      res.ovf := arg.ovf;
-      if m='O' then res.ovf := arg.ovf or ovfl_re or ovfl_im; end if;
+      dout.vld := din.vld; 
+      dout.ovf := din.ovf;
+      if m='O' then dout.ovf := din.ovf or ovfl_re or ovfl_im; end if;
     end if;  
-    return res;
+    return dout;
   end function;
 
-  function resize (arg:cplx20; m:cplx_mode:="-") return cplx16 is
+  function resize (din:cplx20; m:cplx_mode:="-") return cplx16 is
     variable ovfl_re, ovfl_im : std_logic;
-    variable res : cplx16;
+    variable dout : cplx16;
   begin
     -- data signals
-    if m='R' and arg.rst='1' then
-      res.re := (others=>'0');
-      res.im := (others=>'0');
+    if m='R' and din.rst='1' then
+      dout.re := (others=>'0');
+      dout.im := (others=>'0');
     else
-      RESIZE_CLIP(din=>arg.re, dout=>res.re, ovfl=>ovfl_re, clip=>(m='S'));
-      RESIZE_CLIP(din=>arg.im, dout=>res.im, ovfl=>ovfl_im, clip=>(m='S'));
+      RESIZE_CLIP(din=>din.re, dout=>dout.re, ovfl=>ovfl_re, clip=>(m='S'));
+      RESIZE_CLIP(din=>din.im, dout=>dout.im, ovfl=>ovfl_im, clip=>(m='S'));
     end if;
-    res.rst := arg.rst;
-    res.vld := arg.vld;
+    dout.rst := din.rst;
+    dout.vld := din.vld;
     -- control signals
-    res.rst := arg.rst;
-    if m='R' and arg.rst='1' then
-      res.vld := '0';
-      res.ovf := '0';
+    dout.rst := din.rst;
+    if m='R' and din.rst='1' then
+      dout.vld := '0';
+      dout.ovf := '0';
     else
-      res.vld := arg.vld; 
-      res.ovf := arg.ovf;
-      if m='O' then res.ovf := arg.ovf or ovfl_re or ovfl_im; end if;
+      dout.vld := din.vld; 
+      dout.ovf := din.ovf;
+      if m='O' then dout.ovf := din.ovf or ovfl_re or ovfl_im; end if;
     end if;  
-    return res;
+    return dout;
   end function;
 
-  function resize (arg:cplx20; m:cplx_mode:="-") return cplx18 is
+  function resize (din:cplx20; m:cplx_mode:="-") return cplx18 is
     variable ovfl_re, ovfl_im : std_logic;
-    variable res : cplx18;
+    variable dout : cplx18;
   begin
     -- data signals
-    if m='R' and arg.rst='1' then
-      res.re := (others=>'0');
-      res.im := (others=>'0');
+    if m='R' and din.rst='1' then
+      dout.re := (others=>'0');
+      dout.im := (others=>'0');
     else
-      RESIZE_CLIP(din=>arg.re, dout=>res.re, ovfl=>ovfl_re, clip=>(m='S'));
-      RESIZE_CLIP(din=>arg.im, dout=>res.im, ovfl=>ovfl_im, clip=>(m='S'));
+      RESIZE_CLIP(din=>din.re, dout=>dout.re, ovfl=>ovfl_re, clip=>(m='S'));
+      RESIZE_CLIP(din=>din.im, dout=>dout.im, ovfl=>ovfl_im, clip=>(m='S'));
     end if;
-    res.rst := arg.rst;
-    res.vld := arg.vld;
+    dout.rst := din.rst;
+    dout.vld := din.vld;
     -- control signals
-    res.rst := arg.rst;
-    if m='R' and arg.rst='1' then
-      res.vld := '0';
-      res.ovf := '0';
+    dout.rst := din.rst;
+    if m='R' and din.rst='1' then
+      dout.vld := '0';
+      dout.ovf := '0';
     else
-      res.vld := arg.vld; 
-      res.ovf := arg.ovf;
-      if m='O' then res.ovf := arg.ovf or ovfl_re or ovfl_im; end if;
+      dout.vld := din.vld; 
+      dout.ovf := din.ovf;
+      if m='O' then dout.ovf := din.ovf or ovfl_re or ovfl_im; end if;
     end if;  
-    return res;
+    return dout;
   end function;
 
   ------------------------------------------
   -- RESIZE DOWN VECTOR AND SATURATE/CLIP
   ------------------------------------------
 
-  function resize (arg:cplx18_vector; m:cplx_mode:="-") return cplx16_vector is
-    variable res : cplx16_vector(arg'range);
+  function resize (din:cplx18_vector; m:cplx_mode:="-") return cplx16_vector is
+    variable res : cplx16_vector(din'range);
   begin
-    for i in arg'range loop res(i) := resize(arg=>arg(i), m=>m); end loop;
+    for i in din'range loop res(i) := resize(din=>din(i), m=>m); end loop;
     return res;
   end function;
 
-  function resize (arg:cplx20_vector; m:cplx_mode:="-") return cplx16_vector is
-    variable res : cplx16_vector(arg'range);
+  function resize (din:cplx20_vector; m:cplx_mode:="-") return cplx16_vector is
+    variable res : cplx16_vector(din'range);
   begin
-    for i in arg'range loop res(i) := resize(arg=>arg(i), m=>m); end loop;
+    for i in din'range loop res(i) := resize(din=>din(i), m=>m); end loop;
     return res;
   end function;
 
-  function resize (arg:cplx20_vector; m:cplx_mode:="-") return cplx18_vector is
-    variable res : cplx18_vector(arg'range);
+  function resize (din:cplx20_vector; m:cplx_mode:="-") return cplx18_vector is
+    variable res : cplx18_vector(din'range);
   begin
-    for i in arg'range loop res(i) := resize(arg=>arg(i), m=>m); end loop;
+    for i in din'range loop res(i) := resize(din=>din(i), m=>m); end loop;
     return res;
   end function;
 
@@ -443,121 +443,121 @@ package body cplx_pkg is
   -- RESIZE UP
   ------------------------------------------
 
-  function resize (arg:cplx16) return cplx18 is
+  function resize (din:cplx16) return cplx18 is
     constant LOUT : positive := 18;
-    variable res : cplx18;
+    variable dout : cplx18;
   begin
-    res.rst := arg.rst;
-    res.vld := arg.vld;
-    res.re  := RESIZE(arg.re,LOUT);
-    res.im  := RESIZE(arg.im,LOUT);
-    res.ovf := arg.ovf; -- increasing size cannot cause overflow 
-    return res;
+    dout.rst := din.rst;
+    dout.vld := din.vld;
+    dout.re  := RESIZE(din.re,LOUT);
+    dout.im  := RESIZE(din.im,LOUT);
+    dout.ovf := din.ovf; -- increasing size cannot cause overflow 
+    return dout;
   end function;
 
-  function resize (arg:cplx16) return cplx20 is
+  function resize (din:cplx16) return cplx20 is
     constant LOUT : positive := 20;
-    variable res : cplx20;
+    variable dout : cplx20;
   begin
-    res.rst := arg.rst;
-    res.vld := arg.vld;
-    res.re  := RESIZE(arg.re,LOUT);
-    res.im  := RESIZE(arg.im,LOUT);
-    res.ovf := arg.ovf; -- increasing size cannot cause overflow 
-    return res;
+    dout.rst := din.rst;
+    dout.vld := din.vld;
+    dout.re  := RESIZE(din.re,LOUT);
+    dout.im  := RESIZE(din.im,LOUT);
+    dout.ovf := din.ovf; -- increasing size cannot cause overflow 
+    return dout;
   end function;
 
-  function resize (arg:cplx16) return cplx22 is
+  function resize (din:cplx16) return cplx22 is
     constant LOUT : positive := 22;
-    variable res : cplx22;
+    variable dout : cplx22;
   begin
-    res.rst := arg.rst;
-    res.vld := arg.vld;
-    res.re  := RESIZE(arg.re,LOUT);
-    res.im  := RESIZE(arg.im,LOUT);
-    res.ovf := arg.ovf; -- increasing size cannot cause overflow 
-    return res;
+    dout.rst := din.rst;
+    dout.vld := din.vld;
+    dout.re  := RESIZE(din.re,LOUT);
+    dout.im  := RESIZE(din.im,LOUT);
+    dout.ovf := din.ovf; -- increasing size cannot cause overflow 
+    return dout;
   end function;
 
-  function resize (arg:cplx18) return cplx20 is
+  function resize (din:cplx18) return cplx20 is
     constant LOUT : positive := 20;
-    variable res : cplx20;
+    variable dout : cplx20;
   begin
-    res.rst := arg.rst;
-    res.vld := arg.vld;
-    res.re  := RESIZE(arg.re,LOUT);
-    res.im  := RESIZE(arg.im,LOUT);
-    res.ovf := arg.ovf; -- increasing size cannot cause overflow 
-    return res;
+    dout.rst := din.rst;
+    dout.vld := din.vld;
+    dout.re  := RESIZE(din.re,LOUT);
+    dout.im  := RESIZE(din.im,LOUT);
+    dout.ovf := din.ovf; -- increasing size cannot cause overflow 
+    return dout;
   end function;
 
-  function resize (arg:cplx18) return cplx22 is
+  function resize (din:cplx18) return cplx22 is
     constant LOUT : positive := 22;
-    variable res : cplx22;
+    variable dout : cplx22;
   begin
-    res.rst := arg.rst;
-    res.vld := arg.vld;
-    res.re  := RESIZE(arg.re,LOUT);
-    res.im  := RESIZE(arg.im,LOUT);
-    res.ovf := arg.ovf; -- increasing size cannot cause overflow 
-    return res;
+    dout.rst := din.rst;
+    dout.vld := din.vld;
+    dout.re  := RESIZE(din.re,LOUT);
+    dout.im  := RESIZE(din.im,LOUT);
+    dout.ovf := din.ovf; -- increasing size cannot cause overflow 
+    return dout;
   end function;
 
-  function resize (arg:cplx20) return cplx22 is
+  function resize (din:cplx20) return cplx22 is
     constant LOUT : positive := 22;
-    variable res : cplx22;
+    variable dout : cplx22;
   begin
-    res.rst := arg.rst;
-    res.vld := arg.vld;
-    res.re  := RESIZE(arg.re,LOUT);
-    res.im  := RESIZE(arg.im,LOUT);
-    res.ovf := arg.ovf; -- increasing size cannot cause overflow 
-    return res;
+    dout.rst := din.rst;
+    dout.vld := din.vld;
+    dout.re  := RESIZE(din.re,LOUT);
+    dout.im  := RESIZE(din.im,LOUT);
+    dout.ovf := din.ovf; -- increasing size cannot cause overflow 
+    return dout;
   end function;
 
   ------------------------------------------
   -- RESIZE UP VECTOR
   ------------------------------------------
 
-  function resize (arg:cplx16_vector) return cplx18_vector is
-    variable res : cplx18_vector(arg'range);
+  function resize (din:cplx16_vector) return cplx18_vector is
+    variable res : cplx18_vector(din'range);
   begin
-    for i in arg'range loop res(i) := resize(arg(i)); end loop;
+    for i in din'range loop res(i) := resize(din(i)); end loop;
     return res;
   end function;
 
-  function resize (arg:cplx16_vector) return cplx20_vector is
-    variable res : cplx20_vector(arg'range);
+  function resize (din:cplx16_vector) return cplx20_vector is
+    variable res : cplx20_vector(din'range);
   begin
-    for i in arg'range loop res(i) := resize(arg(i)); end loop;
+    for i in din'range loop res(i) := resize(din(i)); end loop;
     return res;
   end function;
 
-  function resize (arg:cplx16_vector) return cplx22_vector is
-    variable res : cplx22_vector(arg'range);
+  function resize (din:cplx16_vector) return cplx22_vector is
+    variable res : cplx22_vector(din'range);
   begin
-    for i in arg'range loop res(i) := resize(arg(i)); end loop;
+    for i in din'range loop res(i) := resize(din(i)); end loop;
     return res;
   end function;
 
-  function resize (arg:cplx18_vector) return cplx20_vector is
-    variable res : cplx20_vector(arg'range);
+  function resize (din:cplx18_vector) return cplx20_vector is
+    variable res : cplx20_vector(din'range);
   begin
-    for i in arg'range loop res(i) := resize(arg(i)); end loop;
+    for i in din'range loop res(i) := resize(din(i)); end loop;
     return res;
   end function;
 
-  function resize (arg:cplx18_vector) return cplx22_vector is
-    variable res : cplx22_vector(arg'range);
+  function resize (din:cplx18_vector) return cplx22_vector is
+    variable res : cplx22_vector(din'range);
   begin
-    for i in arg'range loop res(i) := resize(arg(i)); end loop;
+    for i in din'range loop res(i) := resize(din(i)); end loop;
     return res;
   end function;
 
-  function resize (arg:cplx20_vector) return cplx22_vector is
-    variable res : cplx22_vector(arg'range);
+  function resize (din:cplx20_vector) return cplx22_vector is
+    variable res : cplx22_vector(din'range);
   begin
-    for i in arg'range loop res(i) := resize(arg(i)); end loop;
+    for i in din'range loop res(i) := resize(din(i)); end loop;
     return res;
   end function;
 

@@ -2,7 +2,7 @@
 -- FILE    : cplx_pkg_2008.vhdl
 -- AUTHOR  : Fixitfetish
 -- DATE    : 31/Oct/2016
--- VERSION : 0.3
+-- VERSION : 0.4
 -- VHDL    : 2008
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -86,28 +86,24 @@ package cplx_pkg is
   -- 'U' -- round up towards plus infinity, ceil
   -- 'Z' -- round towards zero, truncate
   -- 'I' -- round towards plus/minus infinity, i.e. away from zero
-  type cplx_switch is array(integer range <>) of cplx_option;
+  type cplx_mode is array(integer range <>) of cplx_option;
   
-  type cplx_mode is (
-    STD     , -- standard (truncate, wrap, no overflow detection)
-    OVF     , -- just overflow/underflow detection
-    CLP     , -- just clipping/saturation
-    RND     , -- rounding
-    CLP_OVF   -- clipping including overflow/underflow detection
-  );
-
   ------------------------------------------
   -- RESIZE
   ------------------------------------------
 
-  -- resize to given bit width
-  function resize (din:cplx; n:natural; m:cplx_mode:=STD) return cplx;
+  -- resize to given bit width (similar to NUMERIC_STD)
+  function resize(
+    din : cplx; -- data input
+    n   : natural; -- output bit width
+    m   : cplx_mode:="-" -- mode
+  ) return cplx;
 
   -- resize to size of connected output
   procedure resize (
     din  : in  cplx; -- data input
     dout : out cplx; -- data output
-    m    : in  cplx_mode:=STD -- mode
+    m    : in  cplx_mode:="-" -- mode
   );
 
   ------------------------------------------
@@ -119,15 +115,19 @@ package cplx_pkg is
   ------------------------------------------
 
   -- complex addition with optional clipping and overflow detection
-  -- (sum is resized to given bit width of sum)
-  function add (l,r:cplx; width_sum:positive; m:cplx_mode:=STD) return cplx;
+  -- (sum is resized to given output bit width of sum)
+  function add (
+    l,r  : cplx; -- left/right summand
+    w    : positive; -- output bit width
+    m    : cplx_mode:="-"
+  ) return cplx;
 
   -- complex addition with optional clipping and overflow detection
   -- (sum is resized to size of connected output)
   procedure add (
-    l,r : in  cplx; -- left/right summand
-    s   : out cplx; -- result sum
-    m   : in  cplx_mode:=STD -- mode
+    l,r  : in  cplx; -- left/right summand
+    dout : out cplx; -- data output, result of sum
+    m    : in  cplx_mode:="-" -- mode
   );
 
   -- complex addition with wrap and overflow detection
@@ -136,14 +136,18 @@ package cplx_pkg is
 
   -- sum of vector elements with optional clipping and overflow detection
   -- (sum result is resized to given bit width of sum)
-  function sum (arg:cplx_vector; width_sum:positive; m:cplx_mode:=STD) return cplx;
+  function sum (
+    din  : cplx_vector; -- data input vector
+    w    : positive; -- output bit width
+    m    : cplx_mode:="-" -- mode
+  ) return cplx;
 
   -- sum of vector elements with optional clipping and overflow detection
   -- (sum result is resized to size of connected output)
   procedure sum (
-    arg : in  cplx_vector; -- input vector
-    s   : out cplx; -- result sum
-    m   : in  cplx_mode:=STD -- mode
+    din  : in  cplx_vector; -- data input vector
+    dout : out cplx; -- data output, result of sum
+    m    : in  cplx_mode:="-" -- mode
   );
 
   ------------------------------------------
@@ -155,7 +159,20 @@ package cplx_pkg is
   ------------------------------------------
 
   -- complex signed shift right with optional rounding
-  function shift_right (arg:cplx ; n:natural; m:cplx_switch:="-") return cplx;
+  function shift_right (
+    din  : cplx; -- data input
+    n    : natural; -- number of right shifts
+    m    : cplx_mode:="-" -- mode
+  ) return cplx;
+
+  -- complex signed shift right with optional rounding
+  procedure shift_right (
+    din  : in  cplx; -- data input
+    n    : in  natural; -- number of right shifts
+    dout : out cplx; -- data output
+    ovfl : out std_logic; -- '1' if overflow occured
+    m    : in  cplx_mode:="-" -- mode
+  );
 
 end package;
 
@@ -167,7 +184,7 @@ package body cplx_pkg is
   -- local auxiliary
   ------------------------------------------
 
-  function "=" (l:cplx_switch; r:cplx_option) return boolean is
+  function "=" (l:cplx_mode; r:cplx_option) return boolean is
     variable res : boolean := false;
   begin
     for i in l'range loop
@@ -198,94 +215,47 @@ package body cplx_pkg is
     return 1;
   end function;
 
-  function ALL_HIGH (arg: std_logic_vector) return std_logic is
-    constant L : positive := arg'length;
-    alias x : std_logic_vector(arg'length-1 downto 0) is arg; -- default range
-    variable res : std_logic := '1';
-  begin
-    for i in 0 to L-1 loop  res := res and x(i); end loop;
-    return res; 
-  end function;
-  
-  function ALL_LOW (arg: std_logic_vector) return std_logic is
-    constant L : positive := arg'length;
-    alias x : std_logic_vector(arg'length-1 downto 0) is arg; -- default range
-    variable res : std_logic := '0';
-  begin
-    for i in 0 to L-1 loop  res := res or x(i); end loop;
-    return (not res); 
-  end function;
-
-  -- signed resize with optional clipping and overflow detection
-  procedure RESIZE (din:in signed; dout:out signed; ovfl:out std_logic; m:in cplx_mode:=STD) is
-    constant LIN : positive := din'length;
-    constant LOUT : positive := dout'length;
-    alias xdin : signed(LIN-1 downto 0) is din; -- default range
-    alias xdout : signed(LOUT-1 downto 0) is dout; -- default range
-    variable ov,ud : std_logic;
-  begin
-    xdout := resize(xdin,LOUT);
-    ovfl := '0';
-    if LIN>LOUT then
-      -- if resized down then check for overflow/underflow  
-      ov := (not xdin(LIN-1)) and (not ALL_LOW (std_logic_vector(xdin(LIN-2 downto LOUT-1))));
-      ud :=      xdin(LIN-1)  and (not ALL_HIGH(std_logic_vector(xdin(LIN-2 downto LOUT-1))));
-      -- clipping if required
-      if (m=CLP) or (m=CLP_OVF) then
-        if ov='1' then
-          xdout(LOUT-1):='0'; xdout(LOUT-2 downto 0):=(others=>'1'); -- positive clipping
-        elsif ud='1' then
-          xdout(LOUT-1):='1'; xdout(LOUT-2 downto 0):=(others=>'0'); -- negative clipping
-        end if;
-      end if;
-      -- overflow/underflow detection if required
-      if (m=OVF) or (m=CLP_OVF) then
-        ovfl := ov or ud;
-      end if;
-    end if;
-  end procedure;
-
-  -- signed addition with optional clipping and overflow detection
-  procedure ADD_CLP_OVF(l,r:in signed; s:out signed; ovfl:out std_logic; m:in cplx_mode:=STD) is
-    constant SIZE : positive := max(l'length,r'length);
-    alias xl : signed(l'length-1 downto 0) is l; -- default range
-    alias xr : signed(r'length-1 downto 0) is r; -- default range
-    alias xs : signed(s'length-1 downto 0) is s; -- default range
-    variable t : signed(SIZE downto 0);
-  begin
-    t := RESIZE(xl,SIZE+1) + RESIZE(xr,SIZE+1);
-    RESIZE(din=>t, dout=>xs, ovfl=>ovfl, m=>m);
-  end procedure;
-
   ------------------------------------------
   -- RESIZE
   ------------------------------------------
 
-  function resize (din:cplx; n:natural; m:cplx_mode:=STD) return cplx
-  is
+  function resize(
+    din : cplx; -- data input
+    n   : natural; -- output bit width
+    m   : cplx_mode:="-" -- mode
+  ) return cplx is
     variable ovfl_re, ovfl_im : std_logic;
-    variable res : cplx(re(n-1 downto 0),im(n-1 downto 0));
+    variable dout : cplx(re(n-1 downto 0),im(n-1 downto 0));
   begin
-    res.rst := din.rst;
-    res.vld := din.vld;
-    RESIZE(din=>din.re, dout=>res.re, ovfl=>ovfl_re, m=>m);
-    RESIZE(din=>din.im, dout=>res.im, ovfl=>ovfl_im, m=>m);
-    if m=OVF or m=CLP_OVF then
-      res.ovf := din.ovf or ovfl_re or ovfl_im;
+    -- data signals
+    if m='R' and din.rst='1' then
+      dout.re := (n-1 downto 0 => '0');
+      dout.im := (n-1 downto 0 => '0');
     else
-      res.ovf := din.ovf; -- overflow detection disabled
+      RESIZE_CLIP(din=>din.re, dout=>dout.re, ovfl=>ovfl_re, clip=>(m='S'));
+      RESIZE_CLIP(din=>din.im, dout=>dout.im, ovfl=>ovfl_im, clip=>(m='S'));
     end if;
-    return res;
+    -- control signals
+    dout.rst := din.rst;
+    if m='R' and din.rst='1' then
+      dout.vld := '0';
+      dout.ovf := '0';
+    else
+      dout.vld := din.vld; 
+      dout.ovf := din.ovf;
+      if m='O' then dout.ovf := din.ovf or ovfl_re or ovfl_im; end if;
+    end if;  
+    return dout;
   end function;
 
   procedure resize (
     din  : in  cplx; -- data input
     dout : out cplx; -- data output
-    m    : in  cplx_mode:=STD -- mode
+    m    : in  cplx_mode:="-" -- mode
   ) is
-    constant WOUT : positive := dout.re'length;
+    constant LOUT : positive := dout.re'length;
   begin
-    dout := resize(din=>din, n=>WOUT, m=>m);
+    dout := resize(din=>din, n=>LOUT, m=>m);
   end procedure;
 
   ------------------------------------------
@@ -296,58 +266,79 @@ package body cplx_pkg is
   -- ADDITION and ACCUMULATION
   ------------------------------------------
 
-  function add (l,r:cplx; width_sum:positive; m:cplx_mode:=STD) return cplx
-  is
+--  function add (l,r:cplx; width_sum:positive; m:cplx_mode:=STD) return cplx
+  function add (
+    l,r  : cplx; -- left/right summand
+    w    : positive; -- output bit width
+    m    : cplx_mode:="-"
+  ) return cplx is
     variable ovfl_re, ovfl_im : std_logic;
-    variable res : cplx(re(width_sum-1 downto 0),im(width_sum-1 downto 0));
+    variable res : cplx(re(w-1 downto 0),im(w-1 downto 0));
   begin
     res.rst := l.rst or r.rst;
-    res.vld := l.vld and r.vld;
-    ADD_CLP_OVF(l=>l.re, r=>r.re, s=>res.re, ovfl=>ovfl_re, m=>m);
-    ADD_CLP_OVF(l=>l.im, r=>r.im, s=>res.im, ovfl=>ovfl_im, m=>m);
-    res.ovf := l.ovf or r.ovf or ovfl_re or ovfl_im;
+    -- data signals
+    if m='R' and res.rst='1' then
+      res.re := (w-1 downto 0 => '0');
+      res.im := (w-1 downto 0 => '0');
+    else
+      ADD_CLIP(l=>l.re, r=>r.re, dout=>res.re, ovfl=>ovfl_re, clip=>(m="S"));
+      ADD_CLIP(l=>l.im, r=>r.im, dout=>res.im, ovfl=>ovfl_im, clip=>(m="S"));
+    end if;
+    -- control signals
+    if m='R' and res.rst='1' then
+      res.vld := '0';
+      res.ovf := '0';
+    else
+      res.vld := l.vld and r.vld;
+      res.ovf := l.ovf or r.ovf;
+      if m='O' then res.ovf := res.ovf or ovfl_re or ovfl_im; end if;
+    end if;  
     return res;
   end function;
 
   procedure add (
-    l,r : in  cplx; -- left/right summand
-    s   : out cplx; -- result sum
-    m   : in  cplx_mode:=STD -- mode
+    l,r  : in  cplx; -- left/right summand
+    dout : out cplx; -- data output, result of sum
+    m    : in  cplx_mode:="-" -- mode
   ) is
-    constant width_sum : positive := s.re'length;
+    constant LOUT : positive := dout.re'length;
   begin
-    s := add(l, r, width_sum, m=>m);
+    dout := add(l=>l, r=>r, w=>LOUT, m=>m);
   end procedure;
 
   function "+" (l,r: cplx) return cplx is
-    constant width_sum : positive := max(l.re'length,r.re'length);
+    constant w : positive := max(l.re'length,r.re'length);
   begin
-    return add(l, r, width_sum, m=>OVF);
+    return add(l=>l, r=>r, w=>w, m=>"O");
   end function;
 
-  function sum (arg:cplx_vector; width_sum:positive; m:cplx_mode:=STD) return cplx
+  function sum (
+    din  : cplx_vector; -- data input vector
+    w    : positive; -- output bit width
+    m    : cplx_mode:="-" -- mode
+  ) return cplx
   is
-    constant L : positive := arg'length; -- vector length
-    alias xarg : cplx_vector(0 to L-1) is arg; -- default range
-    constant W : positive := xarg(0).re'length; -- input bit width
-    constant T : positive := W+log2ceil(L); -- width including additional accumulation bits
+    constant LVEC : positive := din'length; -- vector length
+    alias xdin : cplx_vector(0 to LVEC-1) is din; -- default range
+    constant LIN : positive := xdin(0).re'length; -- input bit width
+    constant T : positive := LIN+log2ceil(LVEC); -- width including additional accumulation bits
     variable temp : cplx(re(T-1 downto 0),im(T-1 downto 0));
   begin
-    temp := resize(din=>xarg(0),n=>W);
-    if L>1 then
-      for i in 1 to L-1 loop temp:=temp+xarg(i); end loop;
+    temp := resize(din=>xdin(0),n=>LIN);
+    if LVEC>1 then
+      for i in 1 to LVEC-1 loop temp:=temp+xdin(i); end loop;
     end if;
-    return resize(din=>temp, n=>width_sum, m=>m);
+    return resize(din=>temp, n=>w, m=>m);
   end function;
 
   procedure sum (
-    arg : in  cplx_vector; -- input vector
-    s   : out cplx; -- result sum
-    m   : in  cplx_mode:=STD -- mode
+    din  : in  cplx_vector; -- data input vector
+    dout : out cplx; -- data output, result of sum
+    m    : in  cplx_mode:="-" -- mode
   ) is
-    constant width_sum : positive := s.re'length;
+    constant LOUT : positive := dout.re'length;
   begin
-    s := sum(arg, width_sum, m=>m);
+    dout := sum(din=>din, w=>LOUT, m=>m);
   end procedure;
 
   ------------------------------------------
@@ -355,47 +346,64 @@ package body cplx_pkg is
   ------------------------------------------
 
   ------------------------------------------
-  -- SHIFT RIGHT and ROUNDING
+  -- SHIFT RIGHT and ROUND
   ------------------------------------------
 
-  function shift_right (arg:cplx; n:natural; m:cplx_switch:="-") return cplx
-  is
-    constant SIZE_RE : positive := arg.re'length;
-    constant SIZE_IM : positive := arg.im'length;
-    variable res : cplx(re(SIZE_RE-1 downto 0),im(SIZE_IM-1 downto 0));
+  function shift_right (
+    din  : cplx; -- data input
+    n    : natural; -- number of right shifts
+    m    : cplx_mode:="-" -- mode
+  ) return cplx is
+    constant SIZE_RE : positive := din.re'length;
+    constant SIZE_IM : positive := din.im'length;
+    variable dout : cplx(re(SIZE_RE-1 downto 0),im(SIZE_IM-1 downto 0));
   begin
     -- data signals
-    if m='R' and arg.rst='1' then
-      res.re := (SIZE_RE-1 downto 0 =>'0');
-      res.im := (SIZE_IM-1 downto 0 =>'0');
+    if m='R' and din.rst='1' then
+      dout.re := (SIZE_RE-1 downto 0 => '0');
+      dout.im := (SIZE_IM-1 downto 0 => '0');
     elsif m='N' then
-      res.re := SHIFT_RIGHT_ROUND(arg.re, n, nearest); -- real part
-      res.im := SHIFT_RIGHT_ROUND(arg.im, n, nearest); -- imaginary part
+      dout.re := SHIFT_RIGHT_ROUND(din.re, n, nearest); -- real part
+      dout.im := SHIFT_RIGHT_ROUND(din.im, n, nearest); -- imaginary part
     elsif m='U' then
-      res.re := SHIFT_RIGHT_ROUND(arg.re, n, ceil); -- real part
-      res.im := SHIFT_RIGHT_ROUND(arg.im, n, ceil); -- imaginary part
+      dout.re := SHIFT_RIGHT_ROUND(din.re, n, ceil); -- real part
+      dout.im := SHIFT_RIGHT_ROUND(din.im, n, ceil); -- imaginary part
     elsif m='Z' then
-      res.re := SHIFT_RIGHT_ROUND(arg.re, n, truncate); -- real part
-      res.im := SHIFT_RIGHT_ROUND(arg.im, n, truncate); -- imaginary part
+      dout.re := SHIFT_RIGHT_ROUND(din.re, n, truncate); -- real part
+      dout.im := SHIFT_RIGHT_ROUND(din.im, n, truncate); -- imaginary part
     elsif m='I' then
-      res.re := SHIFT_RIGHT_ROUND(arg.re, n, infinity); -- real part
-      res.im := SHIFT_RIGHT_ROUND(arg.im, n, infinity); -- imaginary part
+      dout.re := SHIFT_RIGHT_ROUND(din.re, n, infinity); -- real part
+      dout.im := SHIFT_RIGHT_ROUND(din.im, n, infinity); -- imaginary part
     else
       -- by default standard rounding, i.e. floor
-      res.re := shift_right(arg.re, n); -- real part
-      res.im := shift_right(arg.im, n); -- imaginary part
+      dout.re := shift_right(din.re, n); -- real part
+      dout.im := shift_right(din.im, n); -- imaginary part
     end if;
     -- control signals
-    res.rst := arg.rst;
-    if m='R' and arg.rst='1' then
-      res.vld := '0';
-      res.ovf := '0';
+    dout.rst := din.rst;
+    if m='R' and din.rst='1' then
+      dout.vld := '0';
+      dout.ovf := '0';
     else
-      res.vld := arg.vld;
-      res.ovf := arg.ovf; -- shift right cannot cause overflow
+      dout.vld := din.vld;
+      dout.ovf := din.ovf; -- shift right cannot cause overflow
     end if;  
-    return res;
+    return dout;
   end function;
 
-
+  procedure shift_right (
+    din  : in  cplx; -- data input
+    n    : in  natural; -- number of right shifts
+    dout : out cplx; -- data output
+    ovfl : out std_logic; -- '1' if overflow occured
+    m    : in  cplx_mode:="-" -- mode
+  ) is
+    constant LIN_RE : positive := din.re'length;
+    constant LIN_IM : positive := din.im'length;
+    variable temp : cplx(re(LIN_RE-1 downto 0),im(LIN_IM-1 downto 0));
+  begin
+    temp := shift_right(din=>din, n=>n, m=>m);
+    resize(din=>temp, dout=>dout, m=>m);
+  end procedure;
+  
 end package body;
