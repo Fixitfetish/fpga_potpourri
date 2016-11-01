@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_2008.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 31/Oct/2016
--- VERSION : 0.4
+-- DATE    : 01/Nov/2016
+-- VERSION : 0.5
 -- VHDL    : 2008
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -115,7 +115,7 @@ package cplx_pkg is
   ------------------------------------------
 
   -- complex addition with optional clipping and overflow detection
-  -- (sum is resized to given output bit width of sum)
+  -- dout = l + r  (sum is resized to given output bit width of sum)
   function add (
     l,r  : cplx; -- left/right summand
     w    : positive; -- output bit width
@@ -123,7 +123,7 @@ package cplx_pkg is
   ) return cplx;
 
   -- complex addition with optional clipping and overflow detection
-  -- (sum is resized to size of connected output)
+  -- dout = l + r  (sum is resized to size of connected output)
   procedure add (
     l,r  : in  cplx; -- left/right summand
     dout : out cplx; -- data output, result of sum
@@ -154,9 +154,56 @@ package cplx_pkg is
   -- SUBSTRACTION
   ------------------------------------------
 
+  -- complex subtraction with optional clipping and overflow detection
+  -- d = l - r  (sum is resized to given output bit width of sum)
+  function sub (
+    l,r : cplx; -- data input, left minuend, right subtrahend
+    w   : positive; -- output bit width
+    m   : cplx_mode:="-"
+  ) return cplx;
+
+  -- complex subtraction with optional clipping and overflow detection
+  -- d = l - r  (sum is resized to size of connected output)
+  procedure sub (
+    l,r : in  cplx; -- data input, left minuend, right subtrahend
+    d   : out cplx; -- data output, difference
+    m   : in  cplx_mode:="-" -- mode
+  );
+
+  -- complex subtraction with wrap and overflow detection
+  -- (bit width of sum equals the max bit width of left minuend and right subtrahend)
+  function "-" (l,r: cplx) return cplx;
+
   ------------------------------------------
-  -- SHIFT RIGHT and ROUNDING
+  -- SHIFT LEFT AND SATURATE/CLIP
   ------------------------------------------
+
+  -- complex signed shift left with optional clipping/saturation and overflow detection
+  procedure shift_left (
+    din  : in  cplx; -- data input
+    n    : in  natural; -- number of left shifts
+    dout : out cplx; -- data output
+    m    : in  cplx_mode:="-" -- mode
+  );
+
+  -- complex signed shift left with optional clipping/saturation and overflow detection
+  function shift_left (
+    din  : cplx; -- data input
+    n    : natural; -- number of left shifts
+    m    : cplx_mode:="-" -- mode
+  ) return cplx;
+
+  ------------------------------------------
+  -- SHIFT RIGHT and ROUND
+  ------------------------------------------
+
+  -- complex signed shift right with optional rounding
+  procedure shift_right (
+    din  : in  cplx; -- data input
+    n    : in  natural; -- number of right shifts
+    dout : out cplx; -- data output
+    m    : in  cplx_mode:="-" -- mode
+  );
 
   -- complex signed shift right with optional rounding
   function shift_right (
@@ -164,15 +211,6 @@ package cplx_pkg is
     n    : natural; -- number of right shifts
     m    : cplx_mode:="-" -- mode
   ) return cplx;
-
-  -- complex signed shift right with optional rounding
-  procedure shift_right (
-    din  : in  cplx; -- data input
-    n    : in  natural; -- number of right shifts
-    dout : out cplx; -- data output
-    ovfl : out std_logic; -- '1' if overflow occured
-    m    : in  cplx_mode:="-" -- mode
-  );
 
 end package;
 
@@ -266,11 +304,10 @@ package body cplx_pkg is
   -- ADDITION and ACCUMULATION
   ------------------------------------------
 
---  function add (l,r:cplx; width_sum:positive; m:cplx_mode:=STD) return cplx
   function add (
     l,r  : cplx; -- left/right summand
     w    : positive; -- output bit width
-    m    : cplx_mode:="-"
+    m    : cplx_mode:="-" -- mode
   ) return cplx is
     variable ovfl_re, ovfl_im : std_logic;
     variable res : cplx(re(w-1 downto 0),im(w-1 downto 0));
@@ -292,7 +329,7 @@ package body cplx_pkg is
       res.vld := l.vld and r.vld;
       res.ovf := l.ovf or r.ovf;
       if m='O' then res.ovf := res.ovf or ovfl_re or ovfl_im; end if;
-    end if;  
+    end if;
     return res;
   end function;
 
@@ -345,39 +382,139 @@ package body cplx_pkg is
   -- SUBSTRACTION
   ------------------------------------------
 
+  -- complex subtraction with optional clipping and overflow detection
+  -- d = l - r  (sum is resized to given output bit width of sum)
+  function sub (
+    l,r : cplx; -- data input, left minuend, right subtrahend
+    w   : positive; -- output bit width
+    m   : cplx_mode:="-"
+  ) return cplx is
+    variable ovfl_re, ovfl_im : std_logic;
+    variable res : cplx(re(w-1 downto 0),im(w-1 downto 0));
+  begin
+    res.rst := l.rst or r.rst;
+    -- data signals
+    if m='R' and res.rst='1' then
+      res.re := (w-1 downto 0 => '0');
+      res.im := (w-1 downto 0 => '0');
+    else
+      SUB_CLIP(l=>l.re, r=>r.re, dout=>res.re, ovfl=>ovfl_re, clip=>(m="S"));
+      SUB_CLIP(l=>l.im, r=>r.im, dout=>res.im, ovfl=>ovfl_im, clip=>(m="S"));
+    end if;
+    -- control signals
+    if m='R' and res.rst='1' then
+      res.vld := '0';
+      res.ovf := '0';
+    else
+      res.vld := l.vld and r.vld;
+      res.ovf := l.ovf or r.ovf;
+      if m='O' then res.ovf := res.ovf or ovfl_re or ovfl_im; end if;
+    end if;
+    return res;
+  end function;
+
+  -- complex subtraction with optional clipping and overflow detection
+  -- d = l - r  (sum is resized to size of connected output)
+  procedure sub (
+    l,r : in  cplx; -- data input, left minuend, right subtrahend
+    d   : out cplx; -- data output, difference
+    m   : in  cplx_mode:="-" -- mode
+  ) is
+    constant LOUT : positive := d.re'length;
+  begin
+    d := sub(l=>l, r=>r, w=>LOUT, m=>m);
+  end procedure;
+
+  -- complex subtraction with wrap and overflow detection
+  -- (bit width of sum equals the max bit width of left minuend and right subtrahend)
+  function "-" (l,r: cplx) return cplx is
+    constant w : positive := max(l.re'length,r.re'length);
+  begin
+    return sub(l=>l, r=>r, w=>w, m=>"O");
+  end function;
+
+  ------------------------------------------
+  -- SHIFT LEFT AND SATURATE/CLIP
+  ------------------------------------------
+
+  -- complex signed shift left with optional clipping/saturation and overflow detection
+  procedure shift_left (
+    din  : in  cplx; -- data input
+    n    : in  natural; -- number of left shifts
+    dout : out cplx; -- data output
+    m    : in  cplx_mode:="-" -- mode
+  ) is
+    variable ovfl_re, ovfl_im : std_logic;
+    constant LOUT_RE : positive := dout.re'length;
+    constant LOUT_IM : positive := dout.im'length;
+  begin
+    -- data signals
+    if m='R' and din.rst='1' then
+      dout.re := (LOUT_RE-1 downto 0 => '0');
+      dout.im := (LOUT_IM-1 downto 0 => '0');
+    else
+      SHIFT_LEFT_CLIP(din=>din.re, n=>n, dout=>dout.re, ovfl=>ovfl_re, clip=>(m='S'));
+      SHIFT_LEFT_CLIP(din=>din.im, n=>n, dout=>dout.im, ovfl=>ovfl_im, clip=>(m='S'));
+    end if;
+    -- control signals
+    dout.rst := din.rst;
+    if m='R' and din.rst='1' then
+      dout.vld := '0';
+      dout.ovf := '0';
+    else
+      dout.vld := din.vld; 
+      dout.ovf := din.ovf;
+      if m='O' then dout.ovf := din.ovf or ovfl_re or ovfl_im; end if;
+    end if;  
+  end procedure;
+
+  -- complex signed shift left with optional clipping/saturation and overflow detection
+  function shift_left (
+    din  : cplx; -- data input
+    n    : natural; -- number of left shifts
+    m    : cplx_mode:="-" -- mode
+  ) return cplx is
+    -- output size always equals input size
+    constant LOUT_RE : positive := din.re'length;
+    constant LOUT_IM : positive := din.im'length;
+    variable dout : cplx(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
+  begin
+    shift_left(din=>din, n=>n, dout=>dout, m=>m);
+    return dout;
+  end function;
+
   ------------------------------------------
   -- SHIFT RIGHT and ROUND
   ------------------------------------------
 
-  function shift_right (
-    din  : cplx; -- data input
-    n    : natural; -- number of right shifts
-    m    : cplx_mode:="-" -- mode
-  ) return cplx is
-    constant SIZE_RE : positive := din.re'length;
-    constant SIZE_IM : positive := din.im'length;
-    variable dout : cplx(re(SIZE_RE-1 downto 0),im(SIZE_IM-1 downto 0));
+  procedure shift_right (
+    din  : in  cplx; -- data input
+    n    : in  natural; -- number of right shifts
+    dout : out cplx; -- data output
+    m    : in  cplx_mode:="-" -- mode
+  ) is
+    variable ovfl_re, ovfl_im : std_logic;
   begin
     -- data signals
     if m='R' and din.rst='1' then
-      dout.re := (SIZE_RE-1 downto 0 => '0');
-      dout.im := (SIZE_IM-1 downto 0 => '0');
+      dout.re := (dout.re'range => '0');
+      dout.im := (dout.im'range => '0');
     elsif m='N' then
-      dout.re := SHIFT_RIGHT_ROUND(din.re, n, nearest); -- real part
-      dout.im := SHIFT_RIGHT_ROUND(din.im, n, nearest); -- imaginary part
+      SHIFT_RIGHT_ROUND(din=>din.re, n=>n, dout=>dout.re, ovfl=>ovfl_re, rnd=>nearest, clip=>(m="S"));
+      SHIFT_RIGHT_ROUND(din=>din.im, n=>n, dout=>dout.im, ovfl=>ovfl_im, rnd=>nearest, clip=>(m="S"));
     elsif m='U' then
-      dout.re := SHIFT_RIGHT_ROUND(din.re, n, ceil); -- real part
-      dout.im := SHIFT_RIGHT_ROUND(din.im, n, ceil); -- imaginary part
+      SHIFT_RIGHT_ROUND(din=>din.re, n=>n, dout=>dout.re, ovfl=>ovfl_re, rnd=>ceil, clip=>(m="S"));
+      SHIFT_RIGHT_ROUND(din=>din.im, n=>n, dout=>dout.im, ovfl=>ovfl_im, rnd=>ceil, clip=>(m="S"));
     elsif m='Z' then
-      dout.re := SHIFT_RIGHT_ROUND(din.re, n, truncate); -- real part
-      dout.im := SHIFT_RIGHT_ROUND(din.im, n, truncate); -- imaginary part
+      SHIFT_RIGHT_ROUND(din=>din.re, n=>n, dout=>dout.re, ovfl=>ovfl_re, rnd=>truncate, clip=>(m="S"));
+      SHIFT_RIGHT_ROUND(din=>din.im, n=>n, dout=>dout.im, ovfl=>ovfl_im, rnd=>truncate, clip=>(m="S"));
     elsif m='I' then
-      dout.re := SHIFT_RIGHT_ROUND(din.re, n, infinity); -- real part
-      dout.im := SHIFT_RIGHT_ROUND(din.im, n, infinity); -- imaginary part
+      SHIFT_RIGHT_ROUND(din=>din.re, n=>n, dout=>dout.re, ovfl=>ovfl_re, rnd=>infinity, clip=>(m="S"));
+      SHIFT_RIGHT_ROUND(din=>din.im, n=>n, dout=>dout.im, ovfl=>ovfl_im, rnd=>infinity, clip=>(m="S"));
     else
       -- by default standard rounding, i.e. floor
-      dout.re := shift_right(din.re, n); -- real part
-      dout.im := shift_right(din.im, n); -- imaginary part
+      SHIFT_RIGHT_ROUND(din=>din.re, n=>n, dout=>dout.re, ovfl=>ovfl_re, rnd=>floor, clip=>(m="S"));
+      SHIFT_RIGHT_ROUND(din=>din.im, n=>n, dout=>dout.im, ovfl=>ovfl_im, rnd=>floor, clip=>(m="S"));
     end if;
     -- control signals
     dout.rst := din.rst;
@@ -386,24 +523,23 @@ package body cplx_pkg is
       dout.ovf := '0';
     else
       dout.vld := din.vld;
-      dout.ovf := din.ovf; -- shift right cannot cause overflow
+      dout.ovf := din.ovf; 
+      if m='O' then dout.ovf := din.ovf or ovfl_re or ovfl_im; end if;
     end if;  
+  end procedure;
+
+  function shift_right (
+    din  : cplx; -- data input
+    n    : natural; -- number of right shifts
+    m    : cplx_mode:="-" -- mode
+  ) return cplx is
+    -- output size always equals input size
+    constant LOUT_RE : positive := din.re'length;
+    constant LOUT_IM : positive := din.im'length;
+    variable dout : cplx(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
+  begin
+    shift_right(din=>din, n=>n, dout=>dout, m=>m);
     return dout;
   end function;
 
-  procedure shift_right (
-    din  : in  cplx; -- data input
-    n    : in  natural; -- number of right shifts
-    dout : out cplx; -- data output
-    ovfl : out std_logic; -- '1' if overflow occured
-    m    : in  cplx_mode:="-" -- mode
-  ) is
-    constant LIN_RE : positive := din.re'length;
-    constant LIN_IM : positive := din.im'length;
-    variable temp : cplx(re(LIN_RE-1 downto 0),im(LIN_IM-1 downto 0));
-  begin
-    temp := shift_right(din=>din, n=>n, m=>m);
-    resize(din=>temp, dout=>dout, m=>m);
-  end procedure;
-  
 end package body;
