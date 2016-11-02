@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : ieee_extension.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 31/Oct/2016
--- VERSION : 0.4
+-- DATE    : 02/Nov/2016
+-- VERSION : 0.5
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -76,78 +76,112 @@ package ieee_extension is
  --   INDEX_OF_RIGHTMOST_ZERO(x2) = 19
  function INDEX_OF_RIGHTMOST_ZERO(x:std_logic_vector) return integer;
 
+ -- This function determines the number of additional sign extension bits.
+ -- The input is assumed to be a signed number of size>=3. Otherwise sign
+ -- extension bits cannot exist.
  -- Examples: 
  --   NUMBER_OF_SIGN_EXTENSION_BITS("00010101111") = 2
- --   NUMBER_OF_SIGN_EXTENSION_BITS("1101") = 1
- --   NUMBER_OF_SIGN_EXTENSION_BITS("0000000") = 5
+ --   NUMBER_OF_SIGN_EXTENSION_BITS("11001") = 1
+ --   NUMBER_OF_SIGN_EXTENSION_BITS("000") = 1
  --   NUMBER_OF_SIGN_EXTENSION_BITS("01110101") = 0 
  function NUMBER_OF_SIGN_EXTENSION_BITS(x:std_logic_vector) return natural;
+
+ -- This function determines the number of additional sign extension bits.
+ -- The input is assumed to be a signed number of size>=3. Otherwise sign
+ -- extension bits cannot exist.
+ -- Examples: 
+ --   NUMBER_OF_SIGN_EXTENSION_BITS("00010101111") = 2
+ --   NUMBER_OF_SIGN_EXTENSION_BITS("11001") = 1
+ --   NUMBER_OF_SIGN_EXTENSION_BITS("000") = 1
+ --   NUMBER_OF_SIGN_EXTENSION_BITS("01110101") = 0 
  function NUMBER_OF_SIGN_EXTENSION_BITS(x:signed) return natural;
 
+ -- This function determines the number of consecutive leading bits of value b.
  -- Examples: 
  --   NUMBER_OF_LEADING_BITS("00010101111",'0') = 3
  --   NUMBER_OF_LEADING_BITS("1101",'1') = 2
  --   NUMBER_OF_LEADING_BITS("0000000",'0') = 7
  --   NUMBER_OF_LEADING_BITS("00110101",'1') = 0 
  function NUMBER_OF_LEADING_BITS(x:std_logic_vector; b:std_logic) return natural;
+
+ -- This function determines the number of consecutive leading bits of value b.
+ -- Examples: 
+ --   NUMBER_OF_LEADING_BITS("00010101111",'0') = 3
+ --   NUMBER_OF_LEADING_BITS("1101",'1') = 2
+ --   NUMBER_OF_LEADING_BITS("0000000",'0') = 7
+ --   NUMBER_OF_LEADING_BITS("00110101",'1') = 0 
  function NUMBER_OF_LEADING_BITS(x:unsigned; b:std_logic) return natural;
+
+ -- This function determines the number of consecutive leading bits of value b.
+ -- Examples: 
+ --   NUMBER_OF_LEADING_BITS("00010101111",'0') = 3
+ --   NUMBER_OF_LEADING_BITS("1101",'1') = 2
+ --   NUMBER_OF_LEADING_BITS("0000000",'0') = 7
+ --   NUMBER_OF_LEADING_BITS("00110101",'1') = 0 
  function NUMBER_OF_LEADING_BITS(x:signed; b:std_logic) return natural;
 
- -- bitwise logic OR operation on specified number of leftmost MSB bits
- -- Function returns '1' when one or more of the n MSB bits are '1'.
- -- If n=0 (default) or when n is larger then the input vector length all
- -- input bits are considered.
- function SLV_OR(arg:std_logic_vector; n:natural:=0) return std_logic;
+ -- bitwise logic OR operation on input vector
+ -- Function returns '1' when one or more bits are '1'.
+ function SLV_OR(arg:std_logic_vector) return std_logic;
  
- -- bitwise logic NOR operation on specified number of leftmost MSB bits
- -- Function returns '1' when all n MSB bits are '0'.
- -- If n=0 (default) or when n is larger then the input vector length all
- -- input bits are considered.
- function SLV_NOR(arg:std_logic_vector; n:natural:=0) return std_logic;
+ -- bitwise logic NOR operation on input vector
+ -- Function returns '1' when all bits are '0'.
+ function SLV_NOR(arg:std_logic_vector) return std_logic;
 
- -- bitwise logic AND operation on specified number of leftmost MSB bits
- -- Function returns '1' when all n MSB bits are '1'.
- -- If n=0 (default) or when n is larger then the input vector length all
- -- input bits are considered.
- function SLV_AND(arg:std_logic_vector; n:natural:=0) return std_logic;
+ -- bitwise logic AND operation on input vector
+ -- Function returns '1' when all bits are '1'.
+ function SLV_AND(arg:std_logic_vector) return std_logic;
    
- -- bitwise logic NAND operation on specified number of leftmost MSB bits
- -- Function returns '1' when one or more of the n MSB bits are '0'.
- -- If n=0 (default) or when n is larger then the input vector length all
- -- input bits are considered.
- function SLV_NAND(arg:std_logic_vector; n:natural:=0) return std_logic;
+ -- bitwise logic NAND operation on input vector
+ -- Function returns '1' when one or more bits are '0'.
+ function SLV_NAND(arg:std_logic_vector) return std_logic;
 
- -- bitwise logic XOR operation, '1' when odd number of '1' bits
+ -- bitwise logic XOR operation on input vector
+ -- Function returns '1' when odd number of '1' bits.
  function SLV_XOR(x:std_logic_vector) return std_logic;
 
- -- bitwise logic XNOR operation, '0' when odd number of '0' bits
+ -- bitwise logic XNOR operation  on input vector
+ -- Function returns '0' when odd number of '0' bits.
  function SLV_XNOR(x:std_logic_vector) return std_logic;
-  
--- function LOG2_CEIL(x:unsigned) return natural;
 
  ----------------------------------------------------------
- -- MSB check (useful e,g, for overflow detection)
+ -- MSB check (useful e.g. for overflow detection)
  ----------------------------------------------------------
 
- -- MSB check, returns '1' if the number of N MSBs are all '0'
+ -- MSB check, returns '1' if the number of N leftmost MSBs are all '0'
+ -- If n is larger than the input vector length then the return value is 'X'.
  function MSB_ALL_ZEROS (arg:std_logic_vector; n:positive) return std_logic;
- -- MSB check, returns '1' if the number of N MSBs are all '0'
+
+ -- MSB check, returns '1' if the number of N leftmost MSBs are all '0'
+ -- If n is larger than the input vector length then the return value is 'X'.
  function MSB_ALL_ZEROS (arg:unsigned; n:positive) return std_logic;
- -- MSB check, returns '1' if the number of N MSBs are all '0'
+
+ -- MSB check, returns '1' if the number of N leftmost MSBs are all '0'
+ -- If n is larger than the input vector length then the return value is 'X'.
  function MSB_ALL_ZEROS (arg:signed; n:positive) return std_logic;
 
- -- MSB check, returns '1' if the number of N MSBs are all '1'
+ -- MSB check, returns '1' if the number of N leftmost MSBs are all '1'
+ -- If n is larger than the input vector length then the return value is 'X'.
  function MSB_ALL_ONES (arg:std_logic_vector; n:positive) return std_logic;
- -- MSB check, returns '1' if the number of N MSBs are all '1'
+
+ -- MSB check, returns '1' if the number of N leftmost MSBs are all '1'
+ -- If n is larger than the input vector length then the return value is 'X'.
  function MSB_ALL_ONES (arg:unsigned; n:positive) return std_logic;
- -- MSB check, returns '1' if the number of N MSBs are all '1'
+
+ -- MSB check, returns '1' if the number of N leftmost MSBs are all '1'
+ -- If n is larger than the input vector length then the return value is 'X'.
  function MSB_ALL_ONES (arg:signed; n:positive) return std_logic;
 
- -- MSB check, returns '1' if the number of N MSBs are all equal
+ -- MSB check, returns '1' if the number of N leftmost MSBs are all equal
+ -- If n is larger than the input vector length then the return value is 'X'.
  function MSB_ALL_EQUAL (arg:std_logic_vector; n:positive) return std_logic;
- -- MSB check, returns '1' if the number of N MSBs are all equal
+
+ -- MSB check, returns '1' if the number of N leftmost MSBs are all equal
+ -- If n is larger than the input vector length then the return value is 'X'.
  function MSB_ALL_EQUAL (arg:unsigned; n:positive) return std_logic;
- -- MSB check, returns '1' if the number of N MSBs are all equal
+
+ -- MSB check, returns '1' if the number of N leftmost MSBs are all equal
+ -- If n is larger than the input vector length then the return value is 'X'.
  function MSB_ALL_EQUAL (arg:signed; n:positive) return std_logic;
 
  ----------------------------------------------------------
@@ -163,7 +197,7 @@ package ieee_extension is
  procedure RESIZE_CLIP(
    din  :in  unsigned; -- data input
    dout :out unsigned; -- data output
-   ovfl :out std_logic; -- '1' if overflow occured 
+   ovfl :out std_logic; -- '1' if overflow occurred 
    clip :in  boolean:=false -- enable clipping
  );
 
@@ -176,7 +210,7 @@ package ieee_extension is
  procedure RESIZE_CLIP(
    din  :in  signed; -- data input
    dout :out signed; -- data output
-   ovfl :out std_logic; -- '1' if overflow occured 
+   ovfl :out std_logic; -- '1' if overflow occurred 
    clip :in  boolean:=false -- enable clipping
  );
 
@@ -215,7 +249,7 @@ package ieee_extension is
    din  :in  unsigned; -- data input
    n    :in  natural; -- number of left shifts
    dout :out unsigned; -- data output
-   ovfl :out std_logic; -- '1' if overflow occured
+   ovfl :out std_logic; -- '1' if overflow occurred
    clip :in  boolean:=false -- enable clipping
  );
  
@@ -228,7 +262,7 @@ package ieee_extension is
    din  :in  signed; -- data input
    n    :in  natural; -- number of left shifts
    dout :out signed; -- data output
-   ovfl :out std_logic; -- '1' if overflow occured
+   ovfl :out std_logic; -- '1' if overflow occurred
    clip :in  boolean:=false -- enable clipping
  );
  
@@ -291,7 +325,7 @@ package ieee_extension is
    din  :in  unsigned; -- data input
    n    :in  natural; -- number of right shifts
    dout :out unsigned; -- data output
-   ovfl :out std_logic; -- '1' if overflow occured
+   ovfl :out std_logic; -- '1' if overflow occurred
    rnd  :in  round_option:=floor; -- enable optional rounding
    clip :in  boolean:=false -- enable clipping
  );
@@ -305,7 +339,7 @@ package ieee_extension is
    din  :in  signed; -- data input
    n    :in  natural; -- number of right shifts
    dout :out signed; -- data output
-   ovfl :out std_logic; -- '1' if overflow occured
+   ovfl :out std_logic; -- '1' if overflow occurred
    rnd  :in  round_option:=floor; -- enable optional rounding
    clip :in  boolean:=false -- enable clipping
  );
@@ -322,7 +356,7 @@ package ieee_extension is
  procedure ADD_CLIP(
    l,r  :in  unsigned; -- data input
    dout :out unsigned; -- data output
-   ovfl :out std_logic; -- '1' if overflow occured
+   ovfl :out std_logic; -- '1' if overflow occurred
    clip :in  boolean:=false -- enable clipping
  );
  
@@ -334,7 +368,7 @@ package ieee_extension is
  procedure ADD_CLIP(
    l,r  :in  signed; -- data input
    dout :out signed; -- data output
-   ovfl :out std_logic; -- '1' if overflow occured
+   ovfl :out std_logic; -- '1' if overflow occurred
    clip :in  boolean:=false -- enable clipping
  );
 
@@ -348,9 +382,9 @@ package ieee_extension is
  -- Furthermore, overflows are detected and the output is clipped when clipping
  -- is enabled.
  procedure SUB_CLIP(
-   l,r  :in  unsigned; -- data input
-   dout :out unsigned; -- data output
-   ovfl :out std_logic; -- '1' if overflow occured
+   l,r  :in  unsigned; -- data input, left minuend, right subtrahend
+   dout :out unsigned; -- data output, difference
+   ovfl :out std_logic; -- '1' if overflow occurred
    clip :in  boolean:=false -- enable clipping
  );
  
@@ -360,9 +394,9 @@ package ieee_extension is
  -- Furthermore, overflows are detected and the output is clipped when clipping
  -- is enabled.
  procedure SUB_CLIP(
-   l,r  :in  signed; -- data input
-   dout :out signed; -- data output
-   ovfl :out std_logic; -- '1' if overflow occured
+   l,r  :in  signed; -- data input, left minuend, right subtrahend
+   dout :out signed; -- data output, difference
+   ovfl :out std_logic; -- '1' if overflow occurred
    clip :in  boolean:=false -- enable clipping
  );
 
@@ -447,11 +481,10 @@ package body ieee_extension is
  end function; 
 
  function NUMBER_OF_SIGN_EXTENSION_BITS(x:std_logic_vector) return natural is
-   constant L : integer range 2 to integer'high := x'length;
+   constant L : integer range 3 to integer'high := x'length;
    alias xx : std_logic_vector(L-1 downto 0) is x; -- default range
-   variable n : natural;
+   variable n : natural := 0;
  begin
-   n:=0;
    for i in L-2 downto 1 loop
      exit when xx(i)/=xx(L-1);
      n:=n+1;
@@ -460,19 +493,15 @@ package body ieee_extension is
  end function;
 
  function NUMBER_OF_SIGN_EXTENSION_BITS(x:signed) return natural is
-   constant L : integer range 2 to integer'high := x'length;
-   variable y : std_logic_vector(L-1 downto 0);
  begin
-   y:=std_logic_vector(x);
-   return NUMBER_OF_SIGN_EXTENSION_BITS(y);
+   return NUMBER_OF_SIGN_EXTENSION_BITS(std_logic_vector(x));
  end function;
 
  function NUMBER_OF_LEADING_BITS(x:std_logic_vector; b:std_logic) return natural is
    constant L : integer range 2 to integer'high := x'length;
    alias xx : std_logic_vector(L-1 downto 0) is x; -- default range
-   variable n : natural;
+   variable n : natural := 0;
  begin
-   n:=0; 
    for i in L-1 downto 0 loop
      exit when xx(i)/=b;
      n:=n+1;
@@ -481,70 +510,49 @@ package body ieee_extension is
  end function;
 
  function NUMBER_OF_LEADING_BITS(x:unsigned; b:std_logic) return natural is
-   constant L : integer range 2 to integer'high := x'length;
-   variable y : std_logic_vector(L-1 downto 0);
  begin
-   y:=std_logic_vector(x);
-   return NUMBER_OF_LEADING_BITS(y,b);
+   return NUMBER_OF_LEADING_BITS(std_logic_vector(x),b);
  end function;
 
  function NUMBER_OF_LEADING_BITS(x:signed; b:std_logic) return natural is
-   constant L : integer range 2 to integer'high := x'length;
-   variable y : std_logic_vector(L-1 downto 0);
  begin
-   y:=std_logic_vector(x);
-   return NUMBER_OF_LEADING_BITS(y,b);
+   return NUMBER_OF_LEADING_BITS(std_logic_vector(x),b);
  end function;
 
- -- bitwise logic OR operation on specified number of leftmost MSB bits
- -- Function returns '1' when one or more of the n MSB bits are '1'.
- -- If n=0 (default) or when n is larger then the input vector length all
- -- input bits are considered.
- function SLV_OR(arg:std_logic_vector; n:natural:=0) return std_logic is
-   constant L : positive := arg'length;
-   alias x : std_logic_vector(L-1 downto 0) is arg; -- default range
-   variable NMSB : positive := L; -- by default all bits
+ -- bitwise logic OR operation on input vector
+ -- Function returns '1' when one or more bits are '1'.
+ function SLV_OR(arg:std_logic_vector) return std_logic is
    variable r : std_logic := '0';
  begin
-   if (n/=0 and n<L) then NMSB:=n; end if;
-   for i in L-1 downto L-NMSB loop r:=(r or x(i)); end loop;
+   for i in arg'range loop r:=(r or arg(i)); end loop;
    return r;
  end function;
 
- -- bitwise logic NOR operation on specified number of leftmost MSB bits
- -- Function returns '1' when all n MSB bits are '0'.
- -- If n=0 (default) or when n is larger then the input vector length all
- -- input bits are considered.
- function SLV_NOR(arg:std_logic_vector; n:natural:=0) return std_logic is
+ -- bitwise logic NOR operation on input vector
+ -- Function returns '1' when all bits are '0'.
+ function SLV_NOR(arg:std_logic_vector) return std_logic is
  begin
-   return (not SLV_OR(arg,n));
+   return (not SLV_OR(arg));
  end function;
 
- -- bitwise logic AND operation on specified number of leftmost MSB bits
- -- Function returns '1' when all n MSB bits are '1'.
- -- If n=0 (default) or when n is larger then the input vector length all
- -- input bits are considered.
- function SLV_AND(arg:std_logic_vector; n:natural:=0) return std_logic is
-   constant L : positive := arg'length;
-   alias x : std_logic_vector(L-1 downto 0) is arg; -- default range
-   variable NMSB : positive := L; -- by default all bits
+ -- bitwise logic AND operation on input vector
+ -- Function returns '1' when all bits are '1'.
+ function SLV_AND(arg:std_logic_vector) return std_logic is
    variable r : std_logic := '1';
  begin
-   if (n/=0 and n<L) then NMSB:=n; end if;
-   for i in L-1 downto L-NMSB loop r:=(r and x(i)); end loop;
+   for i in arg'range loop r:=(r and arg(i)); end loop;
    return r;
  end function;
 
- -- bitwise logic NAND operation on specified number of leftmost MSB bits
- -- Function returns '1' when one or more of the n MSB bits are '0'.
- -- If n=0 (default) or when n is larger then the input vector length all
- -- input bits are considered.
- function SLV_NAND(arg:std_logic_vector; n:natural:=0) return std_logic is
+ -- bitwise logic NAND operation on input vector
+ -- Function returns '1' when one or more bits are '0'.
+ function SLV_NAND(arg:std_logic_vector) return std_logic is
  begin
-   return (not SLV_AND(arg,n));
+   return (not SLV_AND(arg));
  end function;
 
- -- bitwise logic XOR operation, returns '1' when odd number of '1' bits
+ -- bitwise logic XOR operation on input vector
+ -- Function returns '1' when odd number of '1' bits.
  function SLV_XOR(x:std_logic_vector) return std_logic is
    variable r : std_logic := '0';
  begin
@@ -552,7 +560,8 @@ package body ieee_extension is
    return r;
  end function;
 
- -- bitwise logic XNOR operation, returns '0' when odd number of '0' bits
+ -- bitwise logic XNOR operation  on input vector
+ -- Function returns '0' when odd number of '0' bits.
  function SLV_XNOR(x:std_logic_vector) return std_logic is
    variable r : std_logic := '1';
  begin
@@ -561,64 +570,75 @@ package body ieee_extension is
  end function;
 
  ----------------------------------------------------------
- -- MSB check (useful e,g, for overflow detection)
+ -- MSB check (useful e.g. for overflow detection)
  ----------------------------------------------------------
 
- -- MSB check, returns '1' if the number of N MSBs are all '0'
+ -- MSB check, returns '1' if the number of N leftmost MSBs are all '0'
+ -- If n is larger than the input vector length then the return value is 'X'.
  function MSB_ALL_ZEROS (arg:std_logic_vector; n:positive) return std_logic is
+   constant L :positive := arg'length;
+   alias x : std_logic_vector(L-1 downto 0) is arg; -- default range
    variable res : std_logic := 'X';
  begin
-   if (n/=0 and n<=arg'length) then res:=SLV_NOR(arg,n); end if; 
+   if (n/=0 and n<=L) then res:=SLV_NOR(x(L-1 downto L-n)); end if; 
    return res;
  end function;
 
- -- MSB check, returns '1' if the number of N MSBs are all '0'
+ -- MSB check, returns '1' if the number of N leftmost MSBs are all '0'
+ -- If n is larger than the input vector length then the return value is 'X'.
  function MSB_ALL_ZEROS (arg:unsigned; n:positive) return std_logic is
  begin
    return MSB_ALL_ZEROS(std_logic_vector(arg),n);
  end function;
 
- -- MSB check, returns '1' if the number of N MSBs are all '0'
+ -- MSB check, returns '1' if the number of N leftmost MSBs are all '0'
+ -- If n is larger than the input vector length then the return value is 'X'.
  function MSB_ALL_ZEROS (arg:signed; n:positive) return std_logic is
  begin
    return MSB_ALL_ZEROS(std_logic_vector(arg),n);
  end function;
 
- -- MSB check, returns '1' if the number of N MSBs are all '1'
+ -- MSB check, returns '1' if the number of N leftmost MSBs are all '1'
+ -- If n is larger than the input vector length then the return value is 'X'.
  function MSB_ALL_ONES (arg:std_logic_vector; n:positive) return std_logic is
+   constant L :positive := arg'length;
+   alias x : std_logic_vector(L-1 downto 0) is arg; -- default range
    variable res : std_logic := 'X';
  begin
-   if (n/=0 and n<=arg'length) then res:=SLV_AND(arg,n); end if;
+   if (n/=0 and n<=L) then res:=SLV_AND(x(L-1 downto L-n)); end if; 
    return res;
  end function;
 
- -- MSB check, returns '1' if the number of N MSBs are all '1'
+ -- MSB check, returns '1' if the number of N leftmost MSBs are all '1'
+ -- If n is larger than the input vector length then the return value is 'X'.
  function MSB_ALL_ONES (arg:unsigned; n:positive) return std_logic is
-   variable res : std_logic := 'X';
  begin
    return MSB_ALL_ONES(std_logic_vector(arg),n);
  end function;
 
- -- MSB check, returns '1' if the number of N MSBs are all '1'
+ -- MSB check, returns '1' if the number of N leftmost MSBs are all '1'
+ -- If n is larger than the input vector length then the return value is 'X'.
  function MSB_ALL_ONES (arg:signed; n:positive) return std_logic is
-   variable res : std_logic := 'X';
  begin
    return MSB_ALL_ONES(std_logic_vector(arg),n);
  end function;
 
- -- MSB check, returns '1' if the number of N MSBs are all equal
+ -- MSB check, returns '1' if the number of N leftmost MSBs are all equal
+ -- If n is larger than the input vector length then the return value is 'X'.
  function MSB_ALL_EQUAL (arg:std_logic_vector; n:positive) return std_logic is
  begin
    return (MSB_ALL_ZEROS(arg,n) or MSB_ALL_ONES(arg,n));
  end function;
 
- -- MSB check, returns '1' if the number of N MSBs are all equal
+ -- MSB check, returns '1' if the number of N leftmost MSBs are all equal
+ -- If n is larger than the input vector length then the return value is 'X'.
  function MSB_ALL_EQUAL (arg:unsigned; n:positive) return std_logic is
  begin
    return MSB_ALL_EQUAL(std_logic_vector(arg),n);
  end function;
 
- -- MSB check, returns '1' if the number of N MSBs are all equal
+ -- MSB check, returns '1' if the number of N leftmost MSBs are all equal
+ -- If n is larger than the input vector length then the return value is 'X'.
  function MSB_ALL_EQUAL (arg:signed; n:positive) return std_logic is
  begin
    return MSB_ALL_EQUAL(std_logic_vector(arg),n);
@@ -632,7 +652,7 @@ package body ieee_extension is
  procedure RESIZE_CLIP(
    din  :in  unsigned; -- data input
    dout :out unsigned; -- data output
-   ovfl :out std_logic; -- '1' if overflow occured 
+   ovfl :out std_logic; -- '1' if overflow occurred 
    clip :in  boolean:=false -- enable clipping
  ) is
    constant LIN : positive := din'length; 
@@ -658,7 +678,7 @@ package body ieee_extension is
  procedure RESIZE_CLIP(
    din  :in  signed; -- data input
    dout :out signed; -- data output
-   ovfl :out std_logic; -- '1' if overflow occured 
+   ovfl :out std_logic; -- '1' if overflow occurred 
    clip :in  boolean:=false -- enable clipping
  ) is
    constant LIN : positive := din'length; 
@@ -713,7 +733,7 @@ package body ieee_extension is
    din  :in  unsigned; -- data input
    n    :in  natural; -- number of left shifts
    dout :out unsigned; -- data output
-   ovfl :out std_logic; -- '1' if overflow occured
+   ovfl :out std_logic; -- '1' if overflow occurred
    clip :in  boolean:=false -- enable clipping
  ) is
    constant LIN : positive := din'length;
@@ -728,7 +748,7 @@ package body ieee_extension is
    din  :in  signed; -- data input
    n    :in  natural; -- number of left shifts
    dout :out signed; -- data output
-   ovfl :out std_logic; -- '1' if overflow occured
+   ovfl :out std_logic; -- '1' if overflow occurred
    clip :in  boolean:=false -- enable clipping
  ) is
    constant LIN : positive := din'length; 
@@ -873,7 +893,7 @@ package body ieee_extension is
    din  :in  unsigned; -- data input
    n    :in  natural; -- number of right shifts
    dout :out unsigned; -- data output
-   ovfl :out std_logic; -- '1' if overflow occured
+   ovfl :out std_logic; -- '1' if overflow occurred
    rnd  :in  round_option:=floor; -- enable optional rounding
    clip :in  boolean:=false -- enable clipping
  ) is
@@ -889,7 +909,7 @@ package body ieee_extension is
    din  :in  signed; -- data input
    n    :in  natural; -- number of right shifts
    dout :out signed; -- data output
-   ovfl :out std_logic; -- '1' if overflow occured
+   ovfl :out std_logic; -- '1' if overflow occurred
    rnd  :in  round_option:=floor; -- enable optional rounding
    clip :in  boolean:=false -- enable clipping
  ) is
@@ -908,33 +928,29 @@ package body ieee_extension is
  procedure ADD_CLIP(
    l,r  :in  unsigned; -- data input
    dout :out unsigned; -- data output
-   ovfl :out std_logic; -- '1' if overflow occured
+   ovfl :out std_logic; -- '1' if overflow occurred
    clip :in  boolean:=false -- enable clipping
  ) is
-   constant SIZE : positive := max(l'length,r'length);
-   alias xl : unsigned(l'length-1 downto 0) is l; -- default range
-   alias xr : unsigned(r'length-1 downto 0) is r; -- default range
---   alias xs : unsigned(s'length-1 downto 0) is s; -- default range
-   variable t : unsigned(SIZE downto 0);
+   constant LIN : positive := max(l'length,r'length);
+   constant LT : positive := LIN+1; -- additional bit for overflow detection
+   variable t : unsigned(LT-1 downto 0);
  begin
-   t := RESIZE(xl,SIZE+1) + RESIZE(xr,SIZE+1);
+   t := RESIZE(l,LT) + RESIZE(r,LT);
    RESIZE_CLIP(din=>t, dout=>dout, ovfl=>ovfl, clip=>clip);
  end procedure;
- 
+
  -- SIGNED ADDITION with overflow detection and with optional clipping
  procedure ADD_CLIP(
    l,r  :in  signed; -- data input
    dout :out signed; -- data output
-   ovfl :out std_logic; -- '1' if overflow occured
+   ovfl :out std_logic; -- '1' if overflow occurred
    clip :in  boolean:=false -- enable clipping
  ) is
-   constant SIZE : positive := max(l'length,r'length);
-   alias xl : signed(l'length-1 downto 0) is l; -- default range
-   alias xr : signed(r'length-1 downto 0) is r; -- default range
---   alias xs : signed(s'length-1 downto 0) is s; -- default range
-   variable t : signed(SIZE downto 0);
+   constant LIN : positive := max(l'length,r'length);
+   constant LT : positive := LIN+1; -- additional bit for overflow detection
+   variable t : signed(LT-1 downto 0);
  begin
-   t := RESIZE(xl,SIZE+1) + RESIZE(xr,SIZE+1);
+   t := RESIZE(l,LT) + RESIZE(r,LT);
    RESIZE_CLIP(din=>t, dout=>dout, ovfl=>ovfl, clip=>clip);
  end procedure;
 
@@ -944,44 +960,42 @@ package body ieee_extension is
 
  -- UNSIGNED SUBTRACTION with overflow detection and with optional clipping
  procedure SUB_CLIP(
-   l,r  :in  unsigned; -- data input
-   dout :out unsigned; -- data output
-   ovfl :out std_logic; -- '1' if overflow occured
+   l,r  :in  unsigned; -- data input, left minuend, right subtrahend
+   dout :out unsigned; -- data output, difference
+   ovfl :out std_logic; -- '1' if overflow occurred
    clip :in  boolean:=false -- enable clipping
  ) is
-   constant SIZE : positive := max(l'length,r'length);
-   alias xl : unsigned(l'length-1 downto 0) is l; -- default range
-   alias xr : unsigned(r'length-1 downto 0) is r; -- default range
-   variable t : signed(SIZE+1 downto 0); -- additional sign bit for underflow detection
+   constant LIN : positive := max(l'length,r'length);
+   constant LOUT : positive := dout'length;
+   constant LT : positive := max(LIN+1,LOUT); -- additional bit for overflow detection
+   variable t : unsigned(LT-1 downto 0);
    variable uvf, ovf : std_logic;
-   variable sdout : signed(dout'length-1 downto 0);
  begin
-   t := signed(RESIZE(xl,SIZE+2)) - signed(RESIZE(xr,SIZE+2));
-   uvf := t(SIZE+1); -- underflow ?
-   if clip and t(SIZE+1)='1' then
-     sdout := (others=>'0'); -- negative saturation
+   t := RESIZE(l,LT) - RESIZE(r,LT);
+   uvf := t(LT-1); -- underflow ?
+   if clip and t(LT-1)='1' then
+     dout := (dout'range=>'0'); -- negative saturation
    else
-     RESIZE_CLIP(din=>t, dout=>sdout, ovfl=>ovf, clip=>clip);
+     RESIZE_CLIP(din=>t, dout=>dout, ovfl=>ovf, clip=>clip);
    end if;
    ovfl := uvf  or ovf;
-   dout := unsigned(sdout);
  end procedure;
- 
+
  -- SIGNED SUBTRACTION with overflow detection and with optional clipping
  procedure SUB_CLIP(
-   l,r  :in  signed; -- data input
-   dout :out signed; -- data output
-   ovfl :out std_logic; -- '1' if overflow occured
+   l,r  :in  signed; -- data input, left minuend, right subtrahend
+   dout :out signed; -- data output, difference
+   ovfl :out std_logic; -- '1' if overflow occurred
    clip :in  boolean:=false -- enable clipping
  ) is
-   constant SIZE : positive := max(l'length,r'length);
-   alias xl : signed(l'length-1 downto 0) is l; -- default range
-   alias xr : signed(r'length-1 downto 0) is r; -- default range
-   variable t : signed(SIZE downto 0);
+   constant LIN : positive := max(l'length,r'length);
+   constant LOUT : positive := dout'length;
+   constant LT : positive := max(LIN+1,LOUT);-- additional bit for overflow detection
+   variable t : signed(LT-1 downto 0);
  begin
-   t := RESIZE(xl,SIZE+1) - RESIZE(xr,SIZE+1);
+   t := RESIZE(l,LT) - RESIZE(r,LT);
    RESIZE_CLIP(din=>t, dout=>dout, ovfl=>ovfl, clip=>clip);
  end procedure;
- 
+
 end package body;
  

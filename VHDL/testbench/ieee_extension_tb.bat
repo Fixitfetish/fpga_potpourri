@@ -28,3 +28,4 @@ pause
 
 rem %GTKWAVE% output\ieee_extension.vcd
 
+pause
