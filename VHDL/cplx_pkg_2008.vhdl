@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_2008.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 01/Nov/2016
--- VERSION : 0.5
+-- DATE    : 03/Nov/2016
+-- VERSION : 0.6
 -- VHDL    : 2008
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -157,17 +157,17 @@ package cplx_pkg is
   -- complex subtraction with optional clipping and overflow detection
   -- d = l - r  (sum is resized to given output bit width of sum)
   function sub (
-    l,r : cplx; -- data input, left minuend, right subtrahend
-    w   : positive; -- output bit width
-    m   : cplx_mode:="-"
+    l,r  : cplx; -- data input, left minuend, right subtrahend
+    w    : positive; -- output bit width
+    m    : cplx_mode:="-" -- mode
   ) return cplx;
 
   -- complex subtraction with optional clipping and overflow detection
   -- d = l - r  (sum is resized to size of connected output)
   procedure sub (
-    l,r : in  cplx; -- data input, left minuend, right subtrahend
-    d   : out cplx; -- data output, difference
-    m   : in  cplx_mode:="-" -- mode
+    l,r  : in  cplx; -- data input, left minuend, right subtrahend
+    dout : out cplx; -- data output, difference
+    m    : in  cplx_mode:="-" -- mode
   );
 
   -- complex subtraction with wrap and overflow detection
@@ -212,6 +212,45 @@ package cplx_pkg is
     m    : cplx_mode:="-" -- mode
   ) return cplx;
 
+  ------------------------------------------
+  -- STD_LOGIC_VECTOR to CPLX
+  ------------------------------------------
+
+  -- convert SLV to cplx, L = SLV'length must be even
+  -- (real = L/2 LSBs, imaginary = L/2 MSBs)
+  function to_cplx (
+    slv : std_logic_vector; -- data input
+    vld : std_logic; -- data valid
+    rst : std_logic := '0' -- reset
+  ) return cplx;
+
+  -- convert SLV to cplx_vector, L = SLV'length must be a multiple of 2*n 
+  -- (L/n bits per vector element : real = L/n/2 LSBs, imaginary = L/n/2 MSBs)
+  function to_cplx_vector (
+    slv : std_logic_vector; -- data input vector
+    vld : std_logic; -- data valid
+    n   : positive; -- number of required vector elements
+    rst : std_logic := '0' -- reset
+  ) return cplx_vector;
+
+  ------------------------------------------
+  -- CPLX to STD_LOGIC_VECTOR
+  ------------------------------------------
+
+  -- convert cplx to SLV, real = LSBs, imaginary = MSBs
+  -- (output length = real length + imaginary length)
+  function to_slv(
+    din : cplx;
+    m   : cplx_mode:="-" -- mode
+  ) return std_logic_vector;
+
+  -- convert cplx_vector to SLV, real = LSBs, imaginary = MSBs
+  -- output length = N * (real length + imaginary length)
+  function to_slv(
+    din : cplx_vector;
+    m   : cplx_mode:="-" -- mode
+  ) return std_logic_vector;
+
 end package;
 
 -------------------------------------------------------------------------------
@@ -240,18 +279,6 @@ package body cplx_pkg is
 --  begin
 --    if l < r then return l; else return r; end if;
 --  end function;
-
-  function log2ceil (n:positive) return natural is
-    variable n_bit : unsigned(31 downto 0);
-  begin
-    n_bit := to_unsigned(n-1,32);
-    for i in 31 downto 0 loop
-      if n_bit(i) = '1' then
-        return i+1;
-      end if;
-    end loop;
-    return 1;
-  end function;
 
   ------------------------------------------
   -- RESIZE
@@ -358,7 +385,7 @@ package body cplx_pkg is
     constant LVEC : positive := din'length; -- vector length
     alias xdin : cplx_vector(0 to LVEC-1) is din; -- default range
     constant LIN : positive := xdin(0).re'length; -- input bit width
-    constant T : positive := LIN+log2ceil(LVEC); -- width including additional accumulation bits
+    constant T : positive := LIN + LOG2CEIL(LVEC); -- width including additional accumulation bits
     variable temp : cplx(re(T-1 downto 0),im(T-1 downto 0));
   begin
     temp := resize(din=>xdin(0),n=>LIN);
@@ -387,7 +414,7 @@ package body cplx_pkg is
   function sub (
     l,r : cplx; -- data input, left minuend, right subtrahend
     w   : positive; -- output bit width
-    m   : cplx_mode:="-"
+    m   : cplx_mode:="-" -- mode
   ) return cplx is
     variable ovfl_re, ovfl_im : std_logic;
     variable res : cplx(re(w-1 downto 0),im(w-1 downto 0));
@@ -416,13 +443,13 @@ package body cplx_pkg is
   -- complex subtraction with optional clipping and overflow detection
   -- d = l - r  (sum is resized to size of connected output)
   procedure sub (
-    l,r : in  cplx; -- data input, left minuend, right subtrahend
-    d   : out cplx; -- data output, difference
-    m   : in  cplx_mode:="-" -- mode
+    l,r  : in  cplx; -- data input, left minuend, right subtrahend
+    dout : out cplx; -- data output, difference
+    m    : in  cplx_mode:="-" -- mode
   ) is
-    constant LOUT : positive := d.re'length;
+    constant LOUT : positive := dout.re'length;
   begin
-    d := sub(l=>l, r=>r, w=>LOUT, m=>m);
+    dout := sub(l=>l, r=>r, w=>LOUT, m=>m);
   end procedure;
 
   -- complex subtraction with wrap and overflow detection
@@ -540,6 +567,85 @@ package body cplx_pkg is
   begin
     shift_right(din=>din, n=>n, dout=>dout, m=>m);
     return dout;
+  end function;
+
+  ------------------------------------------
+  -- STD_LOGIC_VECTOR to CPLX
+  ------------------------------------------
+
+  function to_cplx (
+    slv : std_logic_vector;
+    vld : std_logic;
+    rst : std_logic := '0'
+  ) return cplx is
+    constant BITS : positive := slv'length/2;
+    variable res : cplx(re(BITS-1 downto 0), im(BITS-1 downto 0));
+  begin
+    assert ((slv'length mod 2)=0)
+      report "ERROR: to_cplx(), input std_logic_vector length must be even"
+      severity error;
+    res.rst := rst;
+    res.vld := vld;
+    res.re  := signed(slv(  BITS-1 downto    0));
+    res.im  := signed(slv(2*BITS-1 downto BITS));
+    res.ovf := '0';
+    return res;
+  end function;
+
+  function to_cplx_vector (
+    slv : std_logic_vector;
+    vld : std_logic;
+    n   : positive;
+    rst : std_logic := '0'
+  ) return cplx_vector is
+    constant BITS : integer := slv'length/n/2;
+    variable res : cplx_vector(0 to n-1)(re(BITS-1 downto 0),im(BITS-1 downto 0));
+  begin
+    assert ((slv'length mod (2*n))=0)
+      report "ERROR: to_cplx_vector(), input std_logic_vector length must be a multiple of 2*n"
+      severity error;
+    for i in 0 to n-1 loop
+      res(i) := to_cplx(slv(2*BITS*(i+1)-1 downto 2*BITS*i), vld=>vld, rst=>rst);
+    end loop;
+    return res;
+  end function;
+
+  ------------------------------------------
+  -- CPLX to STD_LOGIC_VECTOR
+  ------------------------------------------
+
+  function to_slv(
+    din : cplx;
+    m   : cplx_mode:="-" -- mode
+  ) return std_logic_vector is
+    constant LRE : positive := din.re'length;
+    constant LIM : positive := din.im'length;
+    variable slv : std_logic_vector(LRE+LIM-1 downto 0);
+  begin
+    if m='R' and din.rst='1' then
+      slv := (others=>'0');
+    else
+      slv(    LRE-1 downto   0) := std_logic_vector(din.re);
+      slv(LIM+LRE-1 downto LRE) := std_logic_vector(din.im);
+    end if;
+    return slv;
+  end function;
+
+  function to_slv(
+    din : cplx_vector;
+    m   : cplx_mode:="-" -- mode
+  ) return std_logic_vector is
+    constant N : positive := din'length;
+    constant LRE : positive := din(din'left).re'length;
+    constant LIM : positive := din(din'left).im'length;
+    variable slv : std_logic_vector(N*(LRE+LIM)-1 downto 0);
+    variable i : natural range 0 to N := 0;
+  begin
+    for idx in din'range loop
+      slv((i+1)*(LRE+LIM)-1 downto i*(LRE+LIM)) := to_slv(din=>din(idx), m=>m);
+      i := i + 1;
+    end loop;
+    return slv;
   end function;
 
 end package body;

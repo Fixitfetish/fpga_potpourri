@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : ieee_extension.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 02/Nov/2016
--- VERSION : 0.5
+-- DATE    : 03/Nov/2016
+-- VERSION : 0.6
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -119,6 +119,10 @@ package ieee_extension is
  --   NUMBER_OF_LEADING_BITS("0000000",'0') = 7
  --   NUMBER_OF_LEADING_BITS("00110101",'1') = 0 
  function NUMBER_OF_LEADING_BITS(x:signed; b:std_logic) return natural;
+
+ -- This function calculates ceil(log2(n)).
+ -- Optionally, the maximum result can be limited to 'bits' (bits = 2..32)
+ function LOG2CEIL (n:positive; bits:positive:=32) return natural;
 
  -- bitwise logic OR operation on input vector
  -- Function returns '1' when one or more bits are '1'.
@@ -517,6 +521,16 @@ package body ieee_extension is
  function NUMBER_OF_LEADING_BITS(x:signed; b:std_logic) return natural is
  begin
    return NUMBER_OF_LEADING_BITS(std_logic_vector(x),b);
+ end function;
+
+ function LOG2CEIL (n:positive; bits:positive:=32) return natural is
+   variable x : unsigned(bits downto 1);
+ begin
+   x := to_unsigned(n-1,bits);
+   for i in x'range loop
+     if x(i) = '1' then return i; end if;
+   end loop;
+   return 1;
  end function;
 
  -- bitwise logic OR operation on input vector
