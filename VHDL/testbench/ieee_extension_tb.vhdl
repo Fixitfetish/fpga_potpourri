@@ -245,11 +245,11 @@ begin
        write(wline, integer'image(ri),right,3);
        write(wline,string'(" = "),right,3);
        -- wrap
-       add_clip(l=>l, r=>r, dout=>dout, ovfl=>ovfl, clip=>false);
+       add(l=>l, r=>r, dout=>dout, ovfl=>ovfl, clip=>false);
        d := to_integer(dout);
        write(wline, integer'image(d) & ',' & std_logic'image(ovfl),right, 10);
        -- clip
-       add_clip(l=>l, r=>r, dout=>dout, ovfl=>ovfl, clip=>true);
+       add(l=>l, r=>r, dout=>dout, ovfl=>ovfl, clip=>true);
        d := to_integer(dout);
        write(wline, integer'image(d) & ',' & std_logic'image(ovfl),right, 10);
        writeline(ADDU,wline);
@@ -290,11 +290,11 @@ begin
        write(wline, integer'image(ri),right,3);
        write(wline,string'(" = "),right,3);
        -- wrap
-       add_clip(l=>l, r=>r, dout=>dout, ovfl=>ovfl, clip=>false);
+       add(l=>l, r=>r, dout=>dout, ovfl=>ovfl, clip=>false);
        d := to_integer(dout);
        write(wline, integer'image(d) & ',' & std_logic'image(ovfl),right, 10);
        -- clip
-       add_clip(l=>l, r=>r, dout=>dout, ovfl=>ovfl, clip=>true);
+       add(l=>l, r=>r, dout=>dout, ovfl=>ovfl, clip=>true);
        d := to_integer(dout);
        write(wline, integer'image(d) & ',' & std_logic'image(ovfl),right, 10);
        writeline(ADDS,wline);
@@ -334,11 +334,11 @@ begin
        write(wline, integer'image(ri),right,3);
        write(wline,string'(" = "),right,3);
        -- wrap
-       sub_clip(l=>l, r=>r, dout=>dout, ovfl=>ovfl, clip=>false);
+       sub(l=>l, r=>r, dout=>dout, ovfl=>ovfl, clip=>false);
        d := to_integer(dout);
        write(wline, integer'image(d) & ',' & std_logic'image(ovfl),right, 10);
        -- clip
-       sub_clip(l=>l, r=>r, dout=>dout, ovfl=>ovfl, clip=>true);
+       sub(l=>l, r=>r, dout=>dout, ovfl=>ovfl, clip=>true);
        d := to_integer(dout);
        write(wline, integer'image(d) & ',' & std_logic'image(ovfl),right, 10);
        writeline(SUBU,wline);
@@ -379,11 +379,11 @@ begin
        write(wline, integer'image(ri),right,3);
        write(wline,string'(" = "),right,3);
        -- wrap
-       sub_clip(l=>l, r=>r, dout=>dout, ovfl=>ovfl, clip=>false);
+       sub(l=>l, r=>r, dout=>dout, ovfl=>ovfl, clip=>false);
        d := to_integer(dout);
        write(wline, integer'image(d) & ',' & std_logic'image(ovfl),right, 10);
        -- clip
-       sub_clip(l=>l, r=>r, dout=>dout, ovfl=>ovfl, clip=>true);
+       sub(l=>l, r=>r, dout=>dout, ovfl=>ovfl, clip=>true);
        d := to_integer(dout);
        write(wline, integer'image(d) & ',' & std_logic'image(ovfl),right, 10);
        writeline(SUBS,wline);

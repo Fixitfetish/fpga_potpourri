@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_2008.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 03/Nov/2016
--- VERSION : 0.6
+-- DATE    : 04/Nov/2016
+-- VERSION : 0.7
 -- VHDL    : 2008
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -118,7 +118,7 @@ package cplx_pkg is
   -- dout = l + r  (sum is resized to given output bit width of sum)
   function add (
     l,r  : cplx; -- left/right summand
-    w    : positive; -- output bit width
+    w    : natural:=0; -- output bit width
     m    : cplx_mode:="-"
   ) return cplx;
 
@@ -158,7 +158,7 @@ package cplx_pkg is
   -- d = l - r  (sum is resized to given output bit width of sum)
   function sub (
     l,r  : cplx; -- data input, left minuend, right subtrahend
-    w    : positive; -- output bit width
+    w    : natural:=0; -- output bit width
     m    : cplx_mode:="-" -- mode
   ) return cplx;
 
@@ -241,14 +241,14 @@ package cplx_pkg is
   -- (output length = real length + imaginary length)
   function to_slv(
     din : cplx;
-    m   : cplx_mode:="-" -- mode
+    m   : cplx_mode:="-" -- mode, optional reset
   ) return std_logic_vector;
 
   -- convert cplx_vector to SLV, real = LSBs, imaginary = MSBs
   -- output length = N * (real length + imaginary length)
   function to_slv(
     din : cplx_vector;
-    m   : cplx_mode:="-" -- mode
+    m   : cplx_mode:="-" -- mode, optional reset
   ) return std_logic_vector;
 
 end package;
@@ -275,10 +275,12 @@ package body cplx_pkg is
     if l > r then return l; else return r; end if;
   end function;
 
---  function min (l,r: integer) return integer is
---  begin
---    if l < r then return l; else return r; end if;
---  end function;
+ -- if x/=0 then return x
+ -- if x=0  then return default
+ function default_if_zero (x,default: integer) return integer is
+ begin
+   if x=0 then return default; else return x; end if;
+ end function;
 
   ------------------------------------------
   -- RESIZE
@@ -333,20 +335,24 @@ package body cplx_pkg is
 
   function add (
     l,r  : cplx; -- left/right summand
-    w    : positive; -- output bit width
+    w    : natural:=0; -- output bit width
     m    : cplx_mode:="-" -- mode
   ) return cplx is
+    constant LIN_RE : positive := max(l.re'length,r.re'length); -- default output length
+    constant LIN_IM : positive := max(l.im'length,r.im'length); -- default output length
+    constant LOUT_RE : positive := default_if_zero(w, LIN_RE); -- final output length
+    constant LOUT_IM : positive := default_if_zero(w, LIN_IM); -- final output length
     variable ovfl_re, ovfl_im : std_logic;
-    variable res : cplx(re(w-1 downto 0),im(w-1 downto 0));
+    variable res : cplx(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
   begin
     res.rst := l.rst or r.rst;
     -- data signals
     if m='R' and res.rst='1' then
-      res.re := (w-1 downto 0 => '0');
-      res.im := (w-1 downto 0 => '0');
+      res.re := (LOUT_RE-1 downto 0 => '0');
+      res.im := (LOUT_IM-1 downto 0 => '0');
     else
-      ADD_CLIP(l=>l.re, r=>r.re, dout=>res.re, ovfl=>ovfl_re, clip=>(m="S"));
-      ADD_CLIP(l=>l.im, r=>r.im, dout=>res.im, ovfl=>ovfl_im, clip=>(m="S"));
+      ADD(l=>l.re, r=>r.re, dout=>res.re, ovfl=>ovfl_re, clip=>(m="S" and LOUT_RE<=LIN_RE));
+      ADD(l=>l.im, r=>r.im, dout=>res.im, ovfl=>ovfl_im, clip=>(m="S" and LOUT_RE<=LIN_RE));
     end if;
     -- control signals
     if m='R' and res.rst='1' then
@@ -412,21 +418,25 @@ package body cplx_pkg is
   -- complex subtraction with optional clipping and overflow detection
   -- d = l - r  (sum is resized to given output bit width of sum)
   function sub (
-    l,r : cplx; -- data input, left minuend, right subtrahend
-    w   : positive; -- output bit width
-    m   : cplx_mode:="-" -- mode
+    l,r  : cplx; -- data input, left minuend, right subtrahend
+    w    : natural:=0; -- output bit width
+    m    : cplx_mode:="-" -- mode
   ) return cplx is
+    constant LIN_RE : positive := max(l.re'length,r.re'length); -- default output length
+    constant LIN_IM : positive := max(l.im'length,r.im'length); -- default output length
+    constant LOUT_RE : positive := default_if_zero(w, LIN_RE); -- final output length
+    constant LOUT_IM : positive := default_if_zero(w, LIN_IM); -- final output length
     variable ovfl_re, ovfl_im : std_logic;
-    variable res : cplx(re(w-1 downto 0),im(w-1 downto 0));
+    variable res : cplx(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
   begin
     res.rst := l.rst or r.rst;
     -- data signals
     if m='R' and res.rst='1' then
-      res.re := (w-1 downto 0 => '0');
-      res.im := (w-1 downto 0 => '0');
+      res.re := (LOUT_RE-1 downto 0 => '0');
+      res.im := (LOUT_IM-1 downto 0 => '0');
     else
-      SUB_CLIP(l=>l.re, r=>r.re, dout=>res.re, ovfl=>ovfl_re, clip=>(m="S"));
-      SUB_CLIP(l=>l.im, r=>r.im, dout=>res.im, ovfl=>ovfl_im, clip=>(m="S"));
+      SUB(l=>l.re, r=>r.re, dout=>res.re, ovfl=>ovfl_re, clip=>(m="S" and LOUT_RE<=LIN_RE));
+      SUB(l=>l.im, r=>r.im, dout=>res.im, ovfl=>ovfl_im, clip=>(m="S" and LOUT_RE<=LIN_RE));
     end if;
     -- control signals
     if m='R' and res.rst='1' then
