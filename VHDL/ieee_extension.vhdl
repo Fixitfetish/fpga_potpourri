@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : ieee_extension.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 04/Nov/2016
--- VERSION : 0.71
+-- DATE    : 05/Nov/2016
+-- VERSION : 0.75
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -152,46 +152,46 @@ package ieee_extension is
  -- MSB/LSB check (useful e.g. for overflow detection)
  ----------------------------------------------------------
 
- -- This function tests if all selected bits are '1'
- -- for n>0 : returns '1' if all |n| leftmost MSBs are '1'
- -- for n=0 : returns '1' if all bits are '1' (default)
- -- for n<0 : returns '1' if all |n| rigthmost LSBs are '1'
+ -- The function returns '1' if all selected bits are '1' (logical AND)
+ -- for n=0 : considers all bits (default)
+ -- for n>0 : considers only the |n| rigthmost LSBs
+ -- for n<0 : considers only the |n| leftmost MSBs
  -- for |n| > arg'length : returns 'X'
  function ALL_ONES (arg:std_logic_vector; n:integer:=0) return std_logic;
  function ALL_ONES (arg:unsigned; n:integer:=0) return std_logic;
  function ALL_ONES (arg:signed; n:integer:=0) return std_logic;
 
- -- This function tests if any of the selected bits is '1'
- -- for n>0 : returns '1' if any of the |n| leftmost MSBs is '1'
- -- for n=0 : returns '1' if any of all bits is '1' (default)
- -- for n<0 : returns '1' if any of the |n| rigthmost LSBs is '1'
+ -- The function returns '1' if any of the selected bits is '1' (logical OR)
+ -- for n=0 : considers all bits (default)
+ -- for n>0 : considers only the |n| rigthmost LSBs
+ -- for n<0 : considers only the |n| leftmost MSBs
  -- for |n| > arg'length : returns 'X'
  function ANY_ONES (arg:std_logic_vector; n:integer:=0) return std_logic;
  function ANY_ONES (arg:unsigned; n:integer:=0) return std_logic;
  function ANY_ONES (arg:signed; n:integer:=0) return std_logic;
 
- -- This function tests if all selected bits are '0'
- -- for n>0 : returns '1' if all |n| leftmost MSBs are '0'
- -- for n=0 : returns '1' if all bits are '0' (default)
- -- for n<0 : returns '1' if all |n| rigthmost LSBs are '0'
+ -- The function returns '1' if all selected bits are '0' (logical NOR)
+ -- for n=0 : considers all bits (default)
+ -- for n>0 : considers only the |n| rigthmost LSBs
+ -- for n<0 : considers only the |n| leftmost MSBs
  -- for |n| > arg'length : returns 'X'
  function ALL_ZEROS (arg:std_logic_vector; n:integer:=0) return std_logic;
  function ALL_ZEROS (arg:unsigned; n:integer:=0) return std_logic;
  function ALL_ZEROS (arg:signed; n:integer:=0) return std_logic;
    
- -- This function tests if any of the selected bits is '0'
- -- for n>0 : returns '1' if any of the |n| leftmost MSBs is '0'
- -- for n=0 : returns '1' if any of all bits is '0' (default)
- -- for n<0 : returns '1' if any of the |n| rigthmost LSBs is '0'
+ -- The function returns '1' if any of the selected bits is '0' (logical NAND)
+ -- for n=0 : considers all bits (default)
+ -- for n>0 : considers only the |n| rigthmost LSBs
+ -- for n<0 : considers only the |n| leftmost MSBs
  -- for |n| > arg'length : returns 'X'
  function ANY_ZEROS (arg:std_logic_vector; n:integer:=0) return std_logic;
  function ANY_ZEROS (arg:unsigned; n:integer:=0) return std_logic;
  function ANY_ZEROS (arg:signed; n:integer:=0) return std_logic;
 
- -- This function tests if all selected bits are equal, i.e. all '0' or all '1'
- -- for n>0 : returns '1' if all |n| leftmost MSBs are equal
- -- for n=0 : returns '1' if all bits are equal (default)
- -- for n<0 : returns '1' if all |n| rigthmost LSBs are equal
+ -- The function returns '1' if all selected bits are equal, i.e. all '0' or all '1'
+ -- for n=0 : considers all bits (default)
+ -- for n>0 : considers only the |n| rigthmost LSBs
+ -- for n<0 : considers only the |n| leftmost MSBs
  -- for |n| > arg'length : returns 'X'
  function ALL_EQUAL (arg:std_logic_vector; n:integer:=0) return std_logic;
  function ALL_EQUAL (arg:unsigned; n:integer:=0) return std_logic;
@@ -201,100 +201,102 @@ package ieee_extension is
  -- RESIZE AND CLIP/SATURATE
  ----------------------------------------------------------
 
- -- UNSIGNED RESIZE with overflow detection and optional clipping
+ -- UNSIGNED RESIZE with overflow detection and clipping
  -- This procedure implementation resizes from the input size to the output size
  -- without additional length parameter. Furthermore, overflows are detected.
  -- If output size is larger than the input size then the new MSBs are filled 
  -- with zeros. If output size is smaller than the input size then MSBs are
- -- removed and the output is clipped when clipping is enabled.
+ -- removed and the output is clipped by default. Clipping can be disabled.
  procedure RESIZE_CLIP (
    din  :in  unsigned; -- data input
    dout :out unsigned; -- data output
    ovfl :out std_logic; -- '1' if overflow occurred 
-   clip :in  boolean:=false -- enable/disable clipping
+   clip :in  boolean:=true -- enable/disable clipping
  );
 
- -- SIGNED RESIZE with overflow detection and optional clipping
+ -- SIGNED RESIZE with overflow detection and clipping
  -- This procedure implementation resizes from the input size to the output size
  -- without additional length parameter. Furthermore, overflows are detected.
  -- If output size is larger than the input size then for the new MSBs the sign
  -- is extended. If output size is smaller than the input size then MSBs are
- -- removed and the output is clipped when clipping is enabled.
+ -- removed and the output is clipped by default. Clipping can be disabled.
  procedure RESIZE_CLIP (
    din  :in  signed; -- data input
    dout :out signed; -- data output
    ovfl :out std_logic; -- '1' if overflow occurred 
-   clip :in  boolean:=false -- enable/disable clipping
+   clip :in  boolean:=true -- enable/disable clipping
  );
 
- -- UNSIGNED RESIZE to N bits with optional clipping
- -- By default the function behaves like the standard RESIZE function.
+ -- UNSIGNED RESIZE to N bits with clipping
  -- If N is larger than the input size then the new MSBs are filled with zeros.
  -- If N is smaller than the input size then MSBs are removed and the output is
- -- clipped when clipping is enabled.
+ -- clipped by default. When clipping is disabled the function behaves like the
+ -- standard RESIZE function.
  function RESIZE_CLIP (
    din  : unsigned; -- data input
    n    : positive; -- output size
-   clip : boolean:=false -- enable/disable clipping
+   clip : boolean:=true -- enable/disable clipping
  ) return unsigned;
 
- -- SIGNED RESIZE to N bits with optional clipping
- -- By default the function behaves like the standard RESIZE function.
+ -- SIGNED RESIZE to N bits with clipping
  -- If N is larger than the input size then for the new MSBs the sign is extended.
  -- If N is smaller than the input size then MSBs are removed and the output is
- -- clipped when clipping is enabled.
+ -- clipped by default. When clipping is disabled the function behaves like the
+ -- standard RESIZE function.
  function RESIZE_CLIP (
    din  : signed; -- data input
    n    : positive; -- output size
-   clip : boolean:=false -- enable/disable clipping
+   clip : boolean:=true -- enable/disable clipping
  ) return signed;
 
  ----------------------------------------------------------
  -- SHIFT LEFT AND CLIP/SATURATE
  ----------------------------------------------------------
 
- -- UNSIGNED SHIFT LEFT with overflow detection and with optional clipping
+ -- UNSIGNED SHIFT LEFT with overflow detection and clipping
  -- This procedure implementation shifts the input left by N bits and resizes
  -- the result to the output size without additional length parameter.
- -- Furthermore, overflows are detected and the output is clipped when clipping
- -- is enabled.
+ -- Furthermore, overflows are detected and the output is clipped by default.
+ -- Clipping can be disabled.
  procedure SHIFT_LEFT_CLIP (
    din  :in  unsigned; -- data input
    n    :in  natural; -- number of left shifts
    dout :out unsigned; -- data output
    ovfl :out std_logic; -- '1' if overflow occurred
-   clip :in  boolean:=false -- enable/disable clipping
+   clip :in  boolean:=true -- enable/disable clipping
  );
  
  -- SIGNED SHIFT LEFT with overflow detection and with optional clipping
  -- This procedure implementation shifts the input left by N bits and resizes
  -- the result to the output size without additional length parameter.
- -- Furthermore, overflows are detected and the output is clipped when clipping
- -- is enabled.
+ -- Furthermore, overflows are detected and the output is clipped by default.
+ -- Clipping can be disabled.
  procedure SHIFT_LEFT_CLIP (
    din  :in  signed; -- data input
    n    :in  natural; -- number of left shifts
    dout :out signed; -- data output
    ovfl :out std_logic; -- '1' if overflow occurred
-   clip :in  boolean:=false -- enable/disable clipping
+   clip :in  boolean:=true -- enable/disable clipping
  );
  
- -- UNSIGNED SHIFT LEFT by N bits with optional clipping
- -- By default the function behaves like the standard SHIFT_LEFT function.
- -- The LSBs are filled with zeros and the output has the same size as the input.
+ -- UNSIGNED SHIFT LEFT by N bits with clipping
+ -- The N MSBs are removed and the output is clipped by default. The N new LSBs
+ -- are filled with zeros and the output has the same size as the input. When
+ -- clipping is disabled the function behaves like the standard SHIFT_LEFT function.
  function SHIFT_LEFT_CLIP (
    din  : unsigned; -- data input
    n    : natural; -- number of left shifts
-   clip : boolean:=false -- enable/disable clipping
+   clip : boolean:=true -- enable/disable clipping
  ) return unsigned;
 
- -- SIGNED SHIFT LEFT by N bits with optional clipping
- -- By default the function behaves like the standard SHIFT_LEFT function.
- -- The LSBs are filled with zeros and the output has the same size as the input.
+ -- SIGNED SHIFT LEFT by N bits with clipping
+ -- The N MSBs are removed and the output is clipped by default. The N new LSBs
+ -- are filled with zeros and the output has the same size as the input. When
+ -- clipping is disabled the function behaves like the standard SHIFT_LEFT function.
  function SHIFT_LEFT_CLIP (
    din  : signed; -- data input
    n    : natural; -- number of left shifts
-   clip : boolean:=false -- enable/disable clipping
+   clip : boolean:=true -- enable/disable clipping
  ) return signed;
 
  ----------------------------------------------------------
@@ -725,13 +727,16 @@ package body ieee_extension is
  function ALL_ONES (arg:std_logic_vector; n:integer:=0) return std_logic is
    constant L :positive := arg'length;
    alias x : std_logic_vector(L-1 downto 0) is arg; -- default range
-   variable res : std_logic := 'X';
+   variable r : std_logic := '1';
  begin
-   if    (n>0 and n<=L)  then res:=SLV_AND(x(L-1 downto L-n)); -- test MSBs
-   elsif (n=0)           then res:=SLV_AND(x); -- test all
-   elsif (n<0 and n>=-L) then res:=SLV_AND(x(-n-1 downto 0)); -- test LSBs
-   end if; 
-   return res;
+   if (n=0) then -- test all
+     for i in x'range loop r:=(r and x(i)); end loop;
+   elsif (n>0 and n<=L) then -- test LSBs
+     for i in n-1 downto 0 loop r:=(r and x(i)); end loop;
+   elsif (n<0 and n>=-L) then -- test MSBs
+     for i in L-1 downto L+n loop r:=(r and x(i)); end loop;
+   else return 'X'; end if; 
+   return r;
  end function;
 
  function ALL_ONES (arg:unsigned; n:integer:=0) return std_logic is
@@ -747,13 +752,16 @@ package body ieee_extension is
  function ANY_ONES (arg:std_logic_vector; n:integer:=0) return std_logic is
    constant L :positive := arg'length;
    alias x : std_logic_vector(L-1 downto 0) is arg; -- default range
-   variable res : std_logic := 'X';
+   variable r : std_logic := '0';
  begin
-   if    (n>0 and n<=L)  then res:=SLV_OR(x(L-1 downto L-n)); -- test MSBs
-   elsif (n=0)           then res:=SLV_OR(x); -- test all
-   elsif (n<0 and n>=-L) then res:=SLV_OR(x(-n-1 downto 0)); -- test LSBs 
-   end if; 
-   return res;
+   if (n=0) then -- test all
+     for i in x'range loop r:=(r or x(i)); end loop;
+   elsif (n>0 and n<=L) then -- test LSBs
+     for i in n-1 downto 0 loop r:=(r or x(i)); end loop;
+   elsif (n<0 and n>=-L) then -- test MSBs
+     for i in L-1 downto L+n loop r:=(r or x(i)); end loop;
+   else return 'X'; end if; 
+   return r;
  end function;
 
  function ANY_ONES (arg:unsigned; n:integer:=0) return std_logic is
@@ -820,16 +828,16 @@ package body ieee_extension is
    din  :in  unsigned; -- data input
    dout :out unsigned; -- data output
    ovfl :out std_logic; -- '1' if overflow occurred 
-   clip :in  boolean:=false -- enable/disable clipping
+   clip :in  boolean:=true -- enable/disable clipping
  ) is
    constant LIN : positive := din'length; 
    constant LOUT : positive := dout'length;
-   constant N : integer := LIN-LOUT; -- N<0 add MSBs , N>0 remove MSBs
+   constant N : integer := LOUT-LIN; -- N>0 add |N| MSBs , N<0 remove |N| MSBs
    alias xdout : unsigned(LOUT-1 downto 0) is dout; -- default range
  begin
    xdout := resize(din,LOUT); -- by default standard resize
    ovfl := '0'; -- by default no overflow
-   if N>0 then
+   if N<0 then
      -- resize down with potential overflow and clipping
      if ANY_ONES(din,N)='1' then
        -- overflow
@@ -846,24 +854,24 @@ package body ieee_extension is
    din  :in  signed; -- data input
    dout :out signed; -- data output
    ovfl :out std_logic; -- '1' if overflow occurred 
-   clip :in  boolean:=false -- enable/disable clipping
+   clip :in  boolean:=true -- enable/disable clipping
  ) is
    constant LIN : positive := din'length; 
    constant LOUT : positive := dout'length;
-   constant N : integer := LIN-LOUT; -- N<0 add MSBs , N>0 remove MSBs
+   constant N : integer := LOUT-LIN; -- N>0 add |N| MSBs , N<0 remove |N| MSBs
    alias xdout : signed(LOUT-1 downto 0) is dout; -- default range
  begin
    xdout := resize(din,LOUT); -- by default standard resize
    ovfl := '0'; -- by default no overflow
-   if N>0 then
+   if N<0 then
      -- resize down with potential overflow and clipping
-     if din(din'left)='0' and ANY_ONES(din,N+1)='1' then
+     if din(din'left)='0' and ANY_ONES(din,N-1)='1' then
        ovfl := '1'; -- positive overflow
        if clip then
          xdout(LOUT-1) := '0'; -- positive clipping
          xdout(LOUT-2 downto 0) := (others=>'1');
        end if;
-     elsif din(din'left)='1' and ANY_ZEROS(din,N+1)='1' then
+     elsif din(din'left)='1' and ANY_ZEROS(din,N-1)='1' then
        ovfl := '1'; -- negative overflow
        if clip then
          xdout(LOUT-1) := '1'; -- negative clipping
@@ -877,7 +885,7 @@ package body ieee_extension is
  function RESIZE_CLIP (
    din  : unsigned; -- data input
    n    : positive; -- output size
-   clip : boolean:=false -- enable/disable clipping
+   clip : boolean:=true -- enable/disable clipping
  ) return unsigned is
    variable ovfl : std_logic; -- dummy
    variable dout : unsigned(n-1 downto 0);
@@ -890,7 +898,7 @@ package body ieee_extension is
  function RESIZE_CLIP (
    din  : signed; -- data input
    n    : positive; -- output size
-   clip : boolean:=false -- enable/disable clipping
+   clip : boolean:=true -- enable/disable clipping
  ) return signed is
    variable ovfl : std_logic; -- dummy
    variable dout : signed(n-1 downto 0);
@@ -909,7 +917,7 @@ package body ieee_extension is
    n    :in  natural; -- number of left shifts
    dout :out unsigned; -- data output
    ovfl :out std_logic; -- '1' if overflow occurred
-   clip :in  boolean:=false -- enable/disable clipping
+   clip :in  boolean:=true -- enable/disable clipping
  ) is
    constant LIN : positive := din'length;
    variable temp : unsigned(LIN+n-1 downto 0) := (others=>'0');
@@ -924,7 +932,7 @@ package body ieee_extension is
    n    :in  natural; -- number of left shifts
    dout :out signed; -- data output
    ovfl :out std_logic; -- '1' if overflow occurred
-   clip :in  boolean:=false -- enable/disable clipping
+   clip :in  boolean:=true -- enable/disable clipping
  ) is
    constant LIN : positive := din'length; 
    variable temp : signed(LIN+n-1 downto 0) := (others=>'0');
@@ -937,7 +945,7 @@ package body ieee_extension is
  function SHIFT_LEFT_CLIP (
    din  : unsigned; -- data input
    n    : natural; -- number of left shifts
-   clip : boolean:=false -- enable/disable clipping
+   clip : boolean:=true -- enable/disable clipping
  ) return unsigned is -- data output
    constant L : positive := din'length;
    variable dout : unsigned(L-1 downto 0); -- := (others=>'0'); -- default when n>=L
@@ -951,7 +959,7 @@ package body ieee_extension is
  function SHIFT_LEFT_CLIP (
    din  : signed; -- data input
    n    : natural; -- number of left shifts
-   clip : boolean:=false -- enable/disable clipping
+   clip : boolean:=true -- enable/disable clipping
  ) return signed is -- data output
    constant L : positive := din'length;
    variable dout : signed(L-1 downto 0); -- := (others=>'0'); -- default, LSBs = '0'
@@ -994,7 +1002,7 @@ package body ieee_extension is
        -- ceil, round up towards plus infinity
        -- (same: round towards plus/minus infinity, i.e. away from zero)
        tceil(L-n-1 downto 0) := d(L-1 downto n);
-       if ANY_ONES(d,-n)='1' then
+       if ANY_ONES(d,n)='1' then -- check LSBs
          tceil := tceil + 1;
        end if;
        dout(L-n downto 0) := tceil(L-n downto 0);
@@ -1026,7 +1034,7 @@ package body ieee_extension is
    elsif n<L then
      -- ceil, round up towards plus infinity
      tceil(L-n-1 downto 0) := d(L-1 downto n);
-     if ANY_ONES(d,n)='1' then
+     if ANY_ONES(d,n)='1' then -- check LSBs
        tceil := tceil + 1;
      end if;
      -- by default output floor result
