@@ -26,6 +26,6 @@ pause
 :: run testbench
 %GHDL% -r %FLAGS% ieee_extension_tb --stop-time=500ns --vcd=output\ieee_extension.vcd
 
-rem %GTKWAVE% output\ieee_extension.vcd
+rem %GTKWAVE% .\output\ieee_extension.vcd
 
 pause

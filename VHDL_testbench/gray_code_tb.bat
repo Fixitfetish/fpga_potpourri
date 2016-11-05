@@ -20,4 +20,4 @@ set FLAGS=--std=93 --workdir=work -Pwork
 %GHDL% -r %FLAGS% gray_code_tb --stop-time=500ns --vcd=output\gray_code.vcd
 
 :: start waveform viewer
-%GTKWAVE% output\gray_code.vcd
+%GTKWAVE% .\output\gray_code.vcd
