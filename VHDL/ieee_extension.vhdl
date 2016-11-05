@@ -2,7 +2,7 @@
 -- FILE    : ieee_extension.vhdl
 -- AUTHOR  : Fixitfetish
 -- DATE    : 04/Nov/2016
--- VERSION : 0.7
+-- VERSION : 0.71
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -154,48 +154,48 @@ package ieee_extension is
 
  -- This function tests if all selected bits are '1'
  -- for n>0 : returns '1' if all |n| leftmost MSBs are '1'
- -- for n=0 : returns '1' if all bits are '1'
+ -- for n=0 : returns '1' if all bits are '1' (default)
  -- for n<0 : returns '1' if all |n| rigthmost LSBs are '1'
  -- for |n| > arg'length : returns 'X'
- function ALL_ONES (arg:std_logic_vector; n:integer) return std_logic;
- function ALL_ONES (arg:unsigned; n:integer) return std_logic;
- function ALL_ONES (arg:signed; n:integer) return std_logic;
+ function ALL_ONES (arg:std_logic_vector; n:integer:=0) return std_logic;
+ function ALL_ONES (arg:unsigned; n:integer:=0) return std_logic;
+ function ALL_ONES (arg:signed; n:integer:=0) return std_logic;
 
  -- This function tests if any of the selected bits is '1'
  -- for n>0 : returns '1' if any of the |n| leftmost MSBs is '1'
- -- for n=0 : returns '1' if any of all bits is '1'
+ -- for n=0 : returns '1' if any of all bits is '1' (default)
  -- for n<0 : returns '1' if any of the |n| rigthmost LSBs is '1'
  -- for |n| > arg'length : returns 'X'
- function ANY_ONES (arg:std_logic_vector; n:integer) return std_logic;
- function ANY_ONES (arg:unsigned; n:integer) return std_logic;
- function ANY_ONES (arg:signed; n:integer) return std_logic;
+ function ANY_ONES (arg:std_logic_vector; n:integer:=0) return std_logic;
+ function ANY_ONES (arg:unsigned; n:integer:=0) return std_logic;
+ function ANY_ONES (arg:signed; n:integer:=0) return std_logic;
 
  -- This function tests if all selected bits are '0'
  -- for n>0 : returns '1' if all |n| leftmost MSBs are '0'
- -- for n=0 : returns '1' if all bits are '0'
+ -- for n=0 : returns '1' if all bits are '0' (default)
  -- for n<0 : returns '1' if all |n| rigthmost LSBs are '0'
  -- for |n| > arg'length : returns 'X'
- function ALL_ZEROS (arg:std_logic_vector; n:integer) return std_logic;
- function ALL_ZEROS (arg:unsigned; n:integer) return std_logic;
- function ALL_ZEROS (arg:signed; n:integer) return std_logic;
+ function ALL_ZEROS (arg:std_logic_vector; n:integer:=0) return std_logic;
+ function ALL_ZEROS (arg:unsigned; n:integer:=0) return std_logic;
+ function ALL_ZEROS (arg:signed; n:integer:=0) return std_logic;
    
  -- This function tests if any of the selected bits is '0'
  -- for n>0 : returns '1' if any of the |n| leftmost MSBs is '0'
- -- for n=0 : returns '1' if any of all bits is '0'
+ -- for n=0 : returns '1' if any of all bits is '0' (default)
  -- for n<0 : returns '1' if any of the |n| rigthmost LSBs is '0'
  -- for |n| > arg'length : returns 'X'
- function ANY_ZEROS (arg:std_logic_vector; n:integer) return std_logic;
- function ANY_ZEROS (arg:unsigned; n:integer) return std_logic;
- function ANY_ZEROS (arg:signed; n:integer) return std_logic;
+ function ANY_ZEROS (arg:std_logic_vector; n:integer:=0) return std_logic;
+ function ANY_ZEROS (arg:unsigned; n:integer:=0) return std_logic;
+ function ANY_ZEROS (arg:signed; n:integer:=0) return std_logic;
 
  -- This function tests if all selected bits are equal, i.e. all '0' or all '1'
  -- for n>0 : returns '1' if all |n| leftmost MSBs are equal
- -- for n=0 : returns '1' if all bits are equal
+ -- for n=0 : returns '1' if all bits are equal (default)
  -- for n<0 : returns '1' if all |n| rigthmost LSBs are equal
  -- for |n| > arg'length : returns 'X'
- function ALL_EQUAL (arg:std_logic_vector; n:integer) return std_logic;
- function ALL_EQUAL (arg:unsigned; n:integer) return std_logic;
- function ALL_EQUAL (arg:signed; n:integer) return std_logic;
+ function ALL_EQUAL (arg:std_logic_vector; n:integer:=0) return std_logic;
+ function ALL_EQUAL (arg:unsigned; n:integer:=0) return std_logic;
+ function ALL_EQUAL (arg:signed; n:integer:=0) return std_logic;
 
  ----------------------------------------------------------
  -- RESIZE AND CLIP/SATURATE
@@ -722,7 +722,7 @@ package body ieee_extension is
  -- MSB/LSB check (useful e.g. for overflow detection)
  ----------------------------------------------------------
 
- function ALL_ONES (arg:std_logic_vector; n:integer) return std_logic is
+ function ALL_ONES (arg:std_logic_vector; n:integer:=0) return std_logic is
    constant L :positive := arg'length;
    alias x : std_logic_vector(L-1 downto 0) is arg; -- default range
    variable res : std_logic := 'X';
@@ -734,17 +734,17 @@ package body ieee_extension is
    return res;
  end function;
 
- function ALL_ONES (arg:unsigned; n:integer) return std_logic is
+ function ALL_ONES (arg:unsigned; n:integer:=0) return std_logic is
  begin
    return ALL_ONES(std_logic_vector(arg),n);
  end function;
 
- function ALL_ONES (arg:signed; n:integer) return std_logic is
+ function ALL_ONES (arg:signed; n:integer:=0) return std_logic is
  begin
    return ALL_ONES(std_logic_vector(arg),n);
  end function;
 
- function ANY_ONES (arg:std_logic_vector; n:integer) return std_logic is
+ function ANY_ONES (arg:std_logic_vector; n:integer:=0) return std_logic is
    constant L :positive := arg'length;
    alias x : std_logic_vector(L-1 downto 0) is arg; -- default range
    variable res : std_logic := 'X';
@@ -756,57 +756,57 @@ package body ieee_extension is
    return res;
  end function;
 
- function ANY_ONES (arg:unsigned; n:integer) return std_logic is
+ function ANY_ONES (arg:unsigned; n:integer:=0) return std_logic is
  begin
    return ANY_ONES(std_logic_vector(arg),n);
  end function;
 
- function ANY_ONES (arg:signed; n:integer) return std_logic is
+ function ANY_ONES (arg:signed; n:integer:=0) return std_logic is
  begin
    return ANY_ONES(std_logic_vector(arg),n);
  end function;
 
- function ALL_ZEROS (arg:std_logic_vector; n:integer) return std_logic is
+ function ALL_ZEROS (arg:std_logic_vector; n:integer:=0) return std_logic is
  begin
    return (not ANY_ONES(arg,n));
  end function;
 
- function ALL_ZEROS (arg:unsigned; n:integer) return std_logic is
+ function ALL_ZEROS (arg:unsigned; n:integer:=0) return std_logic is
  begin
    return ALL_ZEROS(std_logic_vector(arg),n);
  end function;
 
- function ALL_ZEROS (arg:signed; n:integer) return std_logic is
+ function ALL_ZEROS (arg:signed; n:integer:=0) return std_logic is
  begin
    return ALL_ZEROS(std_logic_vector(arg),n);
  end function;
 
- function ANY_ZEROS (arg:std_logic_vector; n:integer) return std_logic is
+ function ANY_ZEROS (arg:std_logic_vector; n:integer:=0) return std_logic is
  begin
    return (not ALL_ONES(arg,n));
  end function;
 
- function ANY_ZEROS (arg:unsigned; n:integer) return std_logic is
+ function ANY_ZEROS (arg:unsigned; n:integer:=0) return std_logic is
  begin
    return ANY_ZEROS(std_logic_vector(arg),n);
  end function;
 
- function ANY_ZEROS (arg:signed; n:integer) return std_logic is
+ function ANY_ZEROS (arg:signed; n:integer:=0) return std_logic is
  begin
    return ANY_ZEROS(std_logic_vector(arg),n);
  end function;
 
- function ALL_EQUAL (arg:std_logic_vector; n:integer) return std_logic is
+ function ALL_EQUAL (arg:std_logic_vector; n:integer:=0) return std_logic is
  begin
    return (ALL_ZEROS(arg,n) or ALL_ONES(arg,n));
  end function;
 
- function ALL_EQUAL (arg:unsigned; n:integer) return std_logic is
+ function ALL_EQUAL (arg:unsigned; n:integer:=0) return std_logic is
  begin
    return ALL_EQUAL(std_logic_vector(arg),n);
  end function;
 
- function ALL_EQUAL (arg:signed; n:integer) return std_logic is
+ function ALL_EQUAL (arg:signed; n:integer:=0) return std_logic is
  begin
    return ALL_EQUAL(std_logic_vector(arg),n);
  end function;
@@ -994,7 +994,7 @@ package body ieee_extension is
        -- ceil, round up towards plus infinity
        -- (same: round towards plus/minus infinity, i.e. away from zero)
        tceil(L-n-1 downto 0) := d(L-1 downto n);
-       if SLV_OR(std_logic_vector(d(n-1 downto 0)))='1' then
+       if ANY_ONES(d,-n)='1' then
          tceil := tceil + 1;
        end if;
        dout(L-n downto 0) := tceil(L-n downto 0);
@@ -1003,7 +1003,7 @@ package body ieee_extension is
      if rnd=nearest then
        dout(0) := d(L-1);
      elsif (rnd=ceil or rnd=infinity) then
-       dout(0) := SLV_OR(std_logic_vector(d(L-1 downto 0)));
+       dout(0) := ANY_ONES(d);
      end if;
    end if;  
    return dout;
@@ -1026,7 +1026,7 @@ package body ieee_extension is
    elsif n<L then
      -- ceil, round up towards plus infinity
      tceil(L-n-1 downto 0) := d(L-1 downto n);
-     if SLV_OR(std_logic_vector(d(n-1 downto 0)))='1' then
+     if ANY_ONES(d,n)='1' then
        tceil := tceil + 1;
      end if;
      -- by default output floor result
