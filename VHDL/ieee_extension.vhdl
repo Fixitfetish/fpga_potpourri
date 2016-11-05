@@ -2,7 +2,7 @@
 -- FILE    : ieee_extension.vhdl
 -- AUTHOR  : Fixitfetish
 -- DATE    : 05/Nov/2016
--- VERSION : 0.75
+-- VERSION : 0.8
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -39,6 +39,87 @@ package ieee_extension is
 
  -- convert boolean vector into std_logic_vector (false=>'0', true=>'1')
  function to_01(x:boolean_vector) return std_logic_vector;
+
+ -- This function calculates ceil(log2(n)).
+ -- Optionally, the maximum result can be limited to 'bits' (bits = 2..32)
+ function LOG2CEIL (n:positive; bits:positive:=32) return natural;
+
+ ----------------------------------------------------------
+ -- bitwise logic operations on std_logic_vector
+ ----------------------------------------------------------
+
+ -- bitwise logic OR operation on input vector
+ -- Function returns '1' when one or more bits are '1'.
+ function SLV_OR(arg:std_logic_vector) return std_logic;
+ 
+ -- bitwise logic NOR operation on input vector
+ -- Function returns '1' when all bits are '0'.
+ function SLV_NOR(arg:std_logic_vector) return std_logic;
+
+ -- bitwise logic AND operation on input vector
+ -- Function returns '1' when all bits are '1'.
+ function SLV_AND(arg:std_logic_vector) return std_logic;
+   
+ -- bitwise logic NAND operation on input vector
+ -- Function returns '1' when one or more bits are '0'.
+ function SLV_NAND(arg:std_logic_vector) return std_logic;
+
+ -- bitwise logic XOR operation on input vector
+ -- Function returns '1' when odd number of '1' bits.
+ function SLV_XOR(x:std_logic_vector) return std_logic;
+
+ -- bitwise logic XNOR operation  on input vector
+ -- Function returns '0' when odd number of '0' bits.
+ function SLV_XNOR(x:std_logic_vector) return std_logic;
+
+ ----------------------------------------------------------
+ -- MSB/LSB check (useful e.g. for overflow detection)
+ ----------------------------------------------------------
+
+ -- The function returns '1' if all selected bits are '1' (logical AND)
+ -- for n=0 : considers all bits (default)
+ -- for n>0 : considers only the |n| rigthmost LSBs
+ -- for n<0 : considers only the |n| leftmost MSBs
+ -- for |n| > arg'length : returns 'X'
+ function ALL_ONES (arg:std_logic_vector; n:integer:=0) return std_logic;
+ function ALL_ONES (arg:unsigned; n:integer:=0) return std_logic;
+ function ALL_ONES (arg:signed; n:integer:=0) return std_logic;
+
+ -- The function returns '1' if any of the selected bits is '1' (logical OR)
+ -- for n=0 : considers all bits (default)
+ -- for n>0 : considers only the |n| rigthmost LSBs
+ -- for n<0 : considers only the |n| leftmost MSBs
+ -- for |n| > arg'length : returns 'X'
+ function ANY_ONES (arg:std_logic_vector; n:integer:=0) return std_logic;
+ function ANY_ONES (arg:unsigned; n:integer:=0) return std_logic;
+ function ANY_ONES (arg:signed; n:integer:=0) return std_logic;
+
+ -- The function returns '1' if all selected bits are '0' (logical NOR)
+ -- for n=0 : considers all bits (default)
+ -- for n>0 : considers only the |n| rigthmost LSBs
+ -- for n<0 : considers only the |n| leftmost MSBs
+ -- for |n| > arg'length : returns 'X'
+ function ALL_ZEROS (arg:std_logic_vector; n:integer:=0) return std_logic;
+ function ALL_ZEROS (arg:unsigned; n:integer:=0) return std_logic;
+ function ALL_ZEROS (arg:signed; n:integer:=0) return std_logic;
+   
+ -- The function returns '1' if any of the selected bits is '0' (logical NAND)
+ -- for n=0 : considers all bits (default)
+ -- for n>0 : considers only the |n| rigthmost LSBs
+ -- for n<0 : considers only the |n| leftmost MSBs
+ -- for |n| > arg'length : returns 'X'
+ function ANY_ZEROS (arg:std_logic_vector; n:integer:=0) return std_logic;
+ function ANY_ZEROS (arg:unsigned; n:integer:=0) return std_logic;
+ function ANY_ZEROS (arg:signed; n:integer:=0) return std_logic;
+
+ -- The function returns '1' if all selected bits are equal, i.e. all '0' or all '1'
+ -- for n=0 : considers all bits (default)
+ -- for n>0 : considers only the |n| rigthmost LSBs
+ -- for n<0 : considers only the |n| leftmost MSBs
+ -- for |n| > arg'length : returns 'X'
+ function ALL_EQUAL (arg:std_logic_vector; n:integer:=0) return std_logic;
+ function ALL_EQUAL (arg:unsigned; n:integer:=0) return std_logic;
+ function ALL_EQUAL (arg:signed; n:integer:=0) return std_logic;
 
  -- This function returns the index of the leftmost one in the given vector.
  -- If the vector is all zeros the function returns the index -1.
@@ -119,83 +200,6 @@ package ieee_extension is
  --   NUMBER_OF_LEADING_BITS("0000000",'0') = 7
  --   NUMBER_OF_LEADING_BITS("00110101",'1') = 0 
  function NUMBER_OF_LEADING_BITS(x:signed; b:std_logic) return natural;
-
- -- This function calculates ceil(log2(n)).
- -- Optionally, the maximum result can be limited to 'bits' (bits = 2..32)
- function LOG2CEIL (n:positive; bits:positive:=32) return natural;
-
- -- bitwise logic OR operation on input vector
- -- Function returns '1' when one or more bits are '1'.
- function SLV_OR(arg:std_logic_vector) return std_logic;
- 
- -- bitwise logic NOR operation on input vector
- -- Function returns '1' when all bits are '0'.
- function SLV_NOR(arg:std_logic_vector) return std_logic;
-
- -- bitwise logic AND operation on input vector
- -- Function returns '1' when all bits are '1'.
- function SLV_AND(arg:std_logic_vector) return std_logic;
-   
- -- bitwise logic NAND operation on input vector
- -- Function returns '1' when one or more bits are '0'.
- function SLV_NAND(arg:std_logic_vector) return std_logic;
-
- -- bitwise logic XOR operation on input vector
- -- Function returns '1' when odd number of '1' bits.
- function SLV_XOR(x:std_logic_vector) return std_logic;
-
- -- bitwise logic XNOR operation  on input vector
- -- Function returns '0' when odd number of '0' bits.
- function SLV_XNOR(x:std_logic_vector) return std_logic;
-
- ----------------------------------------------------------
- -- MSB/LSB check (useful e.g. for overflow detection)
- ----------------------------------------------------------
-
- -- The function returns '1' if all selected bits are '1' (logical AND)
- -- for n=0 : considers all bits (default)
- -- for n>0 : considers only the |n| rigthmost LSBs
- -- for n<0 : considers only the |n| leftmost MSBs
- -- for |n| > arg'length : returns 'X'
- function ALL_ONES (arg:std_logic_vector; n:integer:=0) return std_logic;
- function ALL_ONES (arg:unsigned; n:integer:=0) return std_logic;
- function ALL_ONES (arg:signed; n:integer:=0) return std_logic;
-
- -- The function returns '1' if any of the selected bits is '1' (logical OR)
- -- for n=0 : considers all bits (default)
- -- for n>0 : considers only the |n| rigthmost LSBs
- -- for n<0 : considers only the |n| leftmost MSBs
- -- for |n| > arg'length : returns 'X'
- function ANY_ONES (arg:std_logic_vector; n:integer:=0) return std_logic;
- function ANY_ONES (arg:unsigned; n:integer:=0) return std_logic;
- function ANY_ONES (arg:signed; n:integer:=0) return std_logic;
-
- -- The function returns '1' if all selected bits are '0' (logical NOR)
- -- for n=0 : considers all bits (default)
- -- for n>0 : considers only the |n| rigthmost LSBs
- -- for n<0 : considers only the |n| leftmost MSBs
- -- for |n| > arg'length : returns 'X'
- function ALL_ZEROS (arg:std_logic_vector; n:integer:=0) return std_logic;
- function ALL_ZEROS (arg:unsigned; n:integer:=0) return std_logic;
- function ALL_ZEROS (arg:signed; n:integer:=0) return std_logic;
-   
- -- The function returns '1' if any of the selected bits is '0' (logical NAND)
- -- for n=0 : considers all bits (default)
- -- for n>0 : considers only the |n| rigthmost LSBs
- -- for n<0 : considers only the |n| leftmost MSBs
- -- for |n| > arg'length : returns 'X'
- function ANY_ZEROS (arg:std_logic_vector; n:integer:=0) return std_logic;
- function ANY_ZEROS (arg:unsigned; n:integer:=0) return std_logic;
- function ANY_ZEROS (arg:signed; n:integer:=0) return std_logic;
-
- -- The function returns '1' if all selected bits are equal, i.e. all '0' or all '1'
- -- for n=0 : considers all bits (default)
- -- for n>0 : considers only the |n| rigthmost LSBs
- -- for n<0 : considers only the |n| leftmost MSBs
- -- for |n| > arg'length : returns 'X'
- function ALL_EQUAL (arg:std_logic_vector; n:integer:=0) return std_logic;
- function ALL_EQUAL (arg:unsigned; n:integer:=0) return std_logic;
- function ALL_EQUAL (arg:signed; n:integer:=0) return std_logic;
 
  ----------------------------------------------------------
  -- RESIZE AND CLIP/SATURATE
@@ -581,85 +585,6 @@ package body ieee_extension is
    return r;
  end function;
 
- ----------------
- --  BIT MISC
- ----------------
-
- function INDEX_OF_LEFTMOST_ONE(x:std_logic_vector) return integer is
-   variable idx : integer := -1;
- begin
-   for i in x'range loop
-     if x(i)='1' then idx:=i; exit; end if;
-   end loop;
-   return idx;
- end function; 
- 
- function INDEX_OF_RIGHTMOST_ONE(x:std_logic_vector) return integer is
-   variable idx : integer := -1;
- begin
-   for i in x'reverse_range loop
-     if x(i)='1' then idx:=i; exit; end if;
-   end loop;
-   return idx;
- end function; 
-
- function INDEX_OF_LEFTMOST_ZERO(x:std_logic_vector) return integer is
-   variable idx : integer := -1;
- begin
-   for i in x'range loop
-     if x(i)='0' then idx:=i; exit; end if;
-   end loop;
-   return idx;
- end function; 
- 
- function INDEX_OF_RIGHTMOST_ZERO(x:std_logic_vector) return integer is
-   variable idx : integer := -1;
- begin
-   for i in x'reverse_range loop
-     if x(i)='0' then idx:=i; exit; end if;
-   end loop;
-   return idx;
- end function; 
-
- function NUMBER_OF_SIGN_EXTENSION_BITS(x:std_logic_vector) return natural is
-   constant L : integer range 3 to integer'high := x'length;
-   alias xx : std_logic_vector(L-1 downto 0) is x; -- default range
-   variable n : natural := 0;
- begin
-   for i in L-2 downto 1 loop
-     exit when xx(i)/=xx(L-1);
-     n:=n+1;
-   end loop;
-   return n;
- end function;
-
- function NUMBER_OF_SIGN_EXTENSION_BITS(x:signed) return natural is
- begin
-   return NUMBER_OF_SIGN_EXTENSION_BITS(std_logic_vector(x));
- end function;
-
- function NUMBER_OF_LEADING_BITS(x:std_logic_vector; b:std_logic) return natural is
-   constant L : integer range 2 to integer'high := x'length;
-   alias xx : std_logic_vector(L-1 downto 0) is x; -- default range
-   variable n : natural := 0;
- begin
-   for i in L-1 downto 0 loop
-     exit when xx(i)/=b;
-     n:=n+1;
-   end loop;
-   return n;
- end function;
-
- function NUMBER_OF_LEADING_BITS(x:unsigned; b:std_logic) return natural is
- begin
-   return NUMBER_OF_LEADING_BITS(std_logic_vector(x),b);
- end function;
-
- function NUMBER_OF_LEADING_BITS(x:signed; b:std_logic) return natural is
- begin
-   return NUMBER_OF_LEADING_BITS(std_logic_vector(x),b);
- end function;
-
  function LOG2CEIL (n:positive; bits:positive:=32) return natural is
    variable x : unsigned(bits downto 1);
  begin
@@ -669,6 +594,10 @@ package body ieee_extension is
    end loop;
    return 1;
  end function;
+
+ ----------------------------------------------------------
+ -- bitwise logic operations on std_logic_vector
+ ----------------------------------------------------------
 
  -- bitwise logic OR operation on input vector
  -- Function returns '1' when one or more bits are '1'.
@@ -817,6 +746,85 @@ package body ieee_extension is
  function ALL_EQUAL (arg:signed; n:integer:=0) return std_logic is
  begin
    return ALL_EQUAL(std_logic_vector(arg),n);
+ end function;
+
+ ----------------
+ --  BIT MISC
+ ----------------
+
+ function INDEX_OF_LEFTMOST_ONE(x:std_logic_vector) return integer is
+   variable idx : integer := -1;
+ begin
+   for i in x'range loop
+     if x(i)='1' then idx:=i; exit; end if;
+   end loop;
+   return idx;
+ end function; 
+ 
+ function INDEX_OF_RIGHTMOST_ONE(x:std_logic_vector) return integer is
+   variable idx : integer := -1;
+ begin
+   for i in x'reverse_range loop
+     if x(i)='1' then idx:=i; exit; end if;
+   end loop;
+   return idx;
+ end function; 
+
+ function INDEX_OF_LEFTMOST_ZERO(x:std_logic_vector) return integer is
+   variable idx : integer := -1;
+ begin
+   for i in x'range loop
+     if x(i)='0' then idx:=i; exit; end if;
+   end loop;
+   return idx;
+ end function; 
+ 
+ function INDEX_OF_RIGHTMOST_ZERO(x:std_logic_vector) return integer is
+   variable idx : integer := -1;
+ begin
+   for i in x'reverse_range loop
+     if x(i)='0' then idx:=i; exit; end if;
+   end loop;
+   return idx;
+ end function; 
+
+ function NUMBER_OF_SIGN_EXTENSION_BITS(x:std_logic_vector) return natural is
+   constant L : integer range 3 to integer'high := x'length;
+   alias xx : std_logic_vector(L-1 downto 0) is x; -- default range
+   variable n : natural := 0;
+ begin
+   for i in L-2 downto 1 loop
+     exit when xx(i)/=xx(L-1);
+     n:=n+1;
+   end loop;
+   return n;
+ end function;
+
+ function NUMBER_OF_SIGN_EXTENSION_BITS(x:signed) return natural is
+ begin
+   return NUMBER_OF_SIGN_EXTENSION_BITS(std_logic_vector(x));
+ end function;
+
+ function NUMBER_OF_LEADING_BITS(x:std_logic_vector; b:std_logic) return natural is
+   constant L : integer range 2 to integer'high := x'length;
+   alias xx : std_logic_vector(L-1 downto 0) is x; -- default range
+   variable n : natural := 0;
+ begin
+   for i in L-1 downto 0 loop
+     exit when xx(i)/=b;
+     n:=n+1;
+   end loop;
+   return n;
+ end function;
+
+ function NUMBER_OF_LEADING_BITS(x:unsigned; b:std_logic) return natural is
+ begin
+   return NUMBER_OF_LEADING_BITS(std_logic_vector(x),b);
+ end function;
+
+ function NUMBER_OF_LEADING_BITS(x:signed; b:std_logic) return natural is
+ begin
+   return NUMBER_OF_LEADING_BITS(std_logic_vector(x),b);
  end function;
 
  ----------------------------------------------------------
