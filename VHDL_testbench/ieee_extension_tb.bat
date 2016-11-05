@@ -16,7 +16,7 @@ set GTKWAVE=%GTKWAVE_PATH%\bin\gtkwave
 set FLAGS=--std=93 --workdir=work -Pwork
 
 :: analyze files of fixitfetish library
-%GHDL% -a %FLAGS% --work=fixitfetish ..\ieee_extension.vhdl
+%GHDL% -a %FLAGS% --work=fixitfetish ..\VHDL\ieee_extension.vhdl
 
 :: analyze testbench
 %GHDL% -a %FLAGS% ieee_extension_tb.vhdl
