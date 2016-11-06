@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_1993.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 31/Oct/2016
--- VERSION : 0.6
+-- DATE    : 06/Nov/2016
+-- VERSION : 0.7
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -133,8 +133,14 @@ package cplx_pkg is
   function resize (din:cplx18; m:cplx_mode:="-") return cplx16;
   -- resize from CPLX20 down to CPLX16 with optional saturation/clipping and overflow detection
   function resize (din:cplx20; m:cplx_mode:="-") return cplx16;
+  -- resize from CPLX22 down to CPLX16 with optional saturation/clipping and overflow detection
+  function resize (din:cplx22; m:cplx_mode:="-") return cplx16;
   -- resize from CPLX20 down to CPLX18 with optional saturation/clipping and overflow detection
   function resize (din:cplx20; m:cplx_mode:="-") return cplx18;
+  -- resize from CPLX22 down to CPLX18 with optional saturation/clipping and overflow detection
+  function resize (din:cplx22; m:cplx_mode:="-") return cplx18;
+  -- resize from CPLX22 down to CPLX20 with optional saturation/clipping and overflow detection
+  function resize (din:cplx22; m:cplx_mode:="-") return cplx20;
 
   ------------------------------------------
   -- RESIZE DOWN VECTOR AND SATURATE/CLIP
@@ -233,22 +239,26 @@ package cplx_pkg is
   ------------------------------------------
 
   -- complex signed shift left with optional clipping/saturation and overflow detection
-  function shift_left (arg:cplx16 ; n:natural; m:cplx_mode:="-") return cplx16;
+  function shift_left (din:cplx16 ; n:natural; m:cplx_mode:="-") return cplx16;
   -- complex signed shift left with optional clipping/saturation and overflow detection
-  function shift_left (arg:cplx18 ; n:natural; m:cplx_mode:="-") return cplx18;
+  function shift_left (din:cplx18 ; n:natural; m:cplx_mode:="-") return cplx18;
   -- complex signed shift left with optional clipping/saturation and overflow detection
-  function shift_left (arg:cplx20 ; n:natural; m:cplx_mode:="-") return cplx20;
+  function shift_left (din:cplx20 ; n:natural; m:cplx_mode:="-") return cplx20;
+  -- complex signed shift left with optional clipping/saturation and overflow detection
+  function shift_left (din:cplx22 ; n:natural; m:cplx_mode:="-") return cplx22;
 
   ------------------------------------------
   -- SHIFT RIGHT and ROUND
   ------------------------------------------
 
   -- complex signed shift right with optional rounding
-  function shift_right (arg:cplx16 ; n:natural; m:cplx_mode:="-") return cplx16;
+  function shift_right (din:cplx16 ; n:natural; m:cplx_mode:="-") return cplx16;
   -- complex signed shift right with optional rounding
-  function shift_right (arg:cplx18 ; n:natural; m:cplx_mode:="-") return cplx18;
+  function shift_right (din:cplx18 ; n:natural; m:cplx_mode:="-") return cplx18;
   -- complex signed shift right with optional rounding
-  function shift_right (arg:cplx20 ; n:natural; m:cplx_mode:="-") return cplx20;
+  function shift_right (din:cplx20 ; n:natural; m:cplx_mode:="-") return cplx20;
+  -- complex signed shift right with optional rounding
+  function shift_right (din:cplx22 ; n:natural; m:cplx_mode:="-") return cplx22;
 
   ------------------------------------------
   -- STD_LOGIC_VECTOR to CPLX
@@ -333,84 +343,95 @@ package body cplx_pkg is
   -- RESIZE DOWN AND SATURATE/CLIP
   ------------------------------------------
 
-  function resize (din:cplx18; m:cplx_mode:="-") return cplx16 is
-    variable ovfl_re, ovfl_im : std_logic;
-    variable dout : cplx16;
+  -- local auxiliary procedure to avoid massive code duplication
+  procedure help_resize_down (
+    rst  : in  std_logic;
+    din  : in  signed;
+    ovfi : in  std_logic;
+    dout : out signed;
+    ovfo : out std_logic;
+    m    : in  cplx_mode
+  ) is
+    variable ovfl : std_logic;
   begin
-    -- data signals
-    if m='R' and din.rst='1' then
-      dout.re := (others=>'0');
-      dout.im := (others=>'0');
+    if m='R' and rst='1' then
+      dout := (dout'range =>'0');
+      ovfo := '0';
     else
-      RESIZE_CLIP(din=>din.re, dout=>dout.re, ovfl=>ovfl_re, clip=>(m='S'));
-      RESIZE_CLIP(din=>din.im, dout=>dout.im, ovfl=>ovfl_im, clip=>(m='S'));
+      RESIZE_CLIP(din=>din, dout=>dout, ovfl=>ovfl, clip=>(m='S'));
+      if m='O' then ovfo := ovfi or ovfl; else ovfo := ovfi; end if;
     end if;
+  end procedure;
+
+  function resize (din:cplx18 ; m:cplx_mode:="-") return cplx16 is
+    variable ovf_re, ovf_im : std_logic;
+    variable dout : cplx16; -- default
+  begin
     dout.rst := din.rst;
-    dout.vld := din.vld;
-    -- control signals
-    dout.rst := din.rst;
-    if m='R' and din.rst='1' then
-      dout.vld := '0';
-      dout.ovf := '0';
-    else
-      dout.vld := din.vld; 
-      dout.ovf := din.ovf;
-      if m='O' then dout.ovf := din.ovf or ovfl_re or ovfl_im; end if;
-    end if;  
+    if m='R' and din.rst='1' then dout.vld:='0'; else dout.vld:=din.vld; end if;
+    help_resize_down(din.rst, din.re, din.ovf, dout.re, ovf_re, m);
+    help_resize_down(din.rst, din.im, din.ovf, dout.im, ovf_im, m);
+    dout.ovf := ovf_re or ovf_im; -- overflow handling in help procedure
     return dout;
   end function;
 
-  function resize (din:cplx20; m:cplx_mode:="-") return cplx16 is
-    variable ovfl_re, ovfl_im : std_logic;
-    variable dout : cplx16;
+  function resize (din:cplx20 ; m:cplx_mode:="-") return cplx16 is
+    variable ovf_re, ovf_im : std_logic;
+    variable dout : cplx16; -- default
   begin
-    -- data signals
-    if m='R' and din.rst='1' then
-      dout.re := (others=>'0');
-      dout.im := (others=>'0');
-    else
-      RESIZE_CLIP(din=>din.re, dout=>dout.re, ovfl=>ovfl_re, clip=>(m='S'));
-      RESIZE_CLIP(din=>din.im, dout=>dout.im, ovfl=>ovfl_im, clip=>(m='S'));
-    end if;
     dout.rst := din.rst;
-    dout.vld := din.vld;
-    -- control signals
+    if m='R' and din.rst='1' then dout.vld:='0'; else dout.vld:=din.vld; end if;
+    help_resize_down(din.rst, din.re, din.ovf, dout.re, ovf_re, m);
+    help_resize_down(din.rst, din.im, din.ovf, dout.im, ovf_im, m);
+    dout.ovf := ovf_re or ovf_im; -- overflow handling in help procedure
+    return dout;
+  end function;
+
+  function resize (din:cplx22 ; m:cplx_mode:="-") return cplx16 is
+    variable ovf_re, ovf_im : std_logic;
+    variable dout : cplx16; -- default
+  begin
     dout.rst := din.rst;
-    if m='R' and din.rst='1' then
-      dout.vld := '0';
-      dout.ovf := '0';
-    else
-      dout.vld := din.vld; 
-      dout.ovf := din.ovf;
-      if m='O' then dout.ovf := din.ovf or ovfl_re or ovfl_im; end if;
-    end if;  
+    if m='R' and din.rst='1' then dout.vld:='0'; else dout.vld:=din.vld; end if;
+    help_resize_down(din.rst, din.re, din.ovf, dout.re, ovf_re, m);
+    help_resize_down(din.rst, din.im, din.ovf, dout.im, ovf_im, m);
+    dout.ovf := ovf_re or ovf_im; -- overflow handling in help procedure
     return dout;
   end function;
 
   function resize (din:cplx20; m:cplx_mode:="-") return cplx18 is
-    variable ovfl_re, ovfl_im : std_logic;
-    variable dout : cplx18;
+    variable ovf_re, ovf_im : std_logic;
+    variable dout : cplx18; -- default
   begin
-    -- data signals
-    if m='R' and din.rst='1' then
-      dout.re := (others=>'0');
-      dout.im := (others=>'0');
-    else
-      RESIZE_CLIP(din=>din.re, dout=>dout.re, ovfl=>ovfl_re, clip=>(m='S'));
-      RESIZE_CLIP(din=>din.im, dout=>dout.im, ovfl=>ovfl_im, clip=>(m='S'));
-    end if;
     dout.rst := din.rst;
-    dout.vld := din.vld;
-    -- control signals
+    if m='R' and din.rst='1' then dout.vld:='0'; else dout.vld:=din.vld; end if;
+    help_resize_down(din.rst, din.re, din.ovf, dout.re, ovf_re, m);
+    help_resize_down(din.rst, din.im, din.ovf, dout.im, ovf_im, m);
+    dout.ovf := ovf_re or ovf_im; -- overflow handling in help procedure
+    return dout;
+  end function;
+
+  function resize (din:cplx22; m:cplx_mode:="-") return cplx18 is
+    variable ovf_re, ovf_im : std_logic;
+    variable dout : cplx18; -- default
+  begin
     dout.rst := din.rst;
-    if m='R' and din.rst='1' then
-      dout.vld := '0';
-      dout.ovf := '0';
-    else
-      dout.vld := din.vld; 
-      dout.ovf := din.ovf;
-      if m='O' then dout.ovf := din.ovf or ovfl_re or ovfl_im; end if;
-    end if;  
+    if m='R' and din.rst='1' then dout.vld:='0'; else dout.vld:=din.vld; end if;
+    help_resize_down(din.rst, din.re, din.ovf, dout.re, ovf_re, m);
+    help_resize_down(din.rst, din.im, din.ovf, dout.im, ovf_im, m);
+    dout.ovf := ovf_re or ovf_im; -- overflow handling in help procedure
+    return dout;
+  end function;
+
+  function resize (din:cplx22; m:cplx_mode:="-") return cplx20 is
+    variable ovf_re, ovf_im : std_logic;
+    variable dout : cplx20; -- default
+  begin
+    dout.rst := din.rst;
+    if m='R' and din.rst='1' then dout.vld:='0'; else dout.vld:=din.vld; end if;
+    help_resize_down(din.rst, din.re, din.ovf, dout.re, ovf_re, m);
+    help_resize_down(din.rst, din.im, din.ovf, dout.im, ovf_im, m);
+    dout.ovf := ovf_re or ovf_im; -- overflow handling in help procedure
     return dout;
   end function;
 
@@ -565,28 +586,37 @@ package body cplx_pkg is
   -- ADDITION and ACCUMULATION
   ------------------------------------------
 
+  -- local auxiliary procedure to avoid massive code duplication
+  procedure help_add (
+    rst  : in  std_logic;
+    l,r  : in  signed;
+    ovfi : in  std_logic;
+    dout : out signed;
+    ovfo : out std_logic;
+    m    : in  cplx_mode
+  ) is
+    variable ovfl : std_logic;
+  begin
+    if m='R' and rst='1' then
+      dout := (dout'range =>'0');
+      ovfo := '0';
+    else
+      ADD(l=>l, r=>r, dout=>dout, ovfl=>ovfl, clip=>(m='S'));
+      if m='O' then ovfo := ovfi or ovfl; else ovfo := ovfi; end if;
+    end if;
+  end procedure;
+
   function add (l,r: cplx16; m:cplx_mode:="-") return cplx16 is 
     variable ovfl_re, ovfl_im : std_logic;
     variable res : cplx16;
   begin
     res.rst := l.rst or r.rst;
-    -- data signals
-    if m='R' and res.rst='1' then
-      res.re := (others=>'0');
-      res.im := (others=>'0');
-    else
-      ADD_CLIP(l=>l.re, r=>r.re, dout=>res.re, ovfl=>ovfl_re, clip=>(m="S"));
-      ADD_CLIP(l=>l.im, r=>r.im, dout=>res.im, ovfl=>ovfl_im, clip=>(m="S"));
-    end if;
-    -- control signals
-    if m='R' and res.rst='1' then
-      res.vld := '0';
-      res.ovf := '0';
-    else
-      res.vld := l.vld and r.vld;
-      res.ovf := l.ovf or r.ovf;
-      if m='O' then res.ovf := res.ovf or ovfl_re or ovfl_im; end if;
-    end if;  
+    res.vld := l.vld and r.vld; -- input before reset
+    res.ovf := l.ovf or r.ovf; -- input before reset
+    if m='R' and res.rst='1' then res.vld:='0'; else end if;
+    help_add(res.rst, l.re, r.re, res.ovf, res.re, ovfl_re, m);
+    help_add(res.rst, l.im, r.im, res.ovf, res.im, ovfl_im, m);
+    res.ovf := ovfl_re or ovfl_im; -- overflow handling in help procedure
     return res;
   end function;
 
@@ -595,23 +625,12 @@ package body cplx_pkg is
     variable res : cplx18;
   begin
     res.rst := l.rst or r.rst;
-    -- data signals
-    if m='R' and res.rst='1' then
-      res.re := (others=>'0');
-      res.im := (others=>'0');
-    else
-      ADD_CLIP(l=>l.re, r=>r.re, dout=>res.re, ovfl=>ovfl_re, clip=>(m="S"));
-      ADD_CLIP(l=>l.im, r=>r.im, dout=>res.im, ovfl=>ovfl_im, clip=>(m="S"));
-    end if;
-    -- control signals
-    if m='R' and res.rst='1' then
-      res.vld := '0';
-      res.ovf := '0';
-    else
-      res.vld := l.vld and r.vld;
-      res.ovf := l.ovf or r.ovf;
-      if m='O' then res.ovf := res.ovf or ovfl_re or ovfl_im; end if;
-    end if;  
+    res.vld := l.vld and r.vld; -- input before reset
+    res.ovf := l.ovf or r.ovf; -- input before reset
+    if m='R' and res.rst='1' then res.vld:='0'; else end if;
+    help_add(res.rst, l.re, r.re, res.ovf, res.re, ovfl_re, m);
+    help_add(res.rst, l.im, r.im, res.ovf, res.im, ovfl_im, m);
+    res.ovf := ovfl_re or ovfl_im; -- overflow handling in help procedure
     return res;
   end function;
 
@@ -620,23 +639,12 @@ package body cplx_pkg is
     variable res : cplx20;
   begin
     res.rst := l.rst or r.rst;
-    -- data signals
-    if m='R' and res.rst='1' then
-      res.re := (others=>'0');
-      res.im := (others=>'0');
-    else
-      ADD_CLIP(l=>l.re, r=>r.re, dout=>res.re, ovfl=>ovfl_re, clip=>(m="S"));
-      ADD_CLIP(l=>l.im, r=>r.im, dout=>res.im, ovfl=>ovfl_im, clip=>(m="S"));
-    end if;
-    -- control signals
-    if m='R' and res.rst='1' then
-      res.vld := '0';
-      res.ovf := '0';
-    else
-      res.vld := l.vld and r.vld;
-      res.ovf := l.ovf or r.ovf;
-      if m='O' then res.ovf := res.ovf or ovfl_re or ovfl_im; end if;
-    end if;  
+    res.vld := l.vld and r.vld;
+    res.ovf := l.ovf or r.ovf;
+    if m='R' and res.rst='1' then res.vld:='0'; else end if;
+    help_add(res.rst, l.re, r.re, res.ovf, res.re, ovfl_re, m);
+    help_add(res.rst, l.im, r.im, res.ovf, res.im, ovfl_im, m);
+    res.ovf := ovfl_re or ovfl_im; -- overflow handling in help procedure
     return res;
   end function;
 
@@ -645,44 +653,33 @@ package body cplx_pkg is
     variable res : cplx22;
   begin
     res.rst := l.rst or r.rst;
-    -- data signals
-    if m='R' and res.rst='1' then
-      res.re := (others=>'0');
-      res.im := (others=>'0');
-    else
-      ADD_CLIP(l=>l.re, r=>r.re, dout=>res.re, ovfl=>ovfl_re, clip=>(m="S"));
-      ADD_CLIP(l=>l.im, r=>r.im, dout=>res.im, ovfl=>ovfl_im, clip=>(m="S"));
-    end if;
-    -- control signals
-    if m='R' and res.rst='1' then
-      res.vld := '0';
-      res.ovf := '0';
-    else
-      res.vld := l.vld and r.vld;
-      res.ovf := l.ovf or r.ovf;
-      if m='O' then res.ovf := res.ovf or ovfl_re or ovfl_im; end if;
-    end if;  
+    res.vld := l.vld and r.vld;
+    res.ovf := l.ovf or r.ovf;
+    if m='R' and res.rst='1' then res.vld:='0'; else end if;
+    help_add(res.rst, l.re, r.re, res.ovf, res.re, ovfl_re, m);
+    help_add(res.rst, l.im, r.im, res.ovf, res.im, ovfl_im, m);
+    res.ovf := ovfl_re or ovfl_im; -- overflow handling in help procedure
     return res;
   end function;
 
   function "+" (l,r: cplx16) return cplx16 is
   begin
-    return add(l, r, m=>"O");
+    return add(l, r, m=>"O"); -- always with overflow detection
   end function;
 
   function "+" (l,r: cplx18) return cplx18 is
   begin
-    return add(l, r, m=>"O");
+    return add(l, r, m=>"O"); -- always with overflow detection
   end function;
 
   function "+" (l,r: cplx20) return cplx20 is
   begin
-    return add(l, r, m=>"O");
+    return add(l, r, m=>"O"); -- always with overflow detection
   end function;
 
   function "+" (l,r: cplx22) return cplx22 is
   begin
-    return add(l, r, m=>"O");
+    return add(l, r, m=>"O"); -- always with overflow detection
   end function;
 
   function sum (arg: cplx16_vector) return cplx18 is
@@ -734,28 +731,37 @@ package body cplx_pkg is
   -- SUBSTRACTION
   ------------------------------------------
 
+  -- local auxiliary procedure to avoid massive code duplication
+  procedure help_sub (
+    rst  : in  std_logic;
+    l,r  : in  signed;
+    ovfi : in  std_logic;
+    dout : out signed;
+    ovfo : out std_logic;
+    m    : in  cplx_mode
+  ) is
+    variable ovfl : std_logic;
+  begin
+    if m='R' and rst='1' then
+      dout := (dout'range =>'0');
+      ovfo := '0';
+    else
+      SUB(l=>l, r=>r, dout=>dout, ovfl=>ovfl, clip=>(m='S'));
+      if m='O' then ovfo := ovfi or ovfl; else ovfo := ovfi; end if;
+    end if;
+  end procedure;
+
   function sub (l,r: cplx16; m:cplx_mode:="-") return cplx16 is 
     variable ovfl_re, ovfl_im : std_logic;
     variable res : cplx16;
   begin
     res.rst := l.rst or r.rst;
-    -- data signals
-    if m='R' and res.rst='1' then
-      res.re := (others=>'0');
-      res.im := (others=>'0');
-    else
-      SUB_CLIP(l=>l.re, r=>r.re, dout=>res.re, ovfl=>ovfl_re, clip=>(m="S"));
-      SUB_CLIP(l=>l.im, r=>r.im, dout=>res.im, ovfl=>ovfl_im, clip=>(m="S"));
-    end if;
-    -- control signals
-    if m='R' and res.rst='1' then
-      res.vld := '0';
-      res.ovf := '0';
-    else
-      res.vld := l.vld and r.vld;
-      res.ovf := l.ovf or r.ovf;
-      if m='O' then res.ovf := res.ovf or ovfl_re or ovfl_im; end if;
-    end if;  
+    res.vld := l.vld and r.vld; -- input before reset
+    res.ovf := l.ovf or r.ovf; -- input before reset
+    if m='R' and res.rst='1' then res.vld:='0'; else end if;
+    help_sub(res.rst, l.re, r.re, res.ovf, res.re, ovfl_re, m);
+    help_sub(res.rst, l.im, r.im, res.ovf, res.im, ovfl_im, m);
+    res.ovf := ovfl_re or ovfl_im; -- overflow handling in help procedure
     return res;
   end function;
 
@@ -764,23 +770,12 @@ package body cplx_pkg is
     variable res : cplx18;
   begin
     res.rst := l.rst or r.rst;
-    -- data signals
-    if m='R' and res.rst='1' then
-      res.re := (others=>'0');
-      res.im := (others=>'0');
-    else
-      SUB_CLIP(l=>l.re, r=>r.re, dout=>res.re, ovfl=>ovfl_re, clip=>(m="S"));
-      SUB_CLIP(l=>l.im, r=>r.im, dout=>res.im, ovfl=>ovfl_im, clip=>(m="S"));
-    end if;
-    -- control signals
-    if m='R' and res.rst='1' then
-      res.vld := '0';
-      res.ovf := '0';
-    else
-      res.vld := l.vld and r.vld;
-      res.ovf := l.ovf or r.ovf;
-      if m='O' then res.ovf := res.ovf or ovfl_re or ovfl_im; end if;
-    end if;  
+    res.vld := l.vld and r.vld; -- input before reset
+    res.ovf := l.ovf or r.ovf; -- input before reset
+    if m='R' and res.rst='1' then res.vld:='0'; else end if;
+    help_sub(res.rst, l.re, r.re, res.ovf, res.re, ovfl_re, m);
+    help_sub(res.rst, l.im, r.im, res.ovf, res.im, ovfl_im, m);
+    res.ovf := ovfl_re or ovfl_im; -- overflow handling in help procedure
     return res;
   end function;
 
@@ -789,23 +784,12 @@ package body cplx_pkg is
     variable res : cplx20;
   begin
     res.rst := l.rst or r.rst;
-    -- data signals
-    if m='R' and res.rst='1' then
-      res.re := (others=>'0');
-      res.im := (others=>'0');
-    else
-      SUB_CLIP(l=>l.re, r=>r.re, dout=>res.re, ovfl=>ovfl_re, clip=>(m="S"));
-      SUB_CLIP(l=>l.im, r=>r.im, dout=>res.im, ovfl=>ovfl_im, clip=>(m="S"));
-    end if;
-    -- control signals
-    if m='R' and res.rst='1' then
-      res.vld := '0';
-      res.ovf := '0';
-    else
-      res.vld := l.vld and r.vld;
-      res.ovf := l.ovf or r.ovf;
-      if m='O' then res.ovf := res.ovf or ovfl_re or ovfl_im; end if;
-    end if;  
+    res.vld := l.vld and r.vld; -- input before reset
+    res.ovf := l.ovf or r.ovf; -- input before reset
+    if m='R' and res.rst='1' then res.vld:='0'; else end if;
+    help_sub(res.rst, l.re, r.re, res.ovf, res.re, ovfl_re, m);
+    help_sub(res.rst, l.im, r.im, res.ovf, res.im, ovfl_im, m);
+    res.ovf := ovfl_re or ovfl_im; -- overflow handling in help procedure
     return res;
   end function;
 
@@ -814,122 +798,101 @@ package body cplx_pkg is
     variable res : cplx22;
   begin
     res.rst := l.rst or r.rst;
-    -- data signals
-    if m='R' and res.rst='1' then
-      res.re := (others=>'0');
-      res.im := (others=>'0');
-    else
-      SUB_CLIP(l=>l.re, r=>r.re, dout=>res.re, ovfl=>ovfl_re, clip=>(m="S"));
-      SUB_CLIP(l=>l.im, r=>r.im, dout=>res.im, ovfl=>ovfl_im, clip=>(m="S"));
-    end if;
-    -- control signals
-    if m='R' and res.rst='1' then
-      res.vld := '0';
-      res.ovf := '0';
-    else
-      res.vld := l.vld and r.vld;
-      res.ovf := l.ovf or r.ovf;
-      if m='O' then res.ovf := res.ovf or ovfl_re or ovfl_im; end if;
-    end if;  
+    res.vld := l.vld and r.vld; -- input before reset
+    res.ovf := l.ovf or r.ovf; -- input before reset
+    if m='R' and res.rst='1' then res.vld:='0'; else end if;
+    help_sub(res.rst, l.re, r.re, res.ovf, res.re, ovfl_re, m);
+    help_sub(res.rst, l.im, r.im, res.ovf, res.im, ovfl_im, m);
+    res.ovf := ovfl_re or ovfl_im; -- overflow handling in help procedure
     return res;
   end function;
 
   function "-" (l,r: cplx16) return cplx16 is
   begin
-    return sub(l, r, m=>"O");
+    return sub(l, r, m=>"O"); -- always with overflow detection
   end function;
 
   function "-" (l,r: cplx18) return cplx18 is
   begin
-    return sub(l, r, m=>"O");
+    return sub(l, r, m=>"O"); -- always with overflow detection
   end function;
 
   function "-" (l,r: cplx20) return cplx20 is
   begin
-    return sub(l, r, m=>"O");
+    return sub(l, r, m=>"O"); -- always with overflow detection
   end function;
 
   function "-" (l,r: cplx22) return cplx22 is
   begin
-    return sub(l, r, m=>"O");
+    return sub(l, r, m=>"O"); -- always with overflow detection
   end function;
 
   ------------------------------------------
  -- SHIFT LEFT AND SATURATE/CLIP
   ------------------------------------------
 
-  function shift_left (arg:cplx16 ; n:natural; m:cplx_mode:="-") return cplx16 is
-    variable ovf_re, ovf_im : std_logic;
-    variable res : cplx16;
+  -- local auxiliary procedure to avoid massive code duplication
+  procedure help_shift_left (
+    rst  : in  std_logic;
+    din  : in  signed;
+    ovfi : in  std_logic;
+    n    : in  natural;
+    dout : out signed;
+    ovfo : out std_logic;
+    m    : in  cplx_mode
+  ) is
+    variable ovfl : std_logic;
   begin
-    -- data signals
-    if m='R' and arg.rst='1' then
-      res.re := (others=>'0');
-      res.im := (others=>'0');
+    if m='R' and rst='1' then
+      dout := (dout'range =>'0');
+      ovfo := '0';
     else
-      SHIFT_LEFT_CLIP(din=>arg.re, n=>n, dout=>res.re, ovfl=>ovf_re, clip=>(m='S'));
-      SHIFT_LEFT_CLIP(din=>arg.im, n=>n, dout=>res.im, ovfl=>ovf_im, clip=>(m='S'));
+      SHIFT_LEFT_CLIP(din=>din, n=>n, dout=>dout, ovfl=>ovfl, clip=>(m='S'));
+      if m='O' then ovfo := ovfi or ovfl; else ovfo := ovfi; end if;
     end if;
-    -- control signals
-    res.rst := arg.rst;
-    if m='R' and arg.rst='1' then
-      res.vld := '0';
-      res.ovf := '0';
-    else
-      res.vld := arg.vld; 
-      res.ovf := arg.ovf;
-      if m='O' then res.ovf := arg.ovf or ovf_re or ovf_im; end if;
-    end if;  
+  end procedure;
+
+  function shift_left (din:cplx16 ; n:natural; m:cplx_mode:="-") return cplx16 is
+    variable ovf_re, ovf_im : std_logic;
+    variable res : cplx16 := din; -- default
+  begin
+    if m='R' and din.rst='1' then res.vld:='0'; end if;
+    help_shift_left(din.rst, din.re, din.ovf, n, res.re, ovf_re, m);
+    help_shift_left(din.rst, din.im, din.ovf, n, res.im, ovf_im, m);
+    res.ovf := ovf_re or ovf_im;
     return res;
   end function;
 
-  function shift_left (arg:cplx18 ; n:natural; m:cplx_mode:="-") return cplx18 is
+  function shift_left (din:cplx18 ; n:natural; m:cplx_mode:="-") return cplx18 is
     variable ovf_re, ovf_im : std_logic;
-    variable res : cplx18;
+    variable res : cplx18 := din; -- default
   begin
-    -- data signals
-    if m='R' and arg.rst='1' then
-      res.re := (others=>'0');
-      res.im := (others=>'0');
-    else
-      SHIFT_LEFT_CLIP(din=>arg.re, n=>n, dout=>res.re, ovfl=>ovf_re, clip=>(m='S'));
-      SHIFT_LEFT_CLIP(din=>arg.im, n=>n, dout=>res.im, ovfl=>ovf_im, clip=>(m='S'));
-    end if;
-    -- control signals
-    res.rst := arg.rst;
-    if m='R' and arg.rst='1' then
-      res.vld := '0';
-      res.ovf := '0';
-    else
-      res.vld := arg.vld; 
-      res.ovf := arg.ovf;
-      if m='O' then res.ovf := arg.ovf or ovf_re or ovf_im; end if;
-    end if;  
+    if m='R' and din.rst='1' then res.vld:='0'; end if;
+    help_shift_left(din.rst, din.re, din.ovf, n, res.re, ovf_re, m);
+    help_shift_left(din.rst, din.im, din.ovf, n, res.im, ovf_im, m);
+    res.ovf := ovf_re or ovf_im;
     return res;
   end function;
 
-  function shift_left (arg:cplx20 ; n:natural; m:cplx_mode:="-") return cplx20 is
+  function shift_left (din:cplx20 ; n:natural; m:cplx_mode:="-") return cplx20 is
     variable ovf_re, ovf_im : std_logic;
-    variable res : cplx20;
+    variable res : cplx20 := din; -- default
   begin
-    -- data signals
-    if m='R' and arg.rst='1' then
-      res.re := (others=>'0');
-      res.im := (others=>'0');
-    else
-      SHIFT_LEFT_CLIP(din=>arg.re, n=>n, dout=>res.re, ovfl=>ovf_re, clip=>(m='S'));
-      SHIFT_LEFT_CLIP(din=>arg.im, n=>n, dout=>res.im, ovfl=>ovf_im, clip=>(m='S'));
-    end if;
-    -- control signals
-    res.rst := arg.rst;
-    if m='R' and arg.rst='1' then
-      res.vld := '0';
-      res.ovf := '0';
-    else
-      res.vld := arg.vld; 
-      res.ovf := arg.ovf;
-      if m='O' then res.ovf := arg.ovf or ovf_re or ovf_im; end if;
-    end if;  
+    if m='R' and din.rst='1' then res.vld:='0'; end if;
+    help_shift_left(din.rst, din.re, din.ovf, n, res.re, ovf_re, m);
+    help_shift_left(din.rst, din.im, din.ovf, n, res.im, ovf_im, m);
+    res.ovf := ovf_re or ovf_im;
+    return res;
+  end function;
+
+  function shift_left (din:cplx22 ; n:natural; m:cplx_mode:="-") return cplx22 is
+    variable ovf_re, ovf_im : std_logic;
+    variable res : cplx22 := din; -- default
+  begin
+    if m='R' and din.rst='1' then res.vld:='0'; end if;
+    help_shift_left(din.rst, din.re, din.ovf, n, res.re, ovf_re, m);
+    help_shift_left(din.rst, din.im, din.ovf, n, res.im, ovf_im, m);
+    res.ovf := ovf_re or ovf_im;
     return res;
   end function;
 
@@ -937,111 +900,64 @@ package body cplx_pkg is
   -- SHIFT RIGHT and ROUND
   ------------------------------------------
 
-  function shift_right (arg:cplx16; n:natural; m:cplx_mode:="-") return cplx16 is
-    variable res : cplx16;
+  -- local auxiliary procedure to avoid massive code duplication
+  procedure help_shift_right (
+    rst  : in  std_logic;
+    din  : in  signed;
+    n    : in  natural;
+    dout : out signed;
+    m    : in  cplx_mode
+  ) is
   begin
-    -- data signals
-    if m='R' and arg.rst='1' then
-      res.re := (others=>'0');
-      res.im := (others=>'0');
+    if m='R' and rst='1' then
+      dout := (dout'range =>'0');
     elsif m='N' then
-      res.re := SHIFT_RIGHT_ROUND(arg.re, n, nearest); -- real part
-      res.im := SHIFT_RIGHT_ROUND(arg.im, n, nearest); -- imaginary part
+      dout := SHIFT_RIGHT_ROUND(din, n, nearest);
     elsif m='U' then
-      res.re := SHIFT_RIGHT_ROUND(arg.re, n, ceil); -- real part
-      res.im := SHIFT_RIGHT_ROUND(arg.im, n, ceil); -- imaginary part
+      dout := SHIFT_RIGHT_ROUND(din, n, ceil); -- real part
     elsif m='Z' then
-      res.re := SHIFT_RIGHT_ROUND(arg.re, n, truncate); -- real part
-      res.im := SHIFT_RIGHT_ROUND(arg.im, n, truncate); -- imaginary part
+      dout := SHIFT_RIGHT_ROUND(din, n, truncate); -- real part
     elsif m='I' then
-      res.re := SHIFT_RIGHT_ROUND(arg.re, n, infinity); -- real part
-      res.im := SHIFT_RIGHT_ROUND(arg.im, n, infinity); -- imaginary part
+      dout := SHIFT_RIGHT_ROUND(din, n, infinity); -- real part
     else
       -- by default standard rounding, i.e. floor
-      res.re := shift_right(arg.re, n); -- real part
-      res.im := shift_right(arg.im, n); -- imaginary part
+      dout := shift_right(din, n); -- real part
     end if;
-    -- control signals
-    res.rst := arg.rst;
-    if m='R' and arg.rst='1' then
-      res.vld := '0';
-      res.ovf := '0';
-    else
-      res.vld := arg.vld;
-      res.ovf := arg.ovf; -- shift right cannot cause overflow
-    end if;  
+  end procedure;
+
+  function shift_right (din:cplx16; n:natural; m:cplx_mode:="-") return cplx16 is
+    variable res : cplx16 := din; -- default
+  begin
+    if m='R' and din.rst='1' then res.vld:='0'; res.ovf:='0'; end if;
+    help_shift_right(din.rst, din.re, n, res.re, m);
+    help_shift_right(din.rst, din.im, n, res.im, m);
     return res;
   end function;
 
-  function shift_right (arg:cplx18 ; n:natural; m:cplx_mode:="-") return cplx18 is
-    variable res : cplx18;
+  function shift_right (din:cplx18; n:natural; m:cplx_mode:="-") return cplx18 is
+    variable res : cplx18 := din; -- default
   begin
-    -- data signals
-    if m='R' and arg.rst='1' then
-      res.re := (others=>'0');
-      res.im := (others=>'0');
-    elsif m='N' then
-      res.re := SHIFT_RIGHT_ROUND(arg.re, n, nearest); -- real part
-      res.im := SHIFT_RIGHT_ROUND(arg.im, n, nearest); -- imaginary part
-    elsif m='U' then
-      res.re := SHIFT_RIGHT_ROUND(arg.re, n, ceil); -- real part
-      res.im := SHIFT_RIGHT_ROUND(arg.im, n, ceil); -- imaginary part
-    elsif m='Z' then
-      res.re := SHIFT_RIGHT_ROUND(arg.re, n, truncate); -- real part
-      res.im := SHIFT_RIGHT_ROUND(arg.im, n, truncate); -- imaginary part
-    elsif m='I' then
-      res.re := SHIFT_RIGHT_ROUND(arg.re, n, infinity); -- real part
-      res.im := SHIFT_RIGHT_ROUND(arg.im, n, infinity); -- imaginary part
-    else
-      -- by default standard rounding, i.e. floor
-      res.re := shift_right(arg.re, n); -- real part
-      res.im := shift_right(arg.im, n); -- imaginary part
-    end if;
-    -- control signals
-    res.rst := arg.rst;
-    if m='R' and arg.rst='1' then
-      res.vld := '0';
-      res.ovf := '0';
-    else
-      res.vld := arg.vld;
-      res.ovf := arg.ovf; -- shift right cannot cause overflow
-    end if;  
+    if m='R' and din.rst='1' then res.vld:='0'; res.ovf:='0'; end if;
+    help_shift_right(din.rst, din.re, n, res.re, m);
+    help_shift_right(din.rst, din.im, n, res.im, m);
     return res;
   end function;
 
-  function shift_right (arg:cplx20 ; n:natural; m:cplx_mode:="-") return cplx20 is
-    variable res : cplx20;
+  function shift_right (din:cplx20; n:natural; m:cplx_mode:="-") return cplx20 is
+    variable res : cplx20 := din; -- default
   begin
-    -- data signals
-    if m='R' and arg.rst='1' then
-      res.re := (others=>'0');
-      res.im := (others=>'0');
-    elsif m='N' then
-      res.re := SHIFT_RIGHT_ROUND(arg.re, n, nearest); -- real part
-      res.im := SHIFT_RIGHT_ROUND(arg.im, n, nearest); -- imaginary part
-    elsif m='U' then
-      res.re := SHIFT_RIGHT_ROUND(arg.re, n, ceil); -- real part
-      res.im := SHIFT_RIGHT_ROUND(arg.im, n, ceil); -- imaginary part
-    elsif m='Z' then
-      res.re := SHIFT_RIGHT_ROUND(arg.re, n, truncate); -- real part
-      res.im := SHIFT_RIGHT_ROUND(arg.im, n, truncate); -- imaginary part
-    elsif m='I' then
-      res.re := SHIFT_RIGHT_ROUND(arg.re, n, infinity); -- real part
-      res.im := SHIFT_RIGHT_ROUND(arg.im, n, infinity); -- imaginary part
-    else
-      -- by default standard rounding, i.e. floor
-      res.re := shift_right(arg.re, n); -- real part
-      res.im := shift_right(arg.im, n); -- imaginary part
-    end if;
-    -- control signals
-    res.rst := arg.rst;
-    if m='R' and arg.rst='1' then
-      res.vld := '0';
-      res.ovf := '0';
-    else
-      res.vld := arg.vld;
-      res.ovf := arg.ovf; -- shift right cannot cause overflow
-    end if;  
+    if m='R' and din.rst='1' then res.vld:='0'; res.ovf:='0'; end if;
+    help_shift_right(din.rst, din.re, n, res.re, m);
+    help_shift_right(din.rst, din.im, n, res.im, m);
+    return res;
+  end function;
+
+  function shift_right (din:cplx22; n:natural; m:cplx_mode:="-") return cplx22 is
+    variable res : cplx22 := din; -- default
+  begin
+    if m='R' and din.rst='1' then res.vld:='0'; res.ovf:='0'; end if;
+    help_shift_right(din.rst, din.re, n, res.re, m);
+    help_shift_right(din.rst, din.im, n, res.im, m);
     return res;
   end function;
 
