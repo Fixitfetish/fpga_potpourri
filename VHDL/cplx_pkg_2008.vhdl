@@ -386,7 +386,7 @@ package body cplx_pkg is
   function "+" (l,r: cplx) return cplx is
     constant w : positive := max(l.re'length,r.re'length);
   begin
-    return add(l=>l, r=>r, w=>w, m=>"O");
+    return add(l=>l, r=>r, w=>w, m=>"O"); -- always with overflow detection
   end function;
 
   function sum (
@@ -478,7 +478,7 @@ package body cplx_pkg is
   function "-" (l,r: cplx) return cplx is
     constant w : positive := max(l.re'length,r.re'length);
   begin
-    return sub(l=>l, r=>r, w=>w, m=>"O");
+    return sub(l=>l, r=>r, w=>w, m=>"O"); -- always with overflow detection
   end function;
 
   ------------------------------------------
