@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_1993.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 06/Nov/2016
--- VERSION : 0.7
+-- DATE    : 07/Nov/2016
+-- VERSION : 0.71
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -43,9 +43,9 @@ package cplx_pkg is
   record
     rst : std_logic; -- reset
     vld : std_logic; -- data valid
+    ovf : std_logic; -- data overflow (or clipping)
     re  : signed(15 downto 0); -- data real component
     im  : signed(15 downto 0); -- data imaginary component 
-    ovf : std_logic; -- data overflow (or clipping)
   end record;
   constant CPLX16_RESET_ALL : cplx16 := (rst=>'1', vld|ovf=>'0', re|im=>(others=>'0'));
   constant CPLX16_RESET_DO_NOT_CARE_DATA : cplx16 := (rst=>'1', vld|ovf=>'0', re|im=>(others=>'-'));
@@ -55,9 +55,9 @@ package cplx_pkg is
   record
     rst : std_logic; -- reset
     vld : std_logic; -- data valid
+    ovf : std_logic; -- data overflow (or clipping)
     re  : signed(17 downto 0); -- data real component
     im  : signed(17 downto 0); -- data imaginary component 
-    ovf : std_logic; -- data overflow (or clipping)
   end record;
   constant CPLX18_RESET_ALL : cplx16 := (rst=>'1', vld|ovf=>'0', re|im=>(others=>'0'));
   constant CPLX18_RESET_DO_NOT_CARE_DATA : cplx16 := (rst=>'1', vld|ovf=>'0', re|im=>(others=>'-'));
@@ -67,9 +67,9 @@ package cplx_pkg is
   record
     rst : std_logic; -- reset
     vld : std_logic; -- data valid
+    ovf : std_logic; -- data overflow (or clipping)
     re  : signed(19 downto 0); -- data real component
     im  : signed(19 downto 0); -- data imaginary component 
-    ovf : std_logic; -- data overflow (or clipping)
   end record;
   constant CPLX20_RESET_ALL : cplx16 := (rst=>'1', vld|ovf=>'0', re|im=>(others=>'0'));
   constant CPLX20_RESET_DO_NOT_CARE_DATA : cplx16 := (rst=>'1', vld|ovf=>'0', re|im=>(others=>'-'));
@@ -79,9 +79,9 @@ package cplx_pkg is
   record
     rst : std_logic; -- reset
     vld : std_logic; -- data valid
+    ovf : std_logic; -- data overflow (or clipping)
     re  : signed(21 downto 0); -- data real component
     im  : signed(21 downto 0); -- data imaginary component 
-    ovf : std_logic; -- data overflow (or clipping)
   end record;
   constant CPLX22_RESET_ALL : cplx16 := (rst=>'1', vld|ovf=>'0', re|im=>(others=>'0'));
   constant CPLX22_RESET_DO_NOT_CARE_DATA : cplx16 := (rst=>'1', vld|ovf=>'0', re|im=>(others=>'-'));

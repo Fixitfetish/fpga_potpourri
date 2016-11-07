@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_2008.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 05/Nov/2016
--- VERSION : 0.75
+-- DATE    : 07/Nov/2016
+-- VERSION : 0.80
 -- VHDL    : 2008
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -43,9 +43,9 @@ package cplx_pkg is
   record
     rst : std_logic; -- reset
     vld : std_logic; -- data valid
+    ovf : std_logic; -- data overflow (or clipping)
     re  : signed; -- data real component ("downto" direction assumed)
     im  : signed; -- data imaginary component ("downto" direction assumed)
-    ovf : std_logic; -- data overflow (or clipping)
   end record;
 
   subtype cplx16 is cplx(re(15 downto 0), im(15 downto 0));
@@ -281,9 +281,9 @@ package body cplx_pkg is
 
  -- if x/=0 then return x
  -- if x=0  then return default
- function default_if_zero (x,default: integer) return integer is
+ function default_if_zero (x,dflt: integer) return integer is
  begin
-   if x=0 then return default; else return x; end if;
+   if x=0 then return dflt; else return x; end if;
  end function;
 
   ------------------------------------------
@@ -344,8 +344,8 @@ package body cplx_pkg is
   ) return cplx is
     constant LIN_RE : positive := max(l.re'length,r.re'length); -- default output length
     constant LIN_IM : positive := max(l.im'length,r.im'length); -- default output length
-    constant LOUT_RE : positive := default_if_zero(w, default=>LIN_RE); -- final output length
-    constant LOUT_IM : positive := default_if_zero(w, default=>LIN_IM); -- final output length
+    constant LOUT_RE : positive := default_if_zero(w, dflt=>LIN_RE); -- final output length
+    constant LOUT_IM : positive := default_if_zero(w, dflt=>LIN_IM); -- final output length
     variable ovfl_re, ovfl_im : std_logic;
     variable res : cplx(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
   begin
@@ -396,9 +396,9 @@ package body cplx_pkg is
   ) return cplx
   is
     constant LVEC : positive := din'length; -- vector length
+    constant LIN : positive := max(din(din'left).re'length,din(din'left).im'length); -- default output bit width
+    constant LOUT : positive := default_if_zero(w, dflt=>LIN); -- final output bit width
     alias xdin : cplx_vector(0 to LVEC-1) is din; -- default range
-    constant LIN : positive := max(xdin(0).re'length,xdin(0).im'length); -- default output bit width
-    constant LOUT : positive := default_if_zero(w, default=>LIN); -- final output bit width
     constant T : positive := LIN + LOG2CEIL(LVEC); -- width including additional accumulation bits
     variable temp : cplx(re(T-1 downto 0),im(T-1 downto 0));
   begin
@@ -432,8 +432,8 @@ package body cplx_pkg is
   ) return cplx is
     constant LIN_RE : positive := max(l.re'length,r.re'length); -- default output length
     constant LIN_IM : positive := max(l.im'length,r.im'length); -- default output length
-    constant LOUT_RE : positive := default_if_zero(w, default=>LIN_RE); -- final output length
-    constant LOUT_IM : positive := default_if_zero(w, default=>LIN_IM); -- final output length
+    constant LOUT_RE : positive := default_if_zero(w, dflt=>LIN_RE); -- final output length
+    constant LOUT_IM : positive := default_if_zero(w, dflt=>LIN_IM); -- final output length
     variable ovfl_re, ovfl_im : std_logic;
     variable res : cplx(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
   begin
