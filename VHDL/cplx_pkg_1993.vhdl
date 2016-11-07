@@ -2,7 +2,7 @@
 -- FILE    : cplx_pkg_1993.vhdl
 -- AUTHOR  : Fixitfetish
 -- DATE    : 07/Nov/2016
--- VERSION : 0.71
+-- VERSION : 0.72
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -86,16 +86,16 @@ package cplx_pkg is
   constant CPLX22_RESET_ALL : cplx16 := (rst=>'1', vld|ovf=>'0', re|im=>(others=>'0'));
   constant CPLX22_RESET_DO_NOT_CARE_DATA : cplx16 := (rst=>'1', vld|ovf=>'0', re|im=>(others=>'-'));
 
-  -- complex 2x16 vector type
+  -- complex 2x16 vector type (preferably "to" direction)
   type cplx16_vector is array(integer range <>) of cplx16;
 
-  -- complex 2x18 vector type
+  -- complex 2x18 vector type (preferably "to" direction)
   type cplx18_vector is array(integer range <>) of cplx18;
 
-  -- complex 2x20 vector type
+  -- complex 2x20 vector type (preferably "to" direction)
   type cplx20_vector is array(integer range <>) of cplx20;
 
-  -- complex 2x20 vector type
+  -- complex 2x20 vector type (preferably "to" direction)
   type cplx22_vector is array(integer range <>) of cplx22;
 
   type cplx_option is (
