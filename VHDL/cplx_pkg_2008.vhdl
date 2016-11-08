@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_2008.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 07/Nov/2016
--- VERSION : 0.80
+-- DATE    : 08/Nov/2016
+-- VERSION : 0.81
 -- VHDL    : 2008
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -95,7 +95,7 @@ package cplx_pkg is
   -- resize to given bit width (similar to NUMERIC_STD)
   function resize(
     din : cplx; -- data input
-    n   : natural; -- output bit width
+    n   : positive range 2 to integer'high; -- output bit width
     m   : cplx_mode:="-" -- mode
   ) return cplx;
 
@@ -115,7 +115,7 @@ package cplx_pkg is
   ------------------------------------------
 
   -- complex addition with optional clipping and overflow detection
-  -- w=0 : output bit width is equal to input but width
+  -- w=0 : output bit width is equal to the maximum input bit width
   -- w>0 : output bit width is w (includes resize)
   function add (
     l,r  : cplx; -- left/right summand
@@ -136,7 +136,7 @@ package cplx_pkg is
   function "+" (l,r: cplx) return cplx;
 
   -- sum of vector elements with optional clipping and overflow detection
-  -- w=0 : output bit width is equal to input but width
+  -- w=0 : output bit width is equal to input bit width
   -- w>0 : output bit width is w (includes resize)
   function sum (
     din  : cplx_vector; -- data input vector
@@ -157,7 +157,7 @@ package cplx_pkg is
   ------------------------------------------
 
   -- complex subtraction with optional clipping and overflow detection
-  -- w=0 : output bit width is equal to input but width
+  -- w=0 : output bit width is equal to the maximum input bit width
   -- w>0 : output bit width is w (includes resize)
   function sub (
     l,r  : cplx; -- data input, left minuend, right subtrahend
@@ -182,6 +182,7 @@ package cplx_pkg is
   ------------------------------------------
 
   -- complex signed shift left with optional clipping/saturation and overflow detection
+  -- Result dout is resized to size of connected output.
   procedure shift_left (
     din  : in  cplx; -- data input
     n    : in  natural; -- number of left shifts
@@ -190,6 +191,7 @@ package cplx_pkg is
   );
 
   -- complex signed shift left with optional clipping/saturation and overflow detection
+  -- The output bit width equals the input bit width.
   function shift_left (
     din  : cplx; -- data input
     n    : natural; -- number of left shifts
@@ -201,6 +203,7 @@ package cplx_pkg is
   ------------------------------------------
 
   -- complex signed shift right with optional rounding
+  -- Result dout is resized to size of connected output.
   procedure shift_right (
     din  : in  cplx; -- data input
     n    : in  natural; -- number of right shifts
@@ -209,6 +212,7 @@ package cplx_pkg is
   );
 
   -- complex signed shift right with optional rounding
+  -- The output bit width equals the input bit width.
   function shift_right (
     din  : cplx; -- data input
     n    : natural; -- number of right shifts
@@ -292,7 +296,7 @@ package body cplx_pkg is
 
   function resize(
     din : cplx; -- data input
-    n   : natural; -- output bit width
+    n   : positive range 2 to integer'high; -- output bit width
     m   : cplx_mode:="-" -- mode
   ) return cplx is
     variable ovfl_re, ovfl_im : std_logic;

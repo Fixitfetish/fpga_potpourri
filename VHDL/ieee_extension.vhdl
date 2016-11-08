@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : ieee_extension.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 05/Nov/2016
--- VERSION : 0.8
+-- DATE    : 08/Nov/2016
+-- VERSION : 0.81
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -956,7 +956,7 @@ package body ieee_extension is
    clip : boolean:=true -- enable/disable clipping
  ) return unsigned is -- data output
    constant L : positive := din'length;
-   variable dout : unsigned(L-1 downto 0); -- := (others=>'0'); -- default when n>=L
+   variable dout : unsigned(L-1 downto 0);
    variable ovfl : std_logic; -- dummy
  begin
    SHIFT_LEFT_CLIP(din=>din, n=>n, dout=>dout, ovfl=>ovfl, clip=>clip);
@@ -970,7 +970,7 @@ package body ieee_extension is
    clip : boolean:=true -- enable/disable clipping
  ) return signed is -- data output
    constant L : positive := din'length;
-   variable dout : signed(L-1 downto 0); -- := (others=>'0'); -- default, LSBs = '0'
+   variable dout : signed(L-1 downto 0);
    variable ovfl : std_logic; -- dummy
  begin
    SHIFT_LEFT_CLIP(din=>din, n=>n, dout=>dout, ovfl=>ovfl, clip=>clip);
