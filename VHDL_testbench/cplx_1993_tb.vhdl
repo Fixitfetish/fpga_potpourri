@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_1993_tb.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 05/Nov/2016
--- VERSION : 0.1
+-- DATE    : 12/Nov/2016
+-- VERSION : 0.2
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -76,7 +76,7 @@ architecture sim of cplx_1993_tb is
     ( rst=>'0', vld=>'1', ovf=>'0', re=>to_signed(MIN_RE_A  ,WIDTH_RE_A), im=>to_signed(MIN_IM_A  ,WIDTH_IM_A) ),
     ( rst=>'0', vld=>'0', ovf=>'0', re=>to_signed(         0,WIDTH_RE_A), im=>to_signed(         0,WIDTH_IM_A) )
   );
-  signal A : cplx_a := stimuli_a(0);
+  signal A : cplx_a := cplx_reset(16,"R");
 
   -- Input B
   constant WIDTH_RE_B : positive := 16;
@@ -152,11 +152,12 @@ begin
 
  -- shift left clip
  p_slc : process
-   variable v_a : cplx_a := stimuli_a(0); -- input A
+   variable v_a : cplx_a := cplx_reset(16); -- input A
    variable v_r1, v_r2 : cplx_r; -- result
    variable v_r : integer;
    variable wline : line;
  begin
+   wait until rising_edge(clk);
    for n in 0 to WIDTH_RE_A loop
      write(wline,string'("n=") & integer'image(n), left,6);
      write(wline,string'("  wrap,ovf  clip,ovf"));
