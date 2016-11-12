@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : ieee_extension.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 08/Nov/2016
--- VERSION : 0.81
+-- DATE    : 12/Nov/2016
+-- VERSION : 0.82
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -78,7 +78,7 @@ package ieee_extension is
 
  -- The function returns '1' if all selected bits are '1' (logical AND)
  -- for n=0 : considers all bits (default)
- -- for n>0 : considers only the |n| rigthmost LSBs
+ -- for n>0 : considers only the |n| rightmost LSBs
  -- for n<0 : considers only the |n| leftmost MSBs
  -- for |n| > arg'length : returns 'X'
  function ALL_ONES (arg:std_logic_vector; n:integer:=0) return std_logic;
@@ -87,7 +87,7 @@ package ieee_extension is
 
  -- The function returns '1' if any of the selected bits is '1' (logical OR)
  -- for n=0 : considers all bits (default)
- -- for n>0 : considers only the |n| rigthmost LSBs
+ -- for n>0 : considers only the |n| rightmost LSBs
  -- for n<0 : considers only the |n| leftmost MSBs
  -- for |n| > arg'length : returns 'X'
  function ANY_ONES (arg:std_logic_vector; n:integer:=0) return std_logic;
@@ -96,7 +96,7 @@ package ieee_extension is
 
  -- The function returns '1' if all selected bits are '0' (logical NOR)
  -- for n=0 : considers all bits (default)
- -- for n>0 : considers only the |n| rigthmost LSBs
+ -- for n>0 : considers only the |n| rightmost LSBs
  -- for n<0 : considers only the |n| leftmost MSBs
  -- for |n| > arg'length : returns 'X'
  function ALL_ZEROS (arg:std_logic_vector; n:integer:=0) return std_logic;
@@ -105,7 +105,7 @@ package ieee_extension is
    
  -- The function returns '1' if any of the selected bits is '0' (logical NAND)
  -- for n=0 : considers all bits (default)
- -- for n>0 : considers only the |n| rigthmost LSBs
+ -- for n>0 : considers only the |n| rightmost LSBs
  -- for n<0 : considers only the |n| leftmost MSBs
  -- for |n| > arg'length : returns 'X'
  function ANY_ZEROS (arg:std_logic_vector; n:integer:=0) return std_logic;
@@ -114,7 +114,7 @@ package ieee_extension is
 
  -- The function returns '1' if all selected bits are equal, i.e. all '0' or all '1'
  -- for n=0 : considers all bits (default)
- -- for n>0 : considers only the |n| rigthmost LSBs
+ -- for n>0 : considers only the |n| rightmost LSBs
  -- for n<0 : considers only the |n| leftmost MSBs
  -- for |n| > arg'length : returns 'X'
  function ALL_EQUAL (arg:std_logic_vector; n:integer:=0) return std_logic;
