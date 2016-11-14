@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_1993.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 12/Nov/2016
--- VERSION : 0.85
+-- DATE    : 14/Nov/2016
+-- VERSION : 0.86
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -292,6 +292,27 @@ package cplx_pkg is
   -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=22
   -- supported options: 'R'
   function resize (din:cplx20_vector; w:positive; m:cplx_mode:="-") return cplx22_vector;
+
+  ------------------------------------------
+  -- Basic complex arithmetic
+  ------------------------------------------
+
+  -- complex minus with overflow detection
+  -- wrap only occurs when input is most-negative number
+  -- (bit width of output equals the bit width of input)
+  function "-" (din:cplx16) return cplx16;
+  function "-" (din:cplx18) return cplx18;
+  function "-" (din:cplx20) return cplx20;
+  function "-" (din:cplx22) return cplx22;
+
+  -- complex conjugate
+  -- To be compatible with the VHDL-2008 version of this package the output
+  -- bit width w must be equal to the input bit width, i.e. w=0 or w=16.
+  -- supported options: 'R', 'O' and/or 'S'
+  function conj (din:cplx16; w:natural:=16; m:cplx_mode:="-") return cplx16;
+  function conj (din:cplx18; w:natural:=18; m:cplx_mode:="-") return cplx18;
+  function conj (din:cplx20; w:natural:=20; m:cplx_mode:="-") return cplx20;
+  function conj (din:cplx22; w:natural:=22; m:cplx_mode:="-") return cplx22;
 
   ------------------------------------------
   -- ADDITION and ACCUMULATION
@@ -997,6 +1018,132 @@ package body cplx_pkg is
   begin
     for i in din'range loop res(i) := resize(din(i), w=>w, m=>m); end loop;
     return res;
+  end function;
+
+  ------------------------------------------
+  -- Basic complex arithmetic
+  ------------------------------------------
+
+  -- complex minus
+  function "-" (din:cplx16) return cplx16 is
+    variable ovf_re, ovf_im : std_logic;
+    variable dout : cplx16;
+  begin
+    -- by default copy input control signals
+    dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf;
+    -- wrap only occurs when input is most-negative number
+    SUB(l=>to_signed(0,din.re'length), r=>din.re, dout=>dout.re, ovfl=>ovf_re, clip=>false);
+    SUB(l=>to_signed(0,din.im'length), r=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>false);
+    dout.ovf := dout.ovf or ovf_re or ovf_im; -- always with overflow detection
+    dout := reset_on_demand(din=>dout, m=>"-"); -- never reset data
+    return dout;
+  end function;
+
+  function "-" (din:cplx18) return cplx18 is
+    variable ovf_re, ovf_im : std_logic;
+    variable dout : cplx18;
+  begin
+    -- by default copy input control signals
+    dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf;
+    -- wrap only occurs when input is most-negative number
+    SUB(l=>to_signed(0,din.re'length), r=>din.re, dout=>dout.re, ovfl=>ovf_re, clip=>false);
+    SUB(l=>to_signed(0,din.im'length), r=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>false);
+    dout.ovf := dout.ovf or ovf_re or ovf_im; -- always with overflow detection
+    dout := reset_on_demand(din=>dout, m=>"-"); -- never reset data
+    return dout;
+  end function;
+
+  function "-" (din:cplx20) return cplx20 is
+    variable ovf_re, ovf_im : std_logic;
+    variable dout : cplx20;
+  begin
+    -- by default copy input control signals
+    dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf;
+    -- wrap only occurs when input is most-negative number
+    SUB(l=>to_signed(0,din.re'length), r=>din.re, dout=>dout.re, ovfl=>ovf_re, clip=>false);
+    SUB(l=>to_signed(0,din.im'length), r=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>false);
+    dout.ovf := dout.ovf or ovf_re or ovf_im; -- always with overflow detection
+    dout := reset_on_demand(din=>dout, m=>"-"); -- never reset data
+    return dout;
+  end function;
+
+  function "-" (din:cplx22) return cplx22 is
+    variable ovf_re, ovf_im : std_logic;
+    variable dout : cplx22;
+  begin
+    -- by default copy input control signals
+    dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf;
+    -- wrap only occurs when input is most-negative number
+    SUB(l=>to_signed(0,din.re'length), r=>din.re, dout=>dout.re, ovfl=>ovf_re, clip=>false);
+    SUB(l=>to_signed(0,din.im'length), r=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>false);
+    dout.ovf := dout.ovf or ovf_re or ovf_im; -- always with overflow detection
+    dout := reset_on_demand(din=>dout, m=>"-"); -- never reset data
+    return dout;
+  end function;
+
+  -- complex conjugate
+  function conj (din:cplx16; w:natural:=16; m:cplx_mode:="-") return cplx16 is
+    variable ovf_im : std_logic;
+    variable dout : cplx16;
+  begin
+    assert (w=0 or w=16) -- VHDL-2008 compatibility check
+      report "ERROR in conj cplx16 : Output bit width must be w=0 or w=16"
+      severity failure;
+    -- by default copy input control signals
+    dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf; dout.re:=din.re;
+    -- overflow/underflow only possible when IM input is most-negative number
+    SUB(l=>to_signed(0,din.im'length), r=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
+    if (m='O') then dout.ovf := dout.ovf or ovf_im; end if;
+    dout := reset_on_demand(din=>dout, m=>m);
+    return dout;
+  end function;
+
+  function conj (din:cplx18; w:natural:=18; m:cplx_mode:="-") return cplx18 is
+    variable ovf_im : std_logic;
+    variable dout : cplx18;
+  begin
+    assert (w=0 or w=18) -- VHDL-2008 compatibility check
+      report "ERROR in conj cplx18 : Output bit width must be w=0 or w=18"
+      severity failure;
+    -- by default copy input control signals
+    dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf; dout.re:=din.re;
+    -- overflow/underflow only possible when IM input is most-negative number
+    SUB(l=>to_signed(0,din.im'length), r=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
+    if (m='O') then dout.ovf := dout.ovf or ovf_im; end if;
+    dout := reset_on_demand(din=>dout, m=>m);
+    return dout;
+  end function;
+
+  function conj (din:cplx20; w:natural:=20; m:cplx_mode:="-") return cplx20 is
+    variable ovf_im : std_logic;
+    variable dout : cplx20;
+  begin
+    assert (w=0 or w=20) -- VHDL-2008 compatibility check
+      report "ERROR in conj cplx20 : Output bit width must be w=0 or w=20"
+      severity failure;
+    -- by default copy input control signals
+    dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf; dout.re:=din.re;
+    -- overflow/underflow only possible when IM input is most-negative number
+    SUB(l=>to_signed(0,din.im'length), r=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
+    if (m='O') then dout.ovf := dout.ovf or ovf_im; end if;
+    dout := reset_on_demand(din=>dout, m=>m);
+    return dout;
+  end function;
+
+  function conj (din:cplx22; w:natural:=22; m:cplx_mode:="-") return cplx22 is
+    variable ovf_im : std_logic;
+    variable dout : cplx22;
+  begin
+    assert (w=0 or w=22) -- VHDL-2008 compatibility check
+      report "ERROR in conj cplx22 : Output bit width must be w=0 or w=22"
+      severity failure;
+    -- by default copy input control signals
+    dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf; dout.re:=din.re;
+    -- overflow/underflow only possible when IM input is most-negative number
+    SUB(l=>to_signed(0,din.im'length), r=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
+    if (m='O') then dout.ovf := dout.ovf or ovf_im; end if;
+    dout := reset_on_demand(din=>dout, m=>m);
+    return dout;
   end function;
 
   ------------------------------------------

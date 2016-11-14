@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_2008.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 12/Nov/2016
--- VERSION : 0.85
+-- DATE    : 14/Nov/2016
+-- VERSION : 0.86
 -- VHDL    : 2008
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -151,6 +151,26 @@ package cplx_pkg is
     w   : positive range 2 to integer'high; -- output bit width
     m   : cplx_mode:="-" -- mode, supported options: 'R','O' and/or 'S'
   ) return cplx_vector;
+
+
+  ------------------------------------------
+  -- Basic complex arithmetic
+  ------------------------------------------
+
+  -- complex minus with overflow detection
+  -- wrap only occurs when input is most-negative number
+  -- (bit width of output equals the bit width of input)
+  function "-" (din:cplx) return cplx;
+
+  -- complex conjugate
+  -- w=0 : output bit width is equal to the maximum input bit width
+  -- w>0 : output bit width is w (includes resize)
+  -- supported options: 'R', 'O' and/or 'S'
+  function conj (
+    din  : cplx; -- data input
+    w    : natural:=0; -- output bit width
+    m    : cplx_mode:="-" -- mode, supported options: 'R', 'O' and/or 'S'
+  ) return cplx;
 
   ------------------------------------------
   -- ADDITION and ACCUMULATION
@@ -438,6 +458,49 @@ package body cplx_pkg is
     variable dout : cplx_vector(din'range)(re(w-1 downto 0),im(w-1 downto 0));
   begin
     for i in din'range loop dout(i) := resize(din=>din(i), w=>w, m=>m); end loop;
+    return dout;
+  end function;
+
+  ------------------------------------------
+  -- Basic complex arithmetic
+  ------------------------------------------
+
+  -- complex minus
+  function "-" (din:cplx) return cplx is
+    variable ovf_re, ovf_im : std_logic;
+    variable dout : cplx(re(din.re'length-1 downto 0),im(din.im'length-1 downto 0));
+  begin
+    -- by default copy input control signals
+    dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf;
+    -- wrap only occurs when input is most-negative number
+    SUB(l=>to_signed(0,din.re'length), r=>din.re, dout=>dout.re, ovfl=>ovf_re, clip=>false);
+    SUB(l=>to_signed(0,din.im'length), r=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>false);
+    dout.ovf := dout.ovf or ovf_re or ovf_im; -- always with overflow detection
+    dout := reset_on_demand(din=>dout, m=>"-"); -- never reset data
+    return dout;
+  end function;
+
+  -- complex conjugate
+  function conj (
+    din  : cplx; -- data input
+    w    : natural:=0; -- output bit width 
+    m    : cplx_mode:="-" -- mode, supported options: 'R', 'O' and/or 'S'
+  ) return cplx is
+    variable ovf_re, ovf_im : std_logic;
+    constant LIN_RE : positive := din.re'length;
+    constant LIN_IM : positive := din.im'length;
+    constant LOUT_RE : positive := default_if_zero(w, dflt=>LIN_RE); -- final output bit width
+    constant LOUT_IM : positive := default_if_zero(w, dflt=>LIN_IM); -- final output bit width
+    variable dout : cplx(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
+  begin
+    -- by default copy input control signals
+    dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf;
+    -- overflow/underflow not possible when LOUT>LIN
+    RESIZE_CLIP(din=>din.re, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S' and LOUT_RE<=LIN_RE));
+    SUB(l=>to_signed(0,LIN_IM), r=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S' and LOUT_IM<=LIN_IM));
+    if (m='O' and LOUT_RE<=LIN_RE) then dout.ovf := dout.ovf or ovf_re; end if;
+    if (m='O' and LOUT_IM<=LIN_IM) then dout.ovf := dout.ovf or ovf_im; end if;
+    dout := reset_on_demand(din=>dout, m=>m);
     return dout;
   end function;
 
