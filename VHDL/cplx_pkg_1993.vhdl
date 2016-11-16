@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_1993.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 14/Nov/2016
--- VERSION : 0.86
+-- DATE    : 16/Nov/2016
+-- VERSION : 0.90
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -113,6 +113,8 @@ package cplx_pkg is
   
   -- Complex operations can be used with one or more the following options.
   -- Note that some options can not be combined, e.g. different rounding options.
+  -- Use options carefully and only when really required. Some options can have
+  -- a negative influence on logic consumption and timing.
   -- '-' -- don't care, use defaults
   -- 'R' -- use reset on RE/IM (set RE=0 and IM=0)
   -- 'O' -- enable overflow/underflow detection (by default off)
@@ -305,6 +307,12 @@ package cplx_pkg is
   function "-" (din:cplx20) return cplx20;
   function "-" (din:cplx22) return cplx22;
 
+  -- complex minus (vector)
+  function "-" (din:cplx16_vector) return cplx16_vector;
+  function "-" (din:cplx18_vector) return cplx18_vector;
+  function "-" (din:cplx20_vector) return cplx20_vector;
+  function "-" (din:cplx22_vector) return cplx22_vector;
+
   -- complex conjugate
   -- To be compatible with the VHDL-2008 version of this package the output
   -- bit width w must be equal to the input bit width, i.e. w=0 or w=16.
@@ -313,6 +321,12 @@ package cplx_pkg is
   function conj (din:cplx18; w:natural:=18; m:cplx_mode:="-") return cplx18;
   function conj (din:cplx20; w:natural:=20; m:cplx_mode:="-") return cplx20;
   function conj (din:cplx22; w:natural:=22; m:cplx_mode:="-") return cplx22;
+
+  -- complex conjugate (vector)
+  function conj (din:cplx16_vector; w:natural:=16; m:cplx_mode:="-") return cplx16_vector;
+  function conj (din:cplx18_vector; w:natural:=18; m:cplx_mode:="-") return cplx18_vector;
+  function conj (din:cplx20_vector; w:natural:=20; m:cplx_mode:="-") return cplx20_vector;
+  function conj (din:cplx22_vector; w:natural:=22; m:cplx_mode:="-") return cplx22_vector;
 
   ------------------------------------------
   -- ADDITION and ACCUMULATION
@@ -346,6 +360,11 @@ package cplx_pkg is
   -- supported options: 'R', 'O' and/or 'S'
   function add (l,r: cplx22; w:natural:=22; m:cplx_mode:="-") return cplx22;
 
+  function add (l,r: cplx16_vector; w:natural:=16; m:cplx_mode:="-") return cplx16_vector;
+  function add (l,r: cplx18_vector; w:natural:=18; m:cplx_mode:="-") return cplx18_vector;
+  function add (l,r: cplx20_vector; w:natural:=20; m:cplx_mode:="-") return cplx20_vector;
+  function add (l,r: cplx22_vector; w:natural:=22; m:cplx_mode:="-") return cplx22_vector;
+
   -- complex addition with wrap and overflow detection
   function "+" (l,r: cplx16) return cplx16;
   -- complex addition with wrap and overflow detection
@@ -354,6 +373,11 @@ package cplx_pkg is
   function "+" (l,r: cplx20) return cplx20;
   -- complex addition with wrap and overflow detection
   function "+" (l,r: cplx22) return cplx22;
+
+  function "+" (l,r: cplx16_vector) return cplx16_vector;
+  function "+" (l,r: cplx18_vector) return cplx18_vector;
+  function "+" (l,r: cplx20_vector) return cplx20_vector;
+  function "+" (l,r: cplx22_vector) return cplx22_vector;
 
   -- sum of vector elements (max 4 elements for simplicity reasons)
   -- All inputs (i.e. vector elements) have the same bit width.
@@ -402,6 +426,11 @@ package cplx_pkg is
   -- supported options: 'R', 'O' and/or 'S'
   function sub (l,r: cplx22; w:natural:=22; m:cplx_mode:="-") return cplx22;
 
+  function sub (l,r: cplx16_vector; w:natural:=16; m:cplx_mode:="-") return cplx16_vector;
+  function sub (l,r: cplx18_vector; w:natural:=18; m:cplx_mode:="-") return cplx18_vector;
+  function sub (l,r: cplx20_vector; w:natural:=20; m:cplx_mode:="-") return cplx20_vector;
+  function sub (l,r: cplx22_vector; w:natural:=22; m:cplx_mode:="-") return cplx22_vector;
+
   -- complex subtraction with wrap and overflow detection
   function "-" (l,r: cplx16) return cplx16;
   -- complex subtraction with wrap and overflow detection
@@ -410,6 +439,11 @@ package cplx_pkg is
   function "-" (l,r: cplx20) return cplx20;
   -- complex subtraction with wrap and overflow detection
   function "-" (l,r: cplx22) return cplx22;
+
+  function "-" (l,r: cplx16_vector) return cplx16_vector;
+  function "-" (l,r: cplx18_vector) return cplx18_vector;
+  function "-" (l,r: cplx20_vector) return cplx20_vector;
+  function "-" (l,r: cplx22_vector) return cplx22_vector;
 
   ------------------------------------------
   -- SHIFT LEFT AND SATURATE/CLIP
@@ -639,30 +673,30 @@ package body cplx_pkg is
   -- w : RE/IM data width in bits
   -- n : number of vector elements
   function cplx_vector_reset (w:positive; n:positive; m:cplx_mode:="-") return cplx16_vector is
-    variable dout : cplx16_vector(0 to n-1);
+    variable dout : cplx16_vector(1 to n);
   begin
-    for i in 0 to n-1 loop dout(i):=cplx_reset(w=>w, m=>m); end loop;
+    for i in dout'range loop dout(i):=cplx_reset(w=>w, m=>m); end loop;
     return dout;
   end function;
 
   function cplx_vector_reset (w:positive; n:positive; m:cplx_mode:="-") return cplx18_vector is
-    variable dout : cplx18_vector(0 to n-1);
+    variable dout : cplx18_vector(1 to n);
   begin
-    for i in 0 to n-1 loop dout(i):=cplx_reset(w=>w, m=>m); end loop;
+    for i in dout'range loop dout(i):=cplx_reset(w=>w, m=>m); end loop;
     return dout;
   end function;
 
   function cplx_vector_reset (w:positive; n:positive; m:cplx_mode:="-") return cplx20_vector is
-    variable dout : cplx20_vector(0 to n-1);
+    variable dout : cplx20_vector(1 to n);
   begin
-    for i in 0 to n-1 loop dout(i):=cplx_reset(w=>w, m=>m); end loop;
+    for i in dout'range loop dout(i):=cplx_reset(w=>w, m=>m); end loop;
     return dout;
   end function;
 
   function cplx_vector_reset (w:positive; n:positive; m:cplx_mode:="-") return cplx22_vector is
-    variable dout : cplx22_vector(0 to n-1);
+    variable dout : cplx22_vector(1 to n);
   begin
-    for i in 0 to n-1 loop dout(i):=cplx_reset(w=>w, m=>m); end loop;
+    for i in dout'range loop dout(i):=cplx_reset(w=>w, m=>m); end loop;
     return dout;
   end function;
 
@@ -1081,6 +1115,38 @@ package body cplx_pkg is
     return dout;
   end function;
 
+  -- complex minus (vector)
+  function "-" (din:cplx16_vector) return cplx16_vector is
+    variable dout : cplx16_vector(din'range);
+  begin
+    for i in din'range loop dout(i) := -din(i); end loop;
+    return dout;
+  end function;
+
+  -- complex minus (vector)
+  function "-" (din:cplx18_vector) return cplx18_vector is
+    variable dout : cplx18_vector(din'range);
+  begin
+    for i in din'range loop dout(i) := -din(i); end loop;
+    return dout;
+  end function;
+
+  -- complex minus (vector)
+  function "-" (din:cplx20_vector) return cplx20_vector is
+    variable dout : cplx20_vector(din'range);
+  begin
+    for i in din'range loop dout(i) := -din(i); end loop;
+    return dout;
+  end function;
+
+  -- complex minus (vector)
+  function "-" (din:cplx22_vector) return cplx22_vector is
+    variable dout : cplx22_vector(din'range);
+  begin
+    for i in din'range loop dout(i) := -din(i); end loop;
+    return dout;
+  end function;
+
   -- complex conjugate
   function conj (din:cplx16; w:natural:=16; m:cplx_mode:="-") return cplx16 is
     variable ovf_im : std_logic;
@@ -1143,6 +1209,38 @@ package body cplx_pkg is
     SUB(l=>to_signed(0,din.im'length), r=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
     if (m='O') then dout.ovf := dout.ovf or ovf_im; end if;
     dout := reset_on_demand(din=>dout, m=>m);
+    return dout;
+  end function;
+
+  -- complex conjugate (vector)
+  function conj (din:cplx16_vector; w:natural:=16; m:cplx_mode:="-") return cplx16_vector is
+    variable dout : cplx16_vector(din'range);
+  begin
+    for i in din'range loop dout(i):=conj(din=>din(i), w=>w, m=>m); end loop;
+    return dout;
+  end function;
+
+  -- complex conjugate (vector)
+  function conj (din:cplx18_vector; w:natural:=18; m:cplx_mode:="-") return cplx18_vector is
+    variable dout : cplx18_vector(din'range);
+  begin
+    for i in din'range loop dout(i):=conj(din=>din(i), w=>w, m=>m); end loop;
+    return dout;
+  end function;
+
+  -- complex conjugate (vector)
+  function conj (din:cplx20_vector; w:natural:=20; m:cplx_mode:="-") return cplx20_vector is
+    variable dout : cplx20_vector(din'range);
+  begin
+    for i in din'range loop dout(i):=conj(din=>din(i), w=>w, m=>m); end loop;
+    return dout;
+  end function;
+
+  -- complex conjugate (vector)
+  function conj (din:cplx22_vector; w:natural:=22; m:cplx_mode:="-") return cplx22_vector is
+    variable dout : cplx22_vector(din'range);
+  begin
+    for i in din'range loop dout(i):=conj(din=>din(i), w=>w, m=>m); end loop;
     return dout;
   end function;
 
@@ -1218,6 +1316,54 @@ package body cplx_pkg is
     return dout;
   end function;
 
+  function add (l,r: cplx16_vector; w:natural:=16; m:cplx_mode:="-") return cplx16_vector is 
+    alias xl : cplx16_vector(1 to l'length) is l; -- default range
+    alias xr : cplx16_vector(1 to r'length) is r; -- default range
+    variable dout : cplx16_vector(1 to l'length);
+  begin
+    assert (l'length=r'length)
+      report "ERROR: add() cplx16_vector, both summands must have same number of vector elements"
+      severity failure;
+    for i in dout'range loop dout(i) := add(l=>xl(i), r=>xr(i), w=>w, m=>m); end loop;
+    return dout;
+  end function;
+
+  function add (l,r: cplx18_vector; w:natural:=18; m:cplx_mode:="-") return cplx18_vector is 
+    alias xl : cplx18_vector(1 to l'length) is l; -- default range
+    alias xr : cplx18_vector(1 to r'length) is r; -- default range
+    variable dout : cplx18_vector(1 to l'length);
+  begin
+    assert (l'length=r'length)
+      report "ERROR: add() cplx18_vector, both summands must have same number of vector elements"
+      severity failure;
+    for i in dout'range loop dout(i) := add(l=>xl(i), r=>xr(i), w=>w, m=>m); end loop;
+    return dout;
+  end function;
+
+  function add (l,r: cplx20_vector; w:natural:=20; m:cplx_mode:="-") return cplx20_vector is 
+    alias xl : cplx20_vector(1 to l'length) is l; -- default range
+    alias xr : cplx20_vector(1 to r'length) is r; -- default range
+    variable dout : cplx20_vector(1 to l'length);
+  begin
+    assert (l'length=r'length)
+      report "ERROR: add() cplx20_vector, both summands must have same number of vector elements"
+      severity failure;
+    for i in dout'range loop dout(i) := add(l=>xl(i), r=>xr(i), w=>w, m=>m); end loop;
+    return dout;
+  end function;
+
+  function add (l,r: cplx22_vector; w:natural:=22; m:cplx_mode:="-") return cplx22_vector is 
+    alias xl : cplx22_vector(1 to l'length) is l; -- default range
+    alias xr : cplx22_vector(1 to r'length) is r; -- default range
+    variable dout : cplx22_vector(1 to l'length);
+  begin
+    assert (l'length=r'length)
+      report "ERROR: add() cplx22_vector, both summands must have same number of vector elements"
+      severity failure;
+    for i in dout'range loop dout(i) := add(l=>xl(i), r=>xr(i), w=>w, m=>m); end loop;
+    return dout;
+  end function;
+
   function "+" (l,r: cplx16) return cplx16 is
   begin
     return add(l=>l, r=>r, m=>"O"); -- always with overflow detection
@@ -1238,10 +1384,30 @@ package body cplx_pkg is
     return add(l=>l, r=>r, m=>"O"); -- always with overflow detection
   end function;
 
+  function "+" (l,r: cplx16_vector) return cplx16_vector is
+  begin
+    return add(l=>l, r=>r, m=>"O"); -- always with overflow detection
+  end function;
+
+  function "+" (l,r: cplx18_vector) return cplx18_vector is
+  begin
+    return add(l=>l, r=>r, m=>"O"); -- always with overflow detection
+  end function;
+
+  function "+" (l,r: cplx20_vector) return cplx20_vector is
+  begin
+    return add(l=>l, r=>r, m=>"O"); -- always with overflow detection
+  end function;
+
+  function "+" (l,r: cplx22_vector) return cplx22_vector is
+  begin
+    return add(l=>l, r=>r, m=>"O"); -- always with overflow detection
+  end function;
+
   function sum (din: cplx16_vector; w:natural:=18; m:cplx_mode:="-") return cplx18 is
     constant LVEC : positive := din'length; -- vector length
     constant LOUT : positive := 18;
-    alias d : cplx16_vector(0 to LVEC-1) is din; -- default range
+    alias d : cplx16_vector(1 to LVEC) is din; -- default range
     variable dout : cplx18;
   begin
     assert (w=LOUT) -- VHDL-2008 compatibility check
@@ -1250,9 +1416,9 @@ package body cplx_pkg is
     assert LVEC<=4
       report "WARNING: Only up to 4 vector elements should be summed up."
       severity warning;
-    dout := resize(d(0),LOUT);
+    dout := resize(d(1),LOUT);
     if LVEC>1 then
-      for i in 1 to LVEC-1 loop dout:=dout+resize(d(i),LOUT); end loop;
+      for i in 2 to LVEC loop dout:=dout+resize(d(i),LOUT); end loop;
     end if;
     return dout;
   end function;
@@ -1260,7 +1426,7 @@ package body cplx_pkg is
   function sum (din: cplx18_vector; w:natural:=20; m:cplx_mode:="-") return cplx20 is
     constant LVEC : positive := din'length; -- vector length
     constant LOUT : positive := 20;
-    alias d : cplx18_vector(0 to LVEC-1) is din; -- default range
+    alias d : cplx18_vector(1 to LVEC) is din; -- default range
     variable dout : cplx20;
   begin
     assert (w=LOUT) -- VHDL-2008 compatibility check
@@ -1269,9 +1435,9 @@ package body cplx_pkg is
     assert LVEC<=4
       report "WARNING: Only up to 4 vector elements should be summed up."
       severity warning;
-    dout := resize(d(0),LOUT);
+    dout := resize(d(1),LOUT);
     if LVEC>1 then
-      for i in 1 to LVEC-1 loop dout:=dout+resize(d(i),LOUT); end loop;
+      for i in 2 to LVEC loop dout:=dout+resize(d(i),LOUT); end loop;
     end if;
     return dout;
   end function;
@@ -1279,7 +1445,7 @@ package body cplx_pkg is
   function sum (din: cplx20_vector; w:natural:=22; m:cplx_mode:="-") return cplx22 is
     constant LVEC : positive := din'length; -- vector length
     constant LOUT : positive := 22;
-    alias d : cplx20_vector(0 to LVEC-1) is din; -- default range
+    alias d : cplx20_vector(1 to LVEC) is din; -- default range
     variable dout : cplx22;
   begin
     assert (w=LOUT) -- VHDL-2008 compatibility check
@@ -1288,9 +1454,9 @@ package body cplx_pkg is
     assert LVEC<=4
       report "WARNING: Only up to 4 vector elements should be summed up."
       severity warning;
-    dout := resize(d(0),LOUT);
+    dout := resize(d(1),LOUT);
     if LVEC>1 then
-      for i in 1 to LVEC-1 loop dout:=dout+resize(d(i),LOUT); end loop;
+      for i in 2 to LVEC loop dout:=dout+resize(d(i),LOUT); end loop;
     end if;
     return dout;
   end function;
@@ -1367,6 +1533,54 @@ package body cplx_pkg is
     return dout;
   end function;
 
+  function sub (l,r: cplx16_vector; w:natural:=16; m:cplx_mode:="-") return cplx16_vector is 
+    alias xl : cplx16_vector(1 to l'length) is l; -- default range
+    alias xr : cplx16_vector(1 to r'length) is r; -- default range
+    variable dout : cplx16_vector(1 to l'length);
+  begin
+    assert (l'length=r'length)
+      report "ERROR: sub() cplx16_vector, minuend and subtrahend must have same number of vector elements"
+      severity failure;
+    for i in dout'range loop dout(i) := sub(l=>xl(i), r=>xr(i), w=>w, m=>m); end loop;
+    return dout;
+  end function;
+
+  function sub (l,r: cplx18_vector; w:natural:=18; m:cplx_mode:="-") return cplx18_vector is 
+    alias xl : cplx18_vector(1 to l'length) is l; -- default range
+    alias xr : cplx18_vector(1 to r'length) is r; -- default range
+    variable dout : cplx18_vector(1 to l'length);
+  begin
+    assert (l'length=r'length)
+      report "ERROR: sub() cplx18_vector, minuend and subtrahend must have same number of vector elements"
+      severity failure;
+    for i in dout'range loop dout(i) := sub(l=>xl(i), r=>xr(i), w=>w, m=>m); end loop;
+    return dout;
+  end function;
+
+  function sub (l,r: cplx20_vector; w:natural:=20; m:cplx_mode:="-") return cplx20_vector is 
+    alias xl : cplx20_vector(1 to l'length) is l; -- default range
+    alias xr : cplx20_vector(1 to r'length) is r; -- default range
+    variable dout : cplx20_vector(1 to l'length);
+  begin
+    assert (l'length=r'length)
+      report "ERROR: sub() cplx20_vector, minuend and subtrahend must have same number of vector elements"
+      severity failure;
+    for i in dout'range loop dout(i) := sub(l=>xl(i), r=>xr(i), w=>w, m=>m); end loop;
+    return dout;
+  end function;
+
+  function sub (l,r: cplx22_vector; w:natural:=22; m:cplx_mode:="-") return cplx22_vector is 
+    alias xl : cplx22_vector(1 to l'length) is l; -- default range
+    alias xr : cplx22_vector(1 to r'length) is r; -- default range
+    variable dout : cplx22_vector(1 to l'length);
+  begin
+    assert (l'length=r'length)
+      report "ERROR: sub() cplx22_vector, minuend and subtrahend must have same number of vector elements"
+      severity failure;
+    for i in dout'range loop dout(i) := sub(l=>xl(i), r=>xr(i), w=>w, m=>m); end loop;
+    return dout;
+  end function;
+
   function "-" (l,r: cplx16) return cplx16 is
   begin
     return sub(l=>l, r=>r, m=>"O"); -- always with overflow detection
@@ -1383,6 +1597,26 @@ package body cplx_pkg is
   end function;
 
   function "-" (l,r: cplx22) return cplx22 is
+  begin
+    return sub(l=>l, r=>r, m=>"O"); -- always with overflow detection
+  end function;
+
+  function "-" (l,r: cplx16_vector) return cplx16_vector is
+  begin
+    return sub(l=>l, r=>r, m=>"O"); -- always with overflow detection
+  end function;
+
+  function "-" (l,r: cplx18_vector) return cplx18_vector is
+  begin
+    return sub(l=>l, r=>r, m=>"O"); -- always with overflow detection
+  end function;
+
+  function "-" (l,r: cplx20_vector) return cplx20_vector is
+  begin
+    return sub(l=>l, r=>r, m=>"O"); -- always with overflow detection
+  end function;
+
+  function "-" (l,r: cplx22_vector) return cplx22_vector is
   begin
     return sub(l=>l, r=>r, m=>"O"); -- always with overflow detection
   end function;

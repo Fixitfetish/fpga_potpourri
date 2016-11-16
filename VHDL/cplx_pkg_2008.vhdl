@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_2008.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 14/Nov/2016
--- VERSION : 0.86
+-- DATE    : 16/Nov/2016
+-- VERSION : 0.90
 -- VHDL    : 2008
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -78,6 +78,8 @@ package cplx_pkg is
   
   -- Complex operations can be used with one or more the following options.
   -- Note that some options can not be combined, e.g. different rounding options.
+  -- Use options carefully and only when really required. Some options can have
+  -- a negative influence on logic consumption and timing.
   -- '-' -- don't care, use defaults
   -- 'R' -- use reset on RE/IM (set RE=0 and IM=0)
   -- 'O' -- enable overflow/underflow detection (by default off)
@@ -140,10 +142,6 @@ package cplx_pkg is
     m    : in  cplx_mode:="-" -- mode, supported options: 'R', 'O' and/or 'S'
   );
 
-  ------------------------------------------
-  -- RESIZE VECTOR
-  ------------------------------------------
-
   -- resize each vector element to given bit width
   -- supported options: 'R', 'O' and/or 'S'
   function resize (
@@ -151,7 +149,6 @@ package cplx_pkg is
     w   : positive range 2 to integer'high; -- output bit width
     m   : cplx_mode:="-" -- mode, supported options: 'R','O' and/or 'S'
   ) return cplx_vector;
-
 
   ------------------------------------------
   -- Basic complex arithmetic
@@ -161,6 +158,8 @@ package cplx_pkg is
   -- wrap only occurs when input is most-negative number
   -- (bit width of output equals the bit width of input)
   function "-" (din:cplx) return cplx;
+
+  function "-" (din:cplx_vector) return cplx_vector;
 
   -- complex conjugate
   -- w=0 : output bit width is equal to the maximum input bit width
@@ -172,9 +171,24 @@ package cplx_pkg is
     m    : cplx_mode:="-" -- mode, supported options: 'R', 'O' and/or 'S'
   ) return cplx;
 
+  function conj (
+    din  : cplx_vector; -- data input
+    w    : natural:=0; -- output bit width
+    m    : cplx_mode:="-" -- mode, supported options: 'R', 'O' and/or 'S'
+  ) return cplx_vector;
+
   ------------------------------------------
   -- ADDITION and ACCUMULATION
   ------------------------------------------
+
+  -- complex addition with optional clipping and overflow detection
+  -- dout = l + r  (result sum is resized to size of connected output)
+  -- supported options: 'R', 'O' and/or 'S'
+  procedure add (
+    l,r  : in  cplx; -- left/right summand
+    dout : out cplx; -- data output, sum
+    m    : in  cplx_mode:="-" -- mode, supported options: 'R', 'O' and/or 'S'
+  );
 
   -- complex addition with optional clipping and overflow detection
   -- w=0 : output bit width is equal to the maximum input bit width
@@ -186,18 +200,18 @@ package cplx_pkg is
     m    : cplx_mode:="-" -- mode, supported options: 'R', 'O' and/or 'S'
   ) return cplx;
 
-  -- complex addition with optional clipping and overflow detection
-  -- dout = l + r  (result sum is resized to size of connected output)
-  -- supported options: 'R', 'O' and/or 'S'
-  procedure add (
-    l,r  : in  cplx; -- left/right summand
-    dout : out cplx; -- data output, sum
-    m    : in  cplx_mode:="-" -- mode, supported options: 'R', 'O' and/or 'S'
-  );
+  function add (
+    l,r  : cplx_vector; -- left/right summand
+    w    : natural:=0; -- output bit width
+    m    : cplx_mode:="-" -- mode, supported options: 'R', 'O' and/or 'S'
+  ) return cplx_vector;
 
   -- complex addition with wrap and overflow detection
-  -- (bit width of sum equals the max bit width of summands)
+  -- The output width of sum equals the max width of summands.
+  -- Alternatively use function ADD() for more options.
   function "+" (l,r: cplx) return cplx;
+
+  function "+" (l,r: cplx_vector) return cplx_vector;
 
   -- sum of vector elements with optional clipping and overflow detection
   -- w=0 : output bit width is equal to input bit width
@@ -223,6 +237,15 @@ package cplx_pkg is
   ------------------------------------------
 
   -- complex subtraction with optional clipping and overflow detection
+  -- dout = l - r  (difference result is resized to size of connected output)
+  -- supported options: 'R', 'O' and/or 'S'
+  procedure sub (
+    l,r  : in  cplx; -- data input, left minuend, right subtrahend
+    dout : out cplx; -- data output, difference
+    m    : in  cplx_mode:="-" -- mode, supported options: 'R', 'O' and/or 'S'
+  );
+
+  -- complex subtraction with optional clipping and overflow detection
   -- w=0 : output bit width is equal to the maximum input bit width
   -- w>0 : output bit width is w (includes resize)
   -- supported options: 'R', 'O' and/or 'S'
@@ -232,18 +255,18 @@ package cplx_pkg is
     m    : cplx_mode:="-" -- mode, supported options: 'R', 'O' and/or 'S'
   ) return cplx;
 
-  -- complex subtraction with optional clipping and overflow detection
-  -- dout = l - r  (difference result is resized to size of connected output)
-  -- supported options: 'R', 'O' and/or 'S'
-  procedure sub (
-    l,r  : in  cplx; -- data input, left minuend, right subtrahend
-    dout : out cplx; -- data output, difference
-    m    : in  cplx_mode:="-" -- mode, supported options: 'R', 'O' and/or 'S'
-  );
+  function sub (
+    l,r  : cplx_vector; -- data input, left minuend, right subtrahend
+    w    : natural:=0; -- output bit width
+    m    : cplx_mode:="-" -- mode, supported options: 'R', 'O' and/or 'S'
+  ) return cplx_vector;
 
   -- complex subtraction with wrap and overflow detection
-  -- (bit width of sum equals the max bit width of left minuend and right subtrahend)
+  -- The output width of difference equals the max width of left minuend and right subtrahend.
+  -- Alternatively use function SUB() for more options.
   function "-" (l,r: cplx) return cplx;
+
+  function "-" (l,r: cplx_vector) return cplx_vector;
 
   ------------------------------------------
   -- SHIFT LEFT AND SATURATE/CLIP
@@ -387,9 +410,9 @@ package body cplx_pkg is
     n : positive; -- number of vector elements
     m : cplx_mode:="-" -- mode, supported options: 'R'
   ) return cplx_vector is
-    variable dout : cplx_vector(0 to n-1)(re(w-1 downto 0),im(w-1 downto 0));
+    variable dout : cplx_vector(1 to n)(re(w-1 downto 0),im(w-1 downto 0));
   begin
-    for i in 0 to n-1 loop dout(i):=cplx_reset(w=>w, m=>m); end loop;
+    for i in dout'range loop dout(i):=cplx_reset(w=>w, m=>m); end loop;
     return dout;
   end function;
 
@@ -480,6 +503,16 @@ package body cplx_pkg is
     return dout;
   end function;
 
+  -- complex minus (vector)
+  function "-" (din:cplx_vector) return cplx_vector is
+    constant LIN_RE : positive := din(din'left).re'length;
+    constant LIN_IM : positive := din(din'left).im'length;
+    variable dout : cplx_vector(din'range)(re(LIN_RE-1 downto 0),im(LIN_IM-1 downto 0));
+  begin
+    for i in din'range loop dout(i) := -din(i); end loop;
+    return dout;
+  end function;
+
   -- complex conjugate
   function conj (
     din  : cplx; -- data input
@@ -496,17 +529,49 @@ package body cplx_pkg is
     -- by default copy input control signals
     dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf;
     -- overflow/underflow not possible when LOUT>LIN
-    RESIZE_CLIP(din=>din.re, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S' and LOUT_RE<=LIN_RE));
-    SUB(l=>to_signed(0,LIN_IM), r=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S' and LOUT_IM<=LIN_IM));
-    if (m='O' and LOUT_RE<=LIN_RE) then dout.ovf := dout.ovf or ovf_re; end if;
-    if (m='O' and LOUT_IM<=LIN_IM) then dout.ovf := dout.ovf or ovf_im; end if;
+    RESIZE_CLIP(din=>din.re, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S'));
+    SUB(l=>to_signed(0,LIN_IM), r=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
+    if (m='O') then dout.ovf := dout.ovf or ovf_re or ovf_im; end if;
     dout := reset_on_demand(din=>dout, m=>m);
+    return dout;
+  end function;
+
+  -- complex conjugate (vector)
+  function conj (
+    din : cplx_vector; -- data input vector
+    w   : natural:=0; -- output bit width 
+    m   : cplx_mode:="-" -- mode, supported options: 'R','O' and/or 'S'
+  ) return cplx_vector is
+    constant LIN_RE : positive := din(din'left).re'length;
+    constant LIN_IM : positive := din(din'left).im'length;
+    constant LOUT_RE : positive := default_if_zero(w, dflt=>LIN_RE); -- final output bit width
+    constant LOUT_IM : positive := default_if_zero(w, dflt=>LIN_IM); -- final output bit width
+    variable dout : cplx_vector(din'range)(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
+  begin
+    for i in din'range loop dout(i) := conj(din=>din(i), w=>w, m=>m); end loop;
     return dout;
   end function;
 
   ------------------------------------------
   -- ADDITION and ACCUMULATION
   ------------------------------------------
+
+  procedure add (
+    l,r  : in  cplx; -- left/right summand
+    dout : out cplx; -- data output, sum
+    m    : in  cplx_mode:="-" -- mode, supported options: 'R','O' and/or 'S'
+  ) is
+    variable ovf_re, ovf_im : std_logic;
+  begin
+    -- by default merge input control signals
+    dout.rst := l.rst or r.rst;
+    dout.vld := l.vld and r.vld;
+    dout.ovf := l.ovf or r.ovf;
+    ADD(l=>l.re, r=>r.re, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S'));
+    ADD(l=>l.im, r=>r.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
+    if (m='O') then dout.ovf := dout.ovf or ovf_re or ovf_im; end if;
+    dout := reset_on_demand(din=>dout, m=>m);
+  end procedure;
 
   function add (
     l,r  : cplx; -- left/right summand
@@ -517,36 +582,44 @@ package body cplx_pkg is
     constant LIN_IM : positive := max(l.im'length,r.im'length); -- default output length
     constant LOUT_RE : positive := default_if_zero(w, dflt=>LIN_RE); -- final output length
     constant LOUT_IM : positive := default_if_zero(w, dflt=>LIN_IM); -- final output length
-    variable ovf_re, ovf_im : std_logic;
     variable dout : cplx(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
   begin
-    -- by default merge input control signals
-    dout.rst := l.rst or r.rst;
-    dout.vld := l.vld and r.vld;
-    dout.ovf := l.ovf or r.ovf;
-    -- overflow/underflow not possible when LOUT>LIN
-    ADD(l=>l.re, r=>r.re, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S' and LOUT_RE<=LIN_RE));
-    ADD(l=>l.im, r=>r.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S' and LOUT_IM<=LIN_IM));
-    if (m='O' and LOUT_RE<=LIN_RE) then dout.ovf := dout.ovf or ovf_re; end if;
-    if (m='O' and LOUT_IM<=LIN_IM) then dout.ovf := dout.ovf or ovf_im; end if;
-    dout := reset_on_demand(din=>dout, m=>m);
+    ADD(l=>l, r=>r, dout=>dout, m=>m);
     return dout;
   end function;
 
-  procedure add (
-    l,r  : in  cplx; -- left/right summand
-    dout : out cplx; -- data output, sum
-    m    : in  cplx_mode:="-" -- mode, supported options: 'R','O' and/or 'S'
-  ) is
-    constant LOUT : positive := max(dout.re'length, dout.im'length);
+  function add (
+    l,r  : cplx_vector; -- left/right summand
+    w    : natural:=0; -- output bit width
+    m    : cplx_mode:="-" -- mode, supported options: 'R','O' and/or 'S'
+  ) return cplx_vector is
+    constant WL_RE : positive := l(l'left).re'length; -- width left real
+    constant WL_IM : positive := l(l'left).im'length; -- width left imaginary
+    constant WR_RE : positive := r(r'left).re'length; -- width right real
+    constant WR_IM : positive := r(r'left).im'length; -- width right imaginary
+    alias xl : cplx_vector(1 to l'length)(re(WL_RE-1 downto 0),im(WL_IM-1 downto 0)) is l; -- default range
+    alias xr : cplx_vector(1 to r'length)(re(WR_RE-1 downto 0),im(WR_IM-1 downto 0)) is r; -- default range
+    constant LOUT_RE : positive := default_if_zero(w, dflt=>max(WL_RE,WR_RE)); -- final output length
+    constant LOUT_IM : positive := default_if_zero(w, dflt=>max(WL_IM,WR_IM)); -- final output length
+    variable dout : cplx_vector(1 to l'length)(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
   begin
-    dout := add(l=>l, r=>r, w=>LOUT, m=>m);
-  end procedure;
+    assert (l'length=r'length)
+      report "ERROR: add() cplx_vector, both summands must have same number of vector elements"
+      severity failure;
+    for i in 1 to l'length loop 
+      ADD(l=>xl(i), r=>xr(i), dout=>dout(i), m=>m);
+    end loop;
+    return dout;
+  end function;
 
   function "+" (l,r: cplx) return cplx is
-    constant w : positive := max(l.re'length,r.re'length);
   begin
-    return add(l=>l, r=>r, w=>w, m=>"O"); -- just overflow detection!
+    return add(l=>l, r=>r, w=>0, m=>"O"); -- just overflow detection!
+  end function;
+
+  function "+" (l,r: cplx_vector) return cplx_vector is
+  begin
+    return add(l=>l, r=>r, w=>0, m=>"O"); -- just overflow detection!
   end function;
 
   function sum (
@@ -558,13 +631,13 @@ package body cplx_pkg is
     constant LVEC : positive := din'length; -- vector length
     constant LIN : positive := max(din(din'left).re'length,din(din'left).im'length); -- default output bit width
     constant LOUT : positive := default_if_zero(w, dflt=>LIN); -- final output bit width
-    alias xdin : cplx_vector(0 to LVEC-1) is din; -- default range
+    alias xdin : cplx_vector(1 to LVEC) is din; -- default range
     constant T : positive := LIN + LOG2CEIL(LVEC); -- width including additional accumulation bits
     variable temp : cplx(re(T-1 downto 0),im(T-1 downto 0));
   begin
-    temp := resize(din=>xdin(0), w=>LIN); -- mode irrelevant, do not set any options here! 
+    temp := resize(din=>xdin(1), w=>LIN); -- mode irrelevant, do not set any options here! 
     if LVEC>1 then
-      for i in 1 to LVEC-1 loop temp:=temp+xdin(i); end loop;
+      for i in 2 to LVEC loop temp:=temp+xdin(i); end loop;
     end if;
     return resize(din=>temp, w=>LOUT, m=>m);
   end function;
@@ -584,6 +657,25 @@ package body cplx_pkg is
   ------------------------------------------
 
   -- complex subtraction with optional clipping and overflow detection
+  -- d = l - r  (sum is resized to size of connected output)
+  procedure sub (
+    l,r  : in  cplx; -- data input, left minuend, right subtrahend
+    dout : out cplx; -- data output, difference
+    m    : in  cplx_mode:="-" -- mode, supported options: 'R','O' and/or 'S'
+  ) is
+    variable ovf_re, ovf_im : std_logic;
+  begin
+    -- by default merge input control signals
+    dout.rst := l.rst or r.rst;
+    dout.vld := l.vld and r.vld;
+    dout.ovf := l.ovf or r.ovf;
+    SUB(l=>l.re, r=>r.re, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S'));
+    SUB(l=>l.im, r=>r.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
+    if (m='O') then dout.ovf := dout.ovf or ovf_re or ovf_im; end if;
+    dout := reset_on_demand(din=>dout, m=>m);
+  end procedure;
+
+  -- complex subtraction with optional clipping and overflow detection
   -- d = l - r  (sum is resized to given output bit width of sum)
   function sub (
     l,r  : cplx; -- data input, left minuend, right subtrahend
@@ -594,40 +686,46 @@ package body cplx_pkg is
     constant LIN_IM : positive := max(l.im'length,r.im'length); -- default output length
     constant LOUT_RE : positive := default_if_zero(w, dflt=>LIN_RE); -- final output length
     constant LOUT_IM : positive := default_if_zero(w, dflt=>LIN_IM); -- final output length
-    variable ovf_re, ovf_im : std_logic;
     variable dout : cplx(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
   begin
-    -- by default merge input control signals
-    dout.rst := l.rst or r.rst;
-    dout.vld := l.vld and r.vld;
-    dout.ovf := l.ovf or r.ovf;
-    -- overflow/underflow not possible when LOUT>LIN
-    SUB(l=>l.re, r=>r.re, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S' and LOUT_RE<=LIN_RE));
-    SUB(l=>l.im, r=>r.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S' and LOUT_IM<=LIN_IM));
-    if (m='O' and LOUT_RE<=LIN_RE) then dout.ovf := dout.ovf or ovf_re; end if;
-    if (m='O' and LOUT_IM<=LIN_IM) then dout.ovf := dout.ovf or ovf_im; end if;
-    dout := reset_on_demand(din=>dout, m=>m);
+    SUB(l=>l, r=>r, dout=>dout, m=>m);
     return dout;
   end function;
 
-  -- complex subtraction with optional clipping and overflow detection
-  -- d = l - r  (sum is resized to size of connected output)
-  procedure sub (
-    l,r  : in  cplx; -- data input, left minuend, right subtrahend
-    dout : out cplx; -- data output, difference
-    m    : in  cplx_mode:="-" -- mode, supported options: 'R','O' and/or 'S'
-  ) is
-    constant LOUT : positive := max(dout.re'length, dout.im'length);
+  function sub (
+    l,r  : cplx_vector; -- data input, left minuend, right subtrahend
+    w    : natural:=0; -- output bit width
+    m    : cplx_mode:="-" -- mode, supported options: 'R','O' and/or 'S'
+  ) return cplx_vector is
+    constant WL_RE : positive := l(l'left).re'length; -- width left real
+    constant WL_IM : positive := l(l'left).im'length; -- width left imaginary
+    constant WR_RE : positive := r(r'left).re'length; -- width right real
+    constant WR_IM : positive := r(r'left).im'length; -- width right imaginary
+    alias xl : cplx_vector(1 to l'length)(re(WL_RE-1 downto 0),im(WL_IM-1 downto 0)) is l; -- default range
+    alias xr : cplx_vector(1 to r'length)(re(WR_RE-1 downto 0),im(WR_IM-1 downto 0)) is r; -- default range
+    constant LOUT_RE : positive := default_if_zero(w, dflt=>max(WL_RE,WR_RE)); -- final output length
+    constant LOUT_IM : positive := default_if_zero(w, dflt=>max(WL_IM,WR_IM)); -- final output length
+    variable dout : cplx_vector(1 to l'length)(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
   begin
-    dout := sub(l=>l, r=>r, w=>LOUT, m=>m);
-  end procedure;
+    assert (l'length=r'length)
+      report "ERROR: sub() cplx_vector, left minuend and right subtrahend must have same number of vector elements"
+      severity failure;
+    for i in 1 to l'length loop 
+      SUB(l=>xl(i), r=>xr(i), dout=>dout(i), m=>m);
+    end loop;
+    return dout;
+  end function;
 
   -- complex subtraction with wrap and overflow detection
-  -- (bit width of sum equals the max bit width of left minuend and right subtrahend)
   function "-" (l,r: cplx) return cplx is
-    constant w : positive := max(l.re'length,r.re'length);
   begin
-    return sub(l=>l, r=>r, w=>w, m=>"O"); -- just overflow detection!
+    return sub(l=>l, r=>r, w=>0, m=>"O"); -- just overflow detection!
+  end function;
+
+  -- complex subtraction with wrap and overflow detection
+  function "-" (l,r: cplx_vector) return cplx_vector is
+  begin
+    return sub(l=>l, r=>r, w=>0, m=>"O"); -- just overflow detection!
   end function;
 
   ------------------------------------------
