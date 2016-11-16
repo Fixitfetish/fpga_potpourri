@@ -133,30 +133,49 @@ package cplx_pkg is
   -- get cplx reset value 
   -- RE/IM data will be 0 with option 'R', otherwise data is do-not-care
   -- w : RE/IM data width in bits
+  -- n : number of vector elements (for vectors only)
   function cplx_reset (w:positive; m:cplx_mode:="-") return cplx16;
-  function cplx_reset (w:positive; m:cplx_mode:="-") return cplx18;
-  function cplx_reset (w:positive; m:cplx_mode:="-") return cplx20;
-  function cplx_reset (w:positive; m:cplx_mode:="-") return cplx22;
+  function cplx_vector_reset (w:positive; n:positive; m:cplx_mode:="-") return cplx16_vector;
 
-  -- get cplx_vector reset value 
+  -- get cplx reset value 
   -- RE/IM data will be 0 with option 'R', otherwise data is do-not-care
   -- w : RE/IM data width in bits
-  -- n : number of vector elements
-  function cplx_vector_reset (w:positive; n:positive; m:cplx_mode:="-") return cplx16_vector;
+  -- n : number of vector elements (for vectors only)
+  function cplx_reset (w:positive; m:cplx_mode:="-") return cplx18;
   function cplx_vector_reset (w:positive; n:positive; m:cplx_mode:="-") return cplx18_vector;
+
+  -- get cplx reset value 
+  -- RE/IM data will be 0 with option 'R', otherwise data is do-not-care
+  -- w : RE/IM data width in bits
+  -- n : number of vector elements (for vectors only)
+  function cplx_reset (w:positive; m:cplx_mode:="-") return cplx20;
   function cplx_vector_reset (w:positive; n:positive; m:cplx_mode:="-") return cplx20_vector;
+
+  -- get cplx reset value 
+  -- RE/IM data will be 0 with option 'R', otherwise data is do-not-care
+  -- w : RE/IM data width in bits
+  -- n : number of vector elements (for vectors only)
+  function cplx_reset (w:positive; m:cplx_mode:="-") return cplx22;
   function cplx_vector_reset (w:positive; n:positive; m:cplx_mode:="-") return cplx22_vector;
 
   -- Complex data reset on demand - to be placed into the data path
   -- supported options: 'R'
   function reset_on_demand (din:cplx16; m:cplx_mode:="-") return cplx16;
-  function reset_on_demand (din:cplx18; m:cplx_mode:="-") return cplx18;
-  function reset_on_demand (din:cplx20; m:cplx_mode:="-") return cplx20;
-  function reset_on_demand (din:cplx22; m:cplx_mode:="-") return cplx22;
-
   function reset_on_demand (din:cplx16_vector; m:cplx_mode:="-") return cplx16_vector;
+
+  -- Complex data reset on demand - to be placed into the data path
+  -- supported options: 'R'
+  function reset_on_demand (din:cplx18; m:cplx_mode:="-") return cplx18;
   function reset_on_demand (din:cplx18_vector; m:cplx_mode:="-") return cplx18_vector;
+
+  -- Complex data reset on demand - to be placed into the data path
+  -- supported options: 'R'
+  function reset_on_demand (din:cplx20; m:cplx_mode:="-") return cplx20;
   function reset_on_demand (din:cplx20_vector; m:cplx_mode:="-") return cplx20_vector;
+
+  -- Complex data reset on demand - to be placed into the data path
+  -- supported options: 'R'
+  function reset_on_demand (din:cplx22; m:cplx_mode:="-") return cplx22;
   function reset_on_demand (din:cplx22_vector; m:cplx_mode:="-") return cplx22_vector;
 
   ------------------------------------------
@@ -318,14 +337,27 @@ package cplx_pkg is
   -- bit width w must be equal to the input bit width, i.e. w=0 or w=16.
   -- supported options: 'R', 'O' and/or 'S'
   function conj (din:cplx16; w:natural:=16; m:cplx_mode:="-") return cplx16;
-  function conj (din:cplx18; w:natural:=18; m:cplx_mode:="-") return cplx18;
-  function conj (din:cplx20; w:natural:=20; m:cplx_mode:="-") return cplx20;
-  function conj (din:cplx22; w:natural:=22; m:cplx_mode:="-") return cplx22;
-
-  -- complex conjugate (vector)
   function conj (din:cplx16_vector; w:natural:=16; m:cplx_mode:="-") return cplx16_vector;
+
+  -- complex conjugate
+  -- To be compatible with the VHDL-2008 version of this package the output
+  -- bit width w must be equal to the input bit width, i.e. w=0 or w=18.
+  -- supported options: 'R', 'O' and/or 'S'
+  function conj (din:cplx18; w:natural:=18; m:cplx_mode:="-") return cplx18;
   function conj (din:cplx18_vector; w:natural:=18; m:cplx_mode:="-") return cplx18_vector;
+
+  -- complex conjugate
+  -- To be compatible with the VHDL-2008 version of this package the output
+  -- bit width w must be equal to the input bit width, i.e. w=0 or w=20.
+  -- supported options: 'R', 'O' and/or 'S'
+  function conj (din:cplx20; w:natural:=20; m:cplx_mode:="-") return cplx20;
   function conj (din:cplx20_vector; w:natural:=20; m:cplx_mode:="-") return cplx20_vector;
+
+  -- complex conjugate
+  -- To be compatible with the VHDL-2008 version of this package the output
+  -- bit width w must be equal to the input bit width, i.e. w=0 or w=22.
+  -- supported options: 'R', 'O' and/or 'S'
+  function conj (din:cplx22; w:natural:=22; m:cplx_mode:="-") return cplx22;
   function conj (din:cplx22_vector; w:natural:=22; m:cplx_mode:="-") return cplx22_vector;
 
   ------------------------------------------
@@ -338,6 +370,7 @@ package cplx_pkg is
   -- bit width w must be equal to the input bit width, i.e. w=0 or w=16.
   -- supported options: 'R', 'O' and/or 'S'
   function add (l,r: cplx16; w:natural:=16; m:cplx_mode:="-") return cplx16;
+  function add (l,r: cplx16_vector; w:natural:=16; m:cplx_mode:="-") return cplx16_vector;
 
   -- complex addition with optional clipping and overflow detection
   -- Both inputs must have the same bit width.
@@ -345,6 +378,7 @@ package cplx_pkg is
   -- bit width w must be equal to the input bit width, i.e. w=0 or w=18.
   -- supported options: 'R', 'O' and/or 'S'
   function add (l,r: cplx18; w:natural:=18; m:cplx_mode:="-") return cplx18;
+  function add (l,r: cplx18_vector; w:natural:=18; m:cplx_mode:="-") return cplx18_vector;
 
   -- complex addition with optional clipping and overflow detection
   -- Both inputs must have the same bit width.
@@ -352,6 +386,7 @@ package cplx_pkg is
   -- bit width w must be equal to the input bit width, i.e. w=0 or w=20.
   -- supported options: 'R', 'O' and/or 'S'
   function add (l,r: cplx20; w:natural:=20; m:cplx_mode:="-") return cplx20;
+  function add (l,r: cplx20_vector; w:natural:=20; m:cplx_mode:="-") return cplx20_vector;
 
   -- complex addition with optional clipping and overflow detection
   -- Both inputs must have the same bit width.
@@ -359,24 +394,22 @@ package cplx_pkg is
   -- bit width w must be equal to the input bit width, i.e. w=0 or w=22.
   -- supported options: 'R', 'O' and/or 'S'
   function add (l,r: cplx22; w:natural:=22; m:cplx_mode:="-") return cplx22;
-
-  function add (l,r: cplx16_vector; w:natural:=16; m:cplx_mode:="-") return cplx16_vector;
-  function add (l,r: cplx18_vector; w:natural:=18; m:cplx_mode:="-") return cplx18_vector;
-  function add (l,r: cplx20_vector; w:natural:=20; m:cplx_mode:="-") return cplx20_vector;
   function add (l,r: cplx22_vector; w:natural:=22; m:cplx_mode:="-") return cplx22_vector;
 
   -- complex addition with wrap and overflow detection
   function "+" (l,r: cplx16) return cplx16;
+  function "+" (l,r: cplx16_vector) return cplx16_vector;
+
   -- complex addition with wrap and overflow detection
   function "+" (l,r: cplx18) return cplx18;
+  function "+" (l,r: cplx18_vector) return cplx18_vector;
+
   -- complex addition with wrap and overflow detection
   function "+" (l,r: cplx20) return cplx20;
+  function "+" (l,r: cplx20_vector) return cplx20_vector;
+
   -- complex addition with wrap and overflow detection
   function "+" (l,r: cplx22) return cplx22;
-
-  function "+" (l,r: cplx16_vector) return cplx16_vector;
-  function "+" (l,r: cplx18_vector) return cplx18_vector;
-  function "+" (l,r: cplx20_vector) return cplx20_vector;
   function "+" (l,r: cplx22_vector) return cplx22_vector;
 
   -- sum of vector elements (max 4 elements for simplicity reasons)
@@ -404,6 +437,7 @@ package cplx_pkg is
   -- bit width w must be equal to the input bit width, i.e. w=0 or w=16.
   -- supported options: 'R', 'O' and/or 'S'
   function sub (l,r: cplx16; w:natural:=16; m:cplx_mode:="-") return cplx16;
+  function sub (l,r: cplx16_vector; w:natural:=16; m:cplx_mode:="-") return cplx16_vector;
 
   -- complex subtraction with optional clipping and overflow detection
   -- Both inputs must have the same bit width.
@@ -411,6 +445,7 @@ package cplx_pkg is
   -- bit width w must be equal to the input bit width, i.e. w=0 or w=18.
   -- supported options: 'R', 'O' and/or 'S'
   function sub (l,r: cplx18; w:natural:=18; m:cplx_mode:="-") return cplx18;
+  function sub (l,r: cplx18_vector; w:natural:=18; m:cplx_mode:="-") return cplx18_vector;
 
   -- complex subtraction with optional clipping and overflow detection
   -- Both inputs must have the same bit width.
@@ -418,6 +453,7 @@ package cplx_pkg is
   -- bit width w must be equal to the input bit width, i.e. w=0 or w=20.
   -- supported options: 'R', 'O' and/or 'S'
   function sub (l,r: cplx20; w:natural:=20; m:cplx_mode:="-") return cplx20;
+  function sub (l,r: cplx20_vector; w:natural:=20; m:cplx_mode:="-") return cplx20_vector;
 
   -- complex subtraction with optional clipping and overflow detection
   -- Both inputs must have the same bit width.
@@ -425,24 +461,22 @@ package cplx_pkg is
   -- bit width w must be equal to the input bit width, i.e. w=0 or w=22.
   -- supported options: 'R', 'O' and/or 'S'
   function sub (l,r: cplx22; w:natural:=22; m:cplx_mode:="-") return cplx22;
-
-  function sub (l,r: cplx16_vector; w:natural:=16; m:cplx_mode:="-") return cplx16_vector;
-  function sub (l,r: cplx18_vector; w:natural:=18; m:cplx_mode:="-") return cplx18_vector;
-  function sub (l,r: cplx20_vector; w:natural:=20; m:cplx_mode:="-") return cplx20_vector;
   function sub (l,r: cplx22_vector; w:natural:=22; m:cplx_mode:="-") return cplx22_vector;
 
   -- complex subtraction with wrap and overflow detection
   function "-" (l,r: cplx16) return cplx16;
+  function "-" (l,r: cplx16_vector) return cplx16_vector;
+
   -- complex subtraction with wrap and overflow detection
   function "-" (l,r: cplx18) return cplx18;
+  function "-" (l,r: cplx18_vector) return cplx18_vector;
+
   -- complex subtraction with wrap and overflow detection
   function "-" (l,r: cplx20) return cplx20;
+  function "-" (l,r: cplx20_vector) return cplx20_vector;
+
   -- complex subtraction with wrap and overflow detection
   function "-" (l,r: cplx22) return cplx22;
-
-  function "-" (l,r: cplx16_vector) return cplx16_vector;
-  function "-" (l,r: cplx18_vector) return cplx18_vector;
-  function "-" (l,r: cplx20_vector) return cplx20_vector;
   function "-" (l,r: cplx22_vector) return cplx22_vector;
 
   ------------------------------------------
@@ -1058,7 +1092,7 @@ package body cplx_pkg is
   -- Basic complex arithmetic
   ------------------------------------------
 
-  -- complex minus
+  -- complex minus CPLX16
   function "-" (din:cplx16) return cplx16 is
     variable ovf_re, ovf_im : std_logic;
     variable dout : cplx16;
@@ -1073,6 +1107,14 @@ package body cplx_pkg is
     return dout;
   end function;
 
+  function "-" (din:cplx16_vector) return cplx16_vector is
+    variable dout : cplx16_vector(din'range);
+  begin
+    for i in din'range loop dout(i) := -din(i); end loop;
+    return dout;
+  end function;
+
+  -- complex minus CPLX18
   function "-" (din:cplx18) return cplx18 is
     variable ovf_re, ovf_im : std_logic;
     variable dout : cplx18;
@@ -1087,6 +1129,14 @@ package body cplx_pkg is
     return dout;
   end function;
 
+  function "-" (din:cplx18_vector) return cplx18_vector is
+    variable dout : cplx18_vector(din'range);
+  begin
+    for i in din'range loop dout(i) := -din(i); end loop;
+    return dout;
+  end function;
+
+  -- complex minus CPLX20
   function "-" (din:cplx20) return cplx20 is
     variable ovf_re, ovf_im : std_logic;
     variable dout : cplx20;
@@ -1101,6 +1151,14 @@ package body cplx_pkg is
     return dout;
   end function;
 
+  function "-" (din:cplx20_vector) return cplx20_vector is
+    variable dout : cplx20_vector(din'range);
+  begin
+    for i in din'range loop dout(i) := -din(i); end loop;
+    return dout;
+  end function;
+
+  -- complex minus CPLX22
   function "-" (din:cplx22) return cplx22 is
     variable ovf_re, ovf_im : std_logic;
     variable dout : cplx22;
@@ -1115,31 +1173,6 @@ package body cplx_pkg is
     return dout;
   end function;
 
-  -- complex minus (vector)
-  function "-" (din:cplx16_vector) return cplx16_vector is
-    variable dout : cplx16_vector(din'range);
-  begin
-    for i in din'range loop dout(i) := -din(i); end loop;
-    return dout;
-  end function;
-
-  -- complex minus (vector)
-  function "-" (din:cplx18_vector) return cplx18_vector is
-    variable dout : cplx18_vector(din'range);
-  begin
-    for i in din'range loop dout(i) := -din(i); end loop;
-    return dout;
-  end function;
-
-  -- complex minus (vector)
-  function "-" (din:cplx20_vector) return cplx20_vector is
-    variable dout : cplx20_vector(din'range);
-  begin
-    for i in din'range loop dout(i) := -din(i); end loop;
-    return dout;
-  end function;
-
-  -- complex minus (vector)
   function "-" (din:cplx22_vector) return cplx22_vector is
     variable dout : cplx22_vector(din'range);
   begin
@@ -1147,7 +1180,7 @@ package body cplx_pkg is
     return dout;
   end function;
 
-  -- complex conjugate
+  -- complex conjugate CPLX16
   function conj (din:cplx16; w:natural:=16; m:cplx_mode:="-") return cplx16 is
     variable ovf_im : std_logic;
     variable dout : cplx16;
@@ -1164,6 +1197,14 @@ package body cplx_pkg is
     return dout;
   end function;
 
+  function conj (din:cplx16_vector; w:natural:=16; m:cplx_mode:="-") return cplx16_vector is
+    variable dout : cplx16_vector(din'range);
+  begin
+    for i in din'range loop dout(i):=conj(din=>din(i), w=>w, m=>m); end loop;
+    return dout;
+  end function;
+
+  -- complex conjugate CPLX18
   function conj (din:cplx18; w:natural:=18; m:cplx_mode:="-") return cplx18 is
     variable ovf_im : std_logic;
     variable dout : cplx18;
@@ -1180,6 +1221,14 @@ package body cplx_pkg is
     return dout;
   end function;
 
+  function conj (din:cplx18_vector; w:natural:=18; m:cplx_mode:="-") return cplx18_vector is
+    variable dout : cplx18_vector(din'range);
+  begin
+    for i in din'range loop dout(i):=conj(din=>din(i), w=>w, m=>m); end loop;
+    return dout;
+  end function;
+
+  -- complex conjugate CPLX20
   function conj (din:cplx20; w:natural:=20; m:cplx_mode:="-") return cplx20 is
     variable ovf_im : std_logic;
     variable dout : cplx20;
@@ -1196,6 +1245,14 @@ package body cplx_pkg is
     return dout;
   end function;
 
+  function conj (din:cplx20_vector; w:natural:=20; m:cplx_mode:="-") return cplx20_vector is
+    variable dout : cplx20_vector(din'range);
+  begin
+    for i in din'range loop dout(i):=conj(din=>din(i), w=>w, m=>m); end loop;
+    return dout;
+  end function;
+
+  -- complex conjugate CPLX22
   function conj (din:cplx22; w:natural:=22; m:cplx_mode:="-") return cplx22 is
     variable ovf_im : std_logic;
     variable dout : cplx22;
@@ -1212,31 +1269,6 @@ package body cplx_pkg is
     return dout;
   end function;
 
-  -- complex conjugate (vector)
-  function conj (din:cplx16_vector; w:natural:=16; m:cplx_mode:="-") return cplx16_vector is
-    variable dout : cplx16_vector(din'range);
-  begin
-    for i in din'range loop dout(i):=conj(din=>din(i), w=>w, m=>m); end loop;
-    return dout;
-  end function;
-
-  -- complex conjugate (vector)
-  function conj (din:cplx18_vector; w:natural:=18; m:cplx_mode:="-") return cplx18_vector is
-    variable dout : cplx18_vector(din'range);
-  begin
-    for i in din'range loop dout(i):=conj(din=>din(i), w=>w, m=>m); end loop;
-    return dout;
-  end function;
-
-  -- complex conjugate (vector)
-  function conj (din:cplx20_vector; w:natural:=20; m:cplx_mode:="-") return cplx20_vector is
-    variable dout : cplx20_vector(din'range);
-  begin
-    for i in din'range loop dout(i):=conj(din=>din(i), w=>w, m=>m); end loop;
-    return dout;
-  end function;
-
-  -- complex conjugate (vector)
   function conj (din:cplx22_vector; w:natural:=22; m:cplx_mode:="-") return cplx22_vector is
     variable dout : cplx22_vector(din'range);
   begin
