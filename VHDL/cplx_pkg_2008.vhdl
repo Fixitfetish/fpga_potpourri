@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_2008.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 16/Nov/2016
--- VERSION : 0.90
+-- DATE    : 17/Nov/2016
+-- VERSION : 0.91
 -- VHDL    : 2008
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -291,6 +291,15 @@ package cplx_pkg is
     m    : cplx_mode:="-" -- mode
   ) return cplx;
 
+  -- complex signed shift left by n bits with optional clipping/saturation and overflow detection
+  -- The output bit width equals the input bit width.
+  -- supported options: 'R', 'O' and/or 'S'
+  function shift_left (
+    din  : cplx_vector; -- data input
+    n    : natural; -- number of left shifts
+    m    : cplx_mode:="-" -- mode
+  ) return cplx_vector;
+
   ------------------------------------------
   -- SHIFT RIGHT and ROUND
   ------------------------------------------
@@ -313,6 +322,15 @@ package cplx_pkg is
     n    : natural; -- number of right shifts
     m    : cplx_mode:="-" -- mode
   ) return cplx;
+
+  -- complex signed shift right by n bits with optional rounding
+  -- The output bit width equals the input bit width.
+  -- supported options: 'R' and/or ('D','N','U','Z' or 'I')
+  function shift_right (
+    din  : cplx_vector; -- data input
+    n    : natural; -- number of right shifts
+    m    : cplx_mode:="-" -- mode
+  ) return cplx_vector;
 
   ------------------------------------------
   -- STD_LOGIC_VECTOR to CPLX
@@ -766,6 +784,22 @@ package body cplx_pkg is
     return dout;
   end function;
 
+  function shift_left (
+    din  : cplx_vector; -- data input
+    n    : natural; -- number of left shifts
+    m    : cplx_mode:="-" -- mode
+  ) return cplx_vector is
+    -- output size always equals input size
+    constant LOUT_RE : positive := din(din'left).re'length;
+    constant LOUT_IM : positive := din(din'left).im'length;
+    variable dout : cplx_vector(din'range)(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
+  begin
+    for i in din'range loop 
+      shift_left(din=>din(i), n=>n, dout=>dout(i), m=>m);
+    end loop;
+    return dout;
+  end function;
+
   ------------------------------------------
   -- SHIFT RIGHT and ROUND
   ------------------------------------------
@@ -812,6 +846,22 @@ package body cplx_pkg is
     variable dout : cplx(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
   begin
     shift_right(din=>din, n=>n, dout=>dout, m=>m);
+    return dout;
+  end function;
+
+  function shift_right (
+    din  : cplx_vector; -- data input
+    n    : natural; -- number of right shifts
+    m    : cplx_mode:="-" -- mode
+  ) return cplx_vector is
+    -- output size always equals input size
+    constant LOUT_RE : positive := din(din'left).re'length;
+    constant LOUT_IM : positive := din(din'left).im'length;
+    variable dout : cplx_vector(din'range)(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
+  begin
+    for i in din'range loop 
+      shift_right(din=>din(i), n=>n, dout=>dout(i), m=>m);
+    end loop;
     return dout;
   end function;
 

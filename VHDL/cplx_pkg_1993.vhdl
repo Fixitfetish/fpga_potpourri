@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_1993.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 16/Nov/2016
--- VERSION : 0.90
+-- DATE    : 17/Nov/2016
+-- VERSION : 0.91
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -487,21 +487,25 @@ package cplx_pkg is
   -- The output bit width equals the input bit width.
   -- supported options: 'R', 'O' and/or 'S'
   function shift_left (din:cplx16 ; n:natural; m:cplx_mode:="-") return cplx16;
+  function shift_left (din:cplx16_vector ; n:natural; m:cplx_mode:="-") return cplx16_vector;
 
   -- complex signed shift left by n bits with optional clipping/saturation and overflow detection
   -- The output bit width equals the input bit width.
   -- supported options: 'R', 'O' and/or 'S'
   function shift_left (din:cplx18 ; n:natural; m:cplx_mode:="-") return cplx18;
+  function shift_left (din:cplx18_vector ; n:natural; m:cplx_mode:="-") return cplx18_vector;
 
   -- complex signed shift left by n bits with optional clipping/saturation and overflow detection
   -- The output bit width equals the input bit width.
   -- supported options: 'R', 'O' and/or 'S'
   function shift_left (din:cplx20 ; n:natural; m:cplx_mode:="-") return cplx20;
+  function shift_left (din:cplx20_vector ; n:natural; m:cplx_mode:="-") return cplx20_vector;
 
   -- complex signed shift left by n bits with optional clipping/saturation and overflow detection
   -- The output bit width equals the input bit width.
   -- supported options: 'R', 'O' and/or 'S'
   function shift_left (din:cplx22 ; n:natural; m:cplx_mode:="-") return cplx22;
+  function shift_left (din:cplx22_vector ; n:natural; m:cplx_mode:="-") return cplx22_vector;
 
   ------------------------------------------
   -- SHIFT RIGHT and ROUND
@@ -511,21 +515,25 @@ package cplx_pkg is
   -- The output bit width equals the input bit width.
   -- supported options: 'R' and/or ('D','N','U','Z' or 'I')
   function shift_right (din:cplx16 ; n:natural; m:cplx_mode:="-") return cplx16;
+  function shift_right (din:cplx16_vector ; n:natural; m:cplx_mode:="-") return cplx16_vector;
 
   -- complex signed shift right by n bits with optional rounding
   -- The output bit width equals the input bit width.
   -- supported options: 'R' and/or ('D','N','U','Z' or 'I')
   function shift_right (din:cplx18 ; n:natural; m:cplx_mode:="-") return cplx18;
+  function shift_right (din:cplx18_vector ; n:natural; m:cplx_mode:="-") return cplx18_vector;
 
   -- complex signed shift right by n bits with optional rounding
   -- The output bit width equals the input bit width.
   -- supported options: 'R' and/or ('D','N','U','Z' or 'I')
   function shift_right (din:cplx20 ; n:natural; m:cplx_mode:="-") return cplx20;
+  function shift_right (din:cplx20_vector ; n:natural; m:cplx_mode:="-") return cplx20_vector;
 
   -- complex signed shift right by n bits with optional rounding
   -- The output bit width equals the input bit width.
   -- supported options: 'R' and/or ('D','N','U','Z' or 'I')
   function shift_right (din:cplx22 ; n:natural; m:cplx_mode:="-") return cplx22;
+  function shift_right (din:cplx22_vector ; n:natural; m:cplx_mode:="-") return cplx22_vector;
 
   ------------------------------------------
   -- STD_LOGIC_VECTOR to CPLX
@@ -1657,6 +1665,7 @@ package body cplx_pkg is
  -- SHIFT LEFT AND SATURATE/CLIP
   ------------------------------------------
 
+  -- shift left CPLX16
   function shift_left (din:cplx16 ; n:natural; m:cplx_mode:="-") return cplx16 is
     variable ovf_re, ovf_im : std_logic;
     variable dout : cplx16 := din; -- default
@@ -1668,6 +1677,16 @@ package body cplx_pkg is
     return dout;
   end function;
 
+  function shift_left (din:cplx16_vector ; n:natural; m:cplx_mode:="-") return cplx16_vector is
+    variable dout : cplx16_vector(din'range);
+  begin
+    for i in din'range loop 
+      dout(i) := shift_left(din=>din(i), n=>n, m=>m);
+    end loop;
+    return dout;
+  end function;
+
+  -- shift left CPLX18
   function shift_left (din:cplx18 ; n:natural; m:cplx_mode:="-") return cplx18 is
     variable ovf_re, ovf_im : std_logic;
     variable dout : cplx18 := din; -- default
@@ -1679,6 +1698,16 @@ package body cplx_pkg is
     return dout;
   end function;
 
+  function shift_left (din:cplx18_vector ; n:natural; m:cplx_mode:="-") return cplx18_vector is
+    variable dout : cplx18_vector(din'range);
+  begin
+    for i in din'range loop 
+      dout(i) := shift_left(din=>din(i), n=>n, m=>m);
+    end loop;
+    return dout;
+  end function;
+
+  -- shift left CPLX20
   function shift_left (din:cplx20 ; n:natural; m:cplx_mode:="-") return cplx20 is
     variable ovf_re, ovf_im : std_logic;
     variable dout : cplx20 := din; -- default
@@ -1690,6 +1719,16 @@ package body cplx_pkg is
     return dout;
   end function;
 
+  function shift_left (din:cplx20_vector ; n:natural; m:cplx_mode:="-") return cplx20_vector is
+    variable dout : cplx20_vector(din'range);
+  begin
+    for i in din'range loop 
+      dout(i) := shift_left(din=>din(i), n=>n, m=>m);
+    end loop;
+    return dout;
+  end function;
+
+  -- shift left CPLX22
   function shift_left (din:cplx22 ; n:natural; m:cplx_mode:="-") return cplx22 is
     variable ovf_re, ovf_im : std_logic;
     variable dout : cplx22 := din; -- default
@@ -1698,6 +1737,15 @@ package body cplx_pkg is
     SHIFT_LEFT_CLIP(din=>din.im, n=>n, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
     if m='O' then dout.ovf := dout.ovf or ovf_re or ovf_im; end if;
     dout := reset_on_demand(din=>dout, m=>m);
+    return dout;
+  end function;
+
+  function shift_left (din:cplx22_vector ; n:natural; m:cplx_mode:="-") return cplx22_vector is
+    variable dout : cplx22_vector(din'range);
+  begin
+    for i in din'range loop 
+      dout(i) := shift_left(din=>din(i), n=>n, m=>m);
+    end loop;
     return dout;
   end function;
 
@@ -1730,6 +1778,7 @@ package body cplx_pkg is
     end if;
   end procedure;
 
+  -- shift right CPLX16
   function shift_right (din:cplx16; n:natural; m:cplx_mode:="-") return cplx16 is
     variable dout : cplx16 := din; -- default
   begin
@@ -1740,6 +1789,16 @@ package body cplx_pkg is
     return dout;
   end function;
 
+  function shift_right (din:cplx16_vector ; n:natural; m:cplx_mode:="-") return cplx16_vector is
+    variable dout : cplx16_vector(din'range);
+  begin
+    for i in din'range loop 
+      dout(i) := shift_right(din=>din(i), n=>n, m=>m);
+    end loop;
+    return dout;
+  end function;
+
+  -- shift right CPLX18
   function shift_right (din:cplx18; n:natural; m:cplx_mode:="-") return cplx18 is
     variable dout : cplx18 := din; -- default
   begin
@@ -1750,6 +1809,16 @@ package body cplx_pkg is
     return dout;
   end function;
 
+  function shift_right (din:cplx18_vector ; n:natural; m:cplx_mode:="-") return cplx18_vector is
+    variable dout : cplx18_vector(din'range);
+  begin
+    for i in din'range loop 
+      dout(i) := shift_right(din=>din(i), n=>n, m=>m);
+    end loop;
+    return dout;
+  end function;
+
+  -- shift right CPLX20
   function shift_right (din:cplx20; n:natural; m:cplx_mode:="-") return cplx20 is
     variable dout : cplx20 := din; -- default
   begin
@@ -1760,6 +1829,16 @@ package body cplx_pkg is
     return dout;
   end function;
 
+  function shift_right (din:cplx20_vector ; n:natural; m:cplx_mode:="-") return cplx20_vector is
+    variable dout : cplx20_vector(din'range);
+  begin
+    for i in din'range loop 
+      dout(i) := shift_right(din=>din(i), n=>n, m=>m);
+    end loop;
+    return dout;
+  end function;
+
+  -- shift right CPLX22
   function shift_right (din:cplx22; n:natural; m:cplx_mode:="-") return cplx22 is
     variable dout : cplx22 := din; -- default
   begin
@@ -1767,6 +1846,15 @@ package body cplx_pkg is
     help_shift_right(din.rst, din.im, n, dout.im, m);
     -- Note: shift right cannot cause overflow!
     dout := reset_on_demand(din=>dout, m=>m);
+    return dout;
+  end function;
+
+  function shift_right (din:cplx22_vector ; n:natural; m:cplx_mode:="-") return cplx22_vector is
+    variable dout : cplx22_vector(din'range);
+  begin
+    for i in din'range loop 
+      dout(i) := shift_right(din=>din(i), n=>n, m=>m);
+    end loop;
     return dout;
   end function;
 
