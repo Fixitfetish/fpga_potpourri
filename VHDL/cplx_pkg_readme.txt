@@ -1,12 +1,12 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_readme.txt
 -- AUTHOR  : Fixitfetish
--- DATE    : 13/Nov/2016
--- VERSION : 0.2
--- LICENSE : MIT License  https://opensource.org/licenses/MIT
---                        https://en.wikipedia.org/wiki/MIT_License
+-- DATE    : 17/Nov/2016
+-- VERSION : 0.3
 -------------------------------------------------------------------------------
 -- Copyright (c) 2016 Fixitfetish
+-- MIT License  https://opensource.org/licenses/MIT
+--              https://en.wikipedia.org/wiki/MIT_License
 -------------------------------------------------------------------------------
 
 The complex package "CPLX_PKG" includes basic types, functions and procedures for complex integer
@@ -48,10 +48,10 @@ Note that always the base types or subtypes of the base types must be used.
 Signals can be declared as follows: 
 
   signal a16 : cplx(re(15 downto 0), im(15 downto 0)); -- use base type (VHDL-2008 only)
-  signal b16 : cplx16; -- use subtype (i.e. base type in VHDL-1993)
+  signal b16 : cplx16; -- use predefined subtype (i.e. base type in VHDL-1993)
 
   signal vec_a16 : cplx_vector(0 to 3)(re(15 downto 0), im(15 downto 0)); -- use base type (VHDL-2008 only)
-  signal vec_b16 : cplx16_vector(0 to 3); -- use subtype (i.e. base type in VHDL-1993)
+  signal vec_b16 : cplx16_vector(0 to 3); -- use predefined subtype (i.e. base type in VHDL-1993)
 
 Some options are predefined to switch on/off commonly used features.
 
@@ -69,6 +69,8 @@ Some options are predefined to switch on/off commonly used features.
 
 The operation mode is a combination of one or several options and can be set for each function or
 procedure separately. Note that some options can not be combined, e.g. different rounding options.
+Use options carefully and only when really required. Some options can have a negative influence on
+logic consumption and timing.
 
   type cplx_mode is array(integer range <>) of cplx_option; -- the default mode is "-"
   Example: The mode "ROS" switches on data reset, overflow detection and saturation.
@@ -84,3 +86,25 @@ There are three ways of resetting.
 3.) Reset data and control signals
     Same as 2.) but additionally use option 'R' to reset real and imaginary data to 0 when cplx.rst='1'.
 Furthermore manual resetting is always possible, i.e. not using cplx.rst but resetting the whole CPLX record.
+
+The functions cplx_reset() and cplx_vector_reset() are useful to generate a constant reset value. Examples:
+
+  signal b16 : cplx16 := cplx_reset(16,"R");
+  signal vec_b16 : cplx16_vector(0 to 3) := cplx_vector_reset(16,4,"-");
+
+
+RESIZE FUNCTIONS
+================
+todo
+
+ARITHMETIC FUNCTIONS
+====================
+todo
+
+SHIFT FUNCTIONS
+===============
+todo
+
+CONVERSION FUNCTIONS
+====================
+todo
