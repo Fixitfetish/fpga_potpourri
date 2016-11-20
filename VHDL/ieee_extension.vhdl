@@ -121,7 +121,8 @@ package ieee_extension is
  function ALL_EQUAL (arg:unsigned; n:integer:=0) return std_logic;
  function ALL_EQUAL (arg:signed; n:integer:=0) return std_logic;
 
- -- This function returns the index of the leftmost one in the given vector.
+ -- This function returns the index of the leftmost one in the given vector x.
+ -- The valid input range of x is within 0 to integer'high.
  -- If the vector is all zeros the function returns the index -1.
  -- Examples:
  --   x1 : std_logic_vector( 4 downto  0) := "01010"
@@ -130,7 +131,8 @@ package ieee_extension is
  --   INDEX_OF_LEFTMOST_ONE(x2) = 20
  function INDEX_OF_LEFTMOST_ONE(x:std_logic_vector) return integer;
 
- -- This function returns the index of the rightmost one in the given vector.
+ -- This function returns the index of the rightmost one in the given vector x.
+ -- The valid input range of x is within 0 to integer'high.
  -- If the vector is all zeros the function returns the index -1.
  -- Examples:
  --   x1 : std_logic_vector( 4 downto  0) := "01010"
@@ -139,7 +141,8 @@ package ieee_extension is
  --   INDEX_OF_RIGHTMOST_ONE(x2) = 19
  function INDEX_OF_RIGHTMOST_ONE(x:std_logic_vector) return integer;
 
- -- This function returns the index of the leftmost zero in the given vector.
+ -- This function returns the index of the leftmost zero in the given vector x.
+ -- The valid input range of x is within 0 to integer'high.
  -- If the vector is all ones the function returns the index -1.
  -- Examples:
  --   x1 : std_logic_vector( 3 downto  0) := "1001"
@@ -148,7 +151,8 @@ package ieee_extension is
  --   INDEX_OF_LEFTMOST_ZERO(x2) = 21
  function INDEX_OF_LEFTMOST_ZERO(x:std_logic_vector) return integer;
 
- -- This function returns the index of the rightmost zero in the given vector.
+ -- This function returns the index of the rightmost zero in the given vector x.
+ -- The valid input range of x is within 0 to integer'high.
  -- If the vector is all ones the function returns the index -1.
  -- Examples:
  --   x1 : std_logic_vector( 3 downto  0) := "1001"
