@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : ieee_extension.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 12/Nov/2016
--- VERSION : 0.82
+-- DATE    : 20/Nov/2016
+-- VERSION : 0.83
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -560,9 +560,9 @@ package body ieee_extension is
 
  -- if x/=0 then return x
  -- if x=0  then return default
- function default_if_zero (x,default: integer) return integer is
+ function default_if_zero (x,dflt: integer) return integer is
  begin
-   if x=0 then return default; else return x; end if;
+   if x=0 then return dflt; else return x; end if;
  end function;
 
  ---------------------
@@ -895,10 +895,10 @@ package body ieee_extension is
    n    : positive; -- output size
    clip : boolean:=true -- enable/disable clipping
  ) return unsigned is
-   variable ovfl : std_logic; -- dummy
+   variable dummy : std_logic;
    variable dout : unsigned(n-1 downto 0);
  begin
-   RESIZE_CLIP(din=>din, dout=>dout, ovfl=>ovfl, clip=>clip);
+   RESIZE_CLIP(din=>din, dout=>dout, ovfl=>dummy, clip=>clip);
    return dout;
  end function;
 
@@ -908,10 +908,10 @@ package body ieee_extension is
    n    : positive; -- output size
    clip : boolean:=true -- enable/disable clipping
  ) return signed is
-   variable ovfl : std_logic; -- dummy
+   variable dummy : std_logic;
    variable dout : signed(n-1 downto 0);
  begin
-   RESIZE_CLIP(din=>din, dout=>dout, ovfl=>ovfl, clip=>clip);
+   RESIZE_CLIP(din=>din, dout=>dout, ovfl=>dummy, clip=>clip);
    return dout;
  end function;
 
@@ -957,9 +957,9 @@ package body ieee_extension is
  ) return unsigned is -- data output
    constant L : positive := din'length;
    variable dout : unsigned(L-1 downto 0);
-   variable ovfl : std_logic; -- dummy
+   variable dummy : std_logic;
  begin
-   SHIFT_LEFT_CLIP(din=>din, n=>n, dout=>dout, ovfl=>ovfl, clip=>clip);
+   SHIFT_LEFT_CLIP(din=>din, n=>n, dout=>dout, ovfl=>dummy, clip=>clip);
    return dout;
  end function;
 
@@ -971,9 +971,9 @@ package body ieee_extension is
  ) return signed is -- data output
    constant L : positive := din'length;
    variable dout : signed(L-1 downto 0);
-   variable ovfl : std_logic; -- dummy
+   variable dummy : std_logic;
  begin
-   SHIFT_LEFT_CLIP(din=>din, n=>n, dout=>dout, ovfl=>ovfl, clip=>clip);
+   SHIFT_LEFT_CLIP(din=>din, n=>n, dout=>dout, ovfl=>dummy, clip=>clip);
    return dout;
  end function;
 
