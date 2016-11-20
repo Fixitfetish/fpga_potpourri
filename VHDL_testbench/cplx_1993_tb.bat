@@ -21,7 +21,7 @@ if exist %VCD% (
 )
 
 @echo on
-
+ 
 :: analyze files of fixitfetish library
 %GHDL% -a %FLAGS% --work=fixitfetish ..\VHDL\ieee_extension.vhdl
 %GHDL% -a %FLAGS% --work=fixitfetish ..\VHDL\cplx_pkg_1993.vhdl
@@ -37,6 +37,7 @@ pause
 pause
 
 :: start waveform viewer
-if exist %VCD% (
-  %GTKWAVE% %VCD% cplx_1993.gtkw
-)
+@if not exist %VCD% goto END
+%GTKWAVE% %VCD% cplx_1993.gtkw
+
+:END
