@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_1993.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 17/Nov/2016
--- VERSION : 0.91
+-- DATE    : 20/Nov/2016
+-- VERSION : 0.92
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -360,6 +360,22 @@ package cplx_pkg is
   function conj (din:cplx22; w:natural:=22; m:cplx_mode:="-") return cplx22;
   function conj (din:cplx22_vector; w:natural:=22; m:cplx_mode:="-") return cplx22_vector;
 
+  -- swap real and imaginary components
+  function swap (din:cplx16) return cplx16;
+  function swap (din:cplx16_vector) return cplx16_vector;
+
+  -- swap real and imaginary components
+  function swap (din:cplx18) return cplx18;
+  function swap (din:cplx18_vector) return cplx18_vector;
+
+  -- swap real and imaginary components
+  function swap (din:cplx20) return cplx20;
+  function swap (din:cplx20_vector) return cplx20_vector;
+
+  -- swap real and imaginary components
+  function swap (din:cplx22) return cplx22;
+  function swap (din:cplx22_vector) return cplx22_vector;
+
   ------------------------------------------
   -- ADDITION and ACCUMULATION
   ------------------------------------------
@@ -656,6 +672,11 @@ package body cplx_pkg is
   ------------------------------------------
   -- local auxiliary
   ------------------------------------------
+
+ function min (l,r: integer) return integer is
+ begin
+   if l < r then return l; else return r; end if;
+ end function;
 
   function "=" (l:cplx_mode; r:cplx_option) return boolean is
     variable res : boolean := false;
@@ -1284,6 +1305,58 @@ package body cplx_pkg is
     return dout;
   end function;
 
+  -- swap real and imaginary components CPLX16
+  function swap (din:cplx16) return cplx16 is
+  begin
+    return (rst=>din.rst, vld=>din.vld, ovf=>din.ovf, re=>din.im, im=>din.re);
+  end function;
+
+  function swap (din:cplx16_vector) return cplx16_vector is
+    variable dout : cplx16_vector(din'range);
+  begin
+    for i in din'range loop dout(i):=swap(din=>din(i)); end loop;
+    return dout;
+  end function;
+
+  -- swap real and imaginary components CPLX18
+  function swap (din:cplx18) return cplx18 is
+  begin
+    return (rst=>din.rst, vld=>din.vld, ovf=>din.ovf, re=>din.im, im=>din.re);
+  end function;
+
+  function swap (din:cplx18_vector) return cplx18_vector is
+    variable dout : cplx18_vector(din'range);
+  begin
+    for i in din'range loop dout(i):=swap(din=>din(i)); end loop;
+    return dout;
+  end function;
+
+  -- swap real and imaginary components CPLX20
+  function swap (din:cplx20) return cplx20 is
+  begin
+    return (rst=>din.rst, vld=>din.vld, ovf=>din.ovf, re=>din.im, im=>din.re);
+  end function;
+
+  function swap (din:cplx20_vector) return cplx20_vector is
+    variable dout : cplx20_vector(din'range);
+  begin
+    for i in din'range loop dout(i):=swap(din=>din(i)); end loop;
+    return dout;
+  end function;
+
+  -- swap real and imaginary components CPLX22
+  function swap (din:cplx22) return cplx22 is
+  begin
+    return (rst=>din.rst, vld=>din.vld, ovf=>din.ovf, re=>din.im, im=>din.re);
+  end function;
+
+  function swap (din:cplx22_vector) return cplx22_vector is
+    variable dout : cplx22_vector(din'range);
+  begin
+    for i in din'range loop dout(i):=swap(din=>din(i)); end loop;
+    return dout;
+  end function;
+
   ------------------------------------------
   -- ADDITION and ACCUMULATION
   ------------------------------------------
@@ -1447,18 +1520,28 @@ package body cplx_pkg is
   function sum (din: cplx16_vector; w:natural:=18; m:cplx_mode:="-") return cplx18 is
     constant LVEC : positive := din'length; -- vector length
     constant LOUT : positive := 18;
+    constant MAX_NUM_SUMMAND : positive := 4; -- without risk of overflows
     alias d : cplx16_vector(1 to LVEC) is din; -- default range
     variable dout : cplx18;
   begin
     assert (w=LOUT) -- VHDL-2008 compatibility check
       report "ERROR in sum cplx16->cplx18 : Output bit width must be w=" & integer'image(LOUT)
       severity failure;
-    assert LVEC<=4
-      report "WARNING: Only up to 4 vector elements should be summed up."
+    assert LVEC<=MAX_NUM_SUMMAND
+      report "WARNING: Only up to " & integer'image(MAX_NUM_SUMMAND) & " vector elements can be summed up without risking overflows."
       severity warning;
     dout := resize(d(1),LOUT);
     if LVEC>1 then
-      for i in 2 to LVEC loop dout:=dout+resize(d(i),LOUT); end loop;
+      for i in 2 to min(LVEC,MAX_NUM_SUMMAND) loop
+        -- overflow not possible, saturation disabled
+        dout := add(l=>dout, r=>resize(d(i),LOUT), w=>0, m=>"-");
+      end loop;
+      if LVEC>MAX_NUM_SUMMAND then
+        for i in LVEC+1 to MAX_NUM_SUMMAND loop 
+          -- overflow possible, saturation on demand
+          dout := add(l=>dout, r=>resize(d(i),LOUT), w=>0, m=>m);
+        end loop;
+      end if;
     end if;
     return dout;
   end function;
@@ -1466,18 +1549,28 @@ package body cplx_pkg is
   function sum (din: cplx18_vector; w:natural:=20; m:cplx_mode:="-") return cplx20 is
     constant LVEC : positive := din'length; -- vector length
     constant LOUT : positive := 20;
+    constant MAX_NUM_SUMMAND : positive := 4; -- without risk of overflows
     alias d : cplx18_vector(1 to LVEC) is din; -- default range
     variable dout : cplx20;
   begin
     assert (w=LOUT) -- VHDL-2008 compatibility check
       report "ERROR in sum cplx18->cplx20 : Output bit width must be w=" & integer'image(LOUT)
       severity failure;
-    assert LVEC<=4
-      report "WARNING: Only up to 4 vector elements should be summed up."
+    assert LVEC<=MAX_NUM_SUMMAND
+      report "WARNING: Only up to " & integer'image(MAX_NUM_SUMMAND) & " vector elements can be summed up without risking overflows."
       severity warning;
     dout := resize(d(1),LOUT);
     if LVEC>1 then
-      for i in 2 to LVEC loop dout:=dout+resize(d(i),LOUT); end loop;
+      for i in 2 to min(LVEC,MAX_NUM_SUMMAND) loop
+        -- overflow not possible, saturation disabled
+        dout := add(l=>dout, r=>resize(d(i),LOUT), w=>0, m=>"-");
+      end loop;
+      if LVEC>MAX_NUM_SUMMAND then
+        for i in LVEC+1 to MAX_NUM_SUMMAND loop 
+          -- overflow possible, saturation on demand
+          dout := add(l=>dout, r=>resize(d(i),LOUT), w=>0, m=>m);
+        end loop;
+      end if;
     end if;
     return dout;
   end function;
@@ -1485,21 +1578,32 @@ package body cplx_pkg is
   function sum (din: cplx20_vector; w:natural:=22; m:cplx_mode:="-") return cplx22 is
     constant LVEC : positive := din'length; -- vector length
     constant LOUT : positive := 22;
+    constant MAX_NUM_SUMMAND : positive := 4; -- without risk of overflows
     alias d : cplx20_vector(1 to LVEC) is din; -- default range
     variable dout : cplx22;
   begin
     assert (w=LOUT) -- VHDL-2008 compatibility check
       report "ERROR in sum cplx20->cplx22 : Output bit width must be w=" & integer'image(LOUT)
       severity failure;
-    assert LVEC<=4
-      report "WARNING: Only up to 4 vector elements should be summed up."
+    assert LVEC<=MAX_NUM_SUMMAND
+      report "WARNING: Only up to " & integer'image(MAX_NUM_SUMMAND) & " vector elements can be summed up without risking overflows."
       severity warning;
     dout := resize(d(1),LOUT);
     if LVEC>1 then
-      for i in 2 to LVEC loop dout:=dout+resize(d(i),LOUT); end loop;
+      for i in 2 to min(LVEC,MAX_NUM_SUMMAND) loop
+        -- overflow not possible, saturation disabled
+        dout := add(l=>dout, r=>resize(d(i),LOUT), w=>0, m=>"-");
+      end loop;
+      if LVEC>MAX_NUM_SUMMAND then
+        for i in LVEC+1 to MAX_NUM_SUMMAND loop 
+          -- overflow possible, saturation on demand
+          dout := add(l=>dout, r=>resize(d(i),LOUT), w=>0, m=>m);
+        end loop;
+      end if;
     end if;
     return dout;
   end function;
+
 
   ------------------------------------------
   -- SUBSTRACTION
@@ -2059,7 +2163,6 @@ package body cplx_pkg is
     constant N : integer := din'length;
     alias xdin : cplx18_vector(0 to N-1) is din;
     variable slv : std_logic_vector(2*BITS*N-1 downto 0);
-    variable i : integer range 0 to N := 0;
   begin
     for i in 0 to N-1 loop
       slv(2*BITS*(i+1)-1 downto 2*BITS*i) := to_slv(din=>xdin(i), m=>m);
@@ -2072,7 +2175,6 @@ package body cplx_pkg is
     constant N : integer := din'length;
     alias xdin : cplx20_vector(0 to N-1) is din;
     variable slv : std_logic_vector(2*BITS*N-1 downto 0);
-    variable i : integer range 0 to N := 0;
   begin
     for i in 0 to N-1 loop
       slv(2*BITS*(i+1)-1 downto 2*BITS*i) := to_slv(din=>xdin(i), m=>m);
@@ -2085,7 +2187,6 @@ package body cplx_pkg is
     constant N : integer := din'length;
     alias xdin : cplx22_vector(0 to N-1) is din;
     variable slv : std_logic_vector(2*BITS*N-1 downto 0);
-    variable i : integer range 0 to N := 0;
   begin
     for i in 0 to N-1 loop
       slv(2*BITS*(i+1)-1 downto 2*BITS*i) := to_slv(din=>xdin(i), m=>m);

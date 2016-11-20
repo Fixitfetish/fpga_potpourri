@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_2008.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 17/Nov/2016
--- VERSION : 0.91
+-- DATE    : 20/Nov/2016
+-- VERSION : 0.92
 -- VHDL    : 2008
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -176,6 +176,12 @@ package cplx_pkg is
     w    : natural:=0; -- output bit width
     m    : cplx_mode:="-" -- mode, supported options: 'R', 'O' and/or 'S'
   ) return cplx_vector;
+
+  -- swap real and imaginary components
+  -- (bit width of output equals the bit width of input)
+  function swap (din:cplx) return cplx;
+    
+  function swap (din:cplx_vector) return cplx_vector;
 
   ------------------------------------------
   -- ADDITION and ACCUMULATION
@@ -567,6 +573,29 @@ package body cplx_pkg is
     variable dout : cplx_vector(din'range)(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
   begin
     for i in din'range loop dout(i) := conj(din=>din(i), w=>w, m=>m); end loop;
+    return dout;
+  end function;
+
+  -- swap real and imaginary components
+  function swap (din:cplx) return cplx is
+    constant LIN : positive := din.re'length;
+    variable dout : cplx(re(LIN-1 downto 0),im(LIN-1 downto 0));
+  begin
+    assert (din.re'length=din.im'length)
+      report "ERROR: swap(cplx), real and imaginary component must have same size"
+      severity failure;
+    -- by default copy input control signals
+    dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf;
+    dout.re:=din.im; dout.im:=din.re; -- swap
+    return dout;
+  end function;
+
+  -- swap real and imaginary components (vector)
+  function swap (din:cplx_vector) return cplx_vector is
+    constant LIN : positive := din(din'left).re'length;
+    variable dout : cplx_vector(din'range)(re(LIN-1 downto 0),im(LIN-1 downto 0));
+  begin
+    for i in din'range loop dout(i) := swap(din=>din(i)); end loop;
     return dout;
   end function;
 
