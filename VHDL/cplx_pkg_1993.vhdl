@@ -1,30 +1,10 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_1993.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 20/Nov/2016
--- VERSION : 0.92
+-- DATE    : 28/Nov/2016
+-- VERSION : 0.93
 -- VHDL    : 1993
 -- LICENSE : MIT License
--------------------------------------------------------------------------------
--- Copyright (c) 2016 Fixitfetish
--- 
--- Permission is hereby granted, free of charge, to any person obtaining a copy
--- of this software and associated documentation files (the "Software"), to deal
--- in the Software without restriction, including without limitation the rights
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
--- copies of the Software, and to permit persons to whom the Software is
--- furnished to do so, subject to the following conditions:
--- 
--- The above copyright notice and this permission notice shall be included in
--- all copies or substantial portions of the Software.
--- 
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
--- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
--- IN THE SOFTWARE.
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
@@ -126,6 +106,13 @@ package cplx_pkg is
   -- 'I' -- round towards plus/minus infinity, i.e. away from zero
   type cplx_mode is array(integer range <>) of cplx_option;
   
+
+  ------------------------------------------
+  -- auxiliary
+  ------------------------------------------
+
+  function "=" (l:cplx_mode; r:cplx_option) return boolean;
+
   ------------------------------------------
   -- RESET
   ------------------------------------------
@@ -677,6 +664,10 @@ package body cplx_pkg is
  begin
    if l < r then return l; else return r; end if;
  end function;
+
+  ------------------------------------------
+  -- auxiliary
+  ------------------------------------------
 
   function "=" (l:cplx_mode; r:cplx_option) return boolean is
     variable res : boolean := false;
