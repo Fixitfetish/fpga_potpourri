@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_1993.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 28/Nov/2016
--- VERSION : 0.93
+-- DATE    : 29/Nov/2016
+-- VERSION : 0.94
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -105,13 +105,13 @@ package cplx_pkg is
   -- 'Z' -- round towards zero, truncate
   -- 'I' -- round towards plus/minus infinity, i.e. away from zero
   type cplx_mode is array(integer range <>) of cplx_option;
-  
 
   ------------------------------------------
   -- auxiliary
   ------------------------------------------
 
   function "=" (l:cplx_mode; r:cplx_option) return boolean;
+  function "/=" (l:cplx_mode; r:cplx_option) return boolean;
 
   ------------------------------------------
   -- RESET
@@ -674,6 +674,12 @@ package body cplx_pkg is
   begin
     for i in l'range loop res := res or (l(i)=r); end loop;
     return res;
+  end function;
+
+  function "/=" (l:cplx_mode; r:cplx_option) return boolean is
+    variable res : boolean := false;
+  begin
+    return not(l=r);
   end function;
 
   ------------------------------------------

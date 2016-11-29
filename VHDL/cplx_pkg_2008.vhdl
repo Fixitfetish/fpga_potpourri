@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_2008.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 20/Nov/2016
--- VERSION : 0.92
+-- DATE    : 29/Nov/2016
+-- VERSION : 0.94
 -- VHDL    : 2008
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -90,7 +90,14 @@ package cplx_pkg is
   -- 'Z' -- round towards zero, truncate
   -- 'I' -- round towards plus/minus infinity, i.e. away from zero
   type cplx_mode is array(integer range <>) of cplx_option;
-  
+
+  ------------------------------------------
+  -- auxiliary
+  ------------------------------------------
+
+  function "=" (l:cplx_mode; r:cplx_option) return boolean;
+  function "/=" (l:cplx_mode; r:cplx_option) return boolean;
+
   ------------------------------------------
   -- RESET
   ------------------------------------------
@@ -389,16 +396,6 @@ package body cplx_pkg is
   -- local auxiliary
   ------------------------------------------
   
-  -- check if mode includes a specific option
-  function "=" (l:cplx_mode; r:cplx_option) return boolean is
-    variable res : boolean := false;
-  begin
-    for i in l'range loop
-      if l(i)=r then return true; end if;
-    end loop;
-    return res;
-  end function;
-
   function max (l,r: integer) return integer is
   begin
     if l > r then return l; else return r; end if;
@@ -410,6 +407,26 @@ package body cplx_pkg is
  begin
    if x=0 then return dflt; else return x; end if;
  end function;
+
+  ------------------------------------------
+  -- auxiliary
+  ------------------------------------------
+
+  -- check if mode includes a specific option
+  function "=" (l:cplx_mode; r:cplx_option) return boolean is
+    variable res : boolean := false;
+  begin
+    for i in l'range loop
+      if l(i)=r then return true; end if;
+    end loop;
+    return res;
+  end function;
+
+  function "/=" (l:cplx_mode; r:cplx_option) return boolean is
+    variable res : boolean := false;
+  begin
+    return not(l=r);
+  end function;
 
   ------------------------------------------
   -- RESET
