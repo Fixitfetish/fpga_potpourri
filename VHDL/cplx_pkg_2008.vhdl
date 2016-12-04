@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_2008.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 29/Nov/2016
--- VERSION : 0.94
+-- DATE    : 03/Dec/2016
+-- VERSION : 0.95
 -- VHDL    : 2008
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -423,7 +423,6 @@ package body cplx_pkg is
   end function;
 
   function "/=" (l:cplx_mode; r:cplx_option) return boolean is
-    variable res : boolean := false;
   begin
     return not(l=r);
   end function;

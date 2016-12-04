@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_1993.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 29/Nov/2016
--- VERSION : 0.94
+-- DATE    : 03/Dec/2016
+-- VERSION : 0.95
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -75,6 +75,10 @@ package cplx_pkg is
 
   -- complex 2x20 vector type (preferably "to" direction)
   type cplx22_vector is array(integer range <>) of cplx22;
+
+  -- default standard complex type
+  alias cplx is cplx18;
+  alias cplx_vector is cplx18_vector;
 
   type cplx_option is (
     '-', -- don't care, use defaults
@@ -677,7 +681,6 @@ package body cplx_pkg is
   end function;
 
   function "/=" (l:cplx_mode; r:cplx_option) return boolean is
-    variable res : boolean := false;
   begin
     return not(l=r);
   end function;
