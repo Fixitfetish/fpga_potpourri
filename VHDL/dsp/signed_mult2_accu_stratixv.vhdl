@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : signed_mult2_accu_stratixv.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 03/Dec/2016
--- VERSION : 0.20
+-- DATE    : 08/Dec/2016
+-- VERSION : 0.21
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ architecture stratixv of signed_mult2_accu is
 
   signal rst_i : std_logic; 
   signal clr_q, clr_i : std_logic; 
-  signal vld_i, vld_q : std_logic;
+  signal vld_i, vld_q : std_logic := '0';
   signal ax_i, ay_i : signed(17 downto 0);
   signal bx_i, by_i : signed(17 downto 0);
   signal sub, negate, accumulate, loadconst : std_logic;

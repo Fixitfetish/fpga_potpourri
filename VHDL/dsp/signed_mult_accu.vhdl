@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : signed_mult_accu.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 03/Dec/2016
--- VERSION : 0.40
+-- DATE    : 08/Dec/2016
+-- VERSION : 0.41
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -11,8 +11,6 @@
 library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
-library fixitfetish;
- use fixitfetish.ieee_extension.all;
 
 -- Signed Multiply and Accumulate
 -- The delay is one clock cycle when the additional input and output registers are

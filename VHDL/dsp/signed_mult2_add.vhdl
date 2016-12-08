@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : signed_mult2_add.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 03/Dec/2016
--- VERSION : 0.20
+-- DATE    : 08/Dec/2016
+-- VERSION : 0.30
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -11,8 +11,6 @@
 library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
-library fixitfetish;
- use fixitfetish.ieee_extension.all;
 
 -- Two Signed Multiplications and Add both
 -- The delay is one clock cycle when the additional input and output registers are
