@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_mult_accu_ddr.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 04/Dec/2016
--- VERSION : 0.20
+-- DATE    : 11/Dec/2016
+-- VERSION : 0.30
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ architecture ddr of cplx_mult_accu is
   -- auxiliary phase control signals
   signal toggle1, toggle2, phase : std_logic := '0';
 
-  -- ! for 1993/2008 compatibility reasons use local cplx records here !
+  -- ! for 1993/2008 compatibility reasons use local complex records here !
   type cplx_x is record
     rst, vld, ovf : std_logic;
     re, im : signed(x.re'length-1 downto 0); -- real/imag same size !
@@ -122,6 +122,7 @@ begin
   -- calculate real component in 'clk2' domain
   i_re : entity fixitfetish.signed_mult_accu
   generic map(
+    GUARD_BITS         => GUARD_BITS,
     INPUT_REG          => true,
     OUTPUT_REG         => false, -- separate output register - see below
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -144,6 +145,7 @@ begin
   -- calculate imaginary component in 'clk2' domain
   i_im : entity fixitfetish.signed_mult_accu
   generic map(
+    GUARD_BITS         => GUARD_BITS,
     INPUT_REG          => true,
     OUTPUT_REG         => false, -- separate output register - see below
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,

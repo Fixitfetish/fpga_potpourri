@@ -44,6 +44,20 @@ library fixitfetish;
  
 entity cplx_mult_accu is
 generic (
+  -- Number of additional guard bits (maximum possible depends on hardware)
+  -- The setting is relevant to save logic especially when saturation/clipping
+  -- and/or overflow detection is enabled.
+  --  -1 => maximum possible (worst case, hardware dependent)
+  --   0 => one complex mult. without additional guard bit (not recommended)
+  --   1 => one complex mult. with additional guard bit but without accumulation
+  --   2 => accumulate up to 2 complex products
+  --   3 => accumulate up to 4 complex products
+  --   4 => accumulate up to 8 complex products
+  --   and so on ...
+  -- Note that every single accumulated signed product counts. Since a complex
+  -- multiplication already includes one accumulation step an additional guard
+  -- bit must be considered.
+  GUARD_BITS : integer range -1 to 255 := -1;
   -- additional input register in system clock domain (typically using logic elements)
   INPUT_REG : boolean := false;
   -- additional output register in system clock domain (typically using logic elements)

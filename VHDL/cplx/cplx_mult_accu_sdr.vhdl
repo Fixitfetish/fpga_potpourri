@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_mult_accu_sdr.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 04/Dec/2016
--- VERSION : 0.20
+-- DATE    : 11/Dec/2016
+-- VERSION : 0.30
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -82,6 +82,7 @@ begin
   -- calculate real component
   i_re : entity fixitfetish.signed_mult2_accu
   generic map(
+    GUARD_BITS         => GUARD_BITS,
     INPUT_REG          => true,
     OUTPUT_REG         => false, -- separate output register - see below
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -108,6 +109,7 @@ begin
   -- calculate imaginary component
   i_im : entity fixitfetish.signed_mult2_accu
   generic map(
+    GUARD_BITS         => GUARD_BITS,
     INPUT_REG          => true,
     OUTPUT_REG         => false, -- separate output register - see below
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,

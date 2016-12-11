@@ -35,7 +35,7 @@ architecture stratixv of signed_mult2_accu is
   constant ACCU_WIDTH : positive := 64;
 
   -- derived constants
-  constant PRODUCT_WIDTH : natural := a_x'length + a_y'length - 1;
+  constant PRODUCT_WIDTH : natural := a_x'length + a_y'length;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
   constant GUARD_BITS_EVAL : natural := default_if_negative(GUARD_BITS,MAX_GUARD_BITS);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;

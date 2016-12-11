@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : signed_mult_accu_virtex4.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 03/Dec/2016
--- VERSION : 0.40
+-- DATE    : 11/Dec/2016
+-- VERSION : 0.50
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -26,18 +26,31 @@ library unisim;
 
 architecture virtex4 of signed_mult_accu is
 
+ -- local auxiliary
+ function default_if_negative (x:integer; dflt: natural) return natural is
+ begin
+   if x<0 then return dflt; else return x; end if;
+ end function;
+
   -- accumulator width in bits
   constant ACCU_WIDTH : positive := 48;
-  constant ACCU_SHIFTED_WIDTH : positive := ACCU_WIDTH-OUTPUT_SHIFT_RIGHT;
+
+  -- derived constants
+  constant PRODUCT_WIDTH : natural := x'length + y'length;
+  constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
+  constant GUARD_BITS_EVAL : natural := default_if_negative(GUARD_BITS,MAX_GUARD_BITS);
+  constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
+  constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
+  constant OUTPUT_WIDTH : positive := r_out'length;
 
   constant CLKENA : std_logic := '1'; -- clock enable
   constant RESET : std_logic := '0';
-  constant LOUT : positive := r_out'length;
 
   signal vld_i, vld_q : std_logic := '0';
   signal a, b : signed(17 downto 0);
   signal accu : std_logic_vector(ACCU_WIDTH-1 downto 0);
-  signal accu_shifted : signed(ACCU_SHIFTED_WIDTH-1 downto 0);
+  signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
+  signal accu_used_shifted : signed(ACCU_USED_SHIFTED_WIDTH-1 downto 0);
 
   signal opmode_xy : std_logic_vector(3 downto 0);
   signal opmode_z : std_logic_vector(2 downto 0);
@@ -53,6 +66,17 @@ begin
   -- check input/output length
   assert (x'length<=18 and y'length<=18)
     report "ERROR signed_mult_accu(virtex4): Multiplier input width cannot exceed 18 bits."
+    severity failure;
+
+  assert GUARD_BITS_EVAL<=MAX_GUARD_BITS
+    report "ERROR signed_mult_accu(virtex4) : " & 
+           "Maximum number of accumulator bits is " & integer'image(ACCU_WIDTH) & " ." &
+           "Input bit widths allow only maximum number of guard bits = " & integer'image(MAX_GUARD_BITS)
+    severity failure;
+
+  assert OUTPUT_WIDTH<ACCU_USED_SHIFTED_WIDTH or not(OUTPUT_CLIP or OUTPUT_OVERFLOW)
+    report "ERROR signed_mult_accu(virtex4) : " & 
+           "More guard bits required for saturation/clipping and/or overflow detection."
     severity failure;
 
   -- input register delay compensation
@@ -125,38 +149,44 @@ begin
   -- accumulator delay compensation
   vld_q <= vld_i when rising_edge(clk);
 
+  -- cut off unused sign extension bits
+  -- (This reduces the logic consumption in the following steps when rounding,
+  --  saturation and/or overflow detection is enabled.)
+  accu_used <= signed(accu(ACCU_USED_WIDTH-1 downto 0));
+
   -- shift right and round 
   g_rnd_off : if ((not OUTPUT_ROUND) or OUTPUT_SHIFT_RIGHT=0) generate
-    accu_shifted <= RESIZE(SHIFT_RIGHT_ROUND(signed(accu), OUTPUT_SHIFT_RIGHT),ACCU_SHIFTED_WIDTH);
+    accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT),ACCU_USED_SHIFTED_WIDTH);
   end generate;
   g_rnd_on : if (OUTPUT_ROUND and OUTPUT_SHIFT_RIGHT>0) generate
-    accu_shifted <= RESIZE(SHIFT_RIGHT_ROUND(signed(accu), OUTPUT_SHIFT_RIGHT, nearest),ACCU_SHIFTED_WIDTH);
+    accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT, nearest),ACCU_USED_SHIFTED_WIDTH);
   end generate;
-
+  
   g_dout : if not OUTPUT_REG generate
-    process(accu_shifted, vld_q)
-      variable v_dout : signed(LOUT-1 downto 0);
+    process(accu_used_shifted, vld_q)
+      variable v_dout : signed(OUTPUT_WIDTH-1 downto 0);
       variable v_ovfl : std_logic;
     begin
-      RESIZE_CLIP(din=>accu_shifted, dout=>v_dout, ovfl=>v_ovfl, clip=>OUTPUT_CLIP);
-      r_vld <= vld_q;
-      r_out <= v_dout;
+      RESIZE_CLIP(din=>accu_used_shifted, dout=>v_dout, ovfl=>v_ovfl, clip=>OUTPUT_CLIP);
+      r_vld <= vld_q; 
+      r_out <= v_dout; 
       if OUTPUT_OVERFLOW then r_ovf<=v_ovfl; else r_ovf<='0'; end if;
     end process;
   end generate;
 
   g_dout_reg : if OUTPUT_REG generate
     process(clk)
-      variable v_dout : signed(LOUT-1 downto 0);
+      variable v_dout : signed(OUTPUT_WIDTH-1 downto 0);
       variable v_ovfl : std_logic;
     begin
       if rising_edge(clk) then
-        RESIZE_CLIP(din=>accu_shifted, dout=>v_dout, ovfl=>v_ovfl, clip=>OUTPUT_CLIP);
-        r_vld <= vld_q;
-        r_out <= v_dout;
+        RESIZE_CLIP(din=>accu_used_shifted, dout=>v_dout, ovfl=>v_ovfl, clip=>OUTPUT_CLIP);
+        r_vld <= vld_q; 
+        r_out <= v_dout; 
         if OUTPUT_OVERFLOW then r_ovf<=v_ovfl; else r_ovf<='0'; end if;
       end if;
     end process;
   end generate;
 
 end architecture;
+
