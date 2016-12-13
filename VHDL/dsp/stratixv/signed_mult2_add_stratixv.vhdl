@@ -11,12 +11,8 @@
 library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
-
--- pragma synthesis_off
 library stratixv;
  use stratixv.stratixv_components.all;
--- pragma synthesis_on
-
 library fixitfetish;
  use fixitfetish.ieee_extension.all;
 
@@ -31,6 +27,7 @@ begin
 
   i_dsp : entity fixitfetish.signed_mult2_accu
   generic map(
+    GUARD_BITS => 1,
     INPUT_REG => INPUT_REG,
     OUTPUT_REG => OUTPUT_REG,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,

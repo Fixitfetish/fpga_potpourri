@@ -20,6 +20,10 @@ library ieee;
 --   hold accumulator     : if vld=0 and clr=0  then  r = r
 --   proceed accumulation : if vld=1 and clr=0  then  r = r +/- (ax*ay) +/- (bx*by)
 --
+-- This entity can be used for example
+--   * for complex multiplication and accumulation
+--   * to calculate the mean square of a complex number
+--
 -- If just two multiplications and the sum of both is required but not any further
 -- accumulation then constantly set clr='1'.
 --
@@ -43,14 +47,14 @@ library ieee;
 -- OUTPUT WIDTH = r'length
 -- ACCU USED SHIFTED WIDTH = ACCU USED WIDTH - OUTPUT SHIFT RIGHT
 --
--- S = irrelevant sign extension MSBs 
+-- S = irrelevant sign extension MSBs
 -- O = overflow detection sign bits, all O must be identical otherwise overflow
 -- D = output data bits
 -- R = rounding bit (+0.5 when round 'nearest' is enabled)
 -- x = irrelevant LSBs
 --
 -- Optimal settings for overflow detection and/or saturation/clipping :
--- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT - PRODUCT WIDTH + 1 
+-- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT - PRODUCT WIDTH + 1
 
 entity signed_mult2_accu is
 generic (
@@ -73,7 +77,7 @@ generic (
   OUTPUT_REG : boolean := false;
   -- Number of bits by which the accumulator result output is shifted right
   OUTPUT_SHIFT_RIGHT : natural := 0;
-  -- Round data output (only relevant when OUTPUT_SHIFT_RIGHT>0) 
+  -- Round data output (only relevant when OUTPUT_SHIFT_RIGHT>0)
   OUTPUT_ROUND : boolean := true;
   -- Enable clipping when right shifted result exceeds output range
   OUTPUT_CLIP : boolean := true;

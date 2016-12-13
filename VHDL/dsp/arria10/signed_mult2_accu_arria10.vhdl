@@ -11,12 +11,8 @@
 library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
-
--- pragma synthesis_off
 library twentynm;
  use twentynm.twentynm_components.all;
--- pragma synthesis_on
-
 library fixitfetish;
  use fixitfetish.ieee_extension.all;
 

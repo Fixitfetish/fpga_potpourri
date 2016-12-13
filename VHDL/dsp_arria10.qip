@@ -1,0 +1,16 @@
+# generic signed
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "ieee_extension.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_mult2_accu.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_weight2.vhdl"]
+
+# Stratix V specific
+set_global_assignment -library twentynm -name VHDL_FILE [file join $::quartus(qip_path) "dsp/arria10/components_arria10.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/arria10/signed_mult2_accu_arria10.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/arria10/signed_weight2_arria10.vhdl"]
+
+# generic complex (VHDL-1993)
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx/cplx_pkg_1993.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx/cplx_mult_accu.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx/cplx_mult_accu_sdr.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx/cplx_weight.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx/cplx_weight_sdr.vhdl"]
