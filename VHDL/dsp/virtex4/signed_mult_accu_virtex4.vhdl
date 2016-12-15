@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : signed_mult_accu_virtex4.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 11/Dec/2016
--- VERSION : 0.50
+-- DATE    : 16/Dec/2016
+-- VERSION : 0.60
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -49,8 +49,10 @@ architecture virtex4 of signed_mult_accu is
   signal vld_i, vld_q : std_logic := '0';
   signal a, b : signed(17 downto 0);
   signal accu : std_logic_vector(ACCU_WIDTH-1 downto 0);
-  signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
   signal accu_used_shifted : signed(ACCU_USED_SHIFTED_WIDTH-1 downto 0);
+
+  -- initial rounding
+  signal c : std_logic_vector(ACCU_WIDTH-1 downto 0) := (others=>'0');
 
   signal opmode_xy : std_logic_vector(3 downto 0);
   signal opmode_z : std_logic_vector(2 downto 0);
@@ -91,20 +93,25 @@ begin
   a <= resize(x,18);
   b <= resize(y,18);
 
-  -- 0000 => P = P +/- CIN  ... hold current accumulator value
-  -- 0101 => P = P +/- (AxB+CIN)  ... enable accumulation
+  -- rounding bit generation
+  g_rnd_on : if (OUTPUT_ROUND and OUTPUT_SHIFT_RIGHT>0) generate
+    c(OUTPUT_SHIFT_RIGHT-1) <= '1';
+  end generate;
+
+  -- 0000 =>  XY = +/- CIN  ... hold current accumulator value
+  -- 0101 =>  XY = +/- (AxB+CIN) ... enable product accumulation
   -- Note that the carry CIN is 0 and not used here. 
   opmode_xy <= "0101" when vld='1' else "0000";
 
-  -- 000 => clear accumulator
-  -- 010 => accumulate
-  opmode_z <= "000" when clr='1' else "010";
+  -- 011 => P = C +/- XY   ... clear accumulator (with initial rounding bit)
+  -- 010 => P = P +/- XY   ... accumulate
+  opmode_z <= "011" when clr='1' else "010";
 
   I_DSP48 : DSP48
   generic map(
     AREG          => to_integer(INPUT_REG),
     BREG          => to_integer(INPUT_REG),
-    CREG          => 0, -- C is unused here
+    CREG          => 1,
     PREG          => 1, -- accumulation/output register always enabled
     MREG          => 0, -- unused here
     OPMODEREG     => to_integer(INPUT_REG),
@@ -118,7 +125,7 @@ begin
     A(17 downto 0)         => std_logic_vector(a),
     B(17 downto 0)         => std_logic_vector(b),
     BCIN(17 downto 0)      => (others=>'0'),
-    C(47 downto 0)         => (others=>'0'),
+    C(47 downto 0)         => c, -- C is used for initial rounding bit (static)
     CARRYIN                => '0',
     CARRYINSEL(1 downto 0) => (others=>'0'),
     CEA                    => CLKENA,
@@ -149,19 +156,21 @@ begin
   -- accumulator delay compensation
   vld_q <= vld_i when rising_edge(clk);
 
-  -- cut off unused sign extension bits
-  -- (This reduces the logic consumption in the following steps when rounding,
-  --  saturation and/or overflow detection is enabled.)
-  accu_used <= signed(accu(ACCU_USED_WIDTH-1 downto 0));
+  -- a.) just shift right without rounding because rounding bit is has been added 
+  --     within the DSP cell already.
+  -- b.) cut off unused sign extension bits
+  --    (This reduces the logic consumption in the following steps when rounding,
+  --     saturation and/or overflow detection is enabled.)
+  accu_used_shifted <= signed(accu(ACCU_USED_WIDTH-1 downto OUTPUT_SHIFT_RIGHT));
 
-  -- shift right and round 
-  g_rnd_off : if ((not OUTPUT_ROUND) or OUTPUT_SHIFT_RIGHT=0) generate
-    accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT),ACCU_USED_SHIFTED_WIDTH);
-  end generate;
-  g_rnd_on : if (OUTPUT_ROUND and OUTPUT_SHIFT_RIGHT>0) generate
-    accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT, nearest),ACCU_USED_SHIFTED_WIDTH);
-  end generate;
-  
+--  -- shift right and round 
+--  g_rnd_off : if ((not OUTPUT_ROUND) or OUTPUT_SHIFT_RIGHT=0) generate
+--    accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT),ACCU_USED_SHIFTED_WIDTH);
+--  end generate;
+--  g_rnd_on : if (OUTPUT_ROUND and OUTPUT_SHIFT_RIGHT>0) generate
+--    accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT, nearest),ACCU_USED_SHIFTED_WIDTH);
+--  end generate;
+
   g_dout : if not OUTPUT_REG generate
     process(accu_used_shifted, vld_q)
       variable v_dout : signed(OUTPUT_WIDTH-1 downto 0);
