@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_mult_accu.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 03/Dec/2016
--- VERSION : 0.10
+-- DATE    : 17/Dec/2016
+-- VERSION : 0.40
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -20,8 +20,8 @@ library fixitfetish;
 -- Hence, a complex multiplication can be performed within one system clock
 -- cycle but only half the amount of multiplier resources.
 --
--- The delay is two system clock cycles when the additional input and output
--- registers are disabled.
+-- The delay depends on the configuration and the underlying hardware. The
+-- number pipeline stages is reported as constant at output port PIPE.
 --
 --   vld = x.vld and y.vld
 --   reset accumulator    : if vld=0 and clr=1  then  r = undefined
@@ -32,7 +32,7 @@ library fixitfetish;
 -- If just multiplication is required but not accumulation then set clr='1'. 
 --
 -- Without accumulation the result width in the accumulation register LSBs is
---   W = x'length + y'length - 1 
+--   W = x'length + y'length 
 -- Dependent on dout'length and additional N accumulations bits a shift right
 -- is required to avoid overflow or clipping.
 --   OUTPUT_SHIFT_RIGHT = W - dout'length - N
@@ -44,20 +44,16 @@ library fixitfetish;
  
 entity cplx_mult_accu is
 generic (
-  -- Number of additional guard bits (maximum possible depends on hardware)
+  -- The number of summands is important to calculate the number of additional
+  -- guard bits (MSBs) required for the accumulation process.
   -- The setting is relevant to save logic especially when saturation/clipping
   -- and/or overflow detection is enabled.
-  --  -1 => maximum possible (worst case, hardware dependent)
-  --   0 => one complex mult. without additional guard bit (not recommended)
-  --   1 => one complex mult. with additional guard bit but without accumulation
+  --   0 => maximum possible, not recommended (worst case, hardware dependent)
+  --   1 => just one complex multiplication without accumulation
   --   2 => accumulate up to 2 complex products
-  --   3 => accumulate up to 4 complex products
-  --   4 => accumulate up to 8 complex products
+  --   3 => accumulate up to 3 complex products
   --   and so on ...
-  -- Note that every single accumulated signed product counts. Since a complex
-  -- multiplication already includes one accumulation step an additional guard
-  -- bit must be considered.
-  GUARD_BITS : integer range -1 to 255 := -1;
+  NUM_SUMMAND : natural := 0;
   -- additional input register in system clock domain (typically using logic elements)
   INPUT_REG : boolean := false;
   -- additional output register in system clock domain (typically using logic elements)
@@ -72,7 +68,7 @@ port (
   clk  : in  std_logic;
   -- optional double rate clock (only relevant when a DDR implementation is used)
   clk2 : in  std_logic := '0';
-  -- clear accumulator (mark first two valid input factors of accumulation sequence)
+  -- clear accumulator, marks first pair of valid input factors of accumulation sequence
   clr  : in  std_logic;
   -- add/subtract, '0'=> +(x*y), '1'=> -(x*y)
   sub  : in  std_logic;
@@ -81,7 +77,9 @@ port (
   -- second complex factor 
   y    : in  cplx;
   -- resulting product/accumulator output (optionally rounded and clipped)
-  r    : out cplx
+  r    : out cplx;
+  -- number of pipeline stages, constant, depends on configuration and hardware
+  PIPE : out natural := 0
 );
 begin
 
