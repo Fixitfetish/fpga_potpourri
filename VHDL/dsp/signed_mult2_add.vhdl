@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : signed_mult2_add.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 08/Dec/2016
--- VERSION : 0.30
+-- DATE    : 17/Dec/2016
+-- VERSION : 0.40
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -13,8 +13,10 @@ library ieee;
  use ieee.numeric_std.all;
 
 -- Two Signed Multiplications and Add both
--- The delay is one clock cycle when the additional input and output registers are
--- disabled.
+--
+-- The delay depends on the configuration and the underlying hardware. The
+-- number pipeline stages is reported as constant at output port PIPE.
+--
 --   if vld=0  then  r = r
 --   if vld=1  then  r = +/- (ax*ay) +/- (bx*by)
 
@@ -57,7 +59,9 @@ port (
   -- resulting product/accumulator output (optionally rounded and clipped)
   r_out : out signed;
   -- output overflow/clipping detection
-  r_ovf : out std_logic
+  r_ovf : out std_logic;
+  -- number of pipeline stages, constant, depends on configuration and hardware
+  PIPE : out natural := 0
 );
 begin
   assert (a_x'length+a_y'length)=(b_x'length+b_y'length)

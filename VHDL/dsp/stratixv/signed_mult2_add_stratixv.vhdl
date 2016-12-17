@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : signed_mult2_add_stratixv.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 04/Dec/2016
--- VERSION : 0.20
+-- DATE    : 17/Dec/2016
+-- VERSION : 0.30
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -48,7 +48,8 @@ begin
     b_y   => b_y,
     r_vld => r_vld,
     r_out => r_out,
-    r_ovf => r_ovf
+    r_ovf => r_ovf,
+    PIPE  => PIPE
   );
 
 end architecture;

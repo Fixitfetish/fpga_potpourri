@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : signed_mult2_accu_stratixv.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 11/Dec/2016
--- VERSION : 0.30
+-- DATE    : 17/Dec/2016
+-- VERSION : 0.40
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -252,6 +252,11 @@ begin
       end if;
     end process;
   end generate;
+
+  -- report constant number of pipeline register stages
+  PIPE <= 3 when (INPUT_REG and OUTPUT_REG) else
+          2 when (INPUT_REG or OUTPUT_REG) else
+          1;
 
 end architecture;
 

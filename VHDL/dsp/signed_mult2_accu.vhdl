@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : signed_mult2_accu.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 11/Dec/2016
--- VERSION : 0.50
+-- DATE    : 17/Dec/2016
+-- VERSION : 0.60
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -12,9 +12,11 @@ library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
 
--- Two Signed Multiplications and Accumulate both
--- The delay is one clock cycle when the additional input and output registers are
--- disabled.
+-- Two signed multiplications and accumulate both
+--
+-- The delay depends on the configuration and the underlying hardware. The
+-- number pipeline stages is reported as constant at output port PIPE.
+--
 --   reset accumulator    : if vld=0 and clr=1  then  r = undefined 
 --   restart accumulation : if vld=1 and clr=1  then  r = +/- (ax*ay) +/- (bx*by)
 --   hold accumulator     : if vld=0 and clr=0  then  r = r
@@ -22,7 +24,7 @@ library ieee;
 --
 -- This entity can be used for example
 --   * for complex multiplication and accumulation
---   * to calculate the mean square of a complex number
+--   * to calculate the mean square of a complex numbers
 --
 -- If just two multiplications and the sum of both is required but not any further
 -- accumulation then constantly set clr='1'.
@@ -110,7 +112,9 @@ port (
   -- resulting product/accumulator output (optionally rounded and clipped)
   r_out : out signed;
   -- output overflow/clipping detection
-  r_ovf : out std_logic
+  r_ovf : out std_logic;
+  -- number of pipeline stages, constant, depends on configuration and hardware
+  PIPE : out natural := 0
 );
 begin
 

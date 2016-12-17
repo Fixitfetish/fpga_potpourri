@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : signed_mult_accu.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 11/Dec/2016
--- VERSION : 0.50
+-- DATE    : 17/Dec/2016
+-- VERSION : 0.60
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -13,8 +13,10 @@ library ieee;
  use ieee.numeric_std.all;
 
 -- Signed Multiply and Accumulate
--- The delay is one clock cycle when the additional input and output registers are
--- disabled.
+--
+-- The delay depends on the configuration and the underlying hardware. The
+-- number pipeline stages is reported as constant at output port PIPE.
+--
 --   reset accumulator    : if vld=0 and clr=1  then  r = 0
 --   restart accumulation : if vld=1 and clr=1  then  r = +/- (x * y)
 --   hold accumulator     : if vld=0 and clr=0  then  r = r  
@@ -95,7 +97,9 @@ port (
   -- resulting product/accumulator output (optionally rounded and clipped)
   r_out : out signed;
   -- output overflow/clipping detection
-  r_ovf : out std_logic
+  r_ovf : out std_logic;
+  -- number of pipeline stages, constant, depends on configuration and hardware
+  PIPE : out natural := 0
 );
 end entity;
 
