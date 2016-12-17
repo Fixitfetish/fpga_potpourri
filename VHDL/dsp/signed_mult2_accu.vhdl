@@ -114,7 +114,7 @@ port (
   -- output overflow/clipping detection
   r_ovf : out std_logic;
   -- number of pipeline stages, constant, depends on configuration and hardware
-  PIPE : out natural := 0
+  PIPE  : out natural := 0
 );
 begin
 

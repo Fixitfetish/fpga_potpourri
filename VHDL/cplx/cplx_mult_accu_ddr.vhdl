@@ -65,6 +65,9 @@ architecture ddr of cplx_mult_accu is
   signal r_out_re, r_re : signed(r.re'length-1 downto 0);
   signal r_out_im, r_im : signed(r.im'length-1 downto 0);
 
+  -- pipeline stages of used DSP cell
+  signal PIPE_DSP : natural;
+
   -- determine number of required additional guard bits (MSBs)
   function guard_bits(num_summand:natural) return integer is
     variable res : integer;
@@ -155,7 +158,8 @@ begin
    y     => re_y,
    r_vld => open, -- unused, bypassed
    r_out => r_out_re,
-   r_ovf => r_ovf_re
+   r_ovf => r_ovf_re,
+   PIPE  => PIPE_DSP
   );
 
   -- calculate imaginary component in 'clk2' domain
@@ -178,7 +182,8 @@ begin
    y     => im_y,
    r_vld => open, -- unused, bypassed
    r_out => r_out_im,
-   r_ovf => r_ovf_im
+   r_ovf => r_ovf_im,
+   PIPE  => open  -- unused, same as real component
   );
 
   -- accumulator delay compensation (multiply-accumulate bypassed!)
@@ -208,4 +213,10 @@ begin
     end if; end process;
   end generate;
 
+  -- report constant number of pipeline register stages (in 'clk' domain)
+  PIPE <= (PIPE_DSP+2)/2 + 2 when (INPUT_REG and OUTPUT_REG) else
+          (PIPE_DSP+2)/2 + 1 when (INPUT_REG or OUTPUT_REG) else
+          (PIPE_DSP+2)/2;
+
 end architecture;
+
