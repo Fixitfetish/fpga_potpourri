@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_2008.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 03/Dec/2016
--- VERSION : 0.95
+-- DATE    : 21/Dec/2016
+-- VERSION : 0.96
 -- VHDL    : 2008
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -414,12 +414,11 @@ package body cplx_pkg is
 
   -- check if mode includes a specific option
   function "=" (l:cplx_mode; r:cplx_option) return boolean is
-    variable res : boolean := false;
   begin
     for i in l'range loop
       if l(i)=r then return true; end if;
     end loop;
-    return res;
+    return false;
   end function;
 
   function "/=" (l:cplx_mode; r:cplx_option) return boolean is
@@ -647,7 +646,7 @@ package body cplx_pkg is
     constant LOUT_IM : positive := default_if_zero(w, dflt=>LIN_IM); -- final output length
     variable dout : cplx(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
   begin
-    ADD(l=>l, r=>r, dout=>dout, m=>m);
+    add(l=>l, r=>r, dout=>dout, m=>m);
     return dout;
   end function;
 
@@ -670,7 +669,7 @@ package body cplx_pkg is
       report "ERROR: add() cplx_vector, both summands must have same number of vector elements"
       severity failure;
     for i in 1 to l'length loop 
-      ADD(l=>xl(i), r=>xr(i), dout=>dout(i), m=>m);
+      add(l=>xl(i), r=>xr(i), dout=>dout(i), m=>m);
     end loop;
     return dout;
   end function;
@@ -751,7 +750,7 @@ package body cplx_pkg is
     constant LOUT_IM : positive := default_if_zero(w, dflt=>LIN_IM); -- final output length
     variable dout : cplx(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
   begin
-    SUB(l=>l, r=>r, dout=>dout, m=>m);
+    sub(l=>l, r=>r, dout=>dout, m=>m);
     return dout;
   end function;
 
@@ -774,7 +773,7 @@ package body cplx_pkg is
       report "ERROR: sub() cplx_vector, left minuend and right subtrahend must have same number of vector elements"
       severity failure;
     for i in 1 to l'length loop 
-      SUB(l=>xl(i), r=>xr(i), dout=>dout(i), m=>m);
+      sub(l=>xl(i), r=>xr(i), dout=>dout(i), m=>m);
     end loop;
     return dout;
   end function;
@@ -803,8 +802,6 @@ package body cplx_pkg is
     m    : in  cplx_mode:="-" -- mode
   ) is
     variable ovf_re, ovf_im : std_logic;
-    constant LOUT_RE : positive := dout.re'length;
-    constant LOUT_IM : positive := dout.im'length;
   begin
     -- by default copy input control signals
     dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf;
@@ -978,7 +975,6 @@ package body cplx_pkg is
     constant LIM : positive := din(din'left).im'length;
     alias xdin : cplx_vector(0 to N-1)(re(LRE-1 downto 0),im(LIM-1 downto 0)) is din;
     variable slv : std_logic_vector(N*(LRE+LIM)-1 downto 0);
-    variable i : natural range 0 to N := 0;
   begin
     for i in 0 to N-1 loop
       slv((i+1)*(LRE+LIM)-1 downto i*(LRE+LIM)) := to_slv(din=>xdin(i), m=>m);
