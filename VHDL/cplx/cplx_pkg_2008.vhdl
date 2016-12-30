@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_2008.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 21/Dec/2016
--- VERSION : 0.96
+-- DATE    : 30/Dec/2016
+-- VERSION : 0.97
 -- VHDL    : 2008
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -31,6 +31,15 @@ library ieee;
  use ieee.numeric_std.all;
 library fixitfetish;
  use fixitfetish.ieee_extension.all;
+
+-- This package provides types, functions and procedures that allow basic
+-- operations with complex integer numbers. Only the most common signals are
+-- taken into account. The functions and procedures are designed in a way to
+-- use as few logic elements as possible. 
+-- Please note that multiplications, divisions and so on are not part of this
+-- package since they typically make use of hardware specific DSP cells and
+-- require registers in addition. Corresponding entities have been (can be)
+-- developed based on this package.
 
 package cplx_pkg is
 
@@ -246,7 +255,7 @@ package cplx_pkg is
   );
 
   ------------------------------------------
-  -- SUBSTRACTION
+  -- SUBTRACTION
   ------------------------------------------
 
   -- complex subtraction with optional clipping and overflow detection
@@ -402,7 +411,7 @@ package body cplx_pkg is
   end function;
 
  -- if x/=0 then return x
- -- if x=0  then return default
+ -- if x=0  then return dflt (default)
  function default_if_zero (x,dflt: integer) return integer is
  begin
    if x=0 then return dflt; else return x; end if;
@@ -715,7 +724,7 @@ package body cplx_pkg is
   end procedure;
 
   ------------------------------------------
-  -- SUBSTRACTION
+  -- SUBTRACTION
   ------------------------------------------
 
   -- complex subtraction with optional clipping and overflow detection

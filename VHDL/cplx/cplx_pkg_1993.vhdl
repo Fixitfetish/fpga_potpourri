@@ -1,10 +1,30 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_1993.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 03/Dec/2016
--- VERSION : 0.95
+-- DATE    : 30/Dec/2016
+-- VERSION : 0.97
 -- VHDL    : 1993
 -- LICENSE : MIT License
+-------------------------------------------------------------------------------
+-- Copyright (c) 2016 Fixitfetish
+-- 
+-- Permission is hereby granted, free of charge, to any person obtaining a copy
+-- of this software and associated documentation files (the "Software"), to deal
+-- in the Software without restriction, including without limitation the rights
+-- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+-- copies of the Software, and to permit persons to whom the Software is
+-- furnished to do so, subject to the following conditions:
+-- 
+-- The above copyright notice and this permission notice shall be included in
+-- all copies or substantial portions of the Software.
+-- 
+-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+-- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+-- IN THE SOFTWARE.
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
@@ -12,7 +32,16 @@ library ieee;
 library fixitfetish;
  use fixitfetish.ieee_extension.all;
 
--- Note: a more or less compatible complex package has been developed for VHDL-2008.
+-- This package provides types, functions and procedures that allow basic
+-- operations with complex integer numbers. Only the most common signals are
+-- taken into account. The functions and procedures are designed in a way to
+-- use as few logic elements as possible. 
+-- Please note that multiplications, divisions and so on are not part of this
+-- package since they typically make use of hardware specific DSP cells and
+-- require registers in addition. Corresponding entities have been (can be)
+-- developed based on this package.
+--
+-- NOTE: a more or less compatible complex package has been developed for VHDL-2008.
 -- The VHDL-2008 version of this package is much more flexible since code duplication
 -- is not required to such an extent as it is for VHDL-1993. For that reason this 
 -- VHDL-1993 version only provides a subset of bit widths. But this package can be
@@ -435,7 +464,7 @@ package cplx_pkg is
   function sum (din: cplx20_vector; w:natural:=22; m:cplx_mode:="-") return cplx22;
 
   ------------------------------------------
-  -- SUBSTRACTION
+  -- SUBTRACTION
   ------------------------------------------
 
   -- complex subtraction with optional clipping and overflow detection
@@ -1606,7 +1635,7 @@ package body cplx_pkg is
 
 
   ------------------------------------------
-  -- SUBSTRACTION
+  -- SUBTRACTION
   ------------------------------------------
 
   function sub (l,r: cplx16; w:natural:=16; m:cplx_mode:="-") return cplx16 is 
