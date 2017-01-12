@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- FILE    : signed_mult2_add_stratixv.vhdl
+-- FILE    : signed_mult2_add_arria10.vhdl
 -- AUTHOR  : Fixitfetish
 -- DATE    : 06/Jan/2017
 -- VERSION : 0.40
@@ -15,7 +15,8 @@ library fixitfetish;
  use fixitfetish.ieee_extension.all;
 
 -- This implementation requires a single Variable Precision DSP Block.
--- Please refer to the Altera Stratix V Device Handbook.
+-- Please refer to Arria 10 Native Fixed Point DSP IP Core User Guide.
+-- UG-01163,  2016.06.10 
 --
 -- Input Data      : 2x2 signed values, each max 18 bits
 -- Input Register  : optional, strongly recommended
@@ -25,7 +26,7 @@ library fixitfetish;
 -- Output Register : optional, after shift-right and saturation
 -- Overall pipeline stages : 1..3 dependent on configuration
 
-architecture stratixv of signed_mult2_add is
+architecture arria10 of signed_mult2_add is
 begin
 
   -- NOTE: - subset of ACCU implementation

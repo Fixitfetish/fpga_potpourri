@@ -1,12 +1,12 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_mult_accu_ddr.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 17/Dec/2016
--- VERSION : 0.40
+-- DATE    : 06/Jan/2017
+-- VERSION : 0.45
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
--- Copyright (c) 2016 Fixitfetish
+-- Copyright (c) 2016-2017 Fixitfetish
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
@@ -68,21 +68,6 @@ architecture ddr of cplx_mult_accu is
   -- pipeline stages of used DSP cell
   signal PIPE_DSP : natural;
 
-  -- determine number of required additional guard bits (MSBs)
-  function guard_bits(num_summand:natural) return integer is
-    variable res : integer;
-  begin
-    if num_summand=0 then
-      res := -1; -- maximum possible
-    elsif num_summand=1 then
-      -- just complex multiplication - no accumulation
-      res := 1; -- always one additional guard bit for complex multiplication 
-    else
-      res := LOG2CEIL(num_summand)+1;
-    end if;
-    return res; 
-  end function;
-
 begin
 
   -- auxiliary phase control signals
@@ -141,7 +126,7 @@ begin
   -- calculate real component in 'clk2' domain
   i_re : entity fixitfetish.signed_mult_accu
   generic map(
-    GUARD_BITS         => guard_bits(NUM_SUMMAND),
+    NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     INPUT_REG          => true,
     OUTPUT_REG         => false, -- separate output register - see below
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -165,7 +150,7 @@ begin
   -- calculate imaginary component in 'clk2' domain
   i_im : entity fixitfetish.signed_mult_accu
   generic map(
-    GUARD_BITS         => guard_bits(NUM_SUMMAND),
+    NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     INPUT_REG          => true,
     OUTPUT_REG         => false, -- separate output register - see below
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,

@@ -1,12 +1,12 @@
 -------------------------------------------------------------------------------
 -- FILE    : signed_mult2_accu_stratixv.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 17/Dec/2016
--- VERSION : 0.40
+-- DATE    : 06/Jan/2017
+-- VERSION : 0.50
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
--- Copyright (c) 2016 Fixitfetish
+-- Copyright (c) 2016-2017 Fixitfetish
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
@@ -18,13 +18,28 @@ library fixitfetish;
 
 -- This implementation requires a single Variable Precision DSP Block.
 -- Please refer to the Altera Stratix V Device Handbook.
+--
+-- Input Data      : 2x2 signed values, each max 18 bits
+-- Input Register  : optional, strongly recommended
+-- Accu Register   : 64 bits, always enabled
+-- Rounding        : optional half-up, within DSP cell
+-- Output Data     : 1x signed value, max 64 bits
+-- Output Register : optional, after shift-right and saturation
+-- Overall pipeline stages : 1..3 dependent on configuration
 
 architecture stratixv of signed_mult2_accu is
 
   -- local auxiliary
-  function default_if_negative (x:integer; dflt: natural) return natural is
+  -- determine number of required additional guard bits (MSBs)
+  function guard_bits(num_summand, dflt:natural) return integer is
+    variable res : integer;
   begin
-    if x<0 then return dflt; else return x; end if;
+    if num_summand=0 then
+      res := dflt; -- maximum possible (default)
+    else
+      res := LOG2CEIL(num_summand);
+    end if;
+    return res; 
   end function;
 
   -- accumulator width in bits
@@ -33,7 +48,7 @@ architecture stratixv of signed_mult2_accu is
   -- derived constants
   constant PRODUCT_WIDTH : natural := a_x'length + a_y'length;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
-  constant GUARD_BITS_EVAL : natural := default_if_negative(GUARD_BITS,MAX_GUARD_BITS);
+  constant GUARD_BITS_EVAL : natural := guard_bits(NUM_SUMMAND,MAX_GUARD_BITS);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
   constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
   constant OUTPUT_WIDTH : positive := r_out'length;

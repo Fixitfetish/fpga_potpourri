@@ -1,12 +1,12 @@
 -------------------------------------------------------------------------------
 -- FILE    : signed_mult2_accu_behave.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 17/Dec/2016
--- VERSION : 0.60
+-- DATE    : 06/Jan/2017
+-- VERSION : 0.70
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
--- Copyright (c) 2016 Fixitfetish
+-- Copyright (c) 2016-2017 Fixitfetish
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
@@ -14,14 +14,30 @@ library ieee;
 library fixitfetish;
  use fixitfetish.ieee_extension.all;
 
+-- This implementation is a behavioral model for simulation.
+--
+-- Input Data      : 2x2 signed values
+-- Input Register  : optional, strongly recommended
+-- Accu Register   : 64 bits, always enabled
+-- Rounding        : optional half-up
+-- Output Data     : 1x signed value, max 64 bits
+-- Output Register : optional, after rounding, shift-right and saturation
+-- Overall pipeline stages : 1..3 dependent on configuration
 
 architecture behave of signed_mult2_accu is
 
- -- local auxiliary
- function default_if_negative (x:integer; dflt: natural) return natural is
- begin
-   if x<0 then return dflt; else return x; end if;
- end function;
+  -- local auxiliary
+  -- determine number of required additional guard bits (MSBs)
+  function guard_bits(num_summand, dflt:natural) return integer is
+    variable res : integer;
+  begin
+    if num_summand=0 then
+      res := dflt; -- maximum possible (default)
+    else
+      res := LOG2CEIL(num_summand);
+    end if;
+    return res; 
+  end function;
 
   -- accumulator width in bits
   constant ACCU_WIDTH : positive := 64;
@@ -29,7 +45,7 @@ architecture behave of signed_mult2_accu is
   -- derived constants
   constant PRODUCT_WIDTH : natural := a_x'length + a_y'length;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
-  constant GUARD_BITS_EVAL : natural := default_if_negative(GUARD_BITS,MAX_GUARD_BITS);
+  constant GUARD_BITS_EVAL : natural := guard_bits(NUM_SUMMAND,MAX_GUARD_BITS);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
   constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
   constant OUTPUT_WIDTH : positive := r_out'length;
@@ -44,6 +60,9 @@ architecture behave of signed_mult2_accu is
   signal accu : signed(ACCU_WIDTH-1 downto 0);
   signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
   signal accu_used_shifted : signed(ACCU_USED_SHIFTED_WIDTH-1 downto 0);
+
+  -- clock enable
+  signal clkena : std_logic := '1';
 
 begin
 
@@ -72,9 +91,11 @@ begin
   g_din_reg : if INPUT_REG generate
     process(clk)
     begin if rising_edge(clk) then
-      rst_i <= rst; clr_i <= clr; vld_i <= vld;
-      ax_i <= a_x; ay_i <= a_y; asub_i <= a_sub; 
-      bx_i <= b_x; by_i <= b_y; bsub_i <= b_sub; 
+      if clkena='1' then
+        rst_i <= rst; clr_i <= clr; vld_i <= vld;
+        ax_i <= a_x; ay_i <= a_y; asub_i <= a_sub; 
+        bx_i <= b_x; by_i <= b_y; bsub_i <= b_sub;
+      end if; 
     end if; end process;
   end generate;
 
@@ -89,22 +110,24 @@ begin
   p_accu : process(clk)
   begin
     if rising_edge(clk) then
-      if rst_i='1' then
-        accu <= (others=>'0');
-      else
-        if clr_i='1' then
-          if vld_i='1' then
-            accu <= resize(temp, ACCU_WIDTH);
-          else
-            accu <= (others=>'0');
-          end if;
-        else  
-          if vld_i='1' then
-            accu <= accu + resize(temp, ACCU_WIDTH);
+      if clkena='1' then
+        if rst_i='1' then
+          accu <= (others=>'0');
+        else
+          if clr_i='1' then
+            if vld_i='1' then
+              accu <= resize(temp, ACCU_WIDTH);
+            else
+              accu <= (others=>'0');
+            end if;
+          else  
+            if vld_i='1' then
+              accu <= accu + resize(temp, ACCU_WIDTH);
+            end if;
           end if;
         end if;
+        vld_q <= vld_i;
       end if;
-      vld_q <= vld_i;
     end if;
   end process;
 
@@ -139,10 +162,12 @@ begin
       variable v_ovfl : std_logic;
     begin
       if rising_edge(clk) then
-        RESIZE_CLIP(din=>accu_used_shifted, dout=>v_dout, ovfl=>v_ovfl, clip=>OUTPUT_CLIP);
-        r_vld <= vld_q; 
-        r_out <= v_dout; 
-        if OUTPUT_OVERFLOW then r_ovf<=v_ovfl; else r_ovf<='0'; end if;
+        if clkena='1' then
+          RESIZE_CLIP(din=>accu_used_shifted, dout=>v_dout, ovfl=>v_ovfl, clip=>OUTPUT_CLIP);
+          r_vld <= vld_q; 
+          r_out <= v_dout; 
+          if OUTPUT_OVERFLOW then r_ovf<=v_ovfl; else r_ovf<='0'; end if;
+        end if;
       end if;
     end process;
   end generate;

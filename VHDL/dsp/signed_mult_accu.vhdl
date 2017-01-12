@@ -1,12 +1,12 @@
 -------------------------------------------------------------------------------
 -- FILE    : signed_mult_accu.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 17/Dec/2016
--- VERSION : 0.60
+-- DATE    : 06/Jan/2017
+-- VERSION : 0.70
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
--- Copyright (c) 2016 Fixitfetish
+-- Copyright (c) 2016-2017 Fixitfetish
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
@@ -38,8 +38,9 @@ library ieee;
 --             <--------- ACCU USED SHIFTED WIDTH ------------>
 --
 -- ACCU WIDTH = accumulator width (depends on hardware/implementation)
--- PRODUCT WIDTH = ax'length+ay'length-1 = bx'length+by'length-1
--- GUARD BITS = number additional guard bits required for accumulation
+-- PRODUCT WIDTH = ax'length+ay'length = bx'length+by'length
+-- NUM_SUMMANDS = number of accumulated products
+-- GUARD BITS = ceil(log2(NUM_SUMMANDS))
 -- ACCU USED WIDTH = PRODUCT WIDTH + GUARD BITS <= ACCU WIDTH
 -- OUTPUT SHIFT RIGHT = number of LSBs to prune
 -- OUTPUT WIDTH = r'length
@@ -52,31 +53,33 @@ library ieee;
 -- x = irrelevant LSBs
 --
 -- Optimal settings for overflow detection and/or saturation/clipping :
--- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT - PRODUCT WIDTH + 1 
+-- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH
 
 entity signed_mult_accu is
 generic (
-  -- Number of additional guard bits (maximum possible depends on hardware)
+  -- The number of summands is important to determine the number of additional
+  -- guard bits (MSBs) that are required for the accumulation process.
   -- The setting is relevant to save logic especially when saturation/clipping
   -- and/or overflow detection is enabled.
-  --  -1 => maximum possible (worst case, hardware dependent)
-  --   0 => no accumulation, just one multiplication
-  --   1 => accumulate up to 2 products
-  --   2 => accumulate up to 4 products
-  --   3 => accumulate up to 8 products
+  --   0 => maximum possible, not recommended (worst case, hardware dependent)
+  --   1 => just one multiplication without accumulation
+  --   2 => accumulate up to 2 products
+  --   3 => accumulate up to 3 products
   --   and so on ...
-  GUARD_BITS : integer range -1 to 255 := -1;
-  -- use additional input register (strongly recommended)
-  INPUT_REG : boolean := false;
-  -- additional data output register (recommended when logic for rounding and/or clipping is enabled)
+  NUM_SUMMAND : natural := 0;
+  -- Use additional input register (strongly recommended)
+  -- If available the input register within the DSP cell is used.
+  INPUT_REG : boolean := true;
+  -- Additional data output register (recommended when logic for rounding and/or clipping is enabled)
+  -- Typically the output register is implemented in logic. 
   OUTPUT_REG : boolean := false;
-  -- number of bits by which the accumulator result output is shifted right
+  -- Number of bits by which the accumulator result output is shifted right
   OUTPUT_SHIFT_RIGHT : natural := 0;
-  -- round data output (only relevant when OUTPUT_SHIFT_RIGHT>0) 
+  -- Round data output (only relevant when OUTPUT_SHIFT_RIGHT>0)
   OUTPUT_ROUND : boolean := true;
-  -- enable clipping when right shifted result exceeds output range
+  -- Enable clipping when right shifted result exceeds output range
   OUTPUT_CLIP : boolean := true;
-  -- overflow/clipping detection 
+  -- Overflow/clipping detection 
   OUTPUT_OVERFLOW : boolean := true
 );
 port (
