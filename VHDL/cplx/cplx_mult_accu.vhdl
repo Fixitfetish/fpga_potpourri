@@ -1,12 +1,12 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_mult_accu.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 17/Dec/2016
--- VERSION : 0.40
+-- DATE    : 06/Jan/2017
+-- VERSION : 0.45
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
--- Copyright (c) 2016 Fixitfetish
+-- Copyright (c) 2016-2017 Fixitfetish
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
@@ -15,10 +15,7 @@ library fixitfetish;
  use fixitfetish.cplx_pkg.all;
 
 -- Complex Multiply and Accumulate
--- In general this multiplier can be used when FPGA DSP cells are used which
--- are capable to run with the double rate of the standard system clock.
--- Hence, a complex multiplication can be performed within one system clock
--- cycle but only half the amount of multiplier resources.
+-- In general, this multiplier is a good choice when FPGA DSP cells shall be used.
 --
 -- The delay depends on the configuration and the underlying hardware. The
 -- number pipeline stages is reported as constant at output port PIPE.
@@ -33,8 +30,8 @@ library fixitfetish;
 --
 -- Without accumulation the result width in the accumulation register LSBs is
 --   W = x'length + y'length 
--- Dependent on dout'length and additional N accumulations bits a shift right
--- is required to avoid overflow or clipping.
+-- Dependent on dout'length and additional N accumulation guard bits a shift
+-- right is required to avoid overflow or clipping.
 --   OUTPUT_SHIFT_RIGHT = W - dout'length - N
 --
 -- The Double Data Rate (DDR) clock 'clk2' input is only relevant when a DDR
@@ -44,8 +41,8 @@ library fixitfetish;
  
 entity cplx_mult_accu is
 generic (
-  -- The number of summands is important to calculate the number of additional
-  -- guard bits (MSBs) required for the accumulation process.
+  -- The number of summands is important to determine the number of additional
+  -- guard bits (MSBs) that are required for the accumulation process.
   -- The setting is relevant to save logic especially when saturation/clipping
   -- and/or overflow detection is enabled.
   --   0 => maximum possible, not recommended (worst case, hardware dependent)
