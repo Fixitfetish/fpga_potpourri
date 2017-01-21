@@ -1,12 +1,12 @@
 -------------------------------------------------------------------------------
 -- FILE    : signed_mult_accu_virtex4.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 17/Dec/2016
--- VERSION : 0.70
+-- DATE    : 20/Jan/2017
+-- VERSION : 0.75
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
--- Copyright (c) 2016 Fixitfetish
+-- Copyright (c) 2016-2017 Fixitfetish
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
@@ -26,11 +26,18 @@ library unisim;
 
 architecture virtex4 of signed_mult_accu is
 
- -- local auxiliary
- function default_if_negative (x:integer; dflt: natural) return natural is
- begin
-   if x<0 then return dflt; else return x; end if;
- end function;
+  -- local auxiliary
+  -- determine number of required additional guard bits (MSBs)
+  function guard_bits(num_summand, dflt:natural) return integer is
+    variable res : integer;
+  begin
+    if num_summand=0 then
+      res := dflt; -- maximum possible (default)
+    else
+      res := LOG2CEIL(num_summand);
+    end if;
+    return res; 
+  end function;
 
   -- accumulator width in bits
   constant ACCU_WIDTH : positive := 48;
@@ -38,7 +45,7 @@ architecture virtex4 of signed_mult_accu is
   -- derived constants
   constant PRODUCT_WIDTH : natural := x'length + y'length;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
-  constant GUARD_BITS_EVAL : natural := default_if_negative(GUARD_BITS,MAX_GUARD_BITS);
+  constant GUARD_BITS_EVAL : natural := guard_bits(NUM_SUMMAND,MAX_GUARD_BITS);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
   constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
   constant OUTPUT_WIDTH : positive := r_out'length;
