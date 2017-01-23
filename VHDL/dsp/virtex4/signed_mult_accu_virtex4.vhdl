@@ -39,6 +39,11 @@ architecture virtex4 of signed_mult_accu is
     return res; 
   end function;
 
+  function to_integer(b:boolean) return integer is
+  begin
+    if b then return 1; else return 0; end if;
+  end function;
+
   -- accumulator width in bits
   constant ACCU_WIDTH : positive := 48;
 
@@ -63,12 +68,6 @@ architecture virtex4 of signed_mult_accu is
 
   signal opmode_xy : std_logic_vector(3 downto 0);
   signal opmode_z : std_logic_vector(2 downto 0);
-
-  -- auxiliary function
-  function to_integer(b:boolean) return integer is
-  begin
-    if b then return 1; else return 0; end if;
-  end function;
 
 begin
 

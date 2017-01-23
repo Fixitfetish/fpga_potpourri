@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : signed_mult2_accu_stratixv.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 06/Jan/2017
--- VERSION : 0.50
+-- DATE    : 21/Jan/2017
+-- VERSION : 0.60
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -25,7 +25,7 @@ library fixitfetish;
 -- Rounding        : optional half-up, within DSP cell
 -- Output Data     : 1x signed value, max 64 bits
 -- Output Register : optional, after shift-right and saturation
--- Overall pipeline stages : 1..3 dependent on configuration
+-- Overall pipeline stages : 1,2,3,..  dependent on configuration
 
 architecture stratixv of signed_mult2_accu is
 
@@ -42,31 +42,15 @@ architecture stratixv of signed_mult2_accu is
     return res; 
   end function;
 
-  -- accumulator width in bits
-  constant ACCU_WIDTH : positive := 64;
-
-  -- derived constants
-  constant PRODUCT_WIDTH : natural := a_x'length + a_y'length;
-  constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
-  constant GUARD_BITS_EVAL : natural := guard_bits(NUM_SUMMAND,MAX_GUARD_BITS);
-  constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
-  constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
-  constant OUTPUT_WIDTH : positive := r_out'length;
-
-  signal rst_i : std_logic; 
-  signal clr_q, clr_i : std_logic; 
-  signal vld_i, vld_q : std_logic;
-  signal ax_i, ay_i : signed(17 downto 0);
-  signal bx_i, by_i : signed(17 downto 0);
-  signal sub, negate, accumulate, loadconst : std_logic;
-  signal accu : std_logic_vector(ACCU_WIDTH-1 downto 0);
-  signal accu_used_shifted : signed(ACCU_USED_SHIFTED_WIDTH-1 downto 0);
-
-  -- auxiliary functions
-  function clock(b:boolean) return string is
+  function use_chainadder(b:boolean) return string is
   begin
-    -- if input register enabled then use clock "0"
-    if b then return "0"; else return "none"; end if;
+    if b then return "true"; else return "false"; end if;
+  end function;
+
+  function clock(n:natural) return string is
+  begin
+    -- if input registers enabled then use clock "0"
+    if n>0 then return "0"; else return "none"; end if;
   end function;
 
   function load_const_value(round: boolean; shifts:natural) return natural is
@@ -75,10 +59,46 @@ architecture stratixv of signed_mult2_accu is
     if round and (shifts>0) then return (shifts-1); else return 0; end if;
   end function;
 
+  -- accumulator width in bits
+  constant ACCU_WIDTH : positive := 64;
+
+  -- derived constants
+  constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT>0);
+  constant PRODUCT_WIDTH : natural := x0'length + y0'length;
+  constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
+  constant GUARD_BITS_EVAL : natural := guard_bits(NUM_SUMMAND,MAX_GUARD_BITS);
+  constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
+  constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
+  constant OUTPUT_WIDTH : positive := r_out'length;
+
+  -- input register pipeline
+  type t_ireg is
+  record
+    rst, vld : std_logic;
+    sub, negate : std_logic;
+    accumulate, loadconst : std_logic;
+    x0, y1 : signed(17 downto 0);
+    x1, y1 : signed(17 downto 0);
+  end record;
+  type array_ireg is array(integer range <>) of t_ireg;
+  signal ireg : array_ireg(NUM_INPUT_REG downto 0);
+
+  signal clr_q, clr_i : std_logic;
+  signal vld_q : std_logic;
+  signal chainin_i, chainout_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
+  signal accu : std_logic_vector(ACCU_WIDTH-1 downto 0);
+  signal accu_used_shifted : signed(ACCU_USED_SHIFTED_WIDTH-1 downto 0);
+
 begin
 
+  -- check chain in/out length
+  assert (chainin'length=ACCU_WIDTH or (not USE_CHAININ))
+    report "ERROR signed_mult2_accu(stratixv) : " & 
+           "Chain input width must be " & integer'image(ACCU_WIDTH) & " bits."
+    severity failure;
+
   -- check input/output length
-  assert (a_x'length<=18 and a_y'length<=18 and b_x'length<=18 and b_y'length<=18)
+  assert (x0'length<=18 and y0'length<=18 and x1'length<=18 and y1'length<=18)
     report "ERROR signed_mult2_accu(stratixv): Multiplier input width cannot exceed 18 bits."
     severity failure;
 
@@ -93,22 +113,6 @@ begin
            "More guard bits required for saturation/clipping and/or overflow detection."
     severity failure;
 
-  g_din : if not INPUT_REG generate
-    vld_i <= vld;
-    rst_i <= rst;
-  end generate;
-
-  g_din_reg : if INPUT_REG generate
-    vld_i <= vld when rising_edge(clk);
-    rst_i <= rst when rising_edge(clk);
-  end generate;
- 
-  -- LSB bound inputs
-  ax_i <= resize(a_x,18);
-  ay_i <= resize(a_y,18);
-  bx_i <= resize(b_x,18);
-  by_i <= resize(b_y,18);
-
   p_clr : process(clk)
   begin
     if rising_edge(clk) then
@@ -121,31 +125,58 @@ begin
   end process;
   clr_i <= clr or clr_q;
 
-  -- accumulator control signals
-  negate <= b_sub;
-  sub <= a_sub xor b_sub;
-  accumulate <= vld and (not clr_i); --- TODO - valid required ? or is accu clkena sufficient ?
-  
-  g_r1 : if OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT>0) generate
-    loadconst <= clr_i;
+  -- control signal inputs
+  ireg(NUM_INPUT_REG).rst <= rst;
+  ireg(NUM_INPUT_REG).vld <= vld;
+  ireg(NUM_INPUT_REG).negate <= sub(1);
+  ireg(NUM_INPUT_REG).sub <= sub(0) xor sub(1);
+  ireg(NUM_INPUT_REG).accumulate <= vld and (not clr_i); -- TODO - valid required ? or is accu clkena sufficient ?
+  ireg(NUM_INPUT_REG).loadconst <= clr_i and to_01(ROUND_ENABLE);
+
+  -- LSB bound data inputs
+  ireg(NUM_INPUT_REG).x0 <= resize(x0,18);
+  ireg(NUM_INPUT_REG).y0 <= resize(y0,18);
+  ireg(NUM_INPUT_REG).x1 <= resize(x1,18);
+  ireg(NUM_INPUT_REG).y1 <= resize(y1,18);
+
+  g_reg : if NUM_INPUT_REG>=2 generate
+  begin
+    g_1 : for n in 2 to NUM_INPUT_REG generate
+    begin
+      ireg(n-1) <= ireg(n) when rising_edge(clk);
+    end generate;
   end generate;
-  g_r2 : if (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT=0) generate
-    loadconst <= '0';
+
+  g_in : if NUM_INPUT_REG>=1 generate
+  begin
+    ireg(0).rst <= ireg(1).rst when rising_edge(clk);
+    ireg(0).vld <= ireg(1).vld when rising_edge(clk);
+    -- DSP cell registers are used for first input register stage
+    ireg(0).sub <= ireg(1).sub;
+    ireg(0).negate <= ireg(1).negate;
+    ireg(0).accumulate <= ireg(1).accumulate;
+    ireg(0).loadconst <= ireg(1).loadconst;
+    ireg(0).x0 <= ireg(1).x0;
+    ireg(0).y0 <= ireg(1).y0;
+    ireg(0).x1 <= ireg(1).x1;
+    ireg(0).y1 <= ireg(1).y1;
   end generate;
+
+  chainin_i <= std_logic_vector(resize(chainin,ACCU_WIDTH));
 
   dsp : stratixv_mac
   generic map (
-    accumulate_clock          => clock(INPUT_REG),
-    ax_clock                  => clock(INPUT_REG),
+    accumulate_clock          => clock(NUM_INPUT_REG),
+    ax_clock                  => clock(NUM_INPUT_REG),
     ax_width                  => 18,
-    ay_scan_in_clock          => clock(INPUT_REG),
+    ay_scan_in_clock          => clock(NUM_INPUT_REG),
     ay_scan_in_width          => 18,
     ay_use_scan_in            => "false",
     az_clock                  => "none", -- unused here
     az_width                  => 1, -- unused here
-    bx_clock                  => clock(INPUT_REG),
+    bx_clock                  => clock(NUM_INPUT_REG),
     bx_width                  => 18,
-    by_clock                  => clock(INPUT_REG),
+    by_clock                  => clock(NUM_INPUT_REG),
     by_use_scan_in            => "false",
     by_width                  => 18,
     coef_a_0                  => 0,
@@ -169,11 +200,11 @@ begin
     complex_clock             => "none",
     delay_scan_out_ay         => "false",
     delay_scan_out_by         => "false",
-    load_const_clock          => clock(INPUT_REG),
+    load_const_clock          => clock(NUM_INPUT_REG),
     load_const_value          => load_const_value(OUTPUT_ROUND, OUTPUT_SHIFT_RIGHT),
     lpm_type                  => "stratixv_mac",
     mode_sub_location         => 0,
-    negate_clock              => clock(INPUT_REG),
+    negate_clock              => clock(NUM_INPUT_REG),
     operand_source_max        => "input",
     operand_source_may        => "input",
     operand_source_mbx        => "input",
@@ -189,20 +220,20 @@ begin
     signed_may                => "true",
     signed_mbx                => "true",
     signed_mby                => "true",
-    sub_clock                 => clock(INPUT_REG),
-    use_chainadder            => "false"
+    sub_clock                 => clock(NUM_INPUT_REG),
+    use_chainadder            => use_chainadder(USE_CHAININ)
   )
   port map (
-    accumulate => accumulate,
+    accumulate => ireg(0).accumulate,
     aclr(0)    => '0', -- clear input registers
-    aclr(1)    => rst_i, -- clear output registers
-    ax         => std_logic_vector(ax_i),
-    ay         => std_logic_vector(ay_i),
+    aclr(1)    => ireg(0).rst, -- clear output registers
+    ax         => std_logic_vector(ireg(0).x0),
+    ay         => std_logic_vector(ireg(0).y0),
     az         => open,
-    bx         => std_logic_vector(bx_i),
-    by         => std_logic_vector(by_i),
-    chainin    => open,
-    chainout   => open,
+    bx         => std_logic_vector(ireg(0).x1),
+    by         => std_logic_vector(ireg(0).y1),
+    chainin    => chainin_i,
+    chainout   => chainout_i,
     cin        => open,
     clk(0)     => clk, -- input clock
     clk(1)     => clk, -- output clock
@@ -213,19 +244,21 @@ begin
     cout       => open,
     dftout     => open,
     ena(0)     => '1', -- clk(0) enable
-    ena(1)     => vld_i, -- clk(1) enable
+    ena(1)     => ireg(0).vld, -- clk(1) enable
     ena(2)     => '0', -- clk(2) enable - unused
-    loadconst  => loadconst,
-    negate     => negate,
+    loadconst  => ireg(0).loadconst,
+    negate     => ireg(0).negate,
     resulta    => accu,
     resultb    => open,
     scanin     => open,
     scanout    => open,
-    sub        => sub
+    sub        => ireg(0).sub
   );
 
+  chainout <= signed(chainout_i);
+
   -- accumulator delay compensation
-  vld_q <= vld_i when rising_edge(clk);
+  vld_q <= ireg(0).vld when rising_edge(clk);
 
   -- a.) just shift right without rounding because rounding bit is has been added 
   --     within the DSP cell already.
@@ -235,10 +268,10 @@ begin
   accu_used_shifted <= signed(accu(ACCU_USED_WIDTH-1 downto OUTPUT_SHIFT_RIGHT));
 
 --  -- shift right and round 
---  g_rnd_off : if ((not OUTPUT_ROUND) or OUTPUT_SHIFT_RIGHT=0) generate
+--  g_rnd_off : if (not ROUND_ENABLE) generate
 --    accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT),ACCU_USED_SHIFTED_WIDTH);
 --  end generate;
---  g_rnd_on : if (OUTPUT_ROUND and OUTPUT_SHIFT_RIGHT>0) generate
+--  g_rnd_on : if (ROUND_ENABLE) generate
 --    accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT, nearest),ACCU_USED_SHIFTED_WIDTH);
 --  end generate;
 
@@ -269,9 +302,7 @@ begin
   end generate;
 
   -- report constant number of pipeline register stages
-  PIPE <= 3 when (INPUT_REG and OUTPUT_REG) else
-          2 when (INPUT_REG or OUTPUT_REG) else
-          1;
+  PIPE <= NUM_INPUT_REG+2 when OUTPUT_REG else NUM_INPUT_REG+1;
 
 end architecture;
 

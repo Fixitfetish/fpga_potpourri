@@ -1,33 +1,33 @@
 -------------------------------------------------------------------------------
--- FILE    : signed_mult2_accu.vhdl
+-- FILE    : signed_mult4_accu.vhdl
 -- AUTHOR  : Fixitfetish
 -- DATE    : 22/Jan/2017
--- VERSION : 0.80
+-- VERSION : 0.20
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
--- Copyright (c) 2016-2017 Fixitfetish
+-- Copyright (c) 2017 Fixitfetish
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
 
--- Two signed multiplications and accumulate both
+-- Four signed multiplications and accumulate all product results.
 --
 -- The delay depends on the configuration and the underlying hardware. The
 -- number pipeline stages is reported as constant at output port PIPE.
 --
 --   reset accumulator    : if vld=0 and clr=1  then  r = undefined 
---   restart accumulation : if vld=1 and clr=1  then  r = +/-(x0*y0) +/-(x1*y1)
+--   restart accumulation : if vld=1 and clr=1  then  r = +/-(x0*y0) +/-(x1*y1) +/-(x2*y2) +/-...
 --   hold accumulator     : if vld=0 and clr=0  then  r = r
---   proceed accumulation : if vld=1 and clr=0  then  r = r +/-(x0*y0) +/-(x1*y1)
+--   proceed accumulation : if vld=1 and clr=0  then  r = r +/-(x0*y0) +/-(x1*y1) +/-(x2*y2) +/-...
 --
 -- This entity can be used for example
---   * for complex multiplication and accumulation
---   * to calculate the mean square of a complex numbers
+--   * for multiple complex multiplication and accumulation
+--   * to calculate the mean square of complex numbers
 --
--- If just two multiplications and the sum of both is required but not any further
--- accumulation then constantly set clr='1'.
+-- If just the multiplications and the sum of all product results are needed
+-- but not any further accumulation then constantly set clr='1'.
 --
 --    <----------------------------------- ACCU WIDTH ------------------------>
 --    |        <-------------------------- ACCU USED WIDTH ------------------->
@@ -59,7 +59,7 @@ library ieee;
 -- Optimal settings for overflow detection and/or saturation/clipping :
 -- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH
 
-entity signed_mult2_accu is
+entity signed_mult4_accu is
 generic (
   -- The number of summands is important to determine the number of additional
   -- guard bits (MSBs) that are required for the accumulation process.
@@ -98,12 +98,16 @@ port (
   clr      : in  std_logic;
   -- Data valid input
   vld      : in  std_logic;
-  -- add/subtract for all products n=0..1 , '0'=> +(x(n)*y(n)), '1'=> -(x(n)*y(n))
-  sub      : in  std_logic_vector(0 to 1);
+  -- add/subtract for all products n=0..3 , '0'=> +(x(n)*y(n)), '1'=> -(x(n)*y(n))
+  sub      : in  std_logic_vector(0 to 3);
   -- 1st product, signed factors
   x0, y0   : in  signed;
   -- 2nd product, signed factors
   x1, y1   : in  signed;
+  -- 3rd product, signed factors
+  x2, y2   : in  signed;
+  -- 4th product, signed factors
+  x3, y3   : in  signed;
   -- Result valid output
   r_vld    : out std_logic;
   -- Resulting product/accumulator output (optionally rounded and clipped)
@@ -117,17 +121,19 @@ port (
   -- Result output to other chained DSP cell (optional)
   -- The output width is HW specific.
   chainout : out signed;
-  -- Number of pipeline stages, constant, depends on configuration and hardware
+  -- number of pipeline stages, constant, depends on configuration and hardware
   PIPE     : out natural := 0
 );
 begin
 
-  assert (x0'length+y0'length)=(x1'length+y1'length)
-    report "ERROR signed_mult2_accu : Both products must result in same size."
+  assert (     (x0'length+y0'length)=(x1'length+y1'length)
+           and (x0'length+y0'length)=(x2'length+y2'length)
+           and (x0'length+y0'length)=(x3'length+y3'length) )
+    report "ERROR signed_mult4_accu : All products must result in same size."
     severity failure;
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT>0)
-    report "WARNING signed_mult2_accu : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
+    report "WARNING signed_mult4_accu : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 
 end entity;

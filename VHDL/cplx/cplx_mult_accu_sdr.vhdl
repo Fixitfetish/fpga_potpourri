@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_mult_accu_sdr.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 06/Jan/2017
--- VERSION : 0.45
+-- DATE    : 22/Jan/2017
+-- VERSION : 0.50
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -87,7 +87,8 @@ begin
   i_re : entity fixitfetish.signed_mult2_accu
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
-    INPUT_REG          => true,
+    USE_CHAININ        => false,
+    NUM_INPUT_REG      => 1,
     OUTPUT_REG         => false, -- separate output register - see below
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     OUTPUT_ROUND       => (m='N'),
@@ -95,27 +96,30 @@ begin
     OUTPUT_OVERFLOW    => (m='O')
   )
   port map (
-   clk   => clk,
-   rst   => data_reset, 
-   clr   => clr_i,
-   vld   => vld,
-   a_sub => sub_i,
-   a_x   => x_re,
-   a_y   => y_re,
-   b_sub => sub_i_n,
-   b_x   => x_im,
-   b_y   => y_im,
-   r_vld => r_vld,
-   r_out => r_re,
-   r_ovf => r_ovf_re,
-   PIPE  => PIPE_DSP
+   clk      => clk,
+   rst      => data_reset, 
+   clr      => clr_i,
+   vld      => vld,
+   sub(0)   => sub_i,
+   sub(1)   => sub_i_n,
+   x0       => x_re,
+   y0       => y_re,
+   x1       => x_im,
+   y1       => y_im,
+   r_vld    => r_vld,
+   r_out    => r_re,
+   r_ovf    => r_ovf_re,
+   chainin  => "00",
+   chainout => open,
+   PIPE     => PIPE_DSP
   );
 
   -- calculate imaginary component
   i_im : entity fixitfetish.signed_mult2_accu
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
-    INPUT_REG          => true,
+    USE_CHAININ        => false,
+    NUM_INPUT_REG      => 1,
     OUTPUT_REG         => false, -- separate output register - see below
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     OUTPUT_ROUND       => (m='N'),
@@ -123,20 +127,22 @@ begin
     OUTPUT_OVERFLOW    => (m='O')
   )
   port map (
-   clk   => clk,
-   rst   => data_reset, 
-   clr   => clr_i,
-   vld   => vld,
-   a_sub => sub_i,
-   a_x   => x_re,
-   a_y   => y_im,
-   b_sub => sub_i,
-   b_x   => x_im,
-   b_y   => y_re,
-   r_vld => open, -- same as real component
-   r_out => r_im,
-   r_ovf => r_ovf_im,
-   PIPE  => open  -- same as real component
+   clk      => clk,
+   rst      => data_reset, 
+   clr      => clr_i,
+   vld      => vld,
+   sub(0)   => sub_i,
+   sub(1)   => sub_i,
+   x0       => x_re,
+   y0       => y_im,
+   x1       => x_im,
+   y1       => y_re,
+   r_vld    => open, -- same as real component
+   r_out    => r_im,
+   r_ovf    => r_ovf_im,
+   chainin  => "00",
+   chainout => open,
+   PIPE     => open  -- same as real component
   );
 
   -- accumulator delay compensation (multiply-accumulate bypassed!)

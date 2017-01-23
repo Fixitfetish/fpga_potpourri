@@ -1,12 +1,12 @@
 -------------------------------------------------------------------------------
--- FILE    : signed_mult2_add_virtex4.vhdl
+-- FILE    : signed_mult2_sum_virtex4.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 17/Dec/2016
--- VERSION : 0.30
+-- DATE    : 22/Jan/2017
+-- VERSION : 0.40
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
--- Copyright (c) 2016 Fixitfetish
+-- Copyright (c) 2016-2017 Fixitfetish
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
@@ -25,7 +25,7 @@ library unisim;
 -- clock cycles when the additional input and output registers are disabled.
 -- Refer to Xilinx XtremeDSP User Guide, UG073 (v2.7) May 15, 2008
 
-architecture virtex4 of signed_mult2_add is
+architecture virtex4 of signed_mult2_sum is
 
   -- accumulator width in bits
   constant ACCU_WIDTH : positive := 48;
@@ -35,7 +35,7 @@ architecture virtex4 of signed_mult2_add is
   constant RESET : std_logic := '0';
   constant LOUT : positive := r_out'length;
 
-  signal rst_i, b_sub_q: std_logic; 
+  signal rst_i, b_sub: std_logic; 
   signal clr_q, clr_i : std_logic; 
   signal vld_i1, vld_i2, vld_q : std_logic;
   signal ax, ay : signed(17 downto 0);
@@ -71,15 +71,15 @@ architecture virtex4 of signed_mult2_add is
 begin
 
   -- check input/output length
-  assert (a_x'length<=18 and a_y'length<=18 and b_x'length<=18 and b_y'length<=18)
-    report "ERROR signed_mult2_add(virtex4): Multiplier input width cannot exceed 18 bits."
+  assert (x0'length<=18 and y0'length<=18 and x1'length<=18 and y1'length<=18)
+    report "ERROR signed_mult2_sum(virtex4): Multiplier input width cannot exceed 18 bits."
     severity failure;
 
   -- LSB bound inputs
-  ax <= resize(a_x,18);
-  ay <= resize(a_y,18);
-  bx <= resize(b_x,18);
-  by <= resize(b_y,18);
+  ax <= resize(x0,18);
+  ay <= resize(y0,18);
+  bx <= resize(x1,18);
+  by <= resize(y1,18);
 
   -- 011 0101 => PCOUT = C +/- (AX*AY + CIN)  .. multiply + round bit
   -- Note that the carry CIN is 0 and not used here. 
@@ -93,18 +93,18 @@ begin
   g_din : if not INPUT_REG generate
     vld_i1 <= vld;
     rst_i <= rst;
-    b_sub_q <= b_sub;
+    b_sub <= sub(1);
     opmode2_zyx_q <= opmode2_zyx;
   end generate;
 
   g_din_reg : if INPUT_REG generate
     vld_i1 <= vld when rising_edge(clk);
     rst_i <= rst when rising_edge(clk);
-    b_sub_q <= b_sub when rising_edge(clk);
+    b_sub <= sub(1) when rising_edge(clk);
     opmode2_zyx_q <= opmode2_zyx when rising_edge(clk);
   end generate;
 
-  I_DSP48_1 : DSP48
+  DSP48_1 : DSP48
   generic map(
     AREG          => reg1(INPUT_REG),
     BREG          => reg1(INPUT_REG),
@@ -143,13 +143,13 @@ begin
     RSTCTRL                => RESET,
     RSTM                   => RESET,
     RSTP                   => RESET,
-    SUBTRACT               => a_sub,
+    SUBTRACT               => sub(0),
     BCOUT                  => open,
     P(47 downto 0)         => open,
     PCOUT                  => pcout
   );
 
-  I_DSP48_2 : DSP48
+  DSP48_2 : DSP48
   generic map(
     AREG          => reg2(INPUT_REG),
     BREG          => reg2(INPUT_REG),
@@ -188,7 +188,7 @@ begin
     RSTCTRL                => RESET,
     RSTM                   => RESET,
     RSTP                   => RESET,
-    SUBTRACT               => b_sub_q,
+    SUBTRACT               => b_sub,
     BCOUT                  => open,
     P(47 downto 0)         => accu,
     PCOUT                  => open

@@ -1,12 +1,12 @@
--------------------------------------------------------------------------------
--- FILE    : signed_mult2_accu_behave.vhdl
+-------------------------------------------------"------------------------------
+-- FILE    : signed_mult4_accu_behave.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 21/Jan/2017
--- VERSION : 0.80
+-- DATE    : 22/Jan/2017
+-- VERSION : 0.20
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
--- Copyright (c) 2016-2017 Fixitfetish
+-- Copyright (c) 2017 Fixitfetish
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
@@ -16,7 +16,7 @@ library fixitfetish;
 
 -- This implementation is a behavioral model for simulation.
 --
--- Input Data      : 2x2 signed values
+-- Input Data      : 4x2 signed values
 -- Input Register  : optional, strongly recommended
 -- Accu Register   : 64 bits, always enabled
 -- Rounding        : optional half-up
@@ -24,7 +24,7 @@ library fixitfetish;
 -- Output Register : optional, after rounding, shift-right and saturation
 -- Overall pipeline stages : 1,2,3,.. dependent on configuration
 
-architecture behave of signed_mult2_accu is
+architecture behave of signed_mult4_accu is
 
   -- local auxiliary
   -- determine number of required additional guard bits (MSBs)
@@ -59,12 +59,14 @@ architecture behave of signed_mult2_accu is
     sub : std_logic_vector(sub'range);
     x0, y0 : signed(17 downto 0);
     x1, y1 : signed(17 downto 0);
+    x2, y2 : signed(17 downto 0);
+    x3, y3 : signed(17 downto 0);
   end record;
   type array_ireg is array(integer range <>) of t_ireg;
   signal ireg : array_ireg(NUM_INPUT_REG downto 0);
 
   signal vld_q : std_logic;
-  signal p0, p1, sum : signed(PRODUCT_WIDTH downto 0);
+  signal p0, p1, p2, p3, sum_01, sum : signed(PRODUCT_WIDTH+1 downto 0);
   signal accu : signed(ACCU_WIDTH-1 downto 0);
   signal chainin_i : signed(ACCU_WIDTH-1 downto 0) := (others=>'0');
   signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
@@ -77,23 +79,23 @@ begin
 
   -- check chain in/out length
   assert (chainin'length=ACCU_WIDTH or (not USE_CHAININ))
-    report "ERROR signed_mult2_accu(behave) : " & 
+    report "ERROR signed_mult4_accu(behave) : " & 
            "Chain input width must be " & integer'image(ACCU_WIDTH) & " bits."
     severity failure;
 
   assert PRODUCT_WIDTH<=ACCU_WIDTH
-    report "ERROR signed_mult2_accu(behave) : " & 
+    report "ERROR signed_mult4_accu(behave) : " & 
            "Resulting product width exceeds accumulator width of " & integer'image(ACCU_WIDTH)
     severity failure;
 
   assert GUARD_BITS_EVAL<=MAX_GUARD_BITS
-    report "ERROR signed_mult2_accu(behave) : " & 
+    report "ERROR signed_mult4_accu(behave) : " & 
            "Maximum number of accumulator bits is " & integer'image(ACCU_WIDTH) & " ." &
            "Input bit widths allow only maximum number of guard bits = " & integer'image(MAX_GUARD_BITS)
     severity failure;
 
   assert OUTPUT_WIDTH<ACCU_USED_SHIFTED_WIDTH or not(OUTPUT_CLIP or OUTPUT_OVERFLOW)
-    report "ERROR signed_mult2_accu(behave) : " & 
+    report "ERROR signed_mult4_accu(behave) : " & 
            "More guard bits required for saturation/clipping and/or overflow detection."
     severity failure;
 
@@ -108,28 +110,33 @@ begin
   ireg(NUM_INPUT_REG).y0 <= resize(y0,18);
   ireg(NUM_INPUT_REG).x1 <= resize(x1,18);
   ireg(NUM_INPUT_REG).y1 <= resize(y1,18);
+  ireg(NUM_INPUT_REG).x2 <= resize(x2,18);
+  ireg(NUM_INPUT_REG).y2 <= resize(y2,18);
+  ireg(NUM_INPUT_REG).x3 <= resize(x3,18);
+  ireg(NUM_INPUT_REG).y3 <= resize(y3,18);
 
   g_in : if NUM_INPUT_REG>=1 generate
-  begin
-    p1 : process(clk)
-    begin 
-     if rising_edge(clk) then
+    process(clk)
+    begin if rising_edge(clk) then
       if clkena='1' then
         for n in 1 to NUM_INPUT_REG loop
           ireg(n-1) <= ireg(n);
         end loop;
       end if;
-     end if;
-    end process;
+    end if; end process;
   end generate;
 
-  p0 <= resize(ireg(0).x0 * ireg(0).y0, PRODUCT_WIDTH+1);
-  p1 <= resize(ireg(0).x1 * ireg(0).y1, PRODUCT_WIDTH+1);
+  p0 <= resize(ireg(0).x0 * ireg(0).y0, PRODUCT_WIDTH+2);
+  p1 <= resize(ireg(0).x1 * ireg(0).y1, PRODUCT_WIDTH+2);
+  p2 <= resize(ireg(0).x2 * ireg(0).y2, PRODUCT_WIDTH+2);
+  p3 <= resize(ireg(0).x3 * ireg(0).y3, PRODUCT_WIDTH+2);
 
-  sum <=  p0+p1 when (ireg(0).sub="00") else
-          p0-p1 when (ireg(0).sub="01") else
-         -p0+p1 when (ireg(0).sub="10") else
-         -p0-p1;
+  sum_01 <= p0+p1 when (ireg(0).sub(1)='0') else p0-p1;
+
+  sum <= sum_01+p2+p3 when (ireg(0).sub(2 to 3)="00") else
+         sum_01+p2-p3 when (ireg(0).sub(2 to 3)="01") else
+         sum_01-p2+p3 when (ireg(0).sub(2 to 3)="10") else
+         sum_01-p2-p3;
 
   g_chain : if USE_CHAININ generate
     chainin_i <= chainin;
@@ -194,8 +201,8 @@ begin
       if rising_edge(clk) then
         if clkena='1' then
           RESIZE_CLIP(din=>accu_used_shifted, dout=>v_dout, ovfl=>v_ovfl, clip=>OUTPUT_CLIP);
-          r_vld <= vld_q;
-          r_out <= v_dout;
+          r_vld <= vld_q; 
+          r_out <= v_dout; 
           if OUTPUT_OVERFLOW then r_ovf<=v_ovfl; else r_ovf<='0'; end if;
         end if;
       end if;

@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
--- FILE    : signed_mult2_accu.vhdl
+-- FILE    : signed_mult2_sum.vhdl
 -- AUTHOR  : Fixitfetish
 -- DATE    : 22/Jan/2017
--- VERSION : 0.80
+-- VERSION : 0.50
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -12,54 +12,15 @@ library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
 
--- Two signed multiplications and accumulate both
+-- Two Signed Multiplications and sum of both
 --
 -- The delay depends on the configuration and the underlying hardware. The
 -- number pipeline stages is reported as constant at output port PIPE.
 --
---   reset accumulator    : if vld=0 and clr=1  then  r = undefined 
---   restart accumulation : if vld=1 and clr=1  then  r = +/-(x0*y0) +/-(x1*y1)
---   hold accumulator     : if vld=0 and clr=0  then  r = r
---   proceed accumulation : if vld=1 and clr=0  then  r = r +/-(x0*y0) +/-(x1*y1)
---
--- This entity can be used for example
---   * for complex multiplication and accumulation
---   * to calculate the mean square of a complex numbers
---
--- If just two multiplications and the sum of both is required but not any further
--- accumulation then constantly set clr='1'.
---
---    <----------------------------------- ACCU WIDTH ------------------------>
---    |        <-------------------------- ACCU USED WIDTH ------------------->
---    |        |              <----------- PRODUCT WIDTH --------------------->
---    |        |              |                                               |
---    +--------+---+----------+-------------------------------+---------------+
---    | unused |  GUARD BITS  |                               |  SHIFT RIGHT  |
---    |SSSSSSSS|OOO|ODDDDDDDDD|DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD|Rxxxxxxxxxxxxxx|
---    +--------+---+----------+-------------------------------+---------------+
---             |   |                                          |
---             |   <------------- OUTPUT WIDTH --------------->
---             <--------- ACCU USED SHIFTED WIDTH ------------>
---
--- ACCU WIDTH = accumulator width (depends on hardware/implementation)
--- PRODUCT WIDTH = ax'length+ay'length = bx'length+by'length
--- NUM_SUMMANDS = number of accumulated products
--- GUARD BITS = ceil(log2(NUM_SUMMANDS))
--- ACCU USED WIDTH = PRODUCT WIDTH + GUARD BITS <= ACCU WIDTH
--- OUTPUT SHIFT RIGHT = number of LSBs to prune
--- OUTPUT WIDTH = r'length
--- ACCU USED SHIFTED WIDTH = ACCU USED WIDTH - OUTPUT SHIFT RIGHT
---
--- S = irrelevant sign extension MSBs
--- O = overflow detection sign bits, all O must be identical otherwise overflow
--- D = output data bits
--- R = rounding bit (+0.5 when round 'nearest' is enabled)
--- x = irrelevant LSBs
---
--- Optimal settings for overflow detection and/or saturation/clipping :
--- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH
+--   if vld=0  then  r = r
+--   if vld=1  then  r = +/-(x0*y0) +/-(x1*y1)
 
-entity signed_mult2_accu is
+entity signed_mult2_sum is
 generic (
   -- The number of summands is important to determine the number of additional
   -- guard bits (MSBs) that are required for the accumulation process.
@@ -72,8 +33,6 @@ generic (
   --   and so on ...
   -- Note that every single accumulated product counts!
   NUM_SUMMAND : natural := 0;
-  -- Enable chain input from other DSP cell, i.e. additional accumulator input
-  USE_CHAININ : boolean := false;
   -- Number of additional input register (at least one is strongly recommended)
   -- If available the input registers within the DSP cell are used.
   NUM_INPUT_REG : natural := 1;
@@ -94,8 +53,6 @@ port (
   clk      : in  std_logic;
   -- Reset result data output (optional)
   rst      : in  std_logic := '0';
-  -- Clear accumulator (mark first valid input factors of accumulation sequence)
-  clr      : in  std_logic;
   -- Data valid input
   vld      : in  std_logic;
   -- add/subtract for all products n=0..1 , '0'=> +(x(n)*y(n)), '1'=> -(x(n)*y(n))
@@ -111,9 +68,6 @@ port (
   r_out    : out signed;
   -- Output overflow/clipping detection
   r_ovf    : out std_logic;
-  -- Input from other chained DSP cell (optional, only used when input enabled and connected)
-  -- The input width is HW specific.
-  chainin  : in  signed;
   -- Result output to other chained DSP cell (optional)
   -- The output width is HW specific.
   chainout : out signed;
@@ -123,11 +77,11 @@ port (
 begin
 
   assert (x0'length+y0'length)=(x1'length+y1'length)
-    report "ERROR signed_mult2_accu : Both products must result in same size."
+    report "ERROR signed_mult2_sum : Both products must result in same size."
     severity failure;
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT>0)
-    report "WARNING signed_mult2_accu : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
+    report "WARNING signed_mult2_sum : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 
 end entity;
