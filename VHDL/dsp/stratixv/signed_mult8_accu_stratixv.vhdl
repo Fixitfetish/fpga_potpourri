@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
--- FILE    : signed_mult8_accu_chain.vhdl
+-- FILE    : signed_mult8_accu_stratixv.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 22/Jan/2017
--- VERSION : 0.20
+-- DATE    : 24/Jan/2017
+-- VERSION : 0.10
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -14,10 +14,10 @@ library ieee;
 library fixitfetish;
  use fixitfetish.ieee_extension.all;
 
--- This implementation uses two chained instances of 'signed_mult4_accu'.
--- (which actually are four chained instances of 'signed_mult2_accu'.)
--- Hence, it is not HW specific and can be used for simulation and synthesis
--- based on the 'signed_mult2_accu' implementation.
+-- This implementation uses a chain of the two instances 'signed_mult4_sum' and
+-- 'signed_mult4_accu' and requires one pipeline register less than the chaining
+-- of two 'signed_mult4_accu' instances. But, the chain input is not supported
+-- and the maximum possible frequency is lower.
 --
 -- Input Data      : 8x2 signed values
 -- Input Register  : optional, strongly recommended
@@ -25,21 +25,31 @@ library fixitfetish;
 -- Rounding        : optional half-up
 -- Output Data     : 1x signed value, max width is implementation specific
 -- Output Register : optional, after rounding, shift-right and saturation
--- Overall pipeline stages : 4,5,6,.. dependent on configuration
+-- Overall pipeline stages : 3,4,5,.. dependent on configuration
 
-architecture chain of signed_mult8_accu is
+architecture stratixv of signed_mult8_accu is
 
-  -- chain width in bits - implementation and HW specific !
+  -- chain width in bits - implementation and device specific !
   signal chain : signed(chainout'length-1 downto 0);
-  signal dummy : signed(chainout'length-1 downto 0);
+  signal dummy : signed(17 downto 0);
+
+  -- dummy sink to avoid warnings
+  procedure signed_sink(d:in signed) is
+    variable b : boolean := false;
+  begin b := (d(d'right)='1') or b; end procedure;
 
 begin
 
+  assert USE_CHAININ=false
+    report "ERROR signed_mult8_accu(stratixv) : Chain input is not supported. " &
+           "Check if other architectures are available that support chain input."
+    severity failure;
+
   -- first instance performs just sum of four products without accumulation
-  i1 : entity fixitfetish.signed_mult4_accu
+  i1 : entity fixitfetish.signed_mult4_sum
   generic map(
     NUM_SUMMAND        => 4, -- irrelevant because chain output is used
-    USE_CHAININ        => USE_CHAININ,
+    USE_CHAININ        => false,
     NUM_INPUT_REG      => NUM_INPUT_REG,
     OUTPUT_REG         => false, -- irrelevant because chain output is used
     OUTPUT_SHIFT_RIGHT => 0,     -- irrelevant because chain output is used
@@ -50,7 +60,6 @@ begin
   port map (
    clk      => clk,
    rst      => rst,
-   clr      => '1', -- disable accumulation
    vld      => vld,
    sub      => sub(0 to 3),
    x0       => x0,
@@ -69,12 +78,14 @@ begin
    PIPE     => open
   );
 
+  signed_sink(dummy);
+
   -- second instance with accumulator
   i2 : entity fixitfetish.signed_mult4_accu
   generic map(
     NUM_SUMMAND        => NUM_SUMMAND,
     USE_CHAININ        => true,
-    NUM_INPUT_REG      => NUM_INPUT_REG+2, -- two more pipeline registers because of chaining
+    NUM_INPUT_REG      => NUM_INPUT_REG+1, -- one more pipeline register because of chaining
     OUTPUT_REG         => OUTPUT_REG,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     OUTPUT_ROUND       => OUTPUT_ROUND,

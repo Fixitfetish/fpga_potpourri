@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_mult_accu_sdr.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 22/Jan/2017
--- VERSION : 0.50
+-- DATE    : 24/Jan/2017
+-- VERSION : 0.60
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -109,8 +109,8 @@ begin
    r_vld    => r_vld,
    r_out    => r_re,
    r_ovf    => r_ovf_re,
-   chainin  => "00",
-   chainout => open,
+   chainin  => open, -- unused
+   chainout => open, -- unused
    PIPE     => PIPE_DSP
   );
 
@@ -140,8 +140,8 @@ begin
    r_vld    => open, -- same as real component
    r_out    => r_im,
    r_ovf    => r_ovf_im,
-   chainin  => "00",
-   chainout => open,
+   chainin  => open, -- unused
+   chainout => open, -- unused
    PIPE     => open  -- same as real component
   );
 

@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : signed_mult8_accu.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 22/Jan/2017
--- VERSION : 0.20
+-- DATE    : 24/Jan/2017
+-- VERSION : 0.30
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -124,11 +124,13 @@ port (
   -- Output overflow/clipping detection
   r_ovf    : out std_logic;
   -- Input from other chained DSP cell (optional, only used when input enabled and connected)
-  -- The input width is HW specific.
-  chainin  : in  signed;
+  -- The chain width is device specific. A maximum width of 96 bits is supported.
+  -- If the device specific chain width is smaller than 96 only the LSBs are used.
+  chainin  : in  signed(95 downto 0) := (others=>'0');
   -- Result output to other chained DSP cell (optional)
-  -- The output width is HW specific.
-  chainout : out signed;
+  -- The chain width is device specific. A maximum width of 96 bits is supported.
+  -- If the device specific chain width is smaller than 96 only the LSBs are used.
+  chainout : out signed(95 downto 0) := (others=>'0');
   -- number of pipeline stages, constant, depends on configuration and hardware
   PIPE     : out natural := 0
 );

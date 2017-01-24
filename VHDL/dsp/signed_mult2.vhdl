@@ -1,38 +1,57 @@
 -------------------------------------------------------------------------------
--- FILE    : signed_mult2_sum.vhdl
+-- FILE    : signed_mult2.vhdl
 -- AUTHOR  : Fixitfetish
 -- DATE    : 24/Jan/2017
--- VERSION : 0.60
+-- VERSION : 0.10
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
--- Copyright (c) 2016-2017 Fixitfetish
+-- Copyright (c) 2017 Fixitfetish
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
 
--- Two Signed Multiplications and sum of both
+-- Two independent signed multiplications
 --
 -- The delay depends on the configuration and the underlying hardware. The
 -- number pipeline stages is reported as constant at output port PIPE.
 --
---   if vld=0  then  r = r
---   if vld=1  then  r = +/-(x0*y0) +/-(x1*y1)
+--   hold previous   : if vld=0  then  r(n) = r(n)
+--   multiply        : if vld=1  then  r(n) = x(n)*y(n)
+--
+--    <----------------------------------- ACCU WIDTH ------------------------>
+--    |        <-------------------------- ACCU USED WIDTH ------------------->
+--    |        |              <----------- PRODUCT WIDTH --------------------->
+--    |        |              |                                               |
+--    +--------+---+----------+-------------------------------+---------------+
+--    | unused |  GUARD BITS  |                               |  SHIFT RIGHT  |
+--    |SSSSSSSS|OOO|ODDDDDDDDD|DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD|Rxxxxxxxxxxxxxx|
+--    +--------+---+----------+-------------------------------+---------------+
+--             |   |                                          |
+--             |   <------------- OUTPUT WIDTH --------------->
+--             <--------- ACCU USED SHIFTED WIDTH ------------>
+--
+-- ACCU WIDTH = accumulator width (depends on hardware/implementation)
+-- PRODUCT WIDTH = ax'length+ay'length = bx'length+by'length
+-- NUM_SUMMANDS = number of accumulated products
+-- GUARD BITS = ceil(log2(NUM_SUMMANDS))
+-- ACCU USED WIDTH = PRODUCT WIDTH + GUARD BITS <= ACCU WIDTH
+-- OUTPUT SHIFT RIGHT = number of LSBs to prune
+-- OUTPUT WIDTH = r'length
+-- ACCU USED SHIFTED WIDTH = ACCU USED WIDTH - OUTPUT SHIFT RIGHT
+--
+-- S = irrelevant sign extension MSBs
+-- O = overflow detection sign bits, all O must be identical otherwise overflow
+-- D = output data bits
+-- R = rounding bit (+0.5 when round 'nearest' is enabled)
+-- x = irrelevant LSBs
+--
+-- Optimal settings for overflow detection and/or saturation/clipping :
+-- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH
 
-entity signed_mult2_sum is
+entity signed_mult2 is
 generic (
-  -- The number of summands is important to determine the number of additional
-  -- guard bits (MSBs) that are required for the accumulation process.
-  -- The setting is relevant to save logic especially when saturation/clipping
-  -- and/or overflow detection is enabled.
-  --   0 => maximum possible, not recommended (worst case, hardware dependent)
-  --   1 => just one multiplication without accumulation
-  --   2 => accumulate up to 2 products
-  --   3 => accumulate up to 3 products
-  --   and so on ...
-  -- Note that every single accumulated product counts!
-  NUM_SUMMAND : natural := 0;
   -- Number of additional input register (at least one is strongly recommended)
   -- If available the input registers within the DSP cell are used.
   NUM_INPUT_REG : natural := 1;
@@ -54,7 +73,7 @@ port (
   -- Reset result data output (optional)
   rst      : in  std_logic := '0';
   -- Data valid input
-  vld      : in  std_logic;
+  vld      : in  std_logic_vector(0 to 1);
   -- add/subtract for all products n=0..1 , '0'=> +(x(n)*y(n)), '1'=> -(x(n)*y(n))
   sub      : in  std_logic_vector(0 to 1);
   -- 1st product, signed factors
@@ -62,27 +81,23 @@ port (
   -- 2nd product, signed factors
   x1, y1   : in  signed;
   -- Result valid output
-  r_vld    : out std_logic;
+  r_vld    : out std_logic_vector(0 to 1);
   -- Resulting product/accumulator output (optionally rounded and clipped)
   -- The standard result output might be unused when chain output is used instead.
-  r_out    : out signed;
+  r0_out, r1_out : out signed;
   -- Output overflow/clipping detection
-  r_ovf    : out std_logic;
-  -- Result output to other chained DSP cell (optional)
-  -- The chain width is device specific. A maximum width of 96 bits is supported.
-  -- If the device specific chain width is smaller than 96 only the LSBs are used.
-  chainout : out signed(95 downto 0) := (others=>'0');
+  r_ovf    : out std_logic_vector(0 to 1);
   -- Number of pipeline stages, constant, depends on configuration and hardware
   PIPE     : out natural := 0
 );
 begin
 
   assert (x0'length+y0'length)=(x1'length+y1'length)
-    report "ERROR signed_mult2_sum : Both products must result in same size."
+    report "ERROR signed_mult2 : Both products must result in same size."
     severity failure;
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT>0)
-    report "WARNING signed_mult2_sum : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
+    report "WARNING signed_mult2 : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 
 end entity;

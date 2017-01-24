@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : signed_mult2_accu_stratixv.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 21/Jan/2017
--- VERSION : 0.60
+-- DATE    : 24/Jan/2017
+-- VERSION : 0.70
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -77,7 +77,7 @@ architecture stratixv of signed_mult2_accu is
     rst, vld : std_logic;
     sub, negate : std_logic;
     accumulate, loadconst : std_logic;
-    x0, y1 : signed(17 downto 0);
+    x0, y0 : signed(17 downto 0);
     x1, y1 : signed(17 downto 0);
   end record;
   type array_ireg is array(integer range <>) of t_ireg;
@@ -92,7 +92,7 @@ architecture stratixv of signed_mult2_accu is
 begin
 
   -- check chain in/out length
-  assert (chainin'length=ACCU_WIDTH or (not USE_CHAININ))
+  assert (chainin'length>=ACCU_WIDTH or (not USE_CHAININ))
     report "ERROR signed_mult2_accu(stratixv) : " & 
            "Chain input width must be " & integer'image(ACCU_WIDTH) & " bits."
     severity failure;
@@ -162,7 +162,8 @@ begin
     ireg(0).y1 <= ireg(1).y1;
   end generate;
 
-  chainin_i <= std_logic_vector(resize(chainin,ACCU_WIDTH));
+  -- use only LSBs of chain input
+  chainin_i <= std_logic_vector(chainin(ACCU_WIDTH-1 downto 0));
 
   dsp : stratixv_mac
   generic map (
@@ -255,8 +256,12 @@ begin
     sub        => ireg(0).sub
   );
 
-  chainout <= signed(chainout_i);
-
+  chainout(ACCU_WIDTH-1 downto 0) <= signed(chainout_i);
+  g_chainout : for n in ACCU_WIDTH to (chainout'length-1) generate
+    -- sign extension (for simulation and to avoid warnings)
+    chainout(n) <= chainout_i(ACCU_WIDTH-1);
+  end generate;
+  
   -- accumulator delay compensation
   vld_q <= ireg(0).vld when rising_edge(clk);
 

@@ -78,7 +78,7 @@ architecture arria10 of signed_mult2_accu is
     rst, vld : std_logic;
     sub, negate : std_logic;
     accumulate, loadconst : std_logic;
-    x0, y1 : signed(17 downto 0);
+    x0, y0 : signed(17 downto 0);
     x1, y1 : signed(17 downto 0);
   end record;
   type array_ireg is array(integer range <>) of t_ireg;
@@ -168,20 +168,20 @@ begin
   dsp : twentynm_mac
   generic map (
     accum_pipeline_clock      => "none",
-    accumulate_clock          => clock(INPUT_REG),
-    ax_clock                  => clock(INPUT_REG),
+    accumulate_clock          => clock(NUM_INPUT_REG),
+    ax_clock                  => clock(NUM_INPUT_REG),
     ax_width                  => 18,
-    ay_scan_in_clock          => clock(INPUT_REG),
+    ay_scan_in_clock          => clock(NUM_INPUT_REG),
     ay_scan_in_width          => 18,
     ay_use_scan_in            => "false",
     az_clock                  => "none", -- unused here
     az_width                  => 1, -- unused here
-    bx_clock                  => clock(INPUT_REG),
+    bx_clock                  => clock(NUM_INPUT_REG),
     bx_width                  => 18,
-    by_clock                  => clock(INPUT_REG),
+    by_clock                  => clock(NUM_INPUT_REG),
     by_use_scan_in            => "false",
     by_width                  => 18,
-    bz_clock                  => clock(INPUT_REG),
+    bz_clock                  => clock(NUM_INPUT_REG),
     bz_width                  => 18,
     coef_a_0                  => 0,
     coef_a_1                  => 0,
@@ -205,12 +205,12 @@ begin
     delay_scan_out_by         => "false",
     enable_double_accum       => "false",
     input_pipeline_clock      => "none",
-    load_const_clock          => clock(INPUT_REG),
+    load_const_clock          => clock(NUM_INPUT_REG),
     load_const_pipeline_clock => "none",
     load_const_value          => load_const_value(OUTPUT_ROUND, OUTPUT_SHIFT_RIGHT),
     lpm_type                  => "twentynm_mac",
     mode_sub_location         => 0,
-    negate_clock              => clock(INPUT_REG),
+    negate_clock              => clock(NUM_INPUT_REG),
     negate_pipeline_clock     => "none",
     operand_source_max        => "input",
     operand_source_may        => "input",
@@ -227,7 +227,7 @@ begin
     signed_may                => "true",
     signed_mbx                => "true",
     signed_mby                => "true",
-    sub_clock                 => clock(INPUT_REG),
+    sub_clock                 => clock(NUM_INPUT_REG),
     sub_pipeline_clock        => "none",
     use_chainadder            => use_chainadder(USE_CHAININ)
   )

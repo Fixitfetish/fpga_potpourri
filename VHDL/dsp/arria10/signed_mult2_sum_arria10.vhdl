@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
--- FILE    : signed_mult2_add_arria10.vhdl
+-- FILE    : signed_mult2_sum_arria10.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 06/Jan/2017
--- VERSION : 0.40
+-- DATE    : 24/Jan/2017
+-- VERSION : 0.50
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -24,18 +24,19 @@ library fixitfetish;
 -- Rounding        : optional half-up, within DSP cell
 -- Output Data     : 1x signed value, max 64 bits
 -- Output Register : optional, after shift-right and saturation
--- Overall pipeline stages : 1..3 dependent on configuration
+-- Overall pipeline stages : 1,2,3,... dependent on configuration
 
-architecture arria10 of signed_mult2_add is
+architecture arria10 of signed_mult2_sum is
 begin
 
   -- NOTE: - subset of ACCU implementation
   --       - clear accumulator with every valid input data
 
-  i_dsp : entity fixitfetish.signed_mult2_accu
+  dsp : entity fixitfetish.signed_mult2_accu
   generic map(
     NUM_SUMMAND => 2,
-    INPUT_REG => INPUT_REG,
+    USE_CHAININ => false,
+    NUM_INPUT_REG => NUM_INPUT_REG,
     OUTPUT_REG => OUTPUT_REG,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     OUTPUT_ROUND => OUTPUT_ROUND,
@@ -43,20 +44,21 @@ begin
     OUTPUT_OVERFLOW => OUTPUT_OVERFLOW
   )
   port map(
-    clk   => clk,
-    rst   => rst,
-    clr   => vld,
-    vld   => vld,
-    a_sub => a_sub,
-    a_x   => a_x,
-    a_y   => a_y,
-    b_sub => b_sub,
-    b_x   => b_x,
-    b_y   => b_y,
-    r_vld => r_vld,
-    r_out => r_out,
-    r_ovf => r_ovf,
-    PIPE  => PIPE
+    clk      => clk,
+    rst      => rst,
+    clr      => vld,
+    vld      => vld,
+    sub      => sub,
+    x0       => x0,
+    y0       => y0,
+    x1       => x1,
+    y1       => y1,
+    r_vld    => r_vld,
+    r_out    => r_out,
+    r_ovf    => r_ovf,
+    chainin  => open, -- unused
+    chainout => chainout,
+    PIPE     => PIPE
   );
 
 end architecture;

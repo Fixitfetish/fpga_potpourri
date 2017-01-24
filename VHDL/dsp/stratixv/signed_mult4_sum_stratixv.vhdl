@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : signed_mult4_sum_stratixv.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 22/Jan/2017
--- VERSION : 0.20
+-- DATE    : 24/Jan/2017
+-- VERSION : 0.30
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -59,7 +59,7 @@ architecture stratixv of signed_mult4_sum is
 
   -- derived constants
   constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT>0);
-  constant PRODUCT_WIDTH : natural := a_x'length + a_y'length;
+  constant PRODUCT_WIDTH : natural := x0'length + y0'length;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
   constant GUARD_BITS_EVAL : natural := guard_bits(NUM_SUMMAND,MAX_GUARD_BITS);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
@@ -158,7 +158,8 @@ begin
     ireg(0).y3 <= ireg(1).y3;
   end generate;
 
-  chainin_i <= std_logic_vector(resize(chainin,ACCU_WIDTH));
+  -- use only LSBs of chain input
+  chainin_i <= std_logic_vector(chainin(ACCU_WIDTH-1 downto 0));
 
   dsp_a : stratixv_mac
   generic map (
@@ -342,7 +343,11 @@ begin
     sub        => ireg(0).sub_b
   );
 
-  chainout <= signed(chainout_i);
+  chainout(ACCU_WIDTH-1 downto 0) <= signed(chainout_i);
+  g_chainout : for n in ACCU_WIDTH to (chainout'length-1) generate
+    -- sign extension (for simulation and to avoid warnings)
+    chainout(n) <= chainout_i(ACCU_WIDTH-1);
+  end generate;
 
   -- accumulator delay compensation
   vld_q <= ireg(0).vld when rising_edge(clk);

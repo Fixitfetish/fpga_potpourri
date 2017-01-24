@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : signed_mult2_sum_stratixv.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 22/Jan/2017
--- VERSION : 0.50
+-- DATE    : 24/Jan/2017
+-- VERSION : 0.60
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -55,7 +55,7 @@ begin
     r_vld    => r_vld,
     r_out    => r_out,
     r_ovf    => r_ovf,
-    chainin  => "00", -- unused
+    chainin  => open, -- unused
     chainout => chainout,
     PIPE     => PIPE
   );

@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
--- FILE    : cplx_mult2_accu_sdr.vhdl
+-- FILE    : cplx_mult4_accu_sdr.vhdl
 -- AUTHOR  : Fixitfetish
 -- DATE    : 24/Jan/2017
--- VERSION : 0.20
+-- VERSION : 0.10
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -15,15 +15,15 @@ library fixitfetish;
  use fixitfetish.cplx_pkg.all;
  use fixitfetish.ieee_extension.all;
 
--- Two complex multiplications and accumulate all - Single Data Rate
+-- Four complex multiplications and accumulate all - Single Data Rate
 -- In general this multiplier can be used when FPGA DSP cells are clocked with
 -- the standard system clock. 
 --
--- This implementation requires the FPGA type dependent module 'signed_mult4_accu'.
+-- This implementation requires the FPGA type dependent module 'signed_mult8_accu'.
 --
 -- NOTE: The double rate clock 'clk2' is irrelevant and unused here.
 
-architecture sdr of cplx_mult2_accu is
+architecture sdr of cplx_mult4_accu is
 
   -- derived input signals
   signal sub_n : std_logic_vector(sub'range);
@@ -43,9 +43,14 @@ architecture sdr of cplx_mult2_accu is
 
 begin
 
-  rst <= (x(0).rst or  y(0).rst or  x(1).rst or  y(1).rst);
-  vld <= (x(0).vld and y(0).vld and x(1).vld and y(1).vld) when rst='0' else '0';
-  ovf <= (x(0).ovf or  y(0).ovf or  x(1).ovf or  y(1).ovf) when rst='0' else '0';
+  rst <= (    x(0).rst or  y(0).rst or  x(1).rst or  y(1).rst
+          or  x(2).rst or  y(2).rst or  x(3).rst or  y(3).rst );
+         
+  vld <= (    x(0).vld and y(0).vld and x(1).vld and y(1).vld
+          and x(2).vld and y(2).vld and x(3).vld and y(3).vld ) when rst='0' else '0';
+          
+  ovf <= (    x(0).ovf or  y(0).ovf or  x(1).ovf or  y(1).ovf
+          or  x(2).ovf or  y(2).ovf or  x(3).ovf or  y(3).ovf ) when rst='0' else '0';
 
   -- reset result data output to zero
   data_reset <= rst when m='R' else '0';
@@ -54,7 +59,7 @@ begin
   sub_n <= not sub;
 
   -- calculate real component
-  i_re : entity fixitfetish.signed_mult4_accu
+  i_re : entity fixitfetish.signed_mult8_accu
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAININ        => false, -- unused here
@@ -74,6 +79,10 @@ begin
    sub(1)   => sub_n(0),
    sub(2)   => sub(1),
    sub(3)   => sub_n(1),
+   sub(4)   => sub(2),
+   sub(5)   => sub_n(2),
+   sub(6)   => sub(3),
+   sub(7)   => sub_n(3),
    x0       => x(0).re,
    y0       => y(0).re,
    x1       => x(0).im,
@@ -82,6 +91,14 @@ begin
    y2       => y(1).re,
    x3       => x(1).im,
    y3       => y(1).im,
+   x4       => x(2).re,
+   y4       => y(2).re,
+   x5       => x(2).im,
+   y5       => y(2).im,
+   x6       => x(3).re,
+   y6       => y(3).re,
+   x7       => x(3).im,
+   y7       => y(3).im,
    r_vld    => r_vld,
    r_out    => r_re,
    r_ovf    => r_ovf_re,
@@ -91,7 +108,7 @@ begin
   );
 
   -- calculate imaginary component
-  i_im : entity fixitfetish.signed_mult4_accu
+  i_im : entity fixitfetish.signed_mult8_accu
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAININ        => false, -- unused here
@@ -111,6 +128,10 @@ begin
    sub(1)   => sub(0),
    sub(2)   => sub(1),
    sub(3)   => sub(1),
+   sub(4)   => sub(2),
+   sub(5)   => sub(2),
+   sub(6)   => sub(3),
+   sub(7)   => sub(3),
    x0       => x(0).re,
    y0       => y(0).im,
    x1       => x(0).im,
@@ -119,6 +140,14 @@ begin
    y2       => y(1).im,
    x3       => x(1).im,
    y3       => y(1).re,
+   x4       => x(2).re,
+   y4       => y(2).im,
+   x5       => x(2).im,
+   y5       => y(2).re,
+   x6       => x(3).re,
+   y6       => y(3).im,
+   x7       => x(3).im,
+   y7       => y(3).re,
    r_vld    => open, -- same as real component
    r_out    => r_im,
    r_ovf    => r_ovf_im,
