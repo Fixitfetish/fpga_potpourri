@@ -6,7 +6,8 @@ set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_mult4_accu.vhdl"]
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_mult4_sum.vhdl"]
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_mult8_accu.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_weight2.vhdl"]
+# set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_weight2.vhdl"]
+
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/generic/signed_mult4_accu_chain.vhdl"]
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/generic/signed_mult8_accu_chain.vhdl"]
 
