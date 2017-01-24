@@ -113,7 +113,11 @@ begin
     end if;
   end process;
 
-  chainout <= accu;
+  chainout(ACCU_WIDTH-1 downto 0) <= accu;
+  g_chainout : for n in ACCU_WIDTH to (chainout'length-1) generate
+    -- sign extension (for simulation and to avoid warnings)
+    chainout(n) <= accu(ACCU_WIDTH-1);
+  end generate;
 
   -- cut off unused sign extension bits
   -- (This reduces the logic consumption in the following steps when rounding,

@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : signed_mult2_accu_behave.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 21/Jan/2017
--- VERSION : 0.80
+-- DATE    : 24/Jan/2017
+-- VERSION : 0.85
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -132,7 +132,7 @@ begin
          -p0-p1;
 
   g_chain : if USE_CHAININ generate
-    chainin_i <= chainin;
+    chainin_i <= chainin(ACCU_WIDTH-1 downto 0);
   end generate;
 
   p_accu : process(clk)
@@ -159,7 +159,11 @@ begin
     end if;
   end process;
 
-  chainout <= accu;
+  chainout(ACCU_WIDTH-1 downto 0) <= accu;
+  g_chainout : for n in ACCU_WIDTH to (chainout'length-1) generate
+    -- sign extension (for simulation and to avoid warnings)
+    chainout(n) <= accu(ACCU_WIDTH-1);
+  end generate;
 
   -- cut off unused sign extension bits
   -- (This reduces the logic consumption in the following steps when rounding,
