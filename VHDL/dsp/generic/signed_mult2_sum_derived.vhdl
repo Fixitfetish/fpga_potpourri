@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
--- FILE    : signed_mult2_sum_stratixv.vhdl
+-- FILE    : signed_mult2_sum_derived.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 24/Jan/2017
--- VERSION : 0.60
+-- DATE    : 25/Jan/2017
+-- VERSION : 0.10
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -14,22 +14,20 @@ library ieee;
 library fixitfetish;
  use fixitfetish.ieee_extension.all;
 
--- This implementation requires a single Variable Precision DSP Block.
--- Please refer to the Altera Stratix V Device Handbook.
+-- This implementation subset of ACCU implementation. The accumulator is cleared
+-- with every valid input data.
+-- Hence, this implementation is not device specific and can be used for
+-- simulation and synthesis based on the 'signed_mult2_accu' implementation.
 --
--- Input Data      : 2x2 signed values, each max 18 bits
+-- Input Data      : 2x2 signed values
 -- Input Register  : optional, strongly recommended
--- Accu Register   : 64 bits, always enabled
--- Rounding        : optional half-up, within DSP cell
--- Output Data     : 1x signed value, max 64 bits
+-- Rounding        : optional half-up
+-- Output Data     : 1x signed value
 -- Output Register : optional, after shift-right and saturation
--- Overall pipeline stages : 1,2,3,... dependent on configuration
+-- Pipeline stages : 1,2,3,... dependent on configuration
 
-architecture stratixv of signed_mult2_sum is
+architecture derived of signed_mult2_sum is
 begin
-
-  -- NOTE: - subset of ACCU implementation
-  --       - clear accumulator with every valid input data
 
   dsp : entity fixitfetish.signed_mult2_accu
   generic map(

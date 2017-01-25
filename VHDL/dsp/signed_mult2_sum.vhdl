@@ -22,17 +22,6 @@ library ieee;
 
 entity signed_mult2_sum is
 generic (
-  -- The number of summands is important to determine the number of additional
-  -- guard bits (MSBs) that are required for the accumulation process.
-  -- The setting is relevant to save logic especially when saturation/clipping
-  -- and/or overflow detection is enabled.
-  --   0 => maximum possible, not recommended (worst case, hardware dependent)
-  --   1 => just one multiplication without accumulation
-  --   2 => accumulate up to 2 products
-  --   3 => accumulate up to 3 products
-  --   and so on ...
-  -- Note that every single accumulated product counts!
-  NUM_SUMMAND : natural := 0;
   -- Number of additional input register (at least one is strongly recommended)
   -- If available the input registers within the DSP cell are used.
   NUM_INPUT_REG : natural := 1;
