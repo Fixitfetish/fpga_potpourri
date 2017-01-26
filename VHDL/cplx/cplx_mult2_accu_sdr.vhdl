@@ -57,7 +57,7 @@ begin
   i_re : entity fixitfetish.signed_mult4_accu
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
-    USE_CHAININ        => false, -- unused here
+    USE_CHAIN_INPUT    => false, -- unused here
     NUM_INPUT_REG      => NUM_INPUT_REG+1, -- at least one input register
     OUTPUT_REG         => false, -- separate output register - see below
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -94,7 +94,7 @@ begin
   i_im : entity fixitfetish.signed_mult4_accu
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
-    USE_CHAININ        => false, -- unused here
+    USE_CHAIN_INPUT    => false, -- unused here
     NUM_INPUT_REG      => NUM_INPUT_REG+1, -- at least one input register
     OUTPUT_REG         => false, -- separate output register - see below
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,

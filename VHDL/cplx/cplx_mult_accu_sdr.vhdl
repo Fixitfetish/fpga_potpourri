@@ -87,7 +87,7 @@ begin
   i_re : entity fixitfetish.signed_mult2_accu
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
-    USE_CHAININ        => false,
+    USE_CHAIN_INPUT    => false,
     NUM_INPUT_REG      => 1,
     OUTPUT_REG         => false, -- separate output register - see below
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -118,7 +118,7 @@ begin
   i_im : entity fixitfetish.signed_mult2_accu
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
-    USE_CHAININ        => false,
+    USE_CHAIN_INPUT    => false,
     NUM_INPUT_REG      => 1,
     OUTPUT_REG         => false, -- separate output register - see below
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
