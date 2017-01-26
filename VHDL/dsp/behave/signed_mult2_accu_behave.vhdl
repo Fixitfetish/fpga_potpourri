@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------------
--- FILE    : signed_mult2_accu_behave.vhdl
--- AUTHOR  : Fixitfetish
--- DATE    : 24/Jan/2017
--- VERSION : 0.85
--- VHDL    : 1993
--- LICENSE : MIT License
+--! @file       signed_mult2_accu_behave.vhdl
+--! @author     Fixitfetish
+--! @date       24/Jan/2017
+--! @version    0.90
+--! @copyright  MIT License
+--! @note       VHDL-1993
 -------------------------------------------------------------------------------
 -- Copyright (c) 2016-2017 Fixitfetish
 -------------------------------------------------------------------------------
@@ -14,15 +14,15 @@ library ieee;
 library fixitfetish;
  use fixitfetish.ieee_extension.all;
 
--- This implementation is a behavioral model for simulation.
---
--- Input Data      : 2x2 signed values
--- Input Register  : optional, strongly recommended
--- Accu Register   : 64 bits, always enabled
--- Rounding        : optional half-up
--- Output Data     : 1x signed value, max 64 bits
--- Output Register : optional, after rounding, shift-right and saturation
--- Overall pipeline stages : 1,2,3,.. dependent on configuration
+--! @brief This implementation is a behavioral model for simulation.
+--! 
+--! * Input Data      : 2x2 signed values
+--! * Input Register  : optional, strongly recommended
+--! * Accu Register   : 64 bits, always enabled
+--! * Rounding        : optional half-up
+--! * Output Data     : 1x signed value, max 64 bits
+--! * Output Register : optional, after rounding, shift-right and saturation
+--! * Pipeline stages : 1,2,3,.. dependent on configuration
 
 architecture behave of signed_mult2_accu is
 
@@ -52,7 +52,7 @@ architecture behave of signed_mult2_accu is
   constant OUTPUT_WIDTH : positive := r_out'length;
 
   -- input register pipeline
-  type t_ireg is
+  type r_ireg is
   record
     rst, vld : std_logic;
     clr : std_logic;
@@ -60,7 +60,7 @@ architecture behave of signed_mult2_accu is
     x0, y0 : signed(17 downto 0);
     x1, y1 : signed(17 downto 0);
   end record;
-  type array_ireg is array(integer range <>) of t_ireg;
+  type array_ireg is array(integer range <>) of r_ireg;
   signal ireg : array_ireg(NUM_INPUT_REG downto 0);
 
   signal vld_q : std_logic;
@@ -76,7 +76,7 @@ architecture behave of signed_mult2_accu is
 begin
 
   -- check chain in/out length
-  assert (chainin'length=ACCU_WIDTH or (not USE_CHAININ))
+  assert (chainin'length=ACCU_WIDTH or (not USE_CHAIN_INPUT))
     report "ERROR signed_mult2_accu(behave) : " & 
            "Chain input width must be " & integer'image(ACCU_WIDTH) & " bits."
     severity failure;
@@ -111,7 +111,7 @@ begin
 
   g_in : if NUM_INPUT_REG>=1 generate
   begin
-    p1 : process(clk)
+    p_in : process(clk)
     begin 
      if rising_edge(clk) then
       if clkena='1' then
@@ -131,7 +131,7 @@ begin
          -p0+p1 when (ireg(0).sub="10") else
          -p0-p1;
 
-  g_chain : if USE_CHAININ generate
+  g_chain : if USE_CHAIN_INPUT generate
     chainin_i <= chainin(ACCU_WIDTH-1 downto 0);
   end generate;
 
@@ -178,8 +178,8 @@ begin
     accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT, nearest),ACCU_USED_SHIFTED_WIDTH);
   end generate;
   
-  g_dout : if not OUTPUT_REG generate
-    process(accu_used_shifted, vld_q)
+  g_out : if not OUTPUT_REG generate
+    p_out : process(accu_used_shifted, vld_q)
       variable v_dout : signed(OUTPUT_WIDTH-1 downto 0);
       variable v_ovfl : std_logic;
     begin
@@ -190,8 +190,8 @@ begin
     end process;
   end generate;
 
-  g_dout_reg : if OUTPUT_REG generate
-    process(clk)
+  g_out_reg : if OUTPUT_REG generate
+    p_out_reg : process(clk)
       variable v_dout : signed(OUTPUT_WIDTH-1 downto 0);
       variable v_ovfl : std_logic;
     begin

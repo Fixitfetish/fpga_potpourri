@@ -89,7 +89,7 @@ architecture stratixv of signed_mult4_sum is
 begin
 
   -- TODO +++ is chain input really required for mult4_sum  ???
-  assert USE_CHAININ=false
+  assert USE_CHAIN_INPUT=false
     report "WARING signed_mult4_sum(stratixv) : " & 
            "Chain input is enabled but not allowed ... disabling chain input."
     severity warning;
@@ -365,8 +365,8 @@ begin
     accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT, nearest),ACCU_USED_SHIFTED_WIDTH);
   end generate;
 
-  g_dout : if not OUTPUT_REG generate
-    process(accu_used_shifted, vld_q)
+  g_out : if not OUTPUT_REG generate
+    p_out : process(accu_used_shifted, vld_q)
       variable v_dout : signed(OUTPUT_WIDTH-1 downto 0);
       variable v_ovfl : std_logic;
     begin
@@ -377,8 +377,8 @@ begin
     end process;
   end generate;
 
-  g_dout_reg : if OUTPUT_REG generate
-    process(clk)
+  g_out_reg : if OUTPUT_REG generate
+    p_out_reg : process(clk)
       variable v_dout : signed(OUTPUT_WIDTH-1 downto 0);
       variable v_ovfl : std_logic;
     begin

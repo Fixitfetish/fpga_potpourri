@@ -73,7 +73,7 @@ architecture arria10 of signed_mult2_accu is
   constant OUTPUT_WIDTH : positive := r_out'length;
 
   -- input register pipeline
-  type t_ireg is
+  type r_ireg is
   record
     rst, vld : std_logic;
     sub, negate : std_logic;
@@ -81,7 +81,7 @@ architecture arria10 of signed_mult2_accu is
     x0, y0 : signed(17 downto 0);
     x1, y1 : signed(17 downto 0);
   end record;
-  type array_ireg is array(integer range <>) of t_ireg;
+  type array_ireg is array(integer range <>) of r_ireg;
   signal ireg : array_ireg(NUM_INPUT_REG downto 0);
 
   signal clr_q, clr_i : std_logic;
@@ -93,7 +93,7 @@ architecture arria10 of signed_mult2_accu is
 begin
 
   -- check chain in/out length
-  assert (chainin'length=ACCU_WIDTH or (not USE_CHAININ))
+  assert (chainin'length>=ACCU_WIDTH or (not USE_CHAIN_INPUT))
     report "ERROR signed_mult2_accu(stratixv) : " & 
            "Chain input width must be " & integer'image(ACCU_WIDTH) & " bits."
     severity failure;
@@ -163,7 +163,8 @@ begin
     ireg(0).y1 <= ireg(1).y1;
   end generate;
 
-  chainin_i <= std_logic_vector(resize(chainin,ACCU_WIDTH));
+  -- use only LSBs of chain input
+  chainin_i <= std_logic_vector(chainin(ACCU_WIDTH-1 downto 0));
 
   dsp : twentynm_mac
   generic map (
@@ -229,7 +230,7 @@ begin
     signed_mby                => "true",
     sub_clock                 => clock(NUM_INPUT_REG),
     sub_pipeline_clock        => "none",
-    use_chainadder            => use_chainadder(USE_CHAININ)
+    use_chainadder            => use_chainadder(USE_CHAIN_INPUT)
   )
   port map (
     accumulate => ireg(0).accumulate,
@@ -261,7 +262,11 @@ begin
     sub        => ireg(0).sub
   );
 
-  chainout <= signed(chainout_i);
+  chainout(ACCU_WIDTH-1 downto 0) <= signed(chainout_i);
+  g_chainout : for n in ACCU_WIDTH to (chainout'length-1) generate
+    -- sign extension (for simulation and to avoid warnings)
+    chainout(n) <= chainout_i(ACCU_WIDTH-1);
+  end generate;
 
   -- accumulator delay compensation
   vld_q <= ireg(0).vld when rising_edge(clk);
@@ -281,8 +286,8 @@ begin
 --    accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT, nearest),ACCU_USED_SHIFTED_WIDTH);
 --  end generate;
 
-  g_dout : if not OUTPUT_REG generate
-    process(accu_used_shifted, vld_q)
+  g_out : if not OUTPUT_REG generate
+    p_out : process(accu_used_shifted, vld_q)
       variable v_dout : signed(OUTPUT_WIDTH-1 downto 0);
       variable v_ovfl : std_logic;
     begin
@@ -293,8 +298,8 @@ begin
     end process;
   end generate;
 
-  g_dout_reg : if OUTPUT_REG generate
-    process(clk)
+  g_out_reg : if OUTPUT_REG generate
+    p_out_reg : process(clk)
       variable v_dout : signed(OUTPUT_WIDTH-1 downto 0);
       variable v_ovfl : std_logic;
     begin

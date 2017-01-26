@@ -32,7 +32,7 @@ begin
   dsp : entity fixitfetish.signed_mult2_accu
   generic map(
     NUM_SUMMAND => 2,
-    USE_CHAININ => false,
+    USE_CHAIN_INPUT => false,
     NUM_INPUT_REG => NUM_INPUT_REG,
     OUTPUT_REG => OUTPUT_REG,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,

@@ -40,7 +40,7 @@ architecture stratixv of signed_mult8_accu is
 
 begin
 
-  assert USE_CHAININ=false
+  assert USE_CHAIN_INPUT=false
     report "ERROR signed_mult8_accu(stratixv) : Chain input is not supported. " &
            "Check if other architectures are available that support chain input."
     severity failure;
@@ -49,7 +49,7 @@ begin
   i1 : entity fixitfetish.signed_mult4_sum
   generic map(
     NUM_SUMMAND        => 4, -- irrelevant because chain output is used
-    USE_CHAININ        => false,
+    USE_CHAIN_INPUT    => false,
     NUM_INPUT_REG      => NUM_INPUT_REG,
     OUTPUT_REG         => false, -- irrelevant because chain output is used
     OUTPUT_SHIFT_RIGHT => 0,     -- irrelevant because chain output is used
@@ -84,7 +84,7 @@ begin
   i2 : entity fixitfetish.signed_mult4_accu
   generic map(
     NUM_SUMMAND        => NUM_SUMMAND,
-    USE_CHAININ        => true,
+    USE_CHAIN_INPUT    => true,
     NUM_INPUT_REG      => NUM_INPUT_REG+1, -- one more pipeline register because of chaining
     OUTPUT_REG         => OUTPUT_REG,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,

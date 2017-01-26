@@ -78,7 +78,7 @@ architecture behave of signed_mult4_accu is
 begin
 
   -- check chain in/out length
-  assert (chainin'length=ACCU_WIDTH or (not USE_CHAININ))
+  assert (chainin'length=ACCU_WIDTH or (not USE_CHAIN_INPUT))
     report "ERROR signed_mult4_accu(behave) : " & 
            "Chain input width must be " & integer'image(ACCU_WIDTH) & " bits."
     severity failure;
@@ -116,7 +116,7 @@ begin
   ireg(NUM_INPUT_REG).y3 <= resize(y3,18);
 
   g_in : if NUM_INPUT_REG>=1 generate
-    process(clk)
+    p_in : process(clk)
     begin if rising_edge(clk) then
       if clkena='1' then
         for n in 1 to NUM_INPUT_REG loop
@@ -138,8 +138,8 @@ begin
          sum_01-p2+p3 when (ireg(0).sub(2 to 3)="10") else
          sum_01-p2-p3;
 
-  g_chain : if USE_CHAININ generate
-    chainin_i <= chainin;
+  g_chain : if USE_CHAIN_INPUT generate
+    chainin_i <= chainin(ACCU_WIDTH-1 downto 0);
   end generate;
 
   p_accu : process(clk)
@@ -166,7 +166,11 @@ begin
     end if;
   end process;
 
-  chainout <= accu;
+  chainout(ACCU_WIDTH-1 downto 0) <= accu;
+  g_chainout : for n in ACCU_WIDTH to (chainout'length-1) generate
+    -- sign extension (for simulation and to avoid warnings)
+    chainout(n) <= accu(ACCU_WIDTH-1);
+  end generate;
 
   -- cut off unused sign extension bits
   -- (This reduces the logic consumption in the following steps when rounding,
@@ -181,8 +185,8 @@ begin
     accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT, nearest),ACCU_USED_SHIFTED_WIDTH);
   end generate;
   
-  g_dout : if not OUTPUT_REG generate
-    process(accu_used_shifted, vld_q)
+  g_out : if not OUTPUT_REG generate
+    p_out : process(accu_used_shifted, vld_q)
       variable v_dout : signed(OUTPUT_WIDTH-1 downto 0);
       variable v_ovfl : std_logic;
     begin
@@ -193,8 +197,8 @@ begin
     end process;
   end generate;
 
-  g_dout_reg : if OUTPUT_REG generate
-    process(clk)
+  g_out_reg : if OUTPUT_REG generate
+    p_out_reg : process(clk)
       variable v_dout : signed(OUTPUT_WIDTH-1 downto 0);
       variable v_ovfl : std_logic;
     begin

@@ -44,7 +44,7 @@ begin
   i1 : entity fixitfetish.signed_mult4_accu
   generic map(
     NUM_SUMMAND        => 4, -- irrelevant because chain output is used
-    USE_CHAININ        => USE_CHAININ,
+    USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
     NUM_INPUT_REG      => NUM_INPUT_REG,
     OUTPUT_REG         => false, -- irrelevant because chain output is used
     OUTPUT_SHIFT_RIGHT => 0,     -- irrelevant because chain output is used
@@ -80,7 +80,7 @@ begin
   i2 : entity fixitfetish.signed_mult4_accu
   generic map(
     NUM_SUMMAND        => NUM_SUMMAND,
-    USE_CHAININ        => true,
+    USE_CHAIN_INPUT    => true,
     NUM_INPUT_REG      => NUM_INPUT_REG+2, -- two more pipeline registers because of chaining
     OUTPUT_REG         => OUTPUT_REG,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,

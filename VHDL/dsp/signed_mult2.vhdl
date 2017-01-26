@@ -1,24 +1,24 @@
 -------------------------------------------------------------------------------
--- FILE    : signed_mult2.vhdl
--- AUTHOR  : Fixitfetish
--- DATE    : 24/Jan/2017
--- VERSION : 0.10
--- VHDL    : 1993
--- LICENSE : MIT License
--------------------------------------------------------------------------------
--- Copyright (c) 2017 Fixitfetish
+--! @file       signed_mult2.vhdl
+--! @author     Fixitfetish
+--! @date       24/Jan/2017
+--! @version    0.10
+--! @copyright  MIT License
+--! @note       VHDL-1993
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
 
--- Two independent signed multiplications
---
--- The delay depends on the configuration and the underlying hardware. The
--- number pipeline stages is reported as constant at output port PIPE.
---
---   hold previous   : if vld=0  then  r(n) = r(n)
---   multiply        : if vld=1  then  r(n) = x(n)*y(n)
+--! @brief Two independent signed multiplications.
+--!
+--! The behavior is as follows
+--! * vld=0  ->  r(n) = r(n)       # hold previous
+--! * vld=1  ->  r(n) = x(n)*y(n)  # multiply
+--!
+--! The delay depends on the configuration and the underlying hardware. The
+--! number pipeline stages is reported as constant at output port PIPE.
+
 --
 --    <----------------------------------- ACCU WIDTH ------------------------>
 --    |        <-------------------------- ACCU USED WIDTH ------------------->
@@ -52,49 +52,50 @@ library ieee;
 
 entity signed_mult2 is
 generic (
-  -- Number of additional input register (at least one is strongly recommended)
-  -- If available the input registers within the DSP cell are used.
+  --! @brief Number of additional input registers. At least one is strongly recommended.
+  --! If available the input registers within the DSP cell are used.
   NUM_INPUT_REG : natural := 1;
-  -- Additional data output register (recommended when logic for rounding and/or clipping is enabled)
-  -- Typically the output register is implemented in logic. 
+  --! @brief Additional data output register (recommended when logic for rounding and/or clipping is enabled)
+  --! Typically the output register is implemented in logic. 
   OUTPUT_REG : boolean := false;
-  -- Number of bits by which the accumulator result output is shifted right
+  --! Number of bits by which the accumulator result output is shifted right
   OUTPUT_SHIFT_RIGHT : natural := 0;
-  -- Round data output (only relevant when OUTPUT_SHIFT_RIGHT>0)
+  --! Round data output (only relevant when OUTPUT_SHIFT_RIGHT>0)
   OUTPUT_ROUND : boolean := true;
-  -- Enable clipping when right shifted result exceeds output range
+  --! Enable clipping when right shifted result exceeds output range
   OUTPUT_CLIP : boolean := true;
-  -- Overflow/clipping detection 
+  --! Enable overflow/clipping detection 
   OUTPUT_OVERFLOW : boolean := true
 );
 port (
-  -- Standard system clock
+  --! Standard system clock
   clk      : in  std_logic;
-  -- Reset result data output (optional)
+  --! Reset result output (optional)
   rst      : in  std_logic := '0';
-  -- Data valid input
-  vld      : in  std_logic_vector(0 to 1);
-  -- add/subtract for all products n=0..1 , '0'=> +(x(n)*y(n)), '1'=> -(x(n)*y(n))
-  sub      : in  std_logic_vector(0 to 1);
-  -- 1st product, signed factors
-  x0, y0   : in  signed;
-  -- 2nd product, signed factors
-  x1, y1   : in  signed;
-  -- Result valid output
+  --! Valid signal for input factors, high-active
+  vld      : in  std_logic;
+  --! Add/subtract for all products n=0..1 , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)). Subtraction is disabled by default.
+  sub      : in  std_logic_vector(0 to 1) := (others=>'0');
+  --! 1st product, 1st signed factor input
+  x0       : in  signed;
+  --! 1st product, 2nd signed factor input
+  y0       : in  signed;
+  --! 2nd product, 1st signed factor input
+  x1       : in  signed;
+  --! 2nd product, 2nd signed factor input
+  y1       : in  signed;
+  --! Valid signals for result output, high-active
   r_vld    : out std_logic_vector(0 to 1);
-  -- Resulting product/accumulator output (optionally rounded and clipped)
-  -- The standard result output might be unused when chain output is used instead.
-  r0_out, r1_out : out signed;
-  -- Output overflow/clipping detection
+  --! Resulting 1st product output (optionally rounded and clipped).
+  r0_out   : out signed;
+  --! Resulting 2nd product output (optionally rounded and clipped).
+  r1_out   : out signed;
+  --! Output overflow/clipping detection
   r_ovf    : out std_logic_vector(0 to 1);
-  -- Number of pipeline stages, constant, depends on configuration and hardware
+  --! Number of pipeline stages, constant, depends on configuration and device specific implementation
   PIPE     : out natural := 0
 );
 begin
-
-  assert (x0'length+y0'length)=(x1'length+y1'length)
-    report "ERROR signed_mult2 : Both products must result in same size."
-    severity failure;
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT>0)
     report "WARNING signed_mult2 : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
