@@ -11,14 +11,17 @@ library ieee;
  use ieee.numeric_std.all;
 
 --! @brief Four signed multiplications and accumulate all product results.
---! 
+--!
 --! The behavior is as follows
 --! * CLR=1  VLD=0  ->  r = undefined                      # reset accumulator
 --! * CLR=1  VLD=1  ->  r = +/-(x0*y0) +/-(x1*y1) +/-...   # restart accumulation
 --! * CLR=0  VLD=0  ->  r = r                              # hold accumulator
 --! * CLR=0  VLD=1  ->  r = r +/-(x0*y0) +/-(x1*y1) +/-... # proceed accumulation
 --!
---! The resulting length of all products x(n)*y(n) must be the same.
+--! The length of the input factors is flexible.
+--! The maximum width of the input factors is device and implementation specific.
+--! The resulting length of all products (x(n)'length + y(n)'length) must be the same.
+--!
 --! If just the sum of products is required but not any further accumulation
 --! then set CLR to constant '1'.
 --!
@@ -26,7 +29,7 @@ library ieee;
 --! The number pipeline stages is reported as constant at output port PIPE.
 --!
 --! This entity can be used for example
---!   * for multiple complex multiplication and accumulation
+--!   * for multiple complex multiplications and accumulation
 --!   * to calculate the mean square of complex numbers
 --
 --    <----------------------------------- ACCU WIDTH ------------------------>
@@ -79,14 +82,18 @@ generic (
   --! @brief Number of additional input registers. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
   NUM_INPUT_REG : natural := 1;
-  --! @brief Additional data output register (recommended when logic for rounding and/or clipping is enabled)
+  --! @brief Additional result output register (recommended when logic for rounding and/or clipping is enabled).
   --! Typically the output register is implemented in logic. 
   OUTPUT_REG : boolean := false;
   --! Number of bits by which the accumulator result output is shifted right
   OUTPUT_SHIFT_RIGHT : natural := 0;
-  --! Round data output (only relevant when OUTPUT_SHIFT_RIGHT>0)
+  --! @brief Round 'nearest' (half-up) of result output.
+  --! This flag is only relevant when OUTPUT_SHIFT_RIGHT>0.
+  --! If the device specific DSP cell supports rounding then rounding is done
+  --! within the DSP cell. If rounding in logic is necessary then it is recommended
+  --! to enable the additional output register.
   OUTPUT_ROUND : boolean := true;
-  --! Enable clipping when right shifted result exceeds output range
+  --! Enable clipping when right shifted result exceeds output range.
   OUTPUT_CLIP : boolean := true;
   --! Enable overflow/clipping detection 
   OUTPUT_OVERFLOW : boolean := true

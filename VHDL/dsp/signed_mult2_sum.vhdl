@@ -11,29 +11,35 @@ library ieee;
  use ieee.numeric_std.all;
 
 --! @brief Two signed multiplications and sum of both
---! 
+--!
 --! The behavior is as follows
 --! * VLD=0  then  r = r
 --! * VLD=1  then  r = +/-(x0*y0) +/-(x1*y1)
---! 
---! The resulting length of all products x(n)*y(n) must be the same.
---! 
---! The delay depends on the configuration and the underlying hardware. The
---! number pipeline stages is reported as constant at output port PIPE.
+--!
+--! The length of the input factors is flexible.
+--! The maximum width of the input factors is device and implementation specific.
+--! The resulting length of all products (x(n)'length + y(n)'length) must be the same.
+--!
+--! The delay depends on the configuration and the underlying hardware.
+--! The number pipeline stages is reported as constant at output port PIPE.
 
 entity signed_mult2_sum is
 generic (
   --! @brief Number of additional input registers. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
   NUM_INPUT_REG : natural := 1;
-  --! @brief Additional data output register (recommended when logic for rounding and/or clipping is enabled)
+  --! @brief Additional result output register (recommended when logic for rounding and/or clipping is enabled).
   --! Typically the output register is implemented in logic. 
   OUTPUT_REG : boolean := false;
   --! Number of bits by which the accumulator result output is shifted right
   OUTPUT_SHIFT_RIGHT : natural := 0;
-  --! Round data output (only relevant when OUTPUT_SHIFT_RIGHT>0)
+  --! @brief Round 'nearest' (half-up) of result output.
+  --! This flag is only relevant when OUTPUT_SHIFT_RIGHT>0.
+  --! If the device specific DSP cell supports rounding then rounding is done
+  --! within the DSP cell. If rounding in logic is necessary then it is recommended
+  --! to enable the additional output register.
   OUTPUT_ROUND : boolean := true;
-  --! Enable clipping when right shifted result exceeds output range
+  --! Enable clipping when right shifted result exceeds output range.
   OUTPUT_CLIP : boolean := true;
   --! Enable overflow/clipping detection 
   OUTPUT_OVERFLOW : boolean := true

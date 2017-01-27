@@ -14,7 +14,9 @@ library ieee;
 library fixitfetish;
  use fixitfetish.ieee_extension.all;
 
---! @brief This implementation is a behavioral model for simulation.
+--! @brief This implementation is a behavioral model of the entity 
+--! @link signed_mult2_accu signed_mult2_accu @endlink for simulation.
+--! Two signed multiplications are performed and both results are accumulated.
 --! 
 --! * Input Data      : 2x2 signed values
 --! * Input Register  : optional, strongly recommended
