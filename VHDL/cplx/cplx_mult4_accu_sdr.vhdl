@@ -41,7 +41,15 @@ architecture sdr of cplx_mult4_accu is
   -- pipeline stages of used DSP cell
   signal PIPE_DSP : natural;
 
+  -- dummy sink to avoid warnings
+  procedure std_logic_sink(x:in std_logic) is
+    variable y : std_logic := '1';
+  begin y:=y or x; end procedure;
+
 begin
+
+  -- dummy sink for unused clock
+  std_logic_sink(clk2);
 
   rst <= (    x(0).rst or  y(0).rst or  x(1).rst or  y(1).rst
           or  x(2).rst or  y(2).rst or  x(3).rst or  y(3).rst );
