@@ -19,7 +19,9 @@ library ieee;
 --! * CLR=0  VLD=1  ->  r = r +/-(x*y)  # proceed accumulation
 --!
 --! The length of the input factors is flexible.
---! The maximum width of the input factors is device and implementation specific.
+--! The input factors are automatically resized with sign extensions bits to the
+--! maximum possible factor length.
+--! The maximum length of the input factors is device and implementation specific.
 --!
 --! If just the sum of products is required but not any further accumulation
 --! then set CLR to constant '1'.

@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------------
--- FILE    : signed_mult2_accu_stratixv.vhdl
--- AUTHOR  : Fixitfetish
--- DATE    : 24/Jan/2017
--- VERSION : 0.70
--- VHDL    : 1993
--- LICENSE : MIT License
+--! @file       signed_mult2_accu_stratixv.vhdl
+--! @author     Fixitfetish
+--! @date       24/Jan/2017
+--! @version    0.70
+--! @copyright  MIT License
+--! @note       VHDL-1993
 -------------------------------------------------------------------------------
 -- Copyright (c) 2016-2017 Fixitfetish
 -------------------------------------------------------------------------------
@@ -16,16 +16,26 @@ library stratixv;
 library fixitfetish;
  use fixitfetish.ieee_extension.all;
 
--- This implementation requires a single Variable Precision DSP Block.
--- Please refer to the Altera Stratix V Device Handbook.
---
--- Input Data      : 2x2 signed values, each max 18 bits
--- Input Register  : optional, strongly recommended
--- Accu Register   : 64 bits, always enabled
--- Rounding        : optional half-up, within DSP cell
--- Output Data     : 1x signed value, max 64 bits
--- Output Register : optional, after shift-right and saturation
--- Overall pipeline stages : 1,2,3,..  dependent on configuration
+--! @brief This is an implementation of the entity 
+--! @link signed_mult2_accu signed_mult2_accu @endlink
+--! for Altera Stratix-V.
+--! Two signed multiplications are performed and both results are accumulated.
+--!
+--! This implementation requires a single Variable Precision DSP Block of mode 'm18x18_sumof2'.
+--! For details please refer to the Altera Stratix V Device Handbook.
+--!
+--! * Input Data      : 2x2 signed values, each max 18 bits
+--! * Input Register  : optional, at least one is strongly recommended
+--! * Input Chain     : optional, 64 bits
+--! * Accu Register   : 64 bits, always enabled
+--! * Rounding        : optional half-up, within DSP cell
+--! * Output Data     : 1x signed value, max 64 bits
+--! * Output Register : optional, after shift-right and saturation
+--! * Output Chain    : optional, 64 bits
+--! * Pipeline stages : NUM_INPUT_REG + 1 + OUTPUT_REG
+--!
+--! This implementation can be chained multiple times.
+--! @image html signed_mult2_accu_stratixv.svg "" width=800px
 
 architecture stratixv of signed_mult2_accu is
 

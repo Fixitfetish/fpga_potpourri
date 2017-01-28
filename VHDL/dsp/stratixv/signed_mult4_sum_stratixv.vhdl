@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------------
--- FILE    : signed_mult4_sum_stratixv.vhdl
--- AUTHOR  : Fixitfetish
--- DATE    : 24/Jan/2017
--- VERSION : 0.30
--- VHDL    : 1993
--- LICENSE : MIT License
+--! @file       signed_mult4_sum_stratixv.vhdl
+--! @author     Fixitfetish
+--! @date       24/Jan/2017
+--! @version    0.30
+--! @copyright  MIT License
+--! @note       VHDL-1993
 -------------------------------------------------------------------------------
 -- Copyright (c) 2017 Fixitfetish
 -------------------------------------------------------------------------------
@@ -16,22 +16,36 @@ library stratixv;
 library fixitfetish;
  use fixitfetish.ieee_extension.all;
 
--- This implementation requires two Variable Precision DSP Blocks chained with
--- the mode 'm18x18_sumof4'.
--- For details please refer to the Altera Stratix V Device Handbook.
---
--- Input Data      : 4x2 signed values, each max 18 bits
--- Input Register  : optional, strongly recommended
--- Accu Register   : accumulation not supported
--- Rounding        : optional half-up, only possible in logic!
--- Output Data     : 1x signed value, max 64 bits
--- Output Register : optional, after shift-right and saturation
--- Overall pipeline stages : 1,2,3,.. dependent on configuration
---
--- Note1: This implementation requires one pipeline register less than the
---        implementation 'signed_mutl4_accu'.
--- Note2: The 'chainin' input port is unused here because the chain input cannot
---        be enabled for mode_sub_location 0 in mode 'm18x18_sumof4'.
+--! @brief This is an implementation of the entity 
+--! @link signed_mult4_sum signed_mult4_sum @endlink
+--! for Altera Stratix-V.
+--! Four signed multiplications are performed and all results are summed.
+--!
+--! This implementation requires two Variable Precision DSP Blocks chained with
+--! the mode 'm18x18_sumof4'.
+--! For details please refer to the Altera Stratix V Device Handbook.
+--!
+--! * Input Data      : 4x2 signed values, each max 18 bits
+--! * Input Register  : optional, strongly recommended
+--! * Input Chain     : not supported
+--! * Accu Register   : just pipeline register, accumulation not supported
+--! * Rounding        : optional half-up, only possible in logic!
+--! * Output Data     : 1x signed value, max 64 bits
+--! * Output Register : optional, after shift-right and saturation
+--! * Output Chain    : optional, 64 bits
+--! * Pipeline stages : NUM_INPUT_REG + 1 + OUTPUT_REG
+--!
+--! The output can be chained with other DSP implementations.
+--! @image html signed_mult4_sum_stratixv.svg "" width=800px
+--!
+--! NOTE 1: The product of the first input factor pair cannot be subtracted !
+--!
+--! NOTE 2: This implementation requires one pipeline register less than the
+--! implementation 'signed_mutl4_accu'. Therefore, less registers in logic are required.
+--! Drawback is a lower maximum frequency.
+--!
+--! NOTE 3: The 'chainin' input port is unused here because the chain input cannot
+--! be enabled for mode_sub_location 0 in mode 'm18x18_sumof4'.
 
 architecture stratixv of signed_mult4_sum is
 

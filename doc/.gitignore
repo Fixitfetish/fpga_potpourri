@@ -1,0 +1,4 @@
+/html/**
+*.lnk
+*.bat
+doxygen_default
