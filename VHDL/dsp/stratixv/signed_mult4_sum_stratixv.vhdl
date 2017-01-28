@@ -26,7 +26,7 @@ library fixitfetish;
 --! For details please refer to the Altera Stratix V Device Handbook.
 --!
 --! * Input Data      : 4x2 signed values, each max 18 bits
---! * Input Register  : optional, strongly recommended
+--! * Input Register  : optional, at least one is strongly recommended
 --! * Input Chain     : not supported
 --! * Accu Register   : just pipeline register, accumulation not supported
 --! * Rounding        : optional half-up, only possible in logic!
