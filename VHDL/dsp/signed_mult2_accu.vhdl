@@ -12,6 +12,7 @@ library ieee;
 
 --! @brief Two signed multiplications and accumulate both.
 --!
+--! @image html signed_mult2_accu.svg "" width=600px
 --!
 --! The behavior is as follows
 --! * CLR=1  VLD=0  ->  r = undefined               # reset accumulator
@@ -25,7 +26,7 @@ library ieee;
 --! The maximum length of the input factors is device and implementation specific.
 --! The resulting length of all products (x(n)'length + y(n)'length) must be the same.
 --!
---! @image html accumulator_register.svg "" height=200px 
+--! @image html accumulator_register.svg "" width=800px
 --!
 --! * ACCU WIDTH = accumulator width (device specific)
 --! * PRODUCT WIDTH = x'length + y'length

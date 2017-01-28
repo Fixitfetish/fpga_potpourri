@@ -12,6 +12,8 @@ library ieee;
 
 --! @brief Eight signed multiplications and accumulate all product results.
 --! 
+--! @image html signed_mult8_accu.svg "" width=600px
+--!
 --! The behavior is as follows
 --! * CLR=1  VLD=0  ->  r = undefined                      # reset accumulator
 --! * CLR=1  VLD=1  ->  r = +/-(x0*y0) +/-(x1*y1) +/-...   # restart accumulation
@@ -19,8 +21,22 @@ library ieee;
 --! * CLR=0  VLD=1  ->  r = r +/-(x0*y0) +/-(x1*y1) +/-... # proceed accumulation
 --!
 --! The length of the input factors is flexible.
---! The maximum width of the input factors is device and implementation specific.
+--! The input factors are automatically resized with sign extensions bits to the
+--! maximum possible factor length.
+--! The maximum length of the input factors is device and implementation specific.
 --! The resulting length of all products (x(n)'length + y(n)'length) must be the same.
+--!
+--! @image html accumulator_register.svg "" width=800px
+--!
+--! * ACCU WIDTH = accumulator width (device specific)
+--! * PRODUCT WIDTH = x'length + y'length
+--! * GUARD BITS = ceil(log2(NUM_SUMMANDS))
+--! * ACCU USED WIDTH = PRODUCT WIDTH + GUARD BITS <= ACCU WIDTH
+--! * OUTPUT SHIFT RIGHT = number of LSBs to prune
+--! * OVFL = overflow detection sign bits, all must match the output sign bit otherwise overflow
+--! * R = rounding bit (+0.5 when OUTPUT ROUND is enabled)
+--! * OUTPUT WIDTH = length of result output
+--! * ACCU USED SHIFTED WIDTH = ACCU USED WIDTH - OUTPUT SHIFT RIGHT
 --!
 --! If just the sum of products is required but not any further accumulation
 --! then set CLR to constant '1'.
@@ -31,34 +47,7 @@ library ieee;
 --! This entity can be used for example
 --!   * for multiple complex multiplications and accumulation
 --!   * to calculate the mean square of complex numbers
---
---    <----------------------------------- ACCU WIDTH ------------------------>
---    |        <-------------------------- ACCU USED WIDTH ------------------->
---    |        |              <----------- PRODUCT WIDTH --------------------->
---    |        |              |                                               |
---    +--------+---+----------+-------------------------------+---------------+
---    | unused |  GUARD BITS  |                               |  SHIFT RIGHT  |
---    |SSSSSSSS|OOO|ODDDDDDDDD|DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD|Rxxxxxxxxxxxxxx|
---    +--------+---+----------+-------------------------------+---------------+
---             |   |                                          |
---             |   <------------- OUTPUT WIDTH --------------->
---             <--------- ACCU USED SHIFTED WIDTH ------------>
---
--- ACCU WIDTH = accumulator width (depends on hardware/implementation)
--- PRODUCT WIDTH = ax'length+ay'length = bx'length+by'length
--- NUM_SUMMANDS = number of accumulated products
--- GUARD BITS = ceil(log2(NUM_SUMMANDS))
--- ACCU USED WIDTH = PRODUCT WIDTH + GUARD BITS <= ACCU WIDTH
--- OUTPUT SHIFT RIGHT = number of LSBs to prune
--- OUTPUT WIDTH = r'length
--- ACCU USED SHIFTED WIDTH = ACCU USED WIDTH - OUTPUT SHIFT RIGHT
---
--- S = irrelevant sign extension MSBs
--- O = overflow detection sign bits, all O must be identical otherwise overflow
--- D = output data bits
--- R = rounding bit (+0.5 when round 'nearest' is enabled)
--- x = irrelevant LSBs
---
+
 -- Optimal settings for overflow detection and/or saturation/clipping :
 -- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH
 
