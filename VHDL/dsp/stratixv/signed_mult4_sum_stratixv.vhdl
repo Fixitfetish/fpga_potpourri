@@ -68,6 +68,9 @@ architecture stratixv of signed_mult4_sum is
     if n>0 then return "0"; else return "none"; end if;
   end function;
 
+  -- number of summands
+  constant NUM_SUMMAND : positive := 4;
+
   -- accumulator width in bits
   constant ACCU_WIDTH : positive := 64;
 
@@ -101,12 +104,6 @@ architecture stratixv of signed_mult4_sum is
   signal accu_used_shifted : signed(ACCU_USED_SHIFTED_WIDTH-1 downto 0);
 
 begin
-
-  -- TODO +++ is chain input really required for mult4_sum  ???
-  assert USE_CHAIN_INPUT=false
-    report "WARING signed_mult4_sum(stratixv) : " & 
-           "Chain input is enabled but not allowed ... disabling chain input."
-    severity warning;
 
   -- check input/output length
   assert (     x0'length<=18 and y0'length<=18 and x1'length<=18 and y1'length<=18

@@ -12,13 +12,29 @@ library ieee;
 
 --! @brief Two signed multiplications and sum of both
 --!
+--! @image html signed_mult2_sum.svg "" width=600px
+--!
 --! The behavior is as follows
 --! * VLD=0  then  r = r
 --! * VLD=1  then  r = +/-(x0*y0) +/-(x1*y1)
 --!
 --! The length of the input factors is flexible.
---! The maximum width of the input factors is device and implementation specific.
+--! The input factors are automatically resized with sign extensions bits to the
+--! maximum possible factor length.
+--! The maximum length of the input factors is device and implementation specific.
 --! The resulting length of all products (x(n)'length + y(n)'length) must be the same.
+--!
+--! @image html accumulator_register.svg "" width=800px
+--! * NUM_SUMMAND = 2
+--! * ACCU WIDTH = accumulator width (device specific)
+--! * PRODUCT WIDTH = x'length + y'length
+--! * GUARD BITS = ceil(log2(NUM_SUMMANDS))
+--! * ACCU USED WIDTH = PRODUCT WIDTH + GUARD BITS <= ACCU WIDTH
+--! * OUTPUT SHIFT RIGHT = number of LSBs to prune
+--! * OVFL = overflow detection sign bits, all must match the output sign bit otherwise overflow
+--! * R = rounding bit (+0.5 when OUTPUT ROUND is enabled)
+--! * OUTPUT WIDTH = length of result output
+--! * ACCU USED SHIFTED WIDTH = ACCU USED WIDTH - OUTPUT SHIFT RIGHT
 --!
 --! The delay depends on the configuration and the underlying hardware.
 --! The number pipeline stages is reported as constant at output port PIPE.

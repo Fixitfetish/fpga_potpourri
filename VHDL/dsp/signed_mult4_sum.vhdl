@@ -12,34 +12,35 @@ library ieee;
 
 --! @brief Four signed multiplications and sum all product results.
 --!
+--! @image html signed_mult4_sum.svg "" width=600px
+--!
 --! The behavior is as follows
 --! * VLD=0  then  r = r
 --! * VLD=1  then  r = +/-(x0*y0) +/-(x1*y1) +/-...
 --!
 --! The length of the input factors is flexible.
---! The maximum width of the input factors is device and implementation specific.
+--! The input factors are automatically resized with sign extensions bits to the
+--! maximum possible factor length.
+--! The maximum length of the input factors is device and implementation specific.
 --! The resulting length of all products (x(n)'length + y(n)'length) must be the same.
+--!
+--! @image html accumulator_register.svg "" width=800px
+--! * NUM_SUMMAND = 4
+--! * ACCU WIDTH = accumulator width (device specific)
+--! * PRODUCT WIDTH = x'length + y'length
+--! * GUARD BITS = ceil(log2(NUM_SUMMANDS))
+--! * ACCU USED WIDTH = PRODUCT WIDTH + GUARD BITS <= ACCU WIDTH
+--! * OUTPUT SHIFT RIGHT = number of LSBs to prune
+--! * OVFL = overflow detection sign bits, all must match the output sign bit otherwise overflow
+--! * R = rounding bit (+0.5 when OUTPUT ROUND is enabled)
+--! * OUTPUT WIDTH = length of result output
+--! * ACCU USED SHIFTED WIDTH = ACCU USED WIDTH - OUTPUT SHIFT RIGHT
 --!
 --! The delay depends on the configuration and the underlying hardware.
 --! The number pipeline stages is reported as constant at output port PIPE.
 
 entity signed_mult4_sum is
 generic (
-  --! @brief The number of summands is important to determine the number of additional
-  --! guard bits (MSBs) that are required for the accumulation process. @link NUM_SUMMAND More...
-  --! 
-  --! The setting is relevant to save logic especially when saturation/clipping
-  --! and/or overflow detection is enabled.
-  --! * 0 => maximum possible, not recommended (worst case, hardware dependent)
-  --! * 1 => just one multiplication without accumulation
-  --! * 2 => accumulate up to 2 products
-  --! * 3 => accumulate up to 3 products
-  --! *  and so on ...
-  --! 
-  --! Note that every single accumulated product result counts!
-  NUM_SUMMAND : natural := 0;
-  --! Enable chain input from neighbor DSP cell, i.e. enable additional accumulator input
-  USE_CHAIN_INPUT : boolean := false;
   --! @brief Number of additional input registers. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
   NUM_INPUT_REG : natural := 1;

@@ -100,7 +100,7 @@ port (
   vld      : in  std_logic;
   --! Add/subtract for all products n=0..1 , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)). Subtraction is disabled by default.
   sub      : in  std_logic_vector(0 to 1) := (others=>'0');
-  --! 1st product, 1st signed factor input.
+  --! 1st product, 1st signed factor input
   x0       : in  signed;
   --! 1st product, 2nd signed factor input
   y0       : in  signed;

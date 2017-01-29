@@ -48,8 +48,6 @@ begin
   -- first instance performs just sum of four products without accumulation
   i1 : entity fixitfetish.signed_mult4_sum
   generic map(
-    NUM_SUMMAND        => 4, -- irrelevant because chain output is used
-    USE_CHAIN_INPUT    => false,
     NUM_INPUT_REG      => NUM_INPUT_REG,
     OUTPUT_REG         => false, -- irrelevant because chain output is used
     OUTPUT_SHIFT_RIGHT => 0,     -- irrelevant because chain output is used
