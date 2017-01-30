@@ -16,10 +16,10 @@ library fixitfetish;
 
 --! @brief This implementation is a behavioral model of the entity 
 --! @link signed_mult2_accu signed_mult2_accu @endlink for simulation.
---! Two signed multiplications are performed and both results are accumulated.
+--! Two signed multiplications are performed and all results are accumulated.
 --! 
 --! * Input Data      : 2x2 signed values
---! * Input Register  : optional, strongly recommended
+--! * Input Register  : optional, at least one is strongly recommended
 --! * Accu Register   : 64 bits, always enabled
 --! * Rounding        : optional half-up
 --! * Output Data     : 1x signed value, max 64 bits
@@ -27,6 +27,9 @@ library fixitfetish;
 --! * Pipeline stages : 1,2,3,.. dependent on configuration
 
 architecture behave of signed_mult2_accu is
+
+  -- identifier for reports of warnings and errors
+  constant IMPLEMENTATION : string := "signed_mult2_accu(behave)";
 
   -- local auxiliary
   -- determine number of required additional guard bits (MSBs)
@@ -45,7 +48,7 @@ architecture behave of signed_mult2_accu is
   constant ACCU_WIDTH : positive := 64;
 
   -- derived constants
-  constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT>0);
+  constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
   constant PRODUCT_WIDTH : natural := x0'length + y0'length;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
   constant GUARD_BITS_EVAL : natural := guard_bits(NUM_SUMMAND,MAX_GUARD_BITS);
@@ -72,30 +75,30 @@ architecture behave of signed_mult2_accu is
   signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
   signal accu_used_shifted : signed(ACCU_USED_SHIFTED_WIDTH-1 downto 0);
 
-  -- clock enable
-  signal clkena : std_logic := '1';
+  -- clock enable +++ TODO
+  constant clkena : std_logic := '1';
 
 begin
 
   -- check chain in/out length
-  assert (chainin'length=ACCU_WIDTH or (not USE_CHAIN_INPUT))
-    report "ERROR signed_mult2_accu(behave) : " & 
+  assert (chainin'length>=ACCU_WIDTH or (not USE_CHAIN_INPUT))
+    report "ERROR " & IMPLEMENTATION & ": " &
            "Chain input width must be " & integer'image(ACCU_WIDTH) & " bits."
     severity failure;
 
   assert PRODUCT_WIDTH<=ACCU_WIDTH
-    report "ERROR signed_mult2_accu(behave) : " & 
+    report "ERROR " & IMPLEMENTATION & ": " &
            "Resulting product width exceeds accumulator width of " & integer'image(ACCU_WIDTH)
     severity failure;
 
   assert GUARD_BITS_EVAL<=MAX_GUARD_BITS
-    report "ERROR signed_mult2_accu(behave) : " & 
+    report "ERROR " & IMPLEMENTATION & ": " &
            "Maximum number of accumulator bits is " & integer'image(ACCU_WIDTH) & " ." &
            "Input bit widths allow only maximum number of guard bits = " & integer'image(MAX_GUARD_BITS)
     severity failure;
 
   assert OUTPUT_WIDTH<ACCU_USED_SHIFTED_WIDTH or not(OUTPUT_CLIP or OUTPUT_OVERFLOW)
-    report "ERROR signed_mult2_accu(behave) : " & 
+    report "ERROR " & IMPLEMENTATION & ": " &
            "More guard bits required for saturation/clipping and/or overflow detection."
     severity failure;
 
@@ -112,9 +115,8 @@ begin
   ireg(NUM_INPUT_REG).y1 <= resize(y1,18);
 
   g_in : if NUM_INPUT_REG>=1 generate
-  begin
     p_in : process(clk)
-    begin 
+    begin
      if rising_edge(clk) then
       if clkena='1' then
         for n in 1 to NUM_INPUT_REG loop

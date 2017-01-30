@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------------
--- FILE    : signed_mult2_sum_behave.vhdl
--- AUTHOR  : Fixitfetish
--- DATE    : 22/Jan/2017
--- VERSION : 0.40
--- VHDL    : 1993
--- LICENSE : MIT License
+--! @file       signed_mult2_sum_behave.vhdl
+--! @author     Fixitfetish
+--! @date       30/Jan/2017
+--! @version    0.50
+--! @copyright  MIT License
+--! @note       VHDL-1993
 -------------------------------------------------------------------------------
 -- Copyright (c) 2016-2017 Fixitfetish
 -------------------------------------------------------------------------------
@@ -16,6 +16,9 @@ library fixitfetish;
 
 
 architecture behave of signed_mult2_sum is
+
+  -- identifier for reports of warnings and errors
+  constant IMPLEMENTATION : string := "signed_mult2_sum(behave)";
 
   -- local auxiliary
   -- determine number of required additional guard bits (MSBs)
@@ -30,11 +33,14 @@ architecture behave of signed_mult2_sum is
     return res; 
   end function;
 
+  -- constant number of summands
+  constant NUM_SUMMAND : natural := 2;
+
   -- accumulator width in bits
   constant ACCU_WIDTH : positive := 64;
 
   -- derived constants
-  constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT>0);
+  constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
   constant PRODUCT_WIDTH : natural := x0'length + y0'length;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
   constant GUARD_BITS_EVAL : natural := guard_bits(NUM_SUMMAND,MAX_GUARD_BITS);
@@ -43,14 +49,14 @@ architecture behave of signed_mult2_sum is
   constant OUTPUT_WIDTH : positive := r_out'length;
 
   -- input register pipeline
-  type t_ireg is
+  type r_ireg is
   record
     rst, vld : std_logic;
     sub : std_logic_vector(sub'range);
     x0, y0 : signed(17 downto 0);
     x1, y1 : signed(17 downto 0);
   end record;
-  type array_ireg is array(integer range <>) of t_ireg;
+  type array_ireg is array(integer range <>) of r_ireg;
   signal ireg : array_ireg(NUM_INPUT_REG downto 0);
 
   signal vld_q : std_logic;
@@ -59,10 +65,26 @@ architecture behave of signed_mult2_sum is
   signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
   signal accu_used_shifted : signed(ACCU_USED_SHIFTED_WIDTH-1 downto 0);
 
-  -- clock enable
-  signal clkena : std_logic := '1';
+  -- clock enable +++ TODO
+  constant clkena : std_logic := '1';
 
 begin
+
+  assert PRODUCT_WIDTH<=ACCU_WIDTH
+    report "ERROR " & IMPLEMENTATION & ": " &
+           "Resulting product width exceeds accumulator width of " & integer'image(ACCU_WIDTH)
+    severity failure;
+
+  assert GUARD_BITS_EVAL<=MAX_GUARD_BITS
+    report "ERROR " & IMPLEMENTATION & ": " &
+           "Maximum number of accumulator bits is " & integer'image(ACCU_WIDTH) & " ." &
+           "Input bit widths allow only maximum number of guard bits = " & integer'image(MAX_GUARD_BITS)
+    severity failure;
+
+  assert OUTPUT_WIDTH<ACCU_USED_SHIFTED_WIDTH or not(OUTPUT_CLIP or OUTPUT_OVERFLOW)
+    report "ERROR " & IMPLEMENTATION & ": " &
+           "More guard bits required for saturation/clipping and/or overflow detection."
+    severity failure;
 
   -- pipeline inputs
   ireg(NUM_INPUT_REG).rst <= rst;
@@ -77,7 +99,7 @@ begin
 
   g_in : if NUM_INPUT_REG>=1 generate
   begin
-    p1 : process(clk)
+    p_in : process(clk)
     begin 
      if rising_edge(clk) then
       if clkena='1' then
