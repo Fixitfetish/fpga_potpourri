@@ -21,10 +21,10 @@ library fixitfetish;
 --!
 --! The behavior is as follows
 --! * vld = x0.vld and y0.vld and x1.vld and y1.vld
---! * CLR=1  VLD=0  ->  result = undefined                    # reset accumulator
---! * CLR=1  VLD=1  ->  result = +/-(x0*y0) +/-(x1*y1)        # restart accumulation
---! * CLR=0  VLD=0  ->  result = result                       # hold accumulator
---! * CLR=0  VLD=1  ->  result = result +/-(x0*y0) +/-(x1*y1) # proceed accumulation
+--! * CLR=1  VLD=0  ->  r = undefined                # reset accumulator
+--! * CLR=1  VLD=1  ->  r = +/-(x0*y0) +/-(x1*y1)    # restart accumulation
+--! * CLR=0  VLD=0  ->  r = r                        # hold accumulator
+--! * CLR=0  VLD=1  ->  r = r +/-(x0*y0) +/-(x1*y1)  # proceed accumulation
 --!
 --! The length of the input factors is flexible.
 --! The input factors are automatically resized with sign extensions bits to the
@@ -34,9 +34,9 @@ library fixitfetish;
 --! Without sum and accumulation the maximum result width in the accumulation
 --! register LSBs is
 --!   W = x'length + y'length + 1  (complex multiplication requires additional guard bit)
---! Dependent on r_out'length and NUM_SUMMAND a shift right is required to avoid
+--! Dependent on result'length and NUM_SUMMAND a shift right is required to avoid
 --! overflow or clipping.
---!   OUTPUT_SHIFT_RIGHT = W + ceil(log2(NUM_SUMMAND)) - r_out'length
+--!   OUTPUT_SHIFT_RIGHT = W + ceil(log2(NUM_SUMMAND)) - result'length
 --!
 --! If just multiplication and the sum of products is required but not further
 --! accumulation then set CLR to constant '1'. 
@@ -102,7 +102,7 @@ begin
     report "ERROR in cplx_mult2_accu : Rounding options 'U', 'Z' and 'I' are not supported."
     severity failure;
 
-  assert (x(0).re'length=x(0).im'length) and (y(0).re'length=y(0).im'length) and (r.re'length=r.im'length)
+  assert (x(0).re'length=x(0).im'length) and (y(0).re'length=y(0).im'length) and (result.re'length=result.im'length)
     report "ERROR in cplx_mult2_accu : Real and imaginary components must have same size."
     severity failure;
 

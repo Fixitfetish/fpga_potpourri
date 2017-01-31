@@ -25,7 +25,7 @@ library fixitfetish;
 --! * Rounding        : optional half-up
 --! * Output Data     : 1x signed value, max width is implementation specific
 --! * Output Register : optional, after rounding, shift-right and saturation
---! * Pipeline stages : 4,5,6,.. dependent on configuration
+--! * Pipeline stages : NUM_INPUT_REG + 4 + NUM_OUTPUT_REG
 
 architecture chain of signed_mult8_accu is
 

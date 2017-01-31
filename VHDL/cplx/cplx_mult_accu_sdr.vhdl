@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------------
--- FILE    : cplx_mult_accu_sdr.vhdl
--- AUTHOR  : Fixitfetish
--- DATE    : 24/Jan/2017
--- VERSION : 0.60
--- VHDL    : 1993
--- LICENSE : MIT License
+--! @file       cplx_mult_accu_sdr.vhdl
+--! @author     Fixitfetish
+--! @date       30/Jan/2017
+--! @version    0.70
+--! @copyright  MIT License
+--! @note       VHDL-1993
 -------------------------------------------------------------------------------
 -- Copyright (c) 2016-2017 Fixitfetish
 -------------------------------------------------------------------------------
@@ -15,37 +15,42 @@ library fixitfetish;
  use fixitfetish.cplx_pkg.all;
  use fixitfetish.ieee_extension.all;
 
--- Complex Multiply and Accumulate - Single Data Rate
--- In general this multiplier can be used when FPGA DSP cells are clocked with
--- the standard system clock. 
---
--- This implementation requires the FPGA type dependent module 'signed_mult2_accu'.
---
--- NOTE: The double rate clock 'clk2' is irrelevant and unused here.
+--! @brief Complex Multiply and Accumulate (Single Data Rate).
+--! In general this multiplier can be used when FPGA DSP cells are clocked with
+--! the standard system clock. 
+--!
+--! This implementation requires the FPGA device dependent module signed_mult2_accu.
+--! @image html cplx_mult_accu_sdr.svg "" width=600px
+--!
+--! NOTE: The double rate clock 'clk2' is irrelevant and unused here.
 
 architecture sdr of cplx_mult_accu is
 
-  --input signals
-  -- ! for 1993/2008 compatibility reasons do not use cplx record here !
-  signal clr_i, sub_i, sub_i_n : std_logic;
-  signal x_rst, x_vld, x_ovf : std_logic;
-  signal x_re : signed(x.re'length-1 downto 0);
-  signal x_im : signed(x.im'length-1 downto 0);
-  signal y_rst, y_vld, y_ovf : std_logic;
-  signal y_re : signed(y.re'length-1 downto 0);
-  signal y_im : signed(y.im'length-1 downto 0);
+  -- The number of pipeline stages is reported as constant at the output port
+  -- of the DSP implementation. PIPE_DSP is not a generic and it cannot be used
+  -- to constrain the length of a pipeline, hence a maximum pipeline length
+  -- must be defined here. Increase the value if required.
+  constant MAX_NUM_PIPE_DSP : positive := 16;
 
-  -- merged input signals (after optional input register)
-  signal rst, vld, ovf : std_logic;
+  -- merged input signals and compensate for multiplier pipeline stages
+  signal rst, ovf : std_logic_vector(0 to MAX_NUM_PIPE_DSP);
 
   -- auxiliary
-  signal data_reset, rst_q, ovf_q, ovf_qq : std_logic := '0';
+  signal vld : std_logic;
+  signal sub_n : std_logic;
+  signal data_reset : std_logic := '0';
 
   -- output signals
   -- ! for 1993/2008 compatibility reasons do not use cplx record here !
-  signal r_rst, r_vld, r_ovf, r_ovf_re, r_ovf_im : std_logic;
-  signal r_re : signed(r.re'length-1 downto 0);
-  signal r_im : signed(r.im'length-1 downto 0);
+  signal r_ovf_re, r_ovf_im : std_logic;
+  type record_result is
+  record
+    rst, vld, ovf : std_logic;
+    re : signed(result.re'length-1 downto 0);
+    im : signed(result.im'length-1 downto 0);
+  end record;
+  type array_result is array(integer range<>) of record_result;
+  signal rslt : array_result(0 to NUM_OUTPUT_REG);
 
   -- pipeline stages of used DSP cell
   signal PIPE_DSP : natural;
@@ -60,122 +65,102 @@ begin
   -- dummy sink for unused clock
   std_logic_sink(clk2);
 
-  g_in : if not INPUT_REG generate
-    clr_i <= clr;
-    sub_i <= sub;
-    x_rst<=x.rst; x_vld<=x.vld; x_ovf<=x.ovf;
-    y_rst<=y.rst; y_vld<=y.vld; y_ovf<=y.ovf;
-    x_re <= x.re; x_im <= x.im;
-    y_re <= y.re; y_im <= y.im;
-  end generate;
-
-  g_in_reg : if INPUT_REG generate
-    process(clk)
-    begin if rising_edge(clk) then
-      clr_i <= clr;
-      sub_i <= sub;
-      x_rst<=x.rst; x_vld<=x.vld; x_ovf<=x.ovf;
-      y_rst<=y.rst; y_vld<=y.vld; y_ovf<=y.ovf;
-      x_re <= x.re; x_im <= x.im;
-      y_re <= y.re; y_im <= y.im;
-    end if; end process;
-  end generate;
-
-  rst <= (x_rst  or y_rst);
-  vld <= (x_vld and y_vld) when rst='0' else '0';
-  ovf <= (x_ovf  or y_ovf) when rst='0' else '0';
+  -- merge input control signals
+  rst(0) <= (x.rst  or y.rst);
+  ovf(0) <= (x.ovf  or y.ovf) when rst(0)='0' else '0';
+  vld <= (x.vld and y.vld) when rst(0)='0' else '0';
 
   -- reset result data output to zero
-  data_reset <= rst when m='R' else '0';
+  data_reset <= rst(0) when m='R' else '0';
 
   -- add/subtract inversion
-  sub_i_n <= not sub_i;
+  sub_n <= not sub;
 
   -- calculate real component
   i_re : entity fixitfetish.signed_mult2_accu
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
-    USE_CHAIN_INPUT    => false,
-    NUM_INPUT_REG      => 1,
-    OUTPUT_REG         => false, -- separate output register - see below
+    USE_CHAIN_INPUT    => false, -- unused here
+    NUM_INPUT_REG      => NUM_INPUT_REG,
+    NUM_OUTPUT_REG     => 0, -- separate output register - see below
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     OUTPUT_ROUND       => (m='N'),
     OUTPUT_CLIP        => (m='S'),
     OUTPUT_OVERFLOW    => (m='O')
   )
   port map (
-   clk      => clk,
-   rst      => data_reset, 
-   clr      => clr_i,
-   vld      => vld,
-   sub(0)   => sub_i,
-   sub(1)   => sub_i_n,
-   x0       => x_re,
-   y0       => y_re,
-   x1       => x_im,
-   y1       => y_im,
-   r_vld    => r_vld,
-   r_out    => r_re,
-   r_ovf    => r_ovf_re,
-   chainin  => open, -- unused
-   chainout => open, -- unused
-   PIPE     => PIPE_DSP
+   clk        => clk,
+   rst        => data_reset, 
+   clr        => clr,
+   vld        => vld,
+   sub(0)     => sub,
+   sub(1)     => sub_n,
+   x0         => x.re,
+   y0         => y.re,
+   x1         => x.im,
+   y1         => y.im,
+   result     => rslt(0).re,
+   result_vld => rslt(0).vld,
+   result_ovf => r_ovf_re,
+   chainin    => open, -- unused
+   chainout   => open, -- unused
+   PIPESTAGES => PIPE_DSP
   );
 
   -- calculate imaginary component
   i_im : entity fixitfetish.signed_mult2_accu
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
-    USE_CHAIN_INPUT    => false,
-    NUM_INPUT_REG      => 1,
-    OUTPUT_REG         => false, -- separate output register - see below
+    USE_CHAIN_INPUT    => false, -- unused here
+    NUM_INPUT_REG      => NUM_INPUT_REG,
+    NUM_OUTPUT_REG     => 0, -- separate output register - see below
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     OUTPUT_ROUND       => (m='N'),
     OUTPUT_CLIP        => (m='S'),
     OUTPUT_OVERFLOW    => (m='O')
   )
   port map (
-   clk      => clk,
-   rst      => data_reset, 
-   clr      => clr_i,
-   vld      => vld,
-   sub(0)   => sub_i,
-   sub(1)   => sub_i,
-   x0       => x_re,
-   y0       => y_im,
-   x1       => x_im,
-   y1       => y_re,
-   r_vld    => open, -- same as real component
-   r_out    => r_im,
-   r_ovf    => r_ovf_im,
-   chainin  => open, -- unused
-   chainout => open, -- unused
-   PIPE     => open  -- same as real component
+   clk        => clk,
+   rst        => data_reset, 
+   clr        => clr,
+   vld        => vld,
+   sub(0)     => sub,
+   sub(1)     => sub,
+   x0         => x.re,
+   y0         => y.im,
+   x1         => x.im,
+   y1         => y.re,
+   result     => rslt(0).im,
+   result_vld => open, -- same as real component
+   result_ovf => r_ovf_im,
+   chainin    => open, -- unused
+   chainout   => open, -- unused
+   PIPESTAGES => open  -- same as real component
   );
 
-  -- accumulator delay compensation (multiply-accumulate bypassed!)
-  rst_q <= rst when rising_edge(clk);
-  r_rst <= rst_q when rising_edge(clk);
-  ovf_q <= ovf when rising_edge(clk);
-  ovf_qq <= ovf_q when rising_edge(clk);
-  r_ovf <= (ovf_qq or r_ovf_re or r_ovf_im);
+  -- accumulator delay compensation (DSP bypassed!)
+  g_loop : for n in 1 to MAX_NUM_PIPE_DSP generate
+    rst(n) <= rst(n-1) when rising_edge(clk);
+    ovf(n) <= ovf(n-1) when rising_edge(clk);
+  end generate;
+  rslt(0).rst <= rst(PIPE_DSP);
+  rslt(0).ovf <= ovf(PIPE_DSP) or r_ovf_re or r_ovf_im;
 
-  g_out : if not OUTPUT_REG generate
-    r.rst<=r_rst; r.vld<=r_vld; r.ovf<=r_ovf; r.re<=r_re; r.im<=r_im;
---    r <= reset_on_demand((rst=>r_rst,vld=>r_vld,ovf=>r_ovf,re=>r_re,im=>r_im), m=>m);
+  -- output registers
+  g_out_reg : if NUM_OUTPUT_REG>=1 generate
+    g_loop : for n in 1 to NUM_OUTPUT_REG generate
+      rslt(n) <= rslt(n-1) when rising_edge(clk);
+    end generate;
   end generate;
 
-  g_out_reg : if OUTPUT_REG generate
-    process(clk)
-    begin if rising_edge(clk) then
-      r.rst<=r_rst; r.vld<=r_vld; r.ovf<=r_ovf; r.re<=r_re; r.im<=r_im;
---      r <= reset_on_demand((rst=>r_rst,vld=>r_vld,ovf=>r_ovf,re=>r_re,im=>r_im), m=>m);
-    end if; end process;
-  end generate;
+  -- map result to output port
+  result.rst <= rslt(NUM_OUTPUT_REG).rst;
+  result.vld <= rslt(NUM_OUTPUT_REG).vld;
+  result.ovf <= rslt(NUM_OUTPUT_REG).ovf;
+  result.re  <= rslt(NUM_OUTPUT_REG).re;
+  result.im  <= rslt(NUM_OUTPUT_REG).im;
 
   -- report constant number of pipeline register stages (in 'clk' domain)
-  PIPE <= PIPE_DSP + 2 when (INPUT_REG and OUTPUT_REG) else
-          PIPE_DSP + 1 when (INPUT_REG or OUTPUT_REG) else
-          PIPE_DSP;
+  PIPESTAGES <= PIPE_DSP + NUM_OUTPUT_REG;
 
 end architecture;

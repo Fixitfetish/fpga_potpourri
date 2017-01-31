@@ -14,17 +14,17 @@ library ieee;
 library fixitfetish;
  use fixitfetish.cplx_pkg.all;
 
---! @brief Complex Multiply and Accumulate
+--! @brief Complex Multiply and Accumulate.
 --! In general, this multiplier is a good choice when FPGA DSP cells shall be used.
 --!
 --! @image html cplx_mult_accu.svg "" width=600px
 --!
 --! The behavior is as follows
 --! * vld = x.vld and y.vld
---! * CLR=1  VLD=0  ->  result = undefined         # reset accumulator
---! * CLR=1  VLD=1  ->  result = +/-(x*y)          # restart accumulation
---! * CLR=0  VLD=0  ->  result = result            # hold accumulator
---! * CLR=0  VLD=1  ->  result = result +/-(x*y)   # proceed accumulation
+--! * CLR=1  VLD=0  ->  r = undefined    # reset accumulator
+--! * CLR=1  VLD=1  ->  r = +/-(x*y)     # restart accumulation
+--! * CLR=0  VLD=0  ->  r = r            # hold accumulator
+--! * CLR=0  VLD=1  ->  r = r +/-(x*y)   # proceed accumulation
 --!
 --! The length of the input factors is flexible.
 --! The input factors are automatically resized with sign extensions bits to the
@@ -33,9 +33,9 @@ library fixitfetish;
 --! The size of the real and imaginary part of a complex input must be identical.
 --! Without accumulation the result width in the accumulation register LSBs is
 --!   W = x'length + y'length 
---! Dependent on dout'length and additional N accumulation guard bits a shift
+--! Dependent on result'length and additional N accumulation guard bits a shift
 --! right is required to avoid overflow or clipping.
---!   OUTPUT_SHIFT_RIGHT = W - dout'length - N
+--!   OUTPUT_SHIFT_RIGHT = W - result'length - N
 --!
 --! If just multiplication and the sum of products is required but not further
 --! accumulation then set CLR to constant '1'. 
@@ -101,7 +101,7 @@ begin
     report "ERROR in cplx_mult_accu : Rounding options 'U', 'Z' and 'I' are not supported."
     severity failure;
 
-  assert (x.re'length=x.im'length) and (y.re'length=y.im'length) and (r.re'length=r.im'length)
+  assert (x.re'length=x.im'length) and (y.re'length=y.im'length) and (result.re'length=result.im'length)
     report "ERROR in cplx_mult_accu : Real and imaginary components must have same size."
     severity failure;
 
