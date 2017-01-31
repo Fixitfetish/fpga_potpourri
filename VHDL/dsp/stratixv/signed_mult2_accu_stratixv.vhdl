@@ -32,12 +32,15 @@ library fixitfetish;
 --! * Output Data     : 1x signed value, max 64 bits
 --! * Output Register : optional, after shift-right and saturation
 --! * Output Chain    : optional, 64 bits
---! * Pipeline stages : NUM_INPUT_REG + 1 + OUTPUT_REG
+--! * Pipeline stages : NUM_INPUT_REG + 1 + NUM_OUTPUT_REG
 --!
 --! This implementation can be chained multiple times.
 --! @image html signed_mult2_accu_stratixv.svg "" width=800px
 
 architecture stratixv of signed_mult2_accu is
+
+  -- identifier for reports of warnings and errors
+  constant IMPLEMENTATION : string := "signed_mult2_accu(stratixv)";
 
   -- local auxiliary
   -- determine number of required additional guard bits (MSBs)
@@ -48,6 +51,12 @@ architecture stratixv of signed_mult2_accu is
       res := dflt; -- maximum possible (default)
     else
       res := LOG2CEIL(num_summand);
+      if res>dflt then 
+        report "WARNING " & IMPLEMENTATION & ": Too many summands. " & 
+           "Maximum number of " & integer'image(dflt) & " guard bits reached."
+           severity warning;
+        res:=dflt;
+      end if;
     end if;
     return res; 
   end function;
@@ -73,13 +82,13 @@ architecture stratixv of signed_mult2_accu is
   constant ACCU_WIDTH : positive := 64;
 
   -- derived constants
-  constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT>0);
+  constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
   constant PRODUCT_WIDTH : natural := x0'length + y0'length;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
   constant GUARD_BITS_EVAL : natural := guard_bits(NUM_SUMMAND,MAX_GUARD_BITS);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
   constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
-  constant OUTPUT_WIDTH : positive := r_out'length;
+  constant OUTPUT_WIDTH : positive := result'length;
 
   -- input register pipeline
   type r_ireg is
@@ -93,6 +102,16 @@ architecture stratixv of signed_mult2_accu is
   type array_ireg is array(integer range <>) of r_ireg;
   signal ireg : array_ireg(NUM_INPUT_REG downto 0);
 
+  -- output register pipeline
+  type r_oreg is
+  record
+    dat : signed(OUTPUT_WIDTH-1 downto 0);
+    vld : std_logic;
+    ovf : std_logic;
+  end record;
+  type array_oreg is array(integer range <>) of r_oreg;
+  signal rslt : array_oreg(NUM_OUTPUT_REG downto 0);
+
   signal clr_q, clr_i : std_logic;
   signal vld_q : std_logic;
   signal chainin_i, chainout_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
@@ -103,23 +122,23 @@ begin
 
   -- check chain in/out length
   assert (chainin'length>=ACCU_WIDTH or (not USE_CHAIN_INPUT))
-    report "ERROR signed_mult2_accu(stratixv) : " & 
+    report "ERROR " & IMPLEMENTATION & ": " &
            "Chain input width must be " & integer'image(ACCU_WIDTH) & " bits."
     severity failure;
 
   -- check input/output length
   assert (x0'length<=18 and y0'length<=18 and x1'length<=18 and y1'length<=18)
-    report "ERROR signed_mult2_accu(stratixv): Multiplier input width cannot exceed 18 bits."
+    report "ERROR " & IMPLEMENTATION & ": Multiplier input width cannot exceed 18 bits."
     severity failure;
 
   assert GUARD_BITS_EVAL<=MAX_GUARD_BITS
-    report "ERROR signed_mult2_accu(stratixv) : " & 
+    report "ERROR " & IMPLEMENTATION & ": " &
            "Maximum number of accumulator bits is " & integer'image(ACCU_WIDTH) & " ." &
            "Input bit widths allow only maximum number of guard bits = " & integer'image(MAX_GUARD_BITS)
     severity failure;
 
   assert OUTPUT_WIDTH<ACCU_USED_SHIFTED_WIDTH or not(OUTPUT_CLIP or OUTPUT_OVERFLOW)
-    report "ERROR signed_mult2_accu(stratixv) : " & 
+    report "ERROR " & IMPLEMENTATION & ": " &
            "More guard bits required for saturation/clipping and/or overflow detection."
     severity failure;
 
@@ -290,34 +309,29 @@ begin
 --    accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT, nearest),ACCU_USED_SHIFTED_WIDTH);
 --  end generate;
 
-  g_out : if not OUTPUT_REG generate
-    p_out : process(accu_used_shifted, vld_q)
-      variable v_dout : signed(OUTPUT_WIDTH-1 downto 0);
-      variable v_ovfl : std_logic;
-    begin
-      RESIZE_CLIP(din=>accu_used_shifted, dout=>v_dout, ovfl=>v_ovfl, clip=>OUTPUT_CLIP);
-      r_vld <= vld_q; 
-      r_out <= v_dout; 
-      if OUTPUT_OVERFLOW then r_ovf<=v_ovfl; else r_ovf<='0'; end if;
-    end process;
+  p_out : process(accu_used_shifted, vld_q)
+    variable v_dat : signed(OUTPUT_WIDTH-1 downto 0);
+    variable v_ovf : std_logic;
+  begin
+    RESIZE_CLIP(din=>accu_used_shifted, dout=>v_dat, ovfl=>v_ovf, clip=>OUTPUT_CLIP);
+    rslt(0).vld <= vld_q; 
+    rslt(0).dat <= v_dat; 
+    if OUTPUT_OVERFLOW then rslt(0).ovf<=v_ovf; else rslt(0).ovf<='0'; end if;
+  end process;
+
+  g_out_reg : if NUM_OUTPUT_REG>=1 generate
+    g_loop : for n in 1 to NUM_OUTPUT_REG generate
+      rslt(n) <= rslt(n-1) when rising_edge(clk);
+    end generate;
   end generate;
 
-  g_out_reg : if OUTPUT_REG generate
-    p_out_reg : process(clk)
-      variable v_dout : signed(OUTPUT_WIDTH-1 downto 0);
-      variable v_ovfl : std_logic;
-    begin
-      if rising_edge(clk) then
-        RESIZE_CLIP(din=>accu_used_shifted, dout=>v_dout, ovfl=>v_ovfl, clip=>OUTPUT_CLIP);
-        r_vld <= vld_q; 
-        r_out <= v_dout; 
-        if OUTPUT_OVERFLOW then r_ovf<=v_ovfl; else r_ovf<='0'; end if;
-      end if;
-    end process;
-  end generate;
+  -- map result to output port
+  result     <= rslt(NUM_OUTPUT_REG).dat;
+  result_vld <= rslt(NUM_OUTPUT_REG).vld;
+  result_ovf <= rslt(NUM_OUTPUT_REG).ovf;
 
   -- report constant number of pipeline register stages
-  PIPE <= NUM_INPUT_REG+2 when OUTPUT_REG else NUM_INPUT_REG+1;
+  PIPESTAGES <= NUM_INPUT_REG + 1 + NUM_OUTPUT_REG;
 
 end architecture;
 

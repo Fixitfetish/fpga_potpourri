@@ -46,7 +46,7 @@ architecture behave of signed_mult2_sum is
   constant GUARD_BITS_EVAL : natural := guard_bits(NUM_SUMMAND,MAX_GUARD_BITS);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
   constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
-  constant OUTPUT_WIDTH : positive := r_out'length;
+  constant OUTPUT_WIDTH : positive := result'length;
 
   -- input register pipeline
   type r_ireg is
@@ -58,6 +58,16 @@ architecture behave of signed_mult2_sum is
   end record;
   type array_ireg is array(integer range <>) of r_ireg;
   signal ireg : array_ireg(NUM_INPUT_REG downto 0);
+
+  -- output register pipeline
+  type r_oreg is
+  record
+    dat : signed(OUTPUT_WIDTH-1 downto 0);
+    vld : std_logic;
+    ovf : std_logic;
+  end record;
+  type array_oreg is array(integer range <>) of r_oreg;
+  signal rslt : array_oreg(NUM_OUTPUT_REG downto 0);
 
   signal vld_q : std_logic;
   signal p0, p1, sum : signed(PRODUCT_WIDTH downto 0);
@@ -98,9 +108,8 @@ begin
   ireg(NUM_INPUT_REG).y1 <= resize(y1,18);
 
   g_in : if NUM_INPUT_REG>=1 generate
-  begin
     p_in : process(clk)
-    begin 
+    begin
      if rising_edge(clk) then
       if clkena='1' then
         for n in 1 to NUM_INPUT_REG loop
@@ -154,36 +163,29 @@ begin
     accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT, nearest),ACCU_USED_SHIFTED_WIDTH);
   end generate;
   
-  g_out : if not OUTPUT_REG generate
-    p_out : process(accu_used_shifted, vld_q)
-      variable v_dout : signed(OUTPUT_WIDTH-1 downto 0);
-      variable v_ovfl : std_logic;
-    begin
-      RESIZE_CLIP(din=>accu_used_shifted, dout=>v_dout, ovfl=>v_ovfl, clip=>OUTPUT_CLIP);
-      r_vld <= vld_q; 
-      r_out <= v_dout; 
-      if OUTPUT_OVERFLOW then r_ovf<=v_ovfl; else r_ovf<='0'; end if;
-    end process;
+  p_out : process(accu_used_shifted, vld_q)
+    variable v_dat : signed(OUTPUT_WIDTH-1 downto 0);
+    variable v_ovf : std_logic;
+  begin
+    RESIZE_CLIP(din=>accu_used_shifted, dout=>v_dat, ovfl=>v_ovf, clip=>OUTPUT_CLIP);
+    rslt(0).vld <= vld_q; 
+    rslt(0).dat <= v_dat; 
+    if OUTPUT_OVERFLOW then rslt(0).ovf<=v_ovf; else rslt(0).ovf<='0'; end if;
+  end process;
+
+  g_out_reg : if NUM_OUTPUT_REG>=1 generate
+    g_loop : for n in 1 to NUM_OUTPUT_REG generate
+      rslt(n) <= rslt(n-1) when rising_edge(clk);
+    end generate;
   end generate;
 
-  g_out_reg : if OUTPUT_REG generate
-    p_out_reg : process(clk)
-      variable v_dout : signed(OUTPUT_WIDTH-1 downto 0);
-      variable v_ovfl : std_logic;
-    begin
-      if rising_edge(clk) then
-        if clkena='1' then
-          RESIZE_CLIP(din=>accu_used_shifted, dout=>v_dout, ovfl=>v_ovfl, clip=>OUTPUT_CLIP);
-          r_vld <= vld_q;
-          r_out <= v_dout;
-          if OUTPUT_OVERFLOW then r_ovf<=v_ovfl; else r_ovf<='0'; end if;
-        end if;
-      end if;
-    end process;
-  end generate;
+  -- map result to output port
+  result     <= rslt(NUM_OUTPUT_REG).dat;
+  result_vld <= rslt(NUM_OUTPUT_REG).vld;
+  result_ovf <= rslt(NUM_OUTPUT_REG).ovf;
 
   -- report constant number of pipeline register stages
-  PIPE <= NUM_INPUT_REG+2 when OUTPUT_REG else NUM_INPUT_REG+1;
+  PIPESTAGES <= NUM_INPUT_REG + 1 + NUM_OUTPUT_REG;
 
 end architecture;
 

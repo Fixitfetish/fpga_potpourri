@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult4_sum.vhdl
 --! @author     Fixitfetish
---! @date       24/Jan/2017
---! @version    0.30
+--! @date       30/Jan/2017
+--! @version    0.40
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -10,7 +10,7 @@ library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
 
---! @brief Four signed multiplications and sum all product results.
+--! @brief Four signed multiplications and sum of all product results.
 --!
 --! @image html signed_mult4_sum.svg "" width=600px
 --!
@@ -28,25 +28,31 @@ library ieee;
 --! * NUM_SUMMAND = 4
 --! * ACCU WIDTH = accumulator width (device specific)
 --! * PRODUCT WIDTH = x'length + y'length
---! * GUARD BITS = ceil(log2(NUM_SUMMANDS))
+--! * GUARD BITS = ceil(log2(NUM_SUMMAND))
 --! * ACCU USED WIDTH = PRODUCT WIDTH + GUARD BITS <= ACCU WIDTH
 --! * OUTPUT SHIFT RIGHT = number of LSBs to prune
 --! * OVFL = overflow detection sign bits, all must match the output sign bit otherwise overflow
 --! * R = rounding bit (+0.5 when OUTPUT ROUND is enabled)
---! * OUTPUT WIDTH = length of result output
 --! * ACCU USED SHIFTED WIDTH = ACCU USED WIDTH - OUTPUT SHIFT RIGHT
+--! * OUTPUT WIDTH = length of result output <= ACCU USED SHIFTED WIDTH
+--!
+--! \b Example: The input lengths are x'length=18 and y'length=16, hence PRODUCT_WIDTH=34.
+--! With NUM_SUMMAND=4 the number of additional guard bits is GUARD_BITS=2.
+--! If the output length is 22 then the standard shift-right setting (conservative,
+--! without risk of overflow) would be OUTPUT_SHIFT_RIGHT = 34 + 2 - 22 = 13.
 --!
 --! The delay depends on the configuration and the underlying hardware.
---! The number pipeline stages is reported as constant at output port PIPE.
+--! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
 
 entity signed_mult4_sum is
 generic (
   --! @brief Number of additional input registers. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
   NUM_INPUT_REG : natural := 1;
-  --! @brief Additional result output register (recommended when logic for rounding and/or clipping is enabled).
-  --! Typically the output register is implemented in logic. 
-  OUTPUT_REG : boolean := false;
+  --! @brief Number of additional result output registers.
+  --! At least one is recommended when logic for rounding and/or clipping is enabled.
+  --! Typically all output registers are implemented in logic and are not part of a DSP cell.
+  NUM_OUTPUT_REG : natural := 0;
   --! Number of bits by which the accumulator result output is shifted right
   OUTPUT_SHIFT_RIGHT : natural := 0;
   --! @brief Round 'nearest' (half-up) of result output.
@@ -62,46 +68,42 @@ generic (
 );
 port (
   --! Standard system clock
-  clk      : in  std_logic;
+  clk        : in  std_logic;
   --! Reset result output (optional)
-  rst      : in  std_logic := '0';
+  rst        : in  std_logic := '0';
   --! Valid signal for input factors, high-active
-  vld      : in  std_logic;
+  vld        : in  std_logic;
   --! Add/subtract for all products n=0..3 , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)). Subtraction is disabled by default.
-  sub      : in  std_logic_vector(0 to 3) := (others=>'0');
+  sub        : in  std_logic_vector(0 to 3) := (others=>'0');
   --! 1st product, 1st signed factor input
-  x0       : in  signed;
+  x0         : in  signed;
   --! 1st product, 2nd signed factor input
-  y0       : in  signed;
+  y0         : in  signed;
   --! 2nd product, 1st signed factor input
-  x1       : in  signed;
+  x1         : in  signed;
   --! 2nd product, 2nd signed factor input
-  y1       : in  signed;
+  y1         : in  signed;
   --! 3rd product, 1st signed factor input
-  x2       : in  signed;
+  x2         : in  signed;
   --! 3rd product, 2nd signed factor input
-  y2       : in  signed;
+  y2         : in  signed;
   --! 4th product, 1st signed factor input
-  x3       : in  signed;
+  x3         : in  signed;
   --! 4th product, 2nd signed factor input
-  y3       : in  signed;
-  --! Valid signal for result output, high-active
-  r_vld    : out std_logic;
+  y3         : in  signed;
   --! @brief Resulting product/accumulator output (optionally rounded and clipped).
   --! The standard result output might be unused when chain output is used instead.
-  r_out    : out signed;
-  --! Output overflow/clipping detection
-  r_ovf    : out std_logic;
-  --! @brief Input from other chained DSP cell (optional, only used when input enabled and connected).
-  --! The chain width is device specific. A maximum width of 96 bits is supported.
-  --! If the device specific chain width is smaller then only the LSBs are used.
-  chainin  : in  signed(95 downto 0) := (others=>'0');
+  result     : out signed;
+  --! Valid signal for result output, high-active
+  result_vld : out std_logic;
+  --! Result output overflow/clipping detection
+  result_ovf : out std_logic;
   --! @brief Result output to other chained DSP cell (optional)
   --! The chain width is device specific. A maximum width of 96 bits is supported.
   --! If the device specific chain width is smaller then only the LSBs are used.
-  chainout : out signed(95 downto 0) := (others=>'0');
+  chainout   : out signed(95 downto 0) := (others=>'0');
   --! Number of pipeline stages, constant, depends on configuration and device specific implementation
-  PIPE     : out natural := 0
+  PIPESTAGES : out natural := 0
 );
 begin
 
@@ -111,7 +113,7 @@ begin
     report "ERROR signed_mult4_sum : All products must result in same size."
     severity failure;
 
-  assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT>0)
+  assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
     report "WARNING signed_mult4_sum : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 

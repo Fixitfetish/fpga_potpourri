@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult_accu.vhdl
 --! @author     Fixitfetish
---! @date       27/Jan/2017
---! @version    0.70
+--! @date       30/Jan/2017
+--! @version    0.80
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ library ieee;
 --! then set CLR to constant '1'.
 --!
 --! The delay depends on the configuration and the underlying hardware.
---! The number pipeline stages is reported as constant at output port PIPE.
+--! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
 
 --
 --    <----------------------------------- ACCU WIDTH ------------------------>
@@ -72,13 +72,16 @@ generic (
   --! * 2 => accumulate up to 2 products
   --! * 3 => accumulate up to 3 products
   --! *  and so on ...
+  --! 
+  --! Note that every single accumulated product result counts!
   NUM_SUMMAND : natural := 0;
-  --! @brief Use additional input register (strongly recommended)
-  --! If available the input register within the DSP cell is used.
-  INPUT_REG : boolean := true;
-  --! @brief Additional result output register (recommended when logic for rounding and/or clipping is enabled).
-  --! Typically the output register is implemented in logic. 
-  OUTPUT_REG : boolean := false;
+  --! @brief Number of additional input registers. At least one is strongly recommended.
+  --! If available the input registers within the DSP cell are used.
+  NUM_INPUT_REG : natural := 1;
+  --! @brief Number of additional result output registers.
+  --! At least one is recommended when logic for rounding and/or clipping is enabled.
+  --! Typically all output registers are implemented in logic and are not part of a DSP cell.
+  NUM_OUTPUT_REG : natural := 0;
   --! Number of bits by which the accumulator result output is shifted right
   OUTPUT_SHIFT_RIGHT : natural := 0;
   --! @brief Round 'nearest' (half-up) of result output.
@@ -94,26 +97,26 @@ generic (
 );
 port (
   --! Standard system clock
-  clk      : in  std_logic;
+  clk        : in  std_logic;
   --! @brief Clear accumulator (mark first valid input factors of accumulation sequence).
   --! If accumulation is not wanted then set constant '1'.
-  clr      : in  std_logic;
+  clr        : in  std_logic;
   --! Valid signal for input factors, high-active
-  vld      : in  std_logic;
+  vld        : in  std_logic;
   --! Add/subtract product , '0' -> +(x*y), '1' -> -(x*y). Subtraction is disabled by default.
-  sub      : in  std_logic := '0';
+  sub        : in  std_logic := '0';
   --! 1st signed factor input
-  x        : in  signed;
+  x          : in  signed;
   --! 2nd signed factor input
-  y        : in  signed;
-  --! Valid signal for result output, high-active
-  r_vld    : out std_logic;
+  y          : in  signed;
   --! @brief Resulting product/accumulator output (optionally rounded and clipped).
-  r_out    : out signed;
-  --! Output overflow/clipping detection
-  r_ovf    : out std_logic;
+  result     : out signed;
+  --! Valid signal for result output, high-active
+  result_vld : out std_logic;
+  --! Result output overflow/clipping detection
+  result_ovf : out std_logic;
   --! Number of pipeline stages, constant, depends on configuration and device specific implementation
-  PIPE     : out natural := 0
+  PIPESTAGES : out natural := 0
 );
 end entity;
 

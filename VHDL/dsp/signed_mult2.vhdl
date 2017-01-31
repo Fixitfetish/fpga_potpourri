@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult2.vhdl
 --! @author     Fixitfetish
---! @date       24/Jan/2017
---! @version    0.10
+--! @date       30/Jan/2017
+--! @version    0.20
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -17,10 +17,12 @@ library ieee;
 --! * vld=1  ->  r(n) = x(n)*y(n)  # multiply
 --!
 --! The length of the input factors is flexible.
---! The maximum width of the input factors is device and implementation specific.
+--! The input factors are automatically resized with sign extensions bits to the
+--! maximum possible factor length.
+--! The maximum length of the input factors is device and implementation specific.
 --!
 --! The delay depends on the configuration and the underlying hardware.
---! The number pipeline stages is reported as constant at output port PIPE.
+--! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
 
 --
 --    <----------------------------------- ACCU WIDTH ------------------------>
@@ -58,9 +60,10 @@ generic (
   --! @brief Number of additional input registers. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
   NUM_INPUT_REG : natural := 1;
-  --! @brief Additional result output register (recommended when logic for rounding and/or clipping is enabled).
-  --! Typically the output register is implemented in logic. 
-  OUTPUT_REG : boolean := false;
+  --! @brief Number of additional result output registers.
+  --! At least one is recommended when logic for rounding and/or clipping is enabled.
+  --! Typically all output registers are implemented in logic and are not part of a DSP cell.
+  NUM_OUTPUT_REG : natural := 0;
   --! Number of bits by which the accumulator result output is shifted right
   OUTPUT_SHIFT_RIGHT : natural := 0;
   --! @brief Round 'nearest' (half-up) of result output.
@@ -76,35 +79,35 @@ generic (
 );
 port (
   --! Standard system clock
-  clk      : in  std_logic;
+  clk        : in  std_logic;
   --! Reset result output (optional)
-  rst      : in  std_logic := '0';
+  rst        : in  std_logic := '0';
   --! Valid signal for input factors, high-active
-  vld      : in  std_logic;
+  vld        : in  std_logic;
   --! Add/subtract for all products n=0..1 , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)). Subtraction is disabled by default.
-  sub      : in  std_logic_vector(0 to 1) := (others=>'0');
+  sub        : in  std_logic_vector(0 to 1) := (others=>'0');
   --! 1st product, 1st signed factor input
-  x0       : in  signed;
+  x0         : in  signed;
   --! 1st product, 2nd signed factor input
-  y0       : in  signed;
+  y0         : in  signed;
   --! 2nd product, 1st signed factor input
-  x1       : in  signed;
+  x1         : in  signed;
   --! 2nd product, 2nd signed factor input
-  y1       : in  signed;
-  --! Valid signals for result output, high-active
-  r_vld    : out std_logic_vector(0 to 1);
+  y1         : in  signed;
   --! Resulting 1st product output (optionally rounded and clipped).
-  r0_out   : out signed;
+  result0    : out signed;
   --! Resulting 2nd product output (optionally rounded and clipped).
-  r1_out   : out signed;
-  --! Output overflow/clipping detection
-  r_ovf    : out std_logic_vector(0 to 1);
+  result1    : out signed;
+  --! Valid signals for result output, high-active
+  result_vld : out std_logic_vector(0 to 1);
+  --! Result output overflow/clipping detection
+  result_ovf : out std_logic_vector(0 to 1);
   --! Number of pipeline stages, constant, depends on configuration and device specific implementation
-  PIPE     : out natural := 0
+  PIPESTAGES : out natural := 0
 );
 begin
 
-  assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT>0)
+  assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
     report "WARNING signed_mult2 : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 

@@ -48,6 +48,10 @@ architecture sdr of cplx_mult2_accu is
 
 begin
 
+  assert NUM_OUTPUT_REG=1
+    report "ERROR cplx_mult2_accu_sdr : CUrrently only NUM_OUTPUT_REG=1 supported."
+    severity failure;
+
   -- dummy sink for unused clock
   std_logic_sink(clk2);
 
@@ -66,36 +70,36 @@ begin
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAIN_INPUT    => false, -- unused here
-    NUM_INPUT_REG      => NUM_INPUT_REG+1, -- at least one input register
-    OUTPUT_REG         => false, -- separate output register - see below
+    NUM_INPUT_REG      => NUM_INPUT_REG,
+    NUM_OUTPUT_REG     => NUM_OUTPUT_REG-1, -- separate output register - see below
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     OUTPUT_ROUND       => (m='N'),
     OUTPUT_CLIP        => (m='S'),
     OUTPUT_OVERFLOW    => (m='O')
   )
   port map (
-   clk      => clk,
-   rst      => data_reset, 
-   clr      => clr,
-   vld      => vld,
-   sub(0)   => sub(0),
-   sub(1)   => sub_n(0),
-   sub(2)   => sub(1),
-   sub(3)   => sub_n(1),
-   x0       => x(0).re,
-   y0       => y(0).re,
-   x1       => x(0).im,
-   y1       => y(0).im,
-   x2       => x(1).re,
-   y2       => y(1).re,
-   x3       => x(1).im,
-   y3       => y(1).im,
-   r_vld    => r_vld,
-   r_out    => r_re,
-   r_ovf    => r_ovf_re,
-   chainin  => open, -- unused
-   chainout => open, -- unused
-   PIPE     => PIPE_DSP
+   clk        => clk,
+   rst        => data_reset, 
+   clr        => clr,
+   vld        => vld,
+   sub(0)     => sub(0),
+   sub(1)     => sub_n(0),
+   sub(2)     => sub(1),
+   sub(3)     => sub_n(1),
+   x0         => x(0).re,
+   y0         => y(0).re,
+   x1         => x(0).im,
+   y1         => y(0).im,
+   x2         => x(1).re,
+   y2         => y(1).re,
+   x3         => x(1).im,
+   y3         => y(1).im,
+   result     => r_re,
+   result_vld => r_vld,
+   result_ovf => r_ovf_re,
+   chainin    => open, -- unused
+   chainout   => open, -- unused
+   PIPESTAGES => PIPE_DSP
   );
 
   -- calculate imaginary component
@@ -103,36 +107,36 @@ begin
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAIN_INPUT    => false, -- unused here
-    NUM_INPUT_REG      => NUM_INPUT_REG+1, -- at least one input register
-    OUTPUT_REG         => false, -- separate output register - see below
+    NUM_INPUT_REG      => NUM_INPUT_REG,
+    NUM_OUTPUT_REG     => NUM_OUTPUT_REG-1, -- separate output register - see below
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     OUTPUT_ROUND       => (m='N'),
     OUTPUT_CLIP        => (m='S'),
     OUTPUT_OVERFLOW    => (m='O')
   )
   port map (
-   clk      => clk,
-   rst      => data_reset, 
-   clr      => clr,
-   vld      => vld,
-   sub(0)   => sub(0),
-   sub(1)   => sub(0),
-   sub(2)   => sub(1),
-   sub(3)   => sub(1),
-   x0       => x(0).re,
-   y0       => y(0).im,
-   x1       => x(0).im,
-   y1       => y(0).re,
-   x2       => x(1).re,
-   y2       => y(1).im,
-   x3       => x(1).im,
-   y3       => y(1).re,
-   r_vld    => open, -- same as real component
-   r_out    => r_im,
-   r_ovf    => r_ovf_im,
-   chainin  => open, -- unused
-   chainout => open, -- unused
-   PIPE     => open  -- same as real component
+   clk        => clk,
+   rst        => data_reset, 
+   clr        => clr,
+   vld        => vld,
+   sub(0)     => sub(0),
+   sub(1)     => sub(0),
+   sub(2)     => sub(1),
+   sub(3)     => sub(1),
+   x0         => x(0).re,
+   y0         => y(0).im,
+   x1         => x(0).im,
+   y1         => y(0).re,
+   x2         => x(1).re,
+   y2         => y(1).im,
+   x3         => x(1).im,
+   y3         => y(1).re,
+   result     => r_im,
+   result_vld => open, -- same as real component
+   result_ovf => r_ovf_im,
+   chainin    => open, -- unused
+   chainout   => open, -- unused
+   PIPESTAGES => open  -- same as real component
   );
 
   -- accumulator delay compensation (multiply-accumulate bypassed!)
@@ -155,7 +159,7 @@ begin
     end if; end process;
   end generate;
 
-  -- report constant number of pipeline register stages
-  PIPE <= PIPE_DSP+1 when OUTPUT_REG else PIPE_DSP;
+  -- report constant number of pipeline register stages +++ TODO
+  PIPESTAGES <= PIPE_DSP+1 when NUM_OUTPUT_REG=1 else PIPE_DSP;
 
 end architecture;
