@@ -84,8 +84,8 @@ port (
   --! @brief Clear accumulator (mark first valid input factors of accumulation sequence).
   --! If accumulation is not wanted then set constant '1'.
   clr        : in  std_logic;
-  --! Add/subtract, '0'-> +(x*y), '1'-> -(x*y)
-  sub        : in  std_logic;
+  --! Add/subtract, '0'-> +(x*y), '1'-> -(x*y). Subtraction is disabled by default.
+  sub        : in  std_logic := '0';
   --! first complex factor 
   x          : in  cplx;
   --! second complex factor 
