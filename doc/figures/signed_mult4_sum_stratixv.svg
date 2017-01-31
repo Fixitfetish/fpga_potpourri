@@ -52,6 +52,7 @@
    <glyph unicode="1" horiz-adv-x="900" d="M 156,0 L 156,153 515,153 515,1237 197,1010 197,1180 530,1409 696,1409 696,153 1039,153 1039,0 156,0 Z"/>
    <glyph unicode="0" horiz-adv-x="980" d="M 1059,705 C 1059,470 1018,290 935,166 852,42 729,-20 567,-20 405,-20 283,42 202,165 121,288 80,468 80,705 80,947 120,1128 199,1249 278,1370 402,1430 573,1430 739,1430 862,1369 941,1247 1020,1125 1059,944 1059,705 Z M 876,705 C 876,908 853,1056 806,1147 759,1238 681,1284 573,1284 462,1284 383,1239 335,1149 286,1059 262,911 262,705 262,505 287,359 336,266 385,173 462,127 569,127 675,127 753,174 802,269 851,364 876,509 876,705 Z"/>
    <glyph unicode="/" horiz-adv-x="557" d="M 0,-20 L 411,1484 569,1484 162,-20 0,-20 Z"/>
+   <glyph unicode="." horiz-adv-x="239" d="M 187,0 L 187,219 382,219 382,0 187,0 Z"/>
    <glyph unicode="-" horiz-adv-x="531" d="M 91,464 L 91,624 591,624 591,464 91,464 Z"/>
    <glyph unicode="+" horiz-adv-x="1033" d="M 671,608 L 671,180 524,180 524,608 100,608 100,754 524,754 524,1182 671,1182 671,754 1095,754 1095,608 671,608 Z"/>
    <glyph unicode="&amp;" horiz-adv-x="1271" d="M 1193,-12 C 1075,-12 976,30 895,115 845,72 788,38 724,15 660,-8 593,-20 523,-20 380,-20 269,15 190,84 111,153 72,248 72,371 72,556 186,699 415,800 393,841 374,890 358,947 342,1004 334,1055 334,1102 334,1202 365,1280 426,1335 487,1390 573,1417 685,1417 786,1417 867,1392 929,1341 990,1290 1021,1221 1021,1133 1021,1054 991,984 930,923 869,862 763,801 612,741 686,604 784,467 905,329 980,440 1037,576 1076,739 L 1221,696 C 1179,530 1108,374 1009,227 1073,162 1142,129 1217,129 1264,129 1303,134 1334,145 L 1334,10 C 1297,-5 1250,-12 1193,-12 Z M 869,1133 C 869,1181 852,1220 819,1251 786,1281 740,1296 683,1296 619,1296 570,1279 537,1245 504,1210 487,1163 487,1102 487,1026 509,945 552,858 639,893 704,924 745,950 786,976 817,1004 838,1034 859,1064 869,1097 869,1133 Z M 795,217 C 663,373 557,525 476,674 319,607 240,507 240,373 240,292 266,229 318,182 369,135 440,111 529,111 576,111 624,120 671,139 718,157 760,183 795,217 Z"/>
@@ -148,7 +149,7 @@
         <rect class="BoundingBox" stroke="none" fill="none" x="17791" y="6691" width="819" height="819"/>
         <path fill="rgb(221,221,221)" stroke="none" d="M 18200,7500 L 17800,7500 17800,6700 18600,6700 18600,7500 18200,7500 Z"/>
         <path fill="none" stroke="rgb(0,0,0)" stroke-width="18" stroke-linejoin="round" d="M 18200,7500 L 17800,7500 17800,6700 18600,6700 18600,7500 18200,7500 Z"/>
-        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="17880" y="7053"><tspan fill="rgb(0,0,0)" stroke="none">Output</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="18005" y="7291"><tspan fill="rgb(0,0,0)" stroke="none">Reg</tspan></tspan></tspan></text>
+        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="17880" y="6934"><tspan fill="rgb(0,0,0)" stroke="none">Output</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="18005" y="7172"><tspan fill="rgb(0,0,0)" stroke="none">Reg</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="18005" y="7410"><tspan fill="rgb(0,0,0)" stroke="none">1..N</tspan></tspan></tspan></text>
        </g>
       </g>
       <g class="com.sun.star.drawing.CustomShape">
@@ -171,7 +172,7 @@
         <rect class="BoundingBox" stroke="none" fill="none" x="18595" y="7000" width="806" height="306"/>
         <path fill="none" stroke="rgb(0,0,0)" stroke-width="18" stroke-linejoin="round" d="M 18604,7100 L 19254,7100"/>
         <path fill="rgb(0,0,0)" stroke="none" d="M 19400,7100 L 19240,7000 19240,7200 19400,7100 Z"/>
-        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="18758" y="7291"><tspan fill="rgb(0,0,0)" stroke="none">rout  </tspan></tspan></tspan></text>
+        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="18680" y="7291"><tspan fill="rgb(0,0,0)" stroke="none">result  </tspan></tspan></tspan></text>
        </g>
       </g>
       <g class="com.sun.star.drawing.CustomShape">
@@ -213,7 +214,7 @@
         <rect class="BoundingBox" stroke="none" fill="none" x="3391" y="5691" width="819" height="3219"/>
         <path fill="rgb(221,221,221)" stroke="none" d="M 3800,8900 L 3400,8900 3400,5700 4200,5700 4200,8900 3800,8900 Z"/>
         <path fill="none" stroke="rgb(0,0,0)" stroke-width="18" stroke-linejoin="round" d="M 3800,8900 L 3400,8900 3400,5700 4200,5700 4200,8900 3800,8900 Z"/>
-        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3563" y="7134"><tspan fill="rgb(0,0,0)" stroke="none">Input</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3606" y="7372"><tspan fill="rgb(0,0,0)" stroke="none">Reg</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3724" y="7610"><tspan fill="rgb(0,0,0)" stroke="none">N</tspan></tspan></tspan></text>
+        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3563" y="7134"><tspan fill="rgb(0,0,0)" stroke="none">Input</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3606" y="7372"><tspan fill="rgb(0,0,0)" stroke="none">Reg</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3606" y="7610"><tspan fill="rgb(0,0,0)" stroke="none">2..N</tspan></tspan></tspan></text>
        </g>
       </g>
       <g class="com.sun.star.drawing.CustomShape">
@@ -683,7 +684,7 @@
         <rect class="BoundingBox" stroke="none" fill="none" x="3391" y="2291" width="819" height="3219"/>
         <path fill="rgb(221,221,221)" stroke="none" d="M 3800,5500 L 3400,5500 3400,2300 4200,2300 4200,5500 3800,5500 Z"/>
         <path fill="none" stroke="rgb(0,0,0)" stroke-width="18" stroke-linejoin="round" d="M 3800,5500 L 3400,5500 3400,2300 4200,2300 4200,5500 3800,5500 Z"/>
-        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3563" y="3734"><tspan fill="rgb(0,0,0)" stroke="none">Input</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3606" y="3972"><tspan fill="rgb(0,0,0)" stroke="none">Reg</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3724" y="4210"><tspan fill="rgb(0,0,0)" stroke="none">N</tspan></tspan></tspan></text>
+        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3563" y="3734"><tspan fill="rgb(0,0,0)" stroke="none">Input</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3606" y="3972"><tspan fill="rgb(0,0,0)" stroke="none">Reg</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3606" y="4210"><tspan fill="rgb(0,0,0)" stroke="none">2..N</tspan></tspan></tspan></text>
        </g>
       </g>
       <g class="com.sun.star.drawing.CustomShape">

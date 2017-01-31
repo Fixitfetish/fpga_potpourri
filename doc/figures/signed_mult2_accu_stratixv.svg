@@ -54,6 +54,7 @@
    <glyph unicode="1" horiz-adv-x="900" d="M 156,0 L 156,153 515,153 515,1237 197,1010 197,1180 530,1409 696,1409 696,153 1039,153 1039,0 156,0 Z"/>
    <glyph unicode="0" horiz-adv-x="980" d="M 1059,705 C 1059,470 1018,290 935,166 852,42 729,-20 567,-20 405,-20 283,42 202,165 121,288 80,468 80,705 80,947 120,1128 199,1249 278,1370 402,1430 573,1430 739,1430 862,1369 941,1247 1020,1125 1059,944 1059,705 Z M 876,705 C 876,908 853,1056 806,1147 759,1238 681,1284 573,1284 462,1284 383,1239 335,1149 286,1059 262,911 262,705 262,505 287,359 336,266 385,173 462,127 569,127 675,127 753,174 802,269 851,364 876,509 876,705 Z"/>
    <glyph unicode="/" horiz-adv-x="557" d="M 0,-20 L 411,1484 569,1484 162,-20 0,-20 Z"/>
+   <glyph unicode="." horiz-adv-x="239" d="M 187,0 L 187,219 382,219 382,0 187,0 Z"/>
    <glyph unicode="-" horiz-adv-x="531" d="M 91,464 L 91,624 591,624 591,464 91,464 Z"/>
    <glyph unicode="+" horiz-adv-x="1033" d="M 671,608 L 671,180 524,180 524,608 100,608 100,754 524,754 524,1182 671,1182 671,754 1095,754 1095,608 671,608 Z"/>
    <glyph unicode=" " horiz-adv-x="556"/>
@@ -147,7 +148,7 @@
         <rect class="BoundingBox" stroke="none" fill="none" x="3391" y="2291" width="819" height="3219"/>
         <path fill="rgb(221,221,221)" stroke="none" d="M 3800,5500 L 3400,5500 3400,2300 4200,2300 4200,5500 3800,5500 Z"/>
         <path fill="none" stroke="rgb(0,0,0)" stroke-width="18" stroke-linejoin="round" d="M 3800,5500 L 3400,5500 3400,2300 4200,2300 4200,5500 3800,5500 Z"/>
-        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3563" y="3734"><tspan fill="rgb(0,0,0)" stroke="none">Input</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3606" y="3972"><tspan fill="rgb(0,0,0)" stroke="none">Reg</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3724" y="4210"><tspan fill="rgb(0,0,0)" stroke="none">N</tspan></tspan></tspan></text>
+        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3563" y="3734"><tspan fill="rgb(0,0,0)" stroke="none">Input</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3606" y="3972"><tspan fill="rgb(0,0,0)" stroke="none">Reg</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3606" y="4210"><tspan fill="rgb(0,0,0)" stroke="none">2..N</tspan></tspan></tspan></text>
        </g>
       </g>
       <g class="com.sun.star.drawing.TextShape">
@@ -181,7 +182,7 @@
         <rect class="BoundingBox" stroke="none" fill="none" x="16191" y="3291" width="819" height="819"/>
         <path fill="rgb(221,221,221)" stroke="none" d="M 16600,4100 L 16200,4100 16200,3300 17000,3300 17000,4100 16600,4100 Z"/>
         <path fill="none" stroke="rgb(0,0,0)" stroke-width="18" stroke-linejoin="round" d="M 16600,4100 L 16200,4100 16200,3300 17000,3300 17000,4100 16600,4100 Z"/>
-        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="16280" y="3653"><tspan fill="rgb(0,0,0)" stroke="none">Output</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="16405" y="3891"><tspan fill="rgb(0,0,0)" stroke="none">Reg</tspan></tspan></tspan></text>
+        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="16280" y="3534"><tspan fill="rgb(0,0,0)" stroke="none">Output</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="16405" y="3772"><tspan fill="rgb(0,0,0)" stroke="none">Reg</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="16405" y="4010"><tspan fill="rgb(0,0,0)" stroke="none">1..N</tspan></tspan></tspan></text>
        </g>
       </g>
       <g class="com.sun.star.drawing.CustomShape">
@@ -345,7 +346,7 @@
         <rect class="BoundingBox" stroke="none" fill="none" x="16995" y="3600" width="806" height="306"/>
         <path fill="none" stroke="rgb(0,0,0)" stroke-width="18" stroke-linejoin="round" d="M 17004,3700 L 17654,3700"/>
         <path fill="rgb(0,0,0)" stroke="none" d="M 17800,3700 L 17640,3600 17640,3800 17800,3700 Z"/>
-        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="17158" y="3891"><tspan fill="rgb(0,0,0)" stroke="none">rout  </tspan></tspan></tspan></text>
+        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="17080" y="3891"><tspan fill="rgb(0,0,0)" stroke="none">result  </tspan></tspan></tspan></text>
        </g>
       </g>
       <g class="com.sun.star.drawing.TextShape">
@@ -709,7 +710,7 @@
         <rect class="BoundingBox" stroke="none" fill="none" x="17791" y="11091" width="819" height="819"/>
         <path fill="rgb(221,221,221)" stroke="none" d="M 18200,11900 L 17800,11900 17800,11100 18600,11100 18600,11900 18200,11900 Z"/>
         <path fill="none" stroke="rgb(0,0,0)" stroke-width="18" stroke-linejoin="round" d="M 18200,11900 L 17800,11900 17800,11100 18600,11100 18600,11900 18200,11900 Z"/>
-        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="17880" y="11453"><tspan fill="rgb(0,0,0)" stroke="none">Output</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="18005" y="11691"><tspan fill="rgb(0,0,0)" stroke="none">Reg</tspan></tspan></tspan></text>
+        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="17880" y="11334"><tspan fill="rgb(0,0,0)" stroke="none">Output</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="18005" y="11572"><tspan fill="rgb(0,0,0)" stroke="none">Reg</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="18005" y="11810"><tspan fill="rgb(0,0,0)" stroke="none">1..N</tspan></tspan></tspan></text>
        </g>
       </g>
       <g class="com.sun.star.drawing.CustomShape">
@@ -873,7 +874,7 @@
         <rect class="BoundingBox" stroke="none" fill="none" x="18595" y="11400" width="806" height="306"/>
         <path fill="none" stroke="rgb(0,0,0)" stroke-width="18" stroke-linejoin="round" d="M 18604,11500 L 19254,11500"/>
         <path fill="rgb(0,0,0)" stroke="none" d="M 19400,11500 L 19240,11400 19240,11600 19400,11500 Z"/>
-        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="18758" y="11691"><tspan fill="rgb(0,0,0)" stroke="none">rout  </tspan></tspan></tspan></text>
+        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="18680" y="11691"><tspan fill="rgb(0,0,0)" stroke="none">result  </tspan></tspan></tspan></text>
        </g>
       </g>
       <g class="com.sun.star.drawing.TextShape">
@@ -1229,7 +1230,7 @@
         <rect class="BoundingBox" stroke="none" fill="none" x="3391" y="6691" width="819" height="3219"/>
         <path fill="rgb(221,221,221)" stroke="none" d="M 3800,9900 L 3400,9900 3400,6700 4200,6700 4200,9900 3800,9900 Z"/>
         <path fill="none" stroke="rgb(0,0,0)" stroke-width="18" stroke-linejoin="round" d="M 3800,9900 L 3400,9900 3400,6700 4200,6700 4200,9900 3800,9900 Z"/>
-        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3563" y="8134"><tspan fill="rgb(0,0,0)" stroke="none">Input</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3606" y="8372"><tspan fill="rgb(0,0,0)" stroke="none">Reg</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3724" y="8610"><tspan fill="rgb(0,0,0)" stroke="none">N</tspan></tspan></tspan></text>
+        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3563" y="8134"><tspan fill="rgb(0,0,0)" stroke="none">Input</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3606" y="8372"><tspan fill="rgb(0,0,0)" stroke="none">Reg</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3606" y="8610"><tspan fill="rgb(0,0,0)" stroke="none">2..N</tspan></tspan></tspan></text>
        </g>
       </g>
       <g class="com.sun.star.drawing.CustomShape">
@@ -1749,7 +1750,7 @@
         <rect class="BoundingBox" stroke="none" fill="none" x="3391" y="10091" width="819" height="3219"/>
         <path fill="rgb(221,221,221)" stroke="none" d="M 3800,13300 L 3400,13300 3400,10100 4200,10100 4200,13300 3800,13300 Z"/>
         <path fill="none" stroke="rgb(0,0,0)" stroke-width="18" stroke-linejoin="round" d="M 3800,13300 L 3400,13300 3400,10100 4200,10100 4200,13300 3800,13300 Z"/>
-        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3563" y="11534"><tspan fill="rgb(0,0,0)" stroke="none">Input</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3606" y="11772"><tspan fill="rgb(0,0,0)" stroke="none">Reg</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3724" y="12010"><tspan fill="rgb(0,0,0)" stroke="none">N</tspan></tspan></tspan></text>
+        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3563" y="11534"><tspan fill="rgb(0,0,0)" stroke="none">Input</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3606" y="11772"><tspan fill="rgb(0,0,0)" stroke="none">Reg</tspan></tspan></tspan><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="3606" y="12010"><tspan fill="rgb(0,0,0)" stroke="none">2..N</tspan></tspan></tspan></text>
        </g>
       </g>
      </g>

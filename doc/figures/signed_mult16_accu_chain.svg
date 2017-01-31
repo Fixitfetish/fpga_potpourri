@@ -507,7 +507,7 @@
         <rect class="BoundingBox" stroke="none" fill="none" x="12791" y="13000" width="1010" height="306"/>
         <path fill="none" stroke="rgb(0,0,0)" stroke-width="18" stroke-linejoin="round" d="M 12800,13100 L 13654,13100"/>
         <path fill="rgb(0,0,0)" stroke="none" d="M 13800,13100 L 13640,13000 13640,13200 13800,13100 Z"/>
-        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="13056" y="13291"><tspan fill="rgb(0,0,0)" stroke="none">rout  </tspan></tspan></tspan></text>
+        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="400"><tspan class="TextPosition" x="12978" y="13291"><tspan fill="rgb(0,0,0)" stroke="none">result  </tspan></tspan></tspan></text>
        </g>
       </g>
       <g class="com.sun.star.drawing.LineShape">
