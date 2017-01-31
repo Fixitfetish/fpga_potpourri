@@ -78,6 +78,9 @@ architecture stratixv of signed_mult2_accu is
     if round and (shifts>0) then return (shifts-1); else return 0; end if;
   end function;
 
+  constant MAX_WIDTH_X : positive := 18;
+  constant MAX_WIDTH_Y : positive := 18;
+
   -- accumulator width in bits
   constant ACCU_WIDTH : positive := 64;
 
@@ -96,8 +99,8 @@ architecture stratixv of signed_mult2_accu is
     rst, vld : std_logic;
     sub, negate : std_logic;
     accumulate, loadconst : std_logic;
-    x0, y0 : signed(17 downto 0);
-    x1, y1 : signed(17 downto 0);
+    x0, x1 : signed(MAX_WIDTH_X-1 downto 0);
+    y0, y1 : signed(MAX_WIDTH_Y-1 downto 0);
   end record;
   type array_ireg is array(integer range <>) of r_ireg;
   signal ireg : array_ireg(NUM_INPUT_REG downto 0);
@@ -127,8 +130,11 @@ begin
     severity failure;
 
   -- check input/output length
-  assert (x0'length<=18 and y0'length<=18 and x1'length<=18 and y1'length<=18)
-    report "ERROR " & IMPLEMENTATION & ": Multiplier input width cannot exceed 18 bits."
+  assert (x0'length<=MAX_WIDTH_X and x1'length<=MAX_WIDTH_X)
+    report "ERROR " & IMPLEMENTATION & ": Multiplier input X width cannot exceed " & integer'image(MAX_WIDTH_X)
+    severity failure;
+  assert (y0'length<=MAX_WIDTH_Y and y1'length<=MAX_WIDTH_Y)
+    report "ERROR " & IMPLEMENTATION & ": Multiplier input Y width cannot exceed " & integer'image(MAX_WIDTH_Y)
     severity failure;
 
   assert GUARD_BITS_EVAL<=MAX_GUARD_BITS
@@ -163,10 +169,10 @@ begin
   ireg(NUM_INPUT_REG).loadconst <= clr_i and to_01(ROUND_ENABLE);
 
   -- LSB bound data inputs
-  ireg(NUM_INPUT_REG).x0 <= resize(x0,18);
-  ireg(NUM_INPUT_REG).y0 <= resize(y0,18);
-  ireg(NUM_INPUT_REG).x1 <= resize(x1,18);
-  ireg(NUM_INPUT_REG).y1 <= resize(y1,18);
+  ireg(NUM_INPUT_REG).x0 <= resize(x0,MAX_WIDTH_X);
+  ireg(NUM_INPUT_REG).y0 <= resize(y0,MAX_WIDTH_Y);
+  ireg(NUM_INPUT_REG).x1 <= resize(x1,MAX_WIDTH_X);
+  ireg(NUM_INPUT_REG).y1 <= resize(y1,MAX_WIDTH_Y);
 
   g_reg : if NUM_INPUT_REG>=2 generate
   begin
@@ -198,17 +204,17 @@ begin
   generic map (
     accumulate_clock          => clock(NUM_INPUT_REG),
     ax_clock                  => clock(NUM_INPUT_REG),
-    ax_width                  => 18,
+    ax_width                  => MAX_WIDTH_X,
     ay_scan_in_clock          => clock(NUM_INPUT_REG),
-    ay_scan_in_width          => 18,
+    ay_scan_in_width          => MAX_WIDTH_Y,
     ay_use_scan_in            => "false",
     az_clock                  => "none", -- unused here
     az_width                  => 1, -- unused here
     bx_clock                  => clock(NUM_INPUT_REG),
-    bx_width                  => 18,
+    bx_width                  => MAX_WIDTH_X,
     by_clock                  => clock(NUM_INPUT_REG),
     by_use_scan_in            => "false",
-    by_width                  => 18,
+    by_width                  => MAX_WIDTH_Y,
     coef_a_0                  => 0,
     coef_a_1                  => 0,
     coef_a_2                  => 0,
