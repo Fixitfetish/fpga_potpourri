@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult2.vhdl
 --! @author     Fixitfetish
---! @date       30/Jan/2017
---! @version    0.20
+--! @date       03/Feb/2017
+--! @version    0.30
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -10,17 +10,19 @@ library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
 
---! @brief Two independent signed multiplications.
+--! @brief Two parallel signed multiplications.
 --!
 --! The behavior is as follows
---! * vld=0  ->  r(n) = r(n)       # hold previous
---! * vld=1  ->  r(n) = x(n)*y(n)  # multiply
+--! * vld=0  ->  r(n) = r(n)            # hold previous
+--! * vld=1  ->  r(n) = +/-(x(n)*y(n))  # multiply
 --!
 --! The length of the input factors is flexible.
 --! The input factors are automatically resized with sign extensions bits to the
 --! maximum possible factor length.
 --! The maximum length of the input factors is device and implementation specific.
 --!
+--! Note that the negation is not supported by all implementations of this entity.
+--! 
 --! The delay depends on the configuration and the underlying hardware.
 --! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
 
@@ -53,8 +55,9 @@ port (
   rst        : in  std_logic := '0';
   --! Valid signal for input factors, high-active
   vld        : in  std_logic;
-  --! Add/subtract for all products n=0..1 , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)). Subtraction is disabled by default.
-  sub        : in  std_logic_vector(0 to 1) := (others=>'0');
+  --! @brief Negation of product results n=0..1 , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)).
+  --! Negation is disabled by default and not supported by all implementations.
+  neg        : in  std_logic_vector(0 to 1) := (others=>'0');
   --! 1st product, 1st signed factor input
   x0         : in  signed;
   --! 1st product, 2nd signed factor input

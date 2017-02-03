@@ -47,8 +47,8 @@ begin
     x          => x0,
     y          => y0,
     result     => result0,
-    result_vld => result_vld,
-    result_ovf => result_ovf,
+    result_vld => result_vld(0),
+    result_ovf => result_ovf(0),
     PIPESTAGES => PIPESTAGES
   );
 
@@ -69,8 +69,8 @@ begin
     x          => x1,
     y          => y1,
     result     => result1,
-    result_vld => open, -- same as for result0
-    result_ovf => open, -- same as for result0
+    result_vld => result_vld(1),
+    result_ovf => result_ovf(1),
     PIPESTAGES => open  -- same as for result0
   );
 
