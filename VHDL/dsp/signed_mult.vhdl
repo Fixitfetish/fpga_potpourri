@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult2.vhdl
+--! @file       signed_mult.vhdl
 --! @author     Fixitfetish
---! @date       30/Jan/2017
---! @version    0.20
+--! @date       03/Feb/2017
+--! @version    0.10
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -10,11 +10,11 @@ library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
 
---! @brief Two independent signed multiplications.
+--! @brief One single signed multiplication.
 --!
 --! The behavior is as follows
---! * vld=0  ->  r(n) = r(n)       # hold previous
---! * vld=1  ->  r(n) = x(n)*y(n)  # multiply
+--! * vld=0  ->  result = result   # hold previous
+--! * vld=1  ->  result = x*y      # multiply
 --!
 --! The length of the input factors is flexible.
 --! The input factors are automatically resized with sign extensions bits to the
@@ -24,7 +24,7 @@ library ieee;
 --! The delay depends on the configuration and the underlying hardware.
 --! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
 
-entity signed_mult2 is
+entity signed_mult is
 generic (
   --! @brief Number of additional input registers. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
@@ -53,20 +53,14 @@ port (
   rst        : in  std_logic := '0';
   --! Valid signal for input factors, high-active
   vld        : in  std_logic;
-  --! Add/subtract for all products n=0..1 , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)). Subtraction is disabled by default.
-  sub        : in  std_logic_vector(0 to 1) := (others=>'0');
+  --! Add/subtract , '0' -> +(x*y), '1' -> -(x*y). Subtraction is disabled by default.
+  sub        : in  std_logic := '0';
   --! 1st product, 1st signed factor input
-  x0         : in  signed;
+  x          : in  signed;
   --! 1st product, 2nd signed factor input
-  y0         : in  signed;
-  --! 2nd product, 1st signed factor input
-  x1         : in  signed;
-  --! 2nd product, 2nd signed factor input
-  y1         : in  signed;
-  --! Resulting 1st product output (optionally rounded and clipped).
-  result0    : out signed;
-  --! Resulting 2nd product output (optionally rounded and clipped).
-  result1    : out signed;
+  y          : in  signed;
+  --! Resulting product output (optionally rounded and clipped).
+  result     : out signed;
   --! Valid signals for result output, high-active
   result_vld : out std_logic_vector(0 to 1);
   --! Result output overflow/clipping detection
@@ -77,7 +71,7 @@ port (
 begin
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
-    report "WARNING signed_mult2 : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
+    report "WARNING signed_mult : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 
 end entity;
