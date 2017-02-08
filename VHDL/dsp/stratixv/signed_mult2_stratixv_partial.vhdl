@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult2_stratixv_partial.vhdl
 --! @author     Fixitfetish
---! @date       03/Feb/2017
---! @version    0.10
+--! @date       08/Feb/2017
+--! @version    0.20
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -19,7 +19,7 @@ library fixitfetish;
 --! @brief This is an implementation of the entity 
 --! @link signed_mult2 signed_mult2 @endlink
 --! for Altera Stratix-V.
---! Two parallel signed multiplications are performed with limited result width.
+--! Two parallel and synchronous signed multiplications are performed with limited result width.
 --!
 --! This implementation requires a single Variable Precision DSP Block of mode 'm18x18_partial'.
 --! Note that the sum of input widths x'length + y'length cannot exceed 32.
@@ -59,7 +59,7 @@ architecture stratixv_partial of signed_mult2 is
   constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
   constant PRODUCT_WIDTH : natural := x0'length + y0'length;
   constant PRODUCT_SHIFTED_WIDTH : natural := PRODUCT_WIDTH - OUTPUT_SHIFT_RIGHT;
-  constant OUTPUT_WIDTH : positive := result'length;
+  constant OUTPUT_WIDTH : positive := result0'length;
 
   -- input register pipeline
   type r_ireg is
@@ -98,7 +98,7 @@ begin
   assert (x0'length+y0'length<=MAX_PRODUCT_WIDTH and x1'length+y1'length<=MAX_PRODUCT_WIDTH)
     report "ERROR " & IMPLEMENTATION & ": Resulting product length x'length + y'length exceeds" & integer'image(MAX_PRODUCT_WIDTH)
     severity failure;
-  assert (x0'length+y0'length=x1'length+y1'length)
+  assert (x0'length+y0'length)=(x1'length+y1'length)
     report "ERROR " & IMPLEMENTATION & ": Both products must result in same length."
     severity failure;
 
@@ -241,7 +241,7 @@ begin
     prod1_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(prod1_used, OUTPUT_SHIFT_RIGHT, nearest),PRODUCT_SHIFTED_WIDTH);
   end generate;
 
-  p_out : process(accu_used_shifted, vld_q)
+  p_out : process(prod0_used_shifted, prod1_used_shifted, vld_q)
     variable v_dat0, v_dat1 : signed(OUTPUT_WIDTH-1 downto 0);
     variable v_ovf : std_logic_vector(result_ovf'range);
   begin

@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult_derived.vhdl
 --! @author     Fixitfetish
---! @date       03/Feb/2017
---! @version    0.10
+--! @date       08/Feb/2017
+--! @version    0.20
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ library fixitfetish;
 --! * Output Register : optional, after shift-right and saturation
 --! * Pipeline stages : 1,2,3,... dependent on configuration
 
-architecture derived of signed_mult_accu is
+architecture derived of signed_mult is
 begin
 
   dsp : entity fixitfetish.signed_mult_accu
@@ -46,14 +46,14 @@ begin
     rst        => rst,
     clr        => vld,
     vld        => vld,
-    sub        => sub,
+    sub        => neg,
     x          => x,
     y          => y,
     result     => result,
     result_vld => result_vld,
     result_ovf => result_ovf,
---    chainin    => open, -- unused +++ TODO
---    chainout   => open, -- unused +++ TODO
+    chainin    => open, -- unused
+    chainout   => open, -- unused
     PIPESTAGES => PIPESTAGES
   );
 

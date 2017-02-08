@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult_accu.vhdl
 --! @author     Fixitfetish
---! @date       30/Jan/2017
---! @version    0.80
+--! @date       08/Feb/2017
+--! @version    0.85
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -75,6 +75,8 @@ generic (
   --! 
   --! Note that every single accumulated product result counts!
   NUM_SUMMAND : natural := 0;
+  --! Enable chain input from neighbor DSP cell, i.e. enable additional accumulator input
+  USE_CHAIN_INPUT : boolean := false;
   --! @brief Number of additional input registers. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
   NUM_INPUT_REG : natural := 1;
@@ -98,6 +100,8 @@ generic (
 port (
   --! Standard system clock
   clk        : in  std_logic;
+  --! Reset result output (optional)
+  rst        : in  std_logic := '0';
   --! @brief Clear accumulator (mark first valid input factors of accumulation sequence).
   --! If accumulation is not wanted then set constant '1'.
   clr        : in  std_logic;
@@ -115,6 +119,14 @@ port (
   result_vld : out std_logic;
   --! Result output overflow/clipping detection
   result_ovf : out std_logic;
+  --! @brief Input from other chained DSP cell (optional, only used when input enabled and connected).
+  --! The chain width is device specific. A maximum width of 96 bits is supported.
+  --! If the device specific chain width is smaller then only the LSBs are used.
+  chainin    : in  signed(95 downto 0) := (others=>'0');
+  --! @brief Result output to other chained DSP cell (optional)
+  --! The chain width is device specific. A maximum width of 96 bits is supported.
+  --! If the device specific chain width is smaller then only the LSBs are used.
+  chainout   : out signed(95 downto 0) := (others=>'0');
   --! Number of pipeline stages, constant, depends on configuration and device specific implementation
   PIPESTAGES : out natural := 0
 );

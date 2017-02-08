@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult2_derived.vhdl
 --! @author     Fixitfetish
---! @date       03/Feb/2017
---! @version    0.10
+--! @date       08/Feb/2017
+--! @version    0.20
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ begin
     clk        => clk,
     rst        => rst,
     vld        => vld,
-    sub        => sub(0),
+    neg        => neg(0),
     x          => x0,
     y          => y0,
     result     => result0,
@@ -65,7 +65,7 @@ begin
     clk        => clk,
     rst        => rst,
     vld        => vld,
-    sub        => sub(1),
+    neg        => neg(1),
     x          => x1,
     y          => y1,
     result     => result1,

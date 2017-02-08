@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult.vhdl
 --! @author     Fixitfetish
---! @date       03/Feb/2017
---! @version    0.10
+--! @date       08/Feb/2017
+--! @version    0.20
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -53,8 +53,8 @@ port (
   rst        : in  std_logic := '0';
   --! Valid signal for input factors, high-active
   vld        : in  std_logic;
-  --! Add/subtract , '0' -> +(x*y), '1' -> -(x*y). Subtraction is disabled by default.
-  sub        : in  std_logic := '0';
+  --! Negation , '0' -> +(x*y), '1' -> -(x*y). Negation is disabled by default.
+  neg        : in  std_logic := '0';
   --! 1st product, 1st signed factor input
   x          : in  signed;
   --! 1st product, 2nd signed factor input
@@ -62,9 +62,9 @@ port (
   --! Resulting product output (optionally rounded and clipped).
   result     : out signed;
   --! Valid signals for result output, high-active
-  result_vld : out std_logic_vector(0 to 1);
+  result_vld : out std_logic;
   --! Result output overflow/clipping detection
-  result_ovf : out std_logic_vector(0 to 1);
+  result_ovf : out std_logic;
   --! Number of pipeline stages, constant, depends on configuration and device specific implementation
   PIPESTAGES : out natural := 0
 );
