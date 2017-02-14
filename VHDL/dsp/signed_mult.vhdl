@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult.vhdl
 --! @author     Fixitfetish
---! @date       08/Feb/2017
---! @version    0.20
+--! @date       14/Feb/2017
+--! @version    0.30
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -29,10 +29,13 @@ generic (
   --! @brief Number of additional input registers. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
   NUM_INPUT_REG : natural := 1;
-  --! @brief Number of additional result output registers.
-  --! At least one is recommended when logic for rounding and/or clipping is enabled.
-  --! Typically all output registers are implemented in logic and are not part of a DSP cell.
-  NUM_OUTPUT_REG : natural := 0;
+  --! @brief Number of result output registers. One is strongly recommended.
+  --! The first output register is typically the result register within the DSP cell. 
+  --! A second output register is recommended
+  --! when logic for rounding, clipping and/or overflow detection is enabled.
+  --! Typically all output registers after the first one are not part of a DSP cell
+  --! and therefore implemented in logic.
+  NUM_OUTPUT_REG : natural := 1;
   --! Number of bits by which the accumulator result output is shifted right
   OUTPUT_SHIFT_RIGHT : natural := 0;
   --! @brief Round 'nearest' (half-up) of result output.
@@ -61,7 +64,7 @@ port (
   y          : in  signed;
   --! Resulting product output (optionally rounded and clipped).
   result     : out signed;
-  --! Valid signals for result output, high-active
+  --! Valid signal for result output, high-active
   result_vld : out std_logic;
   --! Result output overflow/clipping detection
   result_ovf : out std_logic;

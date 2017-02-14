@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult8_accu.vhdl
 --! @author     Fixitfetish
---! @date       30/Jan/2017
---! @version    0.40
+--! @date       14/Feb/2017
+--! @version    0.50
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -61,15 +61,15 @@ entity signed_mult8_accu is
 generic (
   --! @brief The number of summands is important to determine the number of additional
   --! guard bits (MSBs) that are required for the accumulation process. @link NUM_SUMMAND More...
-  --! 
+  --!
   --! The setting is relevant to save logic especially when saturation/clipping
   --! and/or overflow detection is enabled.
   --! * 0 => maximum possible, not recommended (worst case, hardware dependent)
   --! * 1 => just one multiplication without accumulation
   --! * 2 => accumulate up to 2 products
   --! * 3 => accumulate up to 3 products
-  --! *  and so on ...
-  --! 
+  --! * and so on ...
+  --!
   --! Note that every single accumulated product result counts!
   NUM_SUMMAND : natural := 0;
   --! Enable chain input from neighbor DSP cell, i.e. enable additional accumulator input
@@ -77,10 +77,13 @@ generic (
   --! @brief Number of additional input registers. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
   NUM_INPUT_REG : natural := 1;
-  --! @brief Number of additional result output registers.
-  --! At least one is recommended when logic for rounding and/or clipping is enabled.
-  --! Typically all output registers are implemented in logic and are not part of a DSP cell.
-  NUM_OUTPUT_REG : natural := 0;
+  --! @brief Number of result output registers. One is strongly recommended and even required
+  --! when the accumulation feature is needed. The first output register is typically the
+  --! result/accumulation register within the DSP cell. A second output register is recommended
+  --! when logic for rounding, clipping and/or overflow detection is enabled.
+  --! Typically all output registers after the first one are not part of a DSP cell
+  --! and therefore implemented in logic.
+  NUM_OUTPUT_REG : natural := 1;
   --! Number of bits by which the accumulator result output is shifted right
   OUTPUT_SHIFT_RIGHT : natural := 0;
   --! @brief Round 'nearest' (half-up) of result output.
