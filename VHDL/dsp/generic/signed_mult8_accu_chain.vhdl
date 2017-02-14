@@ -25,7 +25,10 @@ library fixitfetish;
 --! * Rounding        : optional half-up
 --! * Output Data     : 1x signed value, max width is implementation specific
 --! * Output Register : optional, after rounding, shift-right and saturation
---! * Pipeline stages : NUM_INPUT_REG + 4 + NUM_OUTPUT_REG
+--! * Pipeline stages : NUM_INPUT_REG + NUM_PIPELINE_REG + NUM_OUTPUT_REG
+--!
+--! This implementation can be chained multiple times.
+--! @image html signed_mult8_accu_chain.svg "" width=800px
 
 architecture chain of signed_mult8_accu is
 
@@ -46,7 +49,7 @@ begin
     NUM_SUMMAND        => 4, -- irrelevant because chain output is used
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
     NUM_INPUT_REG      => NUM_INPUT_REG,
-    NUM_OUTPUT_REG     => 0,     -- irrelevant because chain output is used
+    NUM_OUTPUT_REG     => 1,     -- use first output register as pipeline register
     OUTPUT_SHIFT_RIGHT => 0,     -- irrelevant because chain output is used
     OUTPUT_ROUND       => false, -- irrelevant because chain output is used
     OUTPUT_CLIP        => false, -- irrelevant because chain output is used

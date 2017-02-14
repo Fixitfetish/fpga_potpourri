@@ -18,13 +18,13 @@ library fixitfetish;
 --! @link signed_mult_accu signed_mult_accu @endlink for simulation.
 --! One signed multiplication is performed and results are accumulated.
 --! 
---! * Input Data      : 2 signed values
+--! * Input Data      : 2 signed values, each max 27 bits
 --! * Input Register  : optional, at least one is strongly recommended
 --! * Accu Register   : 64 bits, always enabled
 --! * Rounding        : optional half-up
 --! * Output Data     : 1x signed value, max 64 bits
 --! * Output Register : optional, after rounding, shift-right and saturation
---! * Pipeline stages : NUM_INPUT_REG + 1 + NUM_OUTPUT_REG
+--! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG
 
 architecture behave of signed_mult_accu is
 
@@ -44,6 +44,9 @@ architecture behave of signed_mult_accu is
     return res; 
   end function;
 
+  constant MAX_WIDTH_X : positive := 27;
+  constant MAX_WIDTH_Y : positive := 27;
+
   -- accumulator width in bits
   constant ACCU_WIDTH : positive := 64;
 
@@ -62,8 +65,8 @@ architecture behave of signed_mult_accu is
     rst, vld : std_logic;
     clr : std_logic;
     sub : std_logic;
-    x   : signed(17 downto 0);
-    y   : signed(17 downto 0);
+    x   : signed(MAX_WIDTH_X-1 downto 0);
+    y   : signed(MAX_WIDTH_Y-1 downto 0);
   end record;
   type array_ireg is array(integer range <>) of r_ireg;
   signal ireg : array_ireg(NUM_INPUT_REG downto 0);
@@ -78,9 +81,8 @@ architecture behave of signed_mult_accu is
   type array_oreg is array(integer range <>) of r_oreg;
   signal rslt : array_oreg(NUM_OUTPUT_REG downto 0);
 
-  signal vld_q : std_logic := '0';
-  signal p, sum : signed(PRODUCT_WIDTH-1 downto 0);
-  signal accu : signed(ACCU_WIDTH-1 downto 0);
+  signal p : signed(PRODUCT_WIDTH-1 downto 0);
+  signal sum, accu : signed(ACCU_WIDTH-1 downto 0);
   signal chainin_i : signed(ACCU_WIDTH-1 downto 0) := (others=>'0');
   signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
   signal accu_used_shifted : signed(ACCU_USED_SHIFTED_WIDTH-1 downto 0);
@@ -119,46 +121,52 @@ begin
   ireg(NUM_INPUT_REG).sub <= sub;
 
   -- LSB bound data inputs
-  ireg(NUM_INPUT_REG).x <= resize(x,18);
-  ireg(NUM_INPUT_REG).y <= resize(y,18);
+  ireg(NUM_INPUT_REG).x <= resize(x,MAX_WIDTH_X);
+  ireg(NUM_INPUT_REG).y <= resize(y,MAX_WIDTH_Y);
 
   g_in : if NUM_INPUT_REG>=1 generate
-    p_in : process(clk)
+  begin
+    g_1 : for n in 1 to NUM_INPUT_REG generate
     begin
-     if rising_edge(clk) then
-      if clkena='1' then
-        for n in 1 to NUM_INPUT_REG loop
-          ireg(n-1) <= ireg(n);
-        end loop;
-      end if;
-     end if;
-    end process;
+      ireg(n-1) <= ireg(n) when (rising_edge(clk) and clkena='1');
+    end generate;
   end generate;
 
-  p <= ireg(0).x * ireg(0).y;
-  sum <= -p when ireg(0).sub='1' else p;
+  -- multiplier result
+  p <= resize(ireg(0).x * ireg(0).y, PRODUCT_WIDTH);
 
+  -- chain input
   g_chain : if USE_CHAIN_INPUT generate
     chainin_i <= chainin(ACCU_WIDTH-1 downto 0);
   end generate;
 
+  -- temporary sum of multiplier result and chain input
+  sum <= chainin_i - p when ireg(0).sub='1' else
+         chainin_i + p;
+
+  g_accu_off : if NUM_OUTPUT_REG=0 generate
+    accu <= sum;
+  end generate;
+  
+  g_accu_on : if NUM_OUTPUT_REG>0 generate
+  begin
   p_accu : process(clk)
   begin
     if rising_edge(clk) then
       if ireg(0).clr='1' then
         if ireg(0).vld='1' then
-          accu <= chainin_i + resize(sum, ACCU_WIDTH);
+          accu <= sum;
         else
           accu <= (others=>'0');
         end if;
       else  
         if ireg(0).vld='1' then
-          accu <= accu + chainin_i + resize(sum, ACCU_WIDTH);
+          accu <= accu + sum;
         end if;
       end if;
-      vld_q <= ireg(0).vld;
     end if;
   end process;
+  end generate;
 
   chainout(ACCU_WIDTH-1 downto 0) <= accu;
   g_chainout : for n in ACCU_WIDTH to (chainout'length-1) generate
@@ -179,18 +187,26 @@ begin
     accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT, nearest),ACCU_USED_SHIFTED_WIDTH);
   end generate;
   
-  p_out : process(accu_used_shifted, vld_q)
+  p_out : process(accu_used_shifted, ireg(0).vld)
     variable v_dat : signed(OUTPUT_WIDTH-1 downto 0);
     variable v_ovf : std_logic;
   begin
     RESIZE_CLIP(din=>accu_used_shifted, dout=>v_dat, ovfl=>v_ovf, clip=>OUTPUT_CLIP);
-    rslt(0).vld <= vld_q; 
+    rslt(0).vld <= ireg(0).vld; 
     rslt(0).dat <= v_dat; 
     if OUTPUT_OVERFLOW then rslt(0).ovf<=v_ovf; else rslt(0).ovf<='0'; end if;
   end process;
 
-  g_out_reg : if NUM_OUTPUT_REG>=1 generate
-    g_loop : for n in 1 to NUM_OUTPUT_REG generate
+  g_oreg1 : if NUM_OUTPUT_REG>=1 generate
+  begin
+    rslt(1).vld <= rslt(0).vld when rising_edge(clk); -- VLD bypass
+    -- first output register is the ACCU register
+    rslt(1).dat <= rslt(0).dat; 
+    rslt(1).ovf <= rslt(0).ovf; 
+  end generate;
+
+  g_oreg2 : if NUM_OUTPUT_REG>=2 generate
+    g_loop : for n in 2 to NUM_OUTPUT_REG generate
       rslt(n) <= rslt(n-1) when rising_edge(clk);
     end generate;
   end generate;
@@ -201,7 +217,7 @@ begin
   result_ovf <= rslt(NUM_OUTPUT_REG).ovf;
 
   -- report constant number of pipeline register stages
-  PIPESTAGES <= NUM_INPUT_REG + 1 + NUM_OUTPUT_REG;
+  PIPESTAGES <= NUM_INPUT_REG + NUM_OUTPUT_REG;
 
 end architecture;
 

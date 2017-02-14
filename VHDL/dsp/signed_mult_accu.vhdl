@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult_accu.vhdl
 --! @author     Fixitfetish
---! @date       08/Feb/2017
---! @version    0.85
+--! @date       14/Feb/2017
+--! @version    0.86
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -11,6 +11,8 @@ library ieee;
  use ieee.numeric_std.all;
 
 --! @brief Signed Multiply and Accumulate
+--!
+--! @image html signed_mult_accu.svg "" width=600px
 --!
 --! The behavior is as follows
 --! * CLR=1  VLD=0  ->  r = undefined   # reset accumulator
@@ -23,39 +25,30 @@ library ieee;
 --! maximum possible factor length.
 --! The maximum length of the input factors is device and implementation specific.
 --!
+--! @image html accumulator_register.svg "" width=800px
+--!
+--! * NUM_SUMMAND = configurable, @link NUM_SUMMAND more... @endlink
+--! * ACCU WIDTH = accumulator width (device specific)
+--! * PRODUCT WIDTH = x'length + y'length
+--! * GUARD BITS = ceil(log2(NUM_SUMMAND))
+--! * ACCU USED WIDTH = PRODUCT WIDTH + GUARD BITS <= ACCU WIDTH
+--! * OUTPUT SHIFT RIGHT = number of LSBs to prune
+--! * OVFL = overflow detection sign bits, all must match the output sign bit otherwise overflow
+--! * R = rounding bit (+0.5 when OUTPUT ROUND is enabled)
+--! * ACCU USED SHIFTED WIDTH = ACCU USED WIDTH - OUTPUT SHIFT RIGHT
+--! * OUTPUT WIDTH = length of result output <= ACCU USED SHIFTED WIDTH
+--!
+--! \b Example: The input lengths are x'length=18 and y'length=16, hence PRODUCT_WIDTH=34.
+--! With NUM_SUMMAND=30 the number of additional guard bits is GUARD_BITS=5.
+--! If the output length is 22 then the standard shift-right setting (conservative,
+--! without risk of overflow) would be OUTPUT_SHIFT_RIGHT = 34 + 5 - 22 = 17.
+--!
 --! If just the sum of products is required but not any further accumulation
 --! then set CLR to constant '1'.
 --!
 --! The delay depends on the configuration and the underlying hardware.
 --! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
 
---
---    <----------------------------------- ACCU WIDTH ------------------------>
---    |        <-------------------------- ACCU USED WIDTH ------------------->
---    |        |              <----------- PRODUCT WIDTH --------------------->
---    |        |              |                                               |
---    +--------+---+----------+-------------------------------+---------------+
---    | unused |  GUARD BITS  |                               |  SHIFT RIGHT  |
---    |SSSSSSSS|OOO|ODDDDDDDDD|DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD|Rxxxxxxxxxxxxxx|
---    +--------+---+----------+-------------------------------+---------------+
---             |   |                                          |
---             |   <------------- OUTPUT WIDTH --------------->
---             <--------- ACCU USED SHIFTED WIDTH ------------>
---
--- ACCU WIDTH = accumulator width (depends on hardware/implementation)
--- PRODUCT WIDTH = ax'length+ay'length = bx'length+by'length
--- NUM_SUMMANDS = number of accumulated products
--- GUARD BITS = ceil(log2(NUM_SUMMANDS))
--- ACCU USED WIDTH = PRODUCT WIDTH + GUARD BITS <= ACCU WIDTH
--- OUTPUT SHIFT RIGHT = number of LSBs to prune
--- OUTPUT WIDTH = r'length
--- ACCU USED SHIFTED WIDTH = ACCU USED WIDTH - OUTPUT SHIFT RIGHT
---
--- S = irrelevant sign extension MSBs
--- O = overflow detection sign bits, all O must be identical otherwise overflow
--- D = output data bits
--- R = rounding bit (+0.5 when round 'nearest' is enabled)
--- x = irrelevant LSBs
 --
 -- Optimal settings for overflow detection and/or saturation/clipping :
 -- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH
@@ -64,15 +57,15 @@ entity signed_mult_accu is
 generic (
   --! @brief The number of summands is important to determine the number of additional
   --! guard bits (MSBs) that are required for the accumulation process. @link NUM_SUMMAND More...
-  --! 
+  --!
   --! The setting is relevant to save logic especially when saturation/clipping
   --! and/or overflow detection is enabled.
   --! * 0 => maximum possible, not recommended (worst case, hardware dependent)
   --! * 1 => just one multiplication without accumulation
   --! * 2 => accumulate up to 2 products
   --! * 3 => accumulate up to 3 products
-  --! *  and so on ...
-  --! 
+  --! * and so on ...
+  --!
   --! Note that every single accumulated product result counts!
   NUM_SUMMAND : natural := 0;
   --! Enable chain input from neighbor DSP cell, i.e. enable additional accumulator input
@@ -80,10 +73,13 @@ generic (
   --! @brief Number of additional input registers. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
   NUM_INPUT_REG : natural := 1;
-  --! @brief Number of additional result output registers.
-  --! At least one is recommended when logic for rounding and/or clipping is enabled.
-  --! Typically all output registers are implemented in logic and are not part of a DSP cell.
-  NUM_OUTPUT_REG : natural := 0;
+  --! @brief Number of result output registers. One is strongly recommended and even required
+  --! when the accumulation feature is needed. The first output register is typically the
+  --! result/accumulation register within the DSP cell. A second output register is recommended
+  --! when logic for rounding, clipping and/or overflow detection is enabled.
+  --! Typically all output registers after the first one are not part of a DSP cell
+  --! and therefore implemented in logic.
+  NUM_OUTPUT_REG : natural := 1;
   --! Number of bits by which the accumulator result output is shifted right
   OUTPUT_SHIFT_RIGHT : natural := 0;
   --! @brief Round 'nearest' (half-up) of result output.
@@ -114,6 +110,7 @@ port (
   --! 2nd signed factor input
   y          : in  signed;
   --! @brief Resulting product/accumulator output (optionally rounded and clipped).
+  --! The standard result output might be unused when chain output is used instead.
   result     : out signed;
   --! Valid signal for result output, high-active
   result_vld : out std_logic;
