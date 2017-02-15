@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult2_stratixv_partial.vhdl
 --! @author     Fixitfetish
---! @date       08/Feb/2017
---! @version    0.20
+--! @date       15/Feb/2017
+--! @version    0.30
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -11,10 +11,11 @@
 library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
-library stratixv;
- use stratixv.stratixv_components.all;
 library fixitfetish;
  use fixitfetish.ieee_extension.all;
+
+library stratixv;
+ use stratixv.stratixv_components.all;
 
 --! @brief This is an implementation of the entity 
 --! @link signed_mult2 signed_mult2 @endlink
@@ -30,8 +31,8 @@ library fixitfetish;
 --! * Result Register : 2x32 bits, max width of each product result is 32
 --! * Rounding        : optional half-up, only possible in logic
 --! * Output Data     : 2x signed values, max 32 bits each
---! * Output Register : optional, strongly recommend after rounding, shift-right and saturation
---! * Pipeline stages : NUM_INPUT_REG + 1 + NUM_OUTPUT_REG
+--! * Output Register : optional, at least one strongly recommend, another after rounding, shift-right and saturation
+--! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG
 --!
 --! Note that negation of the product results is not supported by this implementation!
 --! @image html signed_mult2_stratixv_partial.svg "" width=800px
@@ -43,10 +44,17 @@ architecture stratixv_partial of signed_mult2 is
   constant IMPLEMENTATION : string := "signed_mult2(stratixv_partial)";
 
   -- local auxiliary
-  function clock(n:natural) return string is
+
+  -- if input registers are enabled then use clock "0"
+  function clock0(n:natural) return string is
   begin
-    -- if input registers enabled then use clock "0"
     if n>0 then return "0"; else return "none"; end if;
+  end function;
+
+  -- if output registers are enabled then use clock "1"
+  function clock1(n:natural) return string is
+  begin
+    if n>0 then return "1"; else return "none"; end if;
   end function;
 
   constant MAX_WIDTH_X : positive := 18;
@@ -81,7 +89,6 @@ architecture stratixv_partial of signed_mult2 is
   type array_oreg is array(integer range <>) of r_oreg;
   signal rslt : array_oreg(NUM_OUTPUT_REG downto 0);
 
-  signal vld_q : std_logic;
   signal prod0, prod1 : std_logic_vector(MAX_PRODUCT_WIDTH-1 downto 0);
   signal prod0_used, prod1_used : signed(PRODUCT_WIDTH-1 downto 0);
   signal prod0_used_shifted, prod1_used_shifted : signed(PRODUCT_SHIFTED_WIDTH-1 downto 0);
@@ -134,16 +141,16 @@ begin
   dsp : stratixv_mac
   generic map (
     accumulate_clock          => "none", --irrelevant
-    ax_clock                  => clock(NUM_INPUT_REG),
+    ax_clock                  => clock0(NUM_INPUT_REG),
     ax_width                  => MAX_WIDTH_X,
-    ay_scan_in_clock          => clock(NUM_INPUT_REG),
+    ay_scan_in_clock          => clock0(NUM_INPUT_REG),
     ay_scan_in_width          => MAX_WIDTH_Y,
     ay_use_scan_in            => "false",
     az_clock                  => "none", -- unused here
     az_width                  => 1, -- unused here
-    bx_clock                  => clock(NUM_INPUT_REG),
+    bx_clock                  => clock0(NUM_INPUT_REG),
     bx_width                  => MAX_WIDTH_X,
-    by_clock                  => clock(NUM_INPUT_REG),
+    by_clock                  => clock0(NUM_INPUT_REG),
     by_use_scan_in            => "false",
     by_width                  => MAX_WIDTH_Y,
     coef_a_0                  => 0,
@@ -177,7 +184,7 @@ begin
     operand_source_mbx        => "input",
     operand_source_mby        => "input",
     operation_mode            => "m18x18_partial",
-    output_clock              => "1",
+    output_clock              => clock1(NUM_OUTPUT_REG),
     preadder_subtract_a       => "false",
     preadder_subtract_b       => "false",
     result_a_width            => MAX_PRODUCT_WIDTH,
@@ -222,9 +229,6 @@ begin
     sub        => '0'
   );
 
-  -- accumulator delay compensation
-  vld_q <= ireg(0).vld when rising_edge(clk);
-
   -- cut off unused sign extension bits
   -- (This reduces the logic consumption in the following steps when rounding,
   -- saturation and/or overflow detection is enabled.)
@@ -241,13 +245,13 @@ begin
     prod1_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(prod1_used, OUTPUT_SHIFT_RIGHT, nearest),PRODUCT_SHIFTED_WIDTH);
   end generate;
 
-  p_out : process(prod0_used_shifted, prod1_used_shifted, vld_q)
+  p_out : process(prod0_used_shifted, prod1_used_shifted, ireg(0).vld)
     variable v_dat0, v_dat1 : signed(OUTPUT_WIDTH-1 downto 0);
     variable v_ovf : std_logic_vector(result_ovf'range);
   begin
     RESIZE_CLIP(din=>prod0_used_shifted, dout=>v_dat0, ovfl=>v_ovf(0), clip=>OUTPUT_CLIP);
     RESIZE_CLIP(din=>prod1_used_shifted, dout=>v_dat1, ovfl=>v_ovf(1), clip=>OUTPUT_CLIP);
-    rslt(0).vld <= vld_q; 
+    rslt(0).vld <= ireg(0).vld; 
     rslt(0).dat0 <= v_dat0; 
     rslt(0).dat1 <= v_dat1; 
     if OUTPUT_OVERFLOW then 
@@ -257,8 +261,18 @@ begin
     end if;
   end process;
 
-  g_out_reg : if NUM_OUTPUT_REG>=1 generate
-    g_loop : for n in 1 to NUM_OUTPUT_REG generate
+  g_oreg1 : if NUM_OUTPUT_REG>=1 generate
+  begin
+    rslt(1).vld <= rslt(0).vld when rising_edge(clk); -- VLD bypass
+    -- DSP cell result/accumulator register is always used as first output register stage
+    rslt(1).dat0 <= rslt(0).dat0; 
+    rslt(1).dat1 <= rslt(0).dat1; 
+    rslt(1).ovf <= rslt(0).ovf; 
+  end generate;
+
+  -- additional output registers always in logic
+  g_oreg2 : if NUM_OUTPUT_REG>=2 generate
+    g_loop : for n in 2 to NUM_OUTPUT_REG generate
       rslt(n) <= rslt(n-1) when rising_edge(clk);
     end generate;
   end generate;
@@ -271,7 +285,7 @@ begin
   result_ovf <= rslt(NUM_OUTPUT_REG).ovf;
 
   -- report constant number of pipeline register stages
-  PIPESTAGES <= NUM_INPUT_REG + 1 + NUM_OUTPUT_REG;
+  PIPESTAGES <= NUM_INPUT_REG + NUM_OUTPUT_REG;
 
 end architecture;
 

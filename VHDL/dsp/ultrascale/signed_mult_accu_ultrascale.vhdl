@@ -14,10 +14,6 @@ library ieee;
 library fixitfetish;
  use fixitfetish.ieee_extension.all;
 
--- synopsys translate_off
--- library XilinxCoreLib;
--- synopsys translate_on
-
 library unisim;
  use unisim.vcomponents.all;
 
@@ -59,6 +55,12 @@ architecture ultrascale of signed_mult_accu is
       res := dflt; -- maximum possible (default)
     else
       res := LOG2CEIL(num_summand);
+      if res>dflt then 
+        report "WARNING " & IMPLEMENTATION & ": Too many summands. " & 
+           "Maximum number of " & integer'image(dflt) & " guard bits reached."
+           severity warning;
+        res:=dflt;
+      end if;
     end if;
     return res; 
   end function;

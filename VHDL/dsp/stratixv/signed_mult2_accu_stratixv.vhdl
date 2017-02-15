@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult2_accu_stratixv.vhdl
 --! @author     Fixitfetish
---! @date       24/Jan/2017
---! @version    0.70
+--! @date       15/Feb/2017
+--! @version    0.80
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -11,10 +11,11 @@
 library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
-library stratixv;
- use stratixv.stratixv_components.all;
 library fixitfetish;
  use fixitfetish.ieee_extension.all;
+
+library stratixv;
+ use stratixv.stratixv_components.all;
 
 --! @brief This is an implementation of the entity 
 --! @link signed_mult2_accu signed_mult2_accu @endlink
@@ -27,12 +28,12 @@ library fixitfetish;
 --! * Input Data      : 2x2 signed values, each max 18 bits
 --! * Input Register  : optional, at least one is strongly recommended
 --! * Input Chain     : optional, 64 bits
---! * Accu Register   : 64 bits, always enabled
+--! * Accu Register   : 64 bits, enabled when NUM_OUTPUT_REG>0
 --! * Rounding        : optional half-up, within DSP cell
 --! * Output Data     : 1x signed value, max 64 bits
---! * Output Register : optional, after shift-right and saturation
+--! * Output Register : optional, at least one strongly recommend, another after shift-right and saturation
 --! * Output Chain    : optional, 64 bits
---! * Pipeline stages : NUM_INPUT_REG + 1 + NUM_OUTPUT_REG
+--! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG
 --!
 --! This implementation can be chained multiple times.
 --! @image html signed_mult2_accu_stratixv.svg "" width=800px
@@ -66,10 +67,16 @@ architecture stratixv of signed_mult2_accu is
     if b then return "true"; else return "false"; end if;
   end function;
 
-  function clock(n:natural) return string is
+  -- if input registers are enabled then use clock "0"
+  function clock0(n:natural) return string is
   begin
-    -- if input registers enabled then use clock "0"
     if n>0 then return "0"; else return "none"; end if;
+  end function;
+
+  -- if output registers are enabled then use clock "1"
+  function clock1(n:natural) return string is
+  begin
+    if n>0 then return "1"; else return "none"; end if;
   end function;
 
   function load_const_value(round: boolean; shifts:natural) return natural is
@@ -116,7 +123,6 @@ architecture stratixv of signed_mult2_accu is
   signal rslt : array_oreg(NUM_OUTPUT_REG downto 0);
 
   signal clr_q, clr_i : std_logic;
-  signal vld_q : std_logic;
   signal chainin_i, chainout_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
   signal accu : std_logic_vector(ACCU_WIDTH-1 downto 0);
   signal accu_used_shifted : signed(ACCU_USED_SHIFTED_WIDTH-1 downto 0);
@@ -202,17 +208,17 @@ begin
 
   dsp : stratixv_mac
   generic map (
-    accumulate_clock          => clock(NUM_INPUT_REG),
-    ax_clock                  => clock(NUM_INPUT_REG),
+    accumulate_clock          => clock0(NUM_INPUT_REG),
+    ax_clock                  => clock0(NUM_INPUT_REG),
     ax_width                  => MAX_WIDTH_X,
-    ay_scan_in_clock          => clock(NUM_INPUT_REG),
+    ay_scan_in_clock          => clock0(NUM_INPUT_REG),
     ay_scan_in_width          => MAX_WIDTH_Y,
     ay_use_scan_in            => "false",
     az_clock                  => "none", -- unused here
     az_width                  => 1, -- unused here
-    bx_clock                  => clock(NUM_INPUT_REG),
+    bx_clock                  => clock0(NUM_INPUT_REG),
     bx_width                  => MAX_WIDTH_X,
-    by_clock                  => clock(NUM_INPUT_REG),
+    by_clock                  => clock0(NUM_INPUT_REG),
     by_use_scan_in            => "false",
     by_width                  => MAX_WIDTH_Y,
     coef_a_0                  => 0,
@@ -236,17 +242,17 @@ begin
     complex_clock             => "none",
     delay_scan_out_ay         => "false",
     delay_scan_out_by         => "false",
-    load_const_clock          => clock(NUM_INPUT_REG),
+    load_const_clock          => clock0(NUM_INPUT_REG),
     load_const_value          => load_const_value(OUTPUT_ROUND, OUTPUT_SHIFT_RIGHT),
     lpm_type                  => "stratixv_mac",
     mode_sub_location         => 0,
-    negate_clock              => clock(NUM_INPUT_REG),
+    negate_clock              => clock0(NUM_INPUT_REG),
     operand_source_max        => "input",
     operand_source_may        => "input",
     operand_source_mbx        => "input",
     operand_source_mby        => "input",
     operation_mode            => "m18x18_sumof2",
-    output_clock              => "1",
+    output_clock              => clock1(NUM_OUTPUT_REG),
     preadder_subtract_a       => "false",
     preadder_subtract_b       => "false",
     result_a_width            => ACCU_WIDTH,
@@ -256,7 +262,7 @@ begin
     signed_may                => "true",
     signed_mbx                => "true",
     signed_mby                => "true",
-    sub_clock                 => clock(NUM_INPUT_REG),
+    sub_clock                 => clock0(NUM_INPUT_REG),
     use_chainadder            => use_chainadder(USE_CHAIN_INPUT)
   )
   port map (
@@ -297,9 +303,6 @@ begin
     chainout(n) <= chainout_i(ACCU_WIDTH-1);
   end generate;
 
-  -- accumulator delay compensation
-  vld_q <= ireg(0).vld when rising_edge(clk);
-
   -- a.) just shift right without rounding because rounding bit is has been added 
   --     within the DSP cell already.
   -- b.) cut off unused sign extension bits
@@ -307,7 +310,7 @@ begin
   --     saturation and/or overflow detection is enabled.)
   accu_used_shifted <= signed(accu(ACCU_USED_WIDTH-1 downto OUTPUT_SHIFT_RIGHT));
 
---  -- shift right and round 
+--  -- shift right and round
 --  g_rnd_off : if (not ROUND_ENABLE) generate
 --    accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT),ACCU_USED_SHIFTED_WIDTH);
 --  end generate;
@@ -315,18 +318,27 @@ begin
 --    accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT, nearest),ACCU_USED_SHIFTED_WIDTH);
 --  end generate;
 
-  p_out : process(accu_used_shifted, vld_q)
+  p_out : process(accu_used_shifted, ireg(0).vld)
     variable v_dat : signed(OUTPUT_WIDTH-1 downto 0);
     variable v_ovf : std_logic;
   begin
     RESIZE_CLIP(din=>accu_used_shifted, dout=>v_dat, ovfl=>v_ovf, clip=>OUTPUT_CLIP);
-    rslt(0).vld <= vld_q; 
-    rslt(0).dat <= v_dat; 
+    rslt(0).vld <= ireg(0).vld;
+    rslt(0).dat <= v_dat;
     if OUTPUT_OVERFLOW then rslt(0).ovf<=v_ovf; else rslt(0).ovf<='0'; end if;
   end process;
 
-  g_out_reg : if NUM_OUTPUT_REG>=1 generate
-    g_loop : for n in 1 to NUM_OUTPUT_REG generate
+  g_oreg1 : if NUM_OUTPUT_REG>=1 generate
+  begin
+    rslt(1).vld <= rslt(0).vld when rising_edge(clk); -- VLD bypass
+    -- DSP cell result/accumulator register is always used as first output register stage
+    rslt(1).dat <= rslt(0).dat; 
+    rslt(1).ovf <= rslt(0).ovf; 
+  end generate;
+
+  -- additional output registers always in logic
+  g_oreg2 : if NUM_OUTPUT_REG>=2 generate
+    g_loop : for n in 2 to NUM_OUTPUT_REG generate
       rslt(n) <= rslt(n-1) when rising_edge(clk);
     end generate;
   end generate;
@@ -337,7 +349,7 @@ begin
   result_ovf <= rslt(NUM_OUTPUT_REG).ovf;
 
   -- report constant number of pipeline register stages
-  PIPESTAGES <= NUM_INPUT_REG + 1 + NUM_OUTPUT_REG;
+  PIPESTAGES <= NUM_INPUT_REG + NUM_OUTPUT_REG;
 
 end architecture;
 

@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult8_accu_stratixv.vhdl
 --! @author     Fixitfetish
---! @date       30/Jan/2017
---! @version    0.20
+--! @date       15/Feb/2017
+--! @version    0.30
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -21,19 +21,22 @@ library fixitfetish;
 --!
 --! * Input Data      : 8x2 signed values
 --! * Input Register  : optional, at least one is strongly recommended
---! * Accu Register   : width is implementation specific, always enabled
+--! * Accu Register   : width is implementation specific, enabled when NUM_OUTPUT_REG>0
 --! * Rounding        : optional half-up
 --! * Output Data     : 1x signed value, max width is implementation specific
 --! * Output Register : optional, after rounding, shift-right and saturation
---! * Pipeline stages : NUM_INPUT_REG + 3 + NUM_OUTPUT_REG
+--! * Pipeline stages : NUM_INPUT_REG + 2 + NUM_OUTPUT_REG
 
 architecture stratixv of signed_mult8_accu is
 
+  -- identifier for reports of warnings and errors
+  constant IMPLEMENTATION : string := "signed_mult8_accu(stratixv)";
+
   -- chain width in bits - implementation and device specific !
   signal chain : signed(chainout'length-1 downto 0);
-  signal dummy : signed(17 downto 0);
 
   -- dummy sink to avoid warnings
+  signal dummy : signed(17 downto 0);
   procedure signed_sink(d:in signed) is
     variable b : boolean := false;
   begin b := (d(d'right)='1') or b; end procedure;
@@ -41,7 +44,7 @@ architecture stratixv of signed_mult8_accu is
 begin
 
   assert USE_CHAIN_INPUT=false
-    report "ERROR signed_mult8_accu(stratixv) : Chain input is not supported. " &
+    report "ERROR " & IMPLEMENTATION & ": Chain input is not supported. " &
            "Check if other architectures are available that support chain input."
     severity failure;
 
@@ -52,7 +55,7 @@ begin
   i1 : entity fixitfetish.signed_mult4_sum
   generic map(
     NUM_INPUT_REG      => NUM_INPUT_REG,
-    NUM_OUTPUT_REG     => 0,     -- irrelevant because chain output is used
+    NUM_OUTPUT_REG     => 1, -- Enable DSP cell internal output register which is used as pipeline register to drive the chain output
     OUTPUT_SHIFT_RIGHT => 0,     -- irrelevant because chain output is used
     OUTPUT_ROUND       => false, -- irrelevant because chain output is used
     OUTPUT_CLIP        => false, -- irrelevant because chain output is used
