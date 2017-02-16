@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult2_accu_behave.vhdl
+--! @file       signed_mult_accu_behave.vhdl
 --! @author     Fixitfetish
---! @date       30/Jan/2017
---! @version    0.80
+--! @date       16/Feb/2017
+--! @version    0.85
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -20,7 +20,7 @@ library fixitfetish;
 --! 
 --! * Input Data      : 2 signed values, each max 27 bits
 --! * Input Register  : optional, at least one is strongly recommended
---! * Accu Register   : 64 bits, always enabled
+--! * Accu Register   : 64 bits, first output register (strongly recommended in most cases)
 --! * Rounding        : optional half-up
 --! * Output Data     : 1x signed value, max 64 bits
 --! * Output Register : optional, after rounding, shift-right and saturation
@@ -79,11 +79,11 @@ architecture behave of signed_mult_accu is
     ovf : std_logic;
   end record;
   type array_oreg is array(integer range <>) of r_oreg;
-  signal rslt : array_oreg(NUM_OUTPUT_REG downto 0);
+  signal rslt : array_oreg(0 to NUM_OUTPUT_REG);
 
   signal p : signed(PRODUCT_WIDTH-1 downto 0);
-  signal sum, accu : signed(ACCU_WIDTH-1 downto 0);
-  signal chainin_i : signed(ACCU_WIDTH-1 downto 0) := (others=>'0');
+  signal sum, chainin_i : signed(ACCU_WIDTH-1 downto 0) := (others=>'0');
+  signal accu : signed(ACCU_WIDTH-1 downto 0);
   signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
   signal accu_used_shifted : signed(ACCU_USED_SHIFTED_WIDTH-1 downto 0);
 
@@ -114,10 +114,10 @@ begin
            "More guard bits required for saturation/clipping and/or overflow detection."
     severity failure;
 
-  -- pipeline inputs
+  -- control signal inputs
   ireg(NUM_INPUT_REG).rst <= rst;
-  ireg(NUM_INPUT_REG).clr <= clr;
   ireg(NUM_INPUT_REG).vld <= vld;
+  ireg(NUM_INPUT_REG).clr <= clr;
   ireg(NUM_INPUT_REG).sub <= sub;
 
   -- LSB bound data inputs
@@ -179,7 +179,7 @@ begin
   --  saturation and/or overflow detection is enabled.)
   accu_used <= accu(ACCU_USED_WIDTH-1 downto 0);
 
-  -- shift right and round 
+  -- shift right and round
   g_rnd_off : if (not ROUND_ENABLE) generate
     accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT),ACCU_USED_SHIFTED_WIDTH);
   end generate;
@@ -192,8 +192,8 @@ begin
     variable v_ovf : std_logic;
   begin
     RESIZE_CLIP(din=>accu_used_shifted, dout=>v_dat, ovfl=>v_ovf, clip=>OUTPUT_CLIP);
-    rslt(0).vld <= ireg(0).vld; 
-    rslt(0).dat <= v_dat; 
+    rslt(0).vld <= ireg(0).vld;
+    rslt(0).dat <= v_dat;
     if OUTPUT_OVERFLOW then rslt(0).ovf<=v_ovf; else rslt(0).ovf<='0'; end if;
   end process;
 
@@ -201,8 +201,8 @@ begin
   begin
     rslt(1).vld <= rslt(0).vld when rising_edge(clk); -- VLD bypass
     -- first output register is the ACCU register
-    rslt(1).dat <= rslt(0).dat; 
-    rslt(1).ovf <= rslt(0).ovf; 
+    rslt(1).dat <= rslt(0).dat;
+    rslt(1).ovf <= rslt(0).ovf;
   end generate;
 
   g_oreg2 : if NUM_OUTPUT_REG>=2 generate
@@ -212,7 +212,7 @@ begin
   end generate;
 
   -- map result to output port
-  result     <= rslt(NUM_OUTPUT_REG).dat;
+  result <= rslt(NUM_OUTPUT_REG).dat;
   result_vld <= rslt(NUM_OUTPUT_REG).vld;
   result_ovf <= rslt(NUM_OUTPUT_REG).ovf;
 

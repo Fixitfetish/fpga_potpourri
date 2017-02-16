@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult_accu_ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       14/Feb/2017
---! @version    0.30
+--! @date       16/Feb/2017
+--! @version    0.40
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -131,7 +131,7 @@ architecture ultrascale of signed_mult_accu is
     ovf : std_logic;
   end record;
   type array_oreg is array(integer range <>) of r_oreg;
-  signal rslt : array_oreg(NUM_OUTPUT_REG downto 0);
+  signal rslt : array_oreg(0 to NUM_OUTPUT_REG);
 
   constant clkena : std_logic := '1'; -- clock enable
   constant reset : std_logic := '0';
@@ -367,7 +367,7 @@ begin
   --     saturation and/or overflow detection is enabled.)
   accu_used_shifted <= signed(accu(ACCU_USED_WIDTH-1 downto OUTPUT_SHIFT_RIGHT));
 
---  -- shift right and round 
+--  -- shift right and round
 --  g_rnd_off : if (not ROUND_ENABLE) generate
 --    accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT),ACCU_USED_SHIFTED_WIDTH);
 --  end generate;
@@ -389,8 +389,8 @@ begin
   begin
     rslt(1).vld <= rslt(0).vld when rising_edge(clk); -- VLD bypass
     -- DSP cell result/accumulator register is always used as first output register stage
-    rslt(1).dat <= rslt(0).dat; 
-    rslt(1).ovf <= rslt(0).ovf; 
+    rslt(1).dat <= rslt(0).dat;
+    rslt(1).ovf <= rslt(0).ovf;
   end generate;
 
   -- additional output registers always in logic
@@ -401,7 +401,7 @@ begin
   end generate;
 
   -- map result to output port
-  result     <= rslt(NUM_OUTPUT_REG).dat;
+  result <= rslt(NUM_OUTPUT_REG).dat;
   result_vld <= rslt(NUM_OUTPUT_REG).vld;
   result_ovf <= rslt(NUM_OUTPUT_REG).ovf;
 

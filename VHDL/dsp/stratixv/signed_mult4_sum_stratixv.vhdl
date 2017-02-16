@@ -32,7 +32,7 @@ library stratixv;
 --! * Accu Register   : just pipeline register, accumulation not supported
 --! * Rounding        : optional half-up, only possible in logic!
 --! * Output Data     : 1x signed value, max 64 bits
---! * Output Register : optional, after shift-right and saturation
+--! * Output Register : optional, at least one strongly recommend, another after shift-right and saturation
 --! * Output Chain    : optional, 64 bits
 --! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG
 --!
@@ -66,20 +66,18 @@ architecture stratixv of signed_mult4_sum is
     return res; 
   end function;
 
-  -- if input registers are enabled then use clock "0"
-  function clock0(n:natural) return string is
-  begin
-    if n>0 then return "0"; else return "none"; end if;
-  end function;
-
-  -- if output registers are enabled then use clock "1"
-  function clock1(n:natural) return string is
-  begin
-    if n>0 then return "1"; else return "none"; end if;
-  end function;
-
   -- number of summands
   constant NUM_SUMMAND : positive := 4;
+
+  -- clock select for input/output registers
+  function clock(clksel:integer range 0 to 2; nreg:integer) return string is
+  begin
+    if    clksel=0 and nreg>0 then return "0";
+    elsif clksel=1 and nreg>0 then return "1";
+    elsif clksel=2 and nreg>0 then return "2";
+    else return "none";
+    end if;
+  end function;
 
   constant MAX_WIDTH_X : positive := 18;
   constant MAX_WIDTH_Y : positive := 18;
@@ -116,7 +114,7 @@ architecture stratixv of signed_mult4_sum is
     ovf : std_logic;
   end record;
   type array_oreg is array(integer range <>) of r_oreg;
-  signal rslt : array_oreg(NUM_OUTPUT_REG downto 0);
+  signal rslt : array_oreg(0 to NUM_OUTPUT_REG);
 
   signal chain, chainout_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
   signal accu : std_logic_vector(ACCU_WIDTH-1 downto 0);
@@ -195,16 +193,16 @@ begin
   dsp_a : stratixv_mac
   generic map (
     accumulate_clock          => "none",
-    ax_clock                  => clock0(NUM_INPUT_REG),
+    ax_clock                  => clock(0,NUM_INPUT_REG),
     ax_width                  => MAX_WIDTH_X,
-    ay_scan_in_clock          => clock0(NUM_INPUT_REG),
+    ay_scan_in_clock          => clock(0,NUM_INPUT_REG),
     ay_scan_in_width          => MAX_WIDTH_Y,
     ay_use_scan_in            => "false",
     az_clock                  => "none", -- unused
     az_width                  => 1, -- unused
-    bx_clock                  => clock0(NUM_INPUT_REG),
+    bx_clock                  => clock(0,NUM_INPUT_REG),
     bx_width                  => MAX_WIDTH_X,
-    by_clock                  => clock0(NUM_INPUT_REG),
+    by_clock                  => clock(0,NUM_INPUT_REG),
     by_use_scan_in            => "false",
     by_width                  => MAX_WIDTH_Y,
     coef_a_0                  => 0,
@@ -248,7 +246,7 @@ begin
     signed_may                => "true",
     signed_mbx                => "true",
     signed_mby                => "true",
-    sub_clock                 => clock0(NUM_INPUT_REG),
+    sub_clock                 => clock(0,NUM_INPUT_REG),
     use_chainadder            => "false"
   )
   port map (
@@ -285,17 +283,17 @@ begin
 
   dsp_b : stratixv_mac
   generic map (
-    accumulate_clock          => clock0(NUM_INPUT_REG),
-    ax_clock                  => clock0(NUM_INPUT_REG),
+    accumulate_clock          => clock(0,NUM_INPUT_REG),
+    ax_clock                  => clock(0,NUM_INPUT_REG),
     ax_width                  => MAX_WIDTH_X,
-    ay_scan_in_clock          => clock0(NUM_INPUT_REG),
+    ay_scan_in_clock          => clock(0,NUM_INPUT_REG),
     ay_scan_in_width          => MAX_WIDTH_Y,
     ay_use_scan_in            => "false",
     az_clock                  => "none", -- unused here
     az_width                  => 1, -- unused here
-    bx_clock                  => clock0(NUM_INPUT_REG),
+    bx_clock                  => clock(0,NUM_INPUT_REG),
     bx_width                  => MAX_WIDTH_X,
-    by_clock                  => clock0(NUM_INPUT_REG),
+    by_clock                  => clock(0,NUM_INPUT_REG),
     by_use_scan_in            => "false",
     by_width                  => MAX_WIDTH_Y,
     coef_a_0                  => 0,
@@ -319,17 +317,17 @@ begin
     complex_clock             => "none",
     delay_scan_out_ay         => "false",
     delay_scan_out_by         => "false",
-    load_const_clock          => clock0(NUM_INPUT_REG),
+    load_const_clock          => clock(0,NUM_INPUT_REG),
     load_const_value          => 0,
     lpm_type                  => "stratixv_mac",
     mode_sub_location         => 1,
-    negate_clock              => clock0(NUM_INPUT_REG),
+    negate_clock              => clock(0,NUM_INPUT_REG),
     operand_source_max        => "input",
     operand_source_may        => "input",
     operand_source_mbx        => "input",
     operand_source_mby        => "input",
     operation_mode            => "m18x18_sumof4",
-    output_clock              => clock1(NUM_OUTPUT_REG),
+    output_clock              => clock(1,NUM_OUTPUT_REG),
     preadder_subtract_a       => "false",
     preadder_subtract_b       => "false",
     result_a_width            => ACCU_WIDTH,
@@ -339,7 +337,7 @@ begin
     signed_may                => "true",
     signed_mbx                => "true",
     signed_mby                => "true",
-    sub_clock                 => clock0(NUM_INPUT_REG),
+    sub_clock                 => clock(0,NUM_INPUT_REG),
     use_chainadder            => "false"
   )
   port map (
@@ -407,8 +405,8 @@ begin
   begin
     rslt(1).vld <= rslt(0).vld when rising_edge(clk); -- VLD bypass
     -- DSP cell result/accumulator register is always used as first output register stage
-    rslt(1).dat <= rslt(0).dat; 
-    rslt(1).ovf <= rslt(0).ovf; 
+    rslt(1).dat <= rslt(0).dat;
+    rslt(1).ovf <= rslt(0).ovf;
   end generate;
 
   -- additional output registers always in logic
@@ -419,7 +417,7 @@ begin
   end generate;
 
   -- map result to output port
-  result     <= rslt(NUM_OUTPUT_REG).dat;
+  result <= rslt(NUM_OUTPUT_REG).dat;
   result_vld <= rslt(NUM_OUTPUT_REG).vld;
   result_ovf <= rslt(NUM_OUTPUT_REG).ovf;
 

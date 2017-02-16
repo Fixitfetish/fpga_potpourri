@@ -67,22 +67,20 @@ architecture stratixv of signed_mult2_accu is
     if b then return "true"; else return "false"; end if;
   end function;
 
-  -- if input registers are enabled then use clock "0"
-  function clock0(n:natural) return string is
-  begin
-    if n>0 then return "0"; else return "none"; end if;
-  end function;
-
-  -- if output registers are enabled then use clock "1"
-  function clock1(n:natural) return string is
-  begin
-    if n>0 then return "1"; else return "none"; end if;
-  end function;
-
   function load_const_value(round: boolean; shifts:natural) return natural is
   begin
     -- if rounding is enabled then +0.5 in the beginning of accumulation
     if round and (shifts>0) then return (shifts-1); else return 0; end if;
+  end function;
+
+  -- clock select for input/output registers
+  function clock(clksel:integer range 0 to 2; nreg:integer) return string is
+  begin
+    if    clksel=0 and nreg>0 then return "0";
+    elsif clksel=1 and nreg>0 then return "1";
+    elsif clksel=2 and nreg>0 then return "2";
+    else return "none";
+    end if;
   end function;
 
   constant MAX_WIDTH_X : positive := 18;
@@ -120,7 +118,7 @@ architecture stratixv of signed_mult2_accu is
     ovf : std_logic;
   end record;
   type array_oreg is array(integer range <>) of r_oreg;
-  signal rslt : array_oreg(NUM_OUTPUT_REG downto 0);
+  signal rslt : array_oreg(0 to NUM_OUTPUT_REG);
 
   signal clr_q, clr_i : std_logic;
   signal chainin_i, chainout_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
@@ -208,17 +206,17 @@ begin
 
   dsp : stratixv_mac
   generic map (
-    accumulate_clock          => clock0(NUM_INPUT_REG),
-    ax_clock                  => clock0(NUM_INPUT_REG),
+    accumulate_clock          => clock(0,NUM_INPUT_REG),
+    ax_clock                  => clock(0,NUM_INPUT_REG),
     ax_width                  => MAX_WIDTH_X,
-    ay_scan_in_clock          => clock0(NUM_INPUT_REG),
+    ay_scan_in_clock          => clock(0,NUM_INPUT_REG),
     ay_scan_in_width          => MAX_WIDTH_Y,
     ay_use_scan_in            => "false",
     az_clock                  => "none", -- unused here
     az_width                  => 1, -- unused here
-    bx_clock                  => clock0(NUM_INPUT_REG),
+    bx_clock                  => clock(0,NUM_INPUT_REG),
     bx_width                  => MAX_WIDTH_X,
-    by_clock                  => clock0(NUM_INPUT_REG),
+    by_clock                  => clock(0,NUM_INPUT_REG),
     by_use_scan_in            => "false",
     by_width                  => MAX_WIDTH_Y,
     coef_a_0                  => 0,
@@ -242,17 +240,17 @@ begin
     complex_clock             => "none",
     delay_scan_out_ay         => "false",
     delay_scan_out_by         => "false",
-    load_const_clock          => clock0(NUM_INPUT_REG),
+    load_const_clock          => clock(0,NUM_INPUT_REG),
     load_const_value          => load_const_value(OUTPUT_ROUND, OUTPUT_SHIFT_RIGHT),
     lpm_type                  => "stratixv_mac",
     mode_sub_location         => 0,
-    negate_clock              => clock0(NUM_INPUT_REG),
+    negate_clock              => clock(0,NUM_INPUT_REG),
     operand_source_max        => "input",
     operand_source_may        => "input",
     operand_source_mbx        => "input",
     operand_source_mby        => "input",
     operation_mode            => "m18x18_sumof2",
-    output_clock              => clock1(NUM_OUTPUT_REG),
+    output_clock              => clock(1,NUM_OUTPUT_REG),
     preadder_subtract_a       => "false",
     preadder_subtract_b       => "false",
     result_a_width            => ACCU_WIDTH,
@@ -262,7 +260,7 @@ begin
     signed_may                => "true",
     signed_mbx                => "true",
     signed_mby                => "true",
-    sub_clock                 => clock0(NUM_INPUT_REG),
+    sub_clock                 => clock(0,NUM_INPUT_REG),
     use_chainadder            => use_chainadder(USE_CHAIN_INPUT)
   )
   port map (
@@ -332,8 +330,8 @@ begin
   begin
     rslt(1).vld <= rslt(0).vld when rising_edge(clk); -- VLD bypass
     -- DSP cell result/accumulator register is always used as first output register stage
-    rslt(1).dat <= rslt(0).dat; 
-    rslt(1).ovf <= rslt(0).ovf; 
+    rslt(1).dat <= rslt(0).dat;
+    rslt(1).ovf <= rslt(0).ovf;
   end generate;
 
   -- additional output registers always in logic
@@ -344,7 +342,7 @@ begin
   end generate;
 
   -- map result to output port
-  result     <= rslt(NUM_OUTPUT_REG).dat;
+  result <= rslt(NUM_OUTPUT_REG).dat;
   result_vld <= rslt(NUM_OUTPUT_REG).vld;
   result_ovf <= rslt(NUM_OUTPUT_REG).ovf;
 

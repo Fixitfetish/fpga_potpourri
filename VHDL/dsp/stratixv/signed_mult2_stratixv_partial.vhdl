@@ -45,16 +45,14 @@ architecture stratixv_partial of signed_mult2 is
 
   -- local auxiliary
 
-  -- if input registers are enabled then use clock "0"
-  function clock0(n:natural) return string is
+  -- clock select for input/output registers
+  function clock(clksel:integer range 0 to 2; nreg:integer) return string is
   begin
-    if n>0 then return "0"; else return "none"; end if;
-  end function;
-
-  -- if output registers are enabled then use clock "1"
-  function clock1(n:natural) return string is
-  begin
-    if n>0 then return "1"; else return "none"; end if;
+    if    clksel=0 and nreg>0 then return "0";
+    elsif clksel=1 and nreg>0 then return "1";
+    elsif clksel=2 and nreg>0 then return "2";
+    else return "none";
+    end if;
   end function;
 
   constant MAX_WIDTH_X : positive := 18;
@@ -87,11 +85,16 @@ architecture stratixv_partial of signed_mult2 is
     ovf : std_logic_vector(result_ovf'range);
   end record;
   type array_oreg is array(integer range <>) of r_oreg;
-  signal rslt : array_oreg(NUM_OUTPUT_REG downto 0);
+  signal rslt : array_oreg(0 to NUM_OUTPUT_REG);
 
   signal prod0, prod1 : std_logic_vector(MAX_PRODUCT_WIDTH-1 downto 0);
   signal prod0_used, prod1_used : signed(PRODUCT_WIDTH-1 downto 0);
   signal prod0_used_shifted, prod1_used_shifted : signed(PRODUCT_SHIFTED_WIDTH-1 downto 0);
+
+  -- dummy sink to avoid warnings
+  procedure slv_sink(d:in std_logic_vector) is
+    variable b : boolean := false;
+  begin b := (d(d'right)='1') or b; end procedure;
 
 begin
 
@@ -107,6 +110,12 @@ begin
     severity failure;
   assert (x0'length+y0'length)=(x1'length+y1'length)
     report "ERROR " & IMPLEMENTATION & ": Both products must result in same length."
+    severity failure;
+
+  -- dummy sink for unused negation input (avoid warnings)
+  slv_sink(neg);
+  assert neg="00"
+    report "ERROR " & IMPLEMENTATION & ": Negation of products is not supported."
     severity failure;
 
   -- control signal inputs
@@ -141,16 +150,16 @@ begin
   dsp : stratixv_mac
   generic map (
     accumulate_clock          => "none", --irrelevant
-    ax_clock                  => clock0(NUM_INPUT_REG),
+    ax_clock                  => clock(0,NUM_INPUT_REG),
     ax_width                  => MAX_WIDTH_X,
-    ay_scan_in_clock          => clock0(NUM_INPUT_REG),
+    ay_scan_in_clock          => clock(0,NUM_INPUT_REG),
     ay_scan_in_width          => MAX_WIDTH_Y,
     ay_use_scan_in            => "false",
     az_clock                  => "none", -- unused here
     az_width                  => 1, -- unused here
-    bx_clock                  => clock0(NUM_INPUT_REG),
+    bx_clock                  => clock(0,NUM_INPUT_REG),
     bx_width                  => MAX_WIDTH_X,
-    by_clock                  => clock0(NUM_INPUT_REG),
+    by_clock                  => clock(0,NUM_INPUT_REG),
     by_use_scan_in            => "false",
     by_width                  => MAX_WIDTH_Y,
     coef_a_0                  => 0,
@@ -184,7 +193,7 @@ begin
     operand_source_mbx        => "input",
     operand_source_mby        => "input",
     operation_mode            => "m18x18_partial",
-    output_clock              => clock1(NUM_OUTPUT_REG),
+    output_clock              => clock(1,NUM_OUTPUT_REG),
     preadder_subtract_a       => "false",
     preadder_subtract_b       => "false",
     result_a_width            => MAX_PRODUCT_WIDTH,
@@ -251,23 +260,19 @@ begin
   begin
     RESIZE_CLIP(din=>prod0_used_shifted, dout=>v_dat0, ovfl=>v_ovf(0), clip=>OUTPUT_CLIP);
     RESIZE_CLIP(din=>prod1_used_shifted, dout=>v_dat1, ovfl=>v_ovf(1), clip=>OUTPUT_CLIP);
-    rslt(0).vld <= ireg(0).vld; 
-    rslt(0).dat0 <= v_dat0; 
-    rslt(0).dat1 <= v_dat1; 
-    if OUTPUT_OVERFLOW then 
-      rslt(0).ovf <= v_ovf; 
-    else 
-      rslt(0).ovf <= (others=>'0');
-    end if;
+    rslt(0).vld <= ireg(0).vld;
+    rslt(0).dat0 <= v_dat0;
+    rslt(0).dat1 <= v_dat1;
+    if OUTPUT_OVERFLOW then rslt(0).ovf<=v_ovf; else rslt(0).ovf<=(others=>'0'); end if;
   end process;
 
   g_oreg1 : if NUM_OUTPUT_REG>=1 generate
   begin
     rslt(1).vld <= rslt(0).vld when rising_edge(clk); -- VLD bypass
     -- DSP cell result/accumulator register is always used as first output register stage
-    rslt(1).dat0 <= rslt(0).dat0; 
-    rslt(1).dat1 <= rslt(0).dat1; 
-    rslt(1).ovf <= rslt(0).ovf; 
+    rslt(1).dat0 <= rslt(0).dat0;
+    rslt(1).dat1 <= rslt(0).dat1;
+    rslt(1).ovf <= rslt(0).ovf;
   end generate;
 
   -- additional output registers always in logic
