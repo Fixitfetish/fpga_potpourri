@@ -139,7 +139,7 @@ begin
          -p0-p1;
 
   g_accu_off : if NUM_OUTPUT_REG=0 generate
-    accu <= sum;
+    accu <= resize(sum, ACCU_WIDTH);
   end generate;
   
   g_accu_on : if NUM_OUTPUT_REG>0 generate
