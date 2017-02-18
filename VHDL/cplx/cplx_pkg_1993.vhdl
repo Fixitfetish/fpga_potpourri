@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------------
--- FILE    : cplx_pkg_1993.vhdl
--- AUTHOR  : Fixitfetish
--- DATE    : 30/Dec/2016
--- VERSION : 0.97
--- VHDL    : 1993
--- LICENSE : MIT License
+--! @file       cplx_pkg_1993.vhdl
+--! @author     Fixitfetish
+--! @date       18/Feb/2017
+--! @version    0.98
+--! @copyright  MIT License
+--! @note       VHDL-1993
 -------------------------------------------------------------------------------
 -- Copyright (c) 2016 Fixitfetish
 -- 
@@ -32,20 +32,21 @@ library ieee;
 library fixitfetish;
  use fixitfetish.ieee_extension.all;
 
--- This package provides types, functions and procedures that allow basic
--- operations with complex integer numbers. Only the most common signals are
--- taken into account. The functions and procedures are designed in a way to
--- use as few logic elements as possible. 
--- Please note that multiplications, divisions and so on are not part of this
--- package since they typically make use of hardware specific DSP cells and
--- require registers in addition. Corresponding entities have been (can be)
--- developed based on this package.
---
--- NOTE: a more or less compatible complex package has been developed for VHDL-2008.
--- The VHDL-2008 version of this package is much more flexible since code duplication
--- is not required to such an extent as it is for VHDL-1993. For that reason this 
--- VHDL-1993 version only provides a subset of bit widths. But this package can be
--- easily extended to any needed bit width.
+--! @brief This package provides types, functions and procedures that allow basic
+--! operations with complex integer numbers. Only the most common signals are
+--! taken into account. The functions and procedures are designed in a way to
+--! use as few logic elements as possible. 
+--! 
+--! Please note that multiplications, divisions and so on are not part of this
+--! package since they typically make use of hardware specific DSP cells and
+--! require registers in addition. Corresponding entities have been (can be)
+--! developed based on this package.
+--!
+--! NOTE: a more or less compatible complex package has been developed for VHDL-2008.
+--! The VHDL-2008 version of this package is much more flexible since code duplication
+--! is not required to such an extent as it is for VHDL-1993. For that reason this 
+--! VHDL-1993 version only provides a subset of bit widths. But this package can be
+--! easily extended to any needed bit width.
 
 package cplx_pkg is
 
@@ -53,62 +54,65 @@ package cplx_pkg is
   -- TYPES
   ------------------------------------------
 
-  -- complex 2x16
+  --! Complex 2x16 record type
   type cplx16 is
   record
-    rst : std_logic; -- reset
-    vld : std_logic; -- data valid
-    ovf : std_logic; -- data overflow (or clipping)
-    re  : signed(15 downto 0); -- data real component
-    im  : signed(15 downto 0); -- data imaginary component 
+    rst : std_logic; --! reset
+    vld : std_logic; --! data valid
+    ovf : std_logic; --! data overflow (or clipping)
+    re  : signed(15 downto 0); --! data real component
+    im  : signed(15 downto 0); --! data imaginary component 
   end record;
 
-  -- complex 2x18 type
+  --! Complex 2x18 record type
   type cplx18 is
   record
-    rst : std_logic; -- reset
-    vld : std_logic; -- data valid
-    ovf : std_logic; -- data overflow (or clipping)
-    re  : signed(17 downto 0); -- data real component
-    im  : signed(17 downto 0); -- data imaginary component 
+    rst : std_logic; --! reset
+    vld : std_logic; --! data valid
+    ovf : std_logic; --! data overflow (or clipping)
+    re  : signed(17 downto 0); --! data real component
+    im  : signed(17 downto 0); --! data imaginary component 
   end record;
 
-  -- complex 2x20 type
+  --! Complex 2x20 record type
   type cplx20 is
   record
-    rst : std_logic; -- reset
-    vld : std_logic; -- data valid
-    ovf : std_logic; -- data overflow (or clipping)
-    re  : signed(19 downto 0); -- data real component
-    im  : signed(19 downto 0); -- data imaginary component 
+    rst : std_logic; --! reset
+    vld : std_logic; --! data valid
+    ovf : std_logic; --! data overflow (or clipping)
+    re  : signed(19 downto 0); --! data real component
+    im  : signed(19 downto 0); --! data imaginary component 
   end record;
 
-  -- complex 2x22 type
+  --! Complex 2x22 record type
   type cplx22 is
   record
-    rst : std_logic; -- reset
-    vld : std_logic; -- data valid
-    ovf : std_logic; -- data overflow (or clipping)
-    re  : signed(21 downto 0); -- data real component
-    im  : signed(21 downto 0); -- data imaginary component 
+    rst : std_logic; --! reset
+    vld : std_logic; --! data valid
+    ovf : std_logic; --! data overflow (or clipping)
+    re  : signed(21 downto 0); --! data real component
+    im  : signed(21 downto 0); --! data imaginary component 
   end record;
 
-  -- complex 2x16 vector type (preferably "to" direction)
+  --! Complex 2x16 vector type (preferably "to" direction)
   type cplx16_vector is array(integer range <>) of cplx16;
 
-  -- complex 2x18 vector type (preferably "to" direction)
+  --! Complex 2x18 vector type (preferably "to" direction)
   type cplx18_vector is array(integer range <>) of cplx18;
 
-  -- complex 2x20 vector type (preferably "to" direction)
+  --! Complex 2x20 vector type (preferably "to" direction)
   type cplx20_vector is array(integer range <>) of cplx20;
 
-  -- complex 2x20 vector type (preferably "to" direction)
+  --! Complex 2x20 vector type (preferably "to" direction)
   type cplx22_vector is array(integer range <>) of cplx22;
 
-  -- default standard complex type
+  --! default standard complex type
   alias cplx is cplx18;
+
+  --! default standard complex vector type
   alias cplx_vector is cplx18_vector;
 
+  --! Definition of options
   type cplx_option is (
     '-', -- don't care, use defaults
     'R', -- use reset on RE/IM (set RE=0 and IM=0)
@@ -124,275 +128,303 @@ package cplx_pkg is
 --  'H'  -- hold last valid output data when invalid (toggle rate reduction)
   );
   
-  -- Complex operations can be used with one or more the following options.
-  -- Note that some options can not be combined, e.g. different rounding options.
-  -- Use options carefully and only when really required. Some options can have
-  -- a negative influence on logic consumption and timing.
-  -- '-' -- don't care, use defaults
-  -- 'R' -- use reset on RE/IM (set RE=0 and IM=0)
-  -- 'O' -- enable overflow/underflow detection (by default off)
-  -- 'S' -- enable saturation/clipping (by default off)
-  -- 'D' -- round down towards minus infinity, floor (default, just remove LSBs)
-  -- 'N' -- round to nearest (standard rounding, i.e. +0.5 and then remove LSBs)
-  -- 'U' -- round up towards plus infinity, ceil
-  -- 'Z' -- round towards zero, truncate
-  -- 'I' -- round towards plus/minus infinity, i.e. away from zero
+  --! @brief Complex operations can be used with one or more the following options.
+  --! Note that some options can not be combined, e.g. different rounding options.
+  --! Use options carefully and only when really required. Some options can have
+  --! a negative influence on logic consumption and timing. @link cplx_mode More...
+  --!
+  --! * '-' -- don't care, use defaults
+  --! * 'R' -- use reset on RE/IM (set RE=0 and IM=0)
+  --! * 'O' -- enable overflow/underflow detection (by default off)
+  --! * 'S' -- enable saturation/clipping (by default off)
+  --! * 'D' -- round down towards minus infinity, floor (default, just remove LSBs)
+  --! * 'N' -- round to nearest (standard rounding, i.e. +0.5 and then remove LSBs)
+  --! * 'U' -- round up towards plus infinity, ceil
+  --! * 'Z' -- round towards zero, truncate
+  --! * 'I' -- round towards plus/minus infinity, i.e. away from zero
   type cplx_mode is array(integer range <>) of cplx_option;
 
   ------------------------------------------
   -- auxiliary
   ------------------------------------------
 
+  --! check if a certain option is enabled
   function "=" (l:cplx_mode; r:cplx_option) return boolean;
+
+  --! check if a certain option is disabled
   function "/=" (l:cplx_mode; r:cplx_option) return boolean;
 
   ------------------------------------------
   -- RESET
   ------------------------------------------
 
-  -- get cplx reset value 
-  -- RE/IM data will be 0 with option 'R', otherwise data is do-not-care
-  -- w : RE/IM data width in bits
-  -- n : number of vector elements (for vectors only)
+  --! @brief Get complex reset value.
+  --! RE/IM data will be 0 with option 'R', otherwise data is do-not-care.
+  --! w = RE/IM data width in bits
   function cplx_reset (w:positive; m:cplx_mode:="-") return cplx16;
+
+  --! @brief Get complex vector reset value.
+  --! RE/IM data will be 0 with option 'R', otherwise data is do-not-care.
+  --! w = RE/IM data width in bits ,
+  --! n = number of vector elements
   function cplx_vector_reset (w:positive; n:positive; m:cplx_mode:="-") return cplx16_vector;
 
-  -- get cplx reset value 
-  -- RE/IM data will be 0 with option 'R', otherwise data is do-not-care
-  -- w : RE/IM data width in bits
-  -- n : number of vector elements (for vectors only)
+  --! @brief Get complex reset value.
+  --! RE/IM data will be 0 with option 'R', otherwise data is do-not-care.
+  --! w = RE/IM data width in bits
   function cplx_reset (w:positive; m:cplx_mode:="-") return cplx18;
+
+  --! @brief Get complex vector reset value.
+  --! RE/IM data will be 0 with option 'R', otherwise data is do-not-care.
+  --! w = RE/IM data width in bits ,
+  --! n = number of vector elements
   function cplx_vector_reset (w:positive; n:positive; m:cplx_mode:="-") return cplx18_vector;
 
-  -- get cplx reset value 
-  -- RE/IM data will be 0 with option 'R', otherwise data is do-not-care
-  -- w : RE/IM data width in bits
-  -- n : number of vector elements (for vectors only)
+  --! @brief Get complex reset value.
+  --! RE/IM data will be 0 with option 'R', otherwise data is do-not-care.
+  --! w = RE/IM data width in bits
   function cplx_reset (w:positive; m:cplx_mode:="-") return cplx20;
+
+  --! @brief Get complex vector reset value.
+  --! RE/IM data will be 0 with option 'R', otherwise data is do-not-care.
+  --! w = RE/IM data width in bits ,
+  --! n = number of vector elements
   function cplx_vector_reset (w:positive; n:positive; m:cplx_mode:="-") return cplx20_vector;
 
-  -- get cplx reset value 
-  -- RE/IM data will be 0 with option 'R', otherwise data is do-not-care
-  -- w : RE/IM data width in bits
-  -- n : number of vector elements (for vectors only)
+  --! @brief Get complex reset value.
+  --! RE/IM data will be 0 with option 'R', otherwise data is do-not-care.
+  --! w = RE/IM data width in bits
   function cplx_reset (w:positive; m:cplx_mode:="-") return cplx22;
+
+  --! @brief Get complex vector reset value.
+  --! RE/IM data will be 0 with option 'R', otherwise data is do-not-care.
+  --! w = RE/IM data width in bits ,
+  --! n = number of vector elements
   function cplx_vector_reset (w:positive; n:positive; m:cplx_mode:="-") return cplx22_vector;
 
-  -- Complex data reset on demand - to be placed into the data path
-  -- supported options: 'R'
+  --! Complex data reset on demand - to be placed into the data path. Supported options: 'R'
   function reset_on_demand (din:cplx16; m:cplx_mode:="-") return cplx16;
+
+  --! Complex data reset on demand - to be placed into the data path. Supported options: 'R'
   function reset_on_demand (din:cplx16_vector; m:cplx_mode:="-") return cplx16_vector;
 
-  -- Complex data reset on demand - to be placed into the data path
-  -- supported options: 'R'
+  --! Complex data reset on demand - to be placed into the data path. Supported options: 'R'
   function reset_on_demand (din:cplx18; m:cplx_mode:="-") return cplx18;
+
+  --! Complex data reset on demand - to be placed into the data path. Supported options: 'R'
   function reset_on_demand (din:cplx18_vector; m:cplx_mode:="-") return cplx18_vector;
 
-  -- Complex data reset on demand - to be placed into the data path
-  -- supported options: 'R'
+  --! Complex data reset on demand - to be placed into the data path. Supported options: 'R'
   function reset_on_demand (din:cplx20; m:cplx_mode:="-") return cplx20;
+
+  --! Complex data reset on demand - to be placed into the data path. Supported options: 'R'
   function reset_on_demand (din:cplx20_vector; m:cplx_mode:="-") return cplx20_vector;
 
-  -- Complex data reset on demand - to be placed into the data path
-  -- supported options: 'R'
+  --! Complex data reset on demand - to be placed into the data path. Supported options: 'R'
   function reset_on_demand (din:cplx22; m:cplx_mode:="-") return cplx22;
+
+  --! Complex data reset on demand - to be placed into the data path. Supported options: 'R'
   function reset_on_demand (din:cplx22_vector; m:cplx_mode:="-") return cplx22_vector;
 
   ------------------------------------------
   -- RESIZE DOWN AND SATURATE/CLIP
   ------------------------------------------
 
-  -- resize from CPLX18 down to CPLX16 with optional saturation/clipping and overflow detection
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=16
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Resize from CPLX18 down to CPLX16 with optional saturation/clipping and overflow detection.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=16.
+  --! Supported options: 'R', 'O' and/or 'S'
   function resize (din:cplx18; w:positive; m:cplx_mode:="-") return cplx16;
 
-  -- resize from CPLX20 down to CPLX16 with optional saturation/clipping and overflow detection
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=16
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Resize from CPLX20 down to CPLX16 with optional saturation/clipping and overflow detection.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=16.
+  --! Supported options: 'R', 'O' and/or 'S'
   function resize (din:cplx20; w:positive; m:cplx_mode:="-") return cplx16;
 
-  -- resize from CPLX22 down to CPLX16 with optional saturation/clipping and overflow detection
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=16
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Resize from CPLX22 down to CPLX16 with optional saturation/clipping and overflow detection.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=16.
+  --! supported options: 'R', 'O' and/or 'S'
   function resize (din:cplx22; w:positive; m:cplx_mode:="-") return cplx16;
 
-  -- resize from CPLX20 down to CPLX18 with optional saturation/clipping and overflow detection
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=18
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Resize from CPLX20 down to CPLX18 with optional saturation/clipping and overflow detection.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=18.
+  --! Supported options: 'R', 'O' and/or 'S'
   function resize (din:cplx20; w:positive; m:cplx_mode:="-") return cplx18;
 
-  -- resize from CPLX22 down to CPLX18 with optional saturation/clipping and overflow detection
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=18
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Resize from CPLX22 down to CPLX18 with optional saturation/clipping and overflow detection.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=18.
+  --! Supported options: 'R', 'O' and/or 'S'
   function resize (din:cplx22; w:positive; m:cplx_mode:="-") return cplx18;
 
-  -- resize from CPLX22 down to CPLX20 with optional saturation/clipping and overflow detection
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=20
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Resize from CPLX22 down to CPLX20 with optional saturation/clipping and overflow detection.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=20.
+  --! Supported options: 'R', 'O' and/or 'S'
   function resize (din:cplx22; w:positive; m:cplx_mode:="-") return cplx20;
 
   ------------------------------------------
   -- RESIZE DOWN VECTOR AND SATURATE/CLIP
   ------------------------------------------
 
-  -- vector resize from CPLX18 down to CPLX16 with optional saturation/clipping and overflow detection
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=16
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Vector resize from CPLX18 down to CPLX16 with optional saturation/clipping and overflow detection.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=16.
+  --! Supported options: 'R', 'O' and/or 'S'
   function resize (din:cplx18_vector; w:positive; m:cplx_mode:="-") return cplx16_vector;
 
-  -- vector resize from CPLX20 down to CPLX16 with optional saturation/clipping and overflow detection
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=16
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Vector resize from CPLX20 down to CPLX16 with optional saturation/clipping and overflow detection.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=16.
+  --! Supported options: 'R', 'O' and/or 'S'
   function resize (din:cplx20_vector; w:positive; m:cplx_mode:="-") return cplx16_vector;
 
-  -- vector resize from CPLX22 down to CPLX16 with optional saturation/clipping and overflow detection
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=16
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Vector resize from CPLX22 down to CPLX16 with optional saturation/clipping and overflow detection.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=16.
+  --! Supported options: 'R', 'O' and/or 'S'
   function resize (din:cplx22_vector; w:positive; m:cplx_mode:="-") return cplx16_vector;
 
-  -- vector resize from CPLX20 down to CPLX18 with optional saturation/clipping and overflow detection
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=18
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Vector resize from CPLX20 down to CPLX18 with optional saturation/clipping and overflow detection.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=18.
+  --! Supported options: 'R', 'O' and/or 'S'
   function resize (din:cplx20_vector; w:positive; m:cplx_mode:="-") return cplx18_vector;
 
-  -- vector resize from CPLX22 down to CPLX18 with optional saturation/clipping and overflow detection
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=18
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Vector resize from CPLX22 down to CPLX18 with optional saturation/clipping and overflow detection.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=18.
+  --! Supported options: 'R', 'O' and/or 'S'
   function resize (din:cplx22_vector; w:positive; m:cplx_mode:="-") return cplx18_vector;
 
-  -- vector resize from CPLX22 down to CPLX20 with optional saturation/clipping and overflow detection
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=20
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Vector resize from CPLX22 down to CPLX20 with optional saturation/clipping and overflow detection.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=20.
+  --! Supported options: 'R', 'O' and/or 'S'
   function resize (din:cplx22_vector; w:positive; m:cplx_mode:="-") return cplx20_vector;
 
   ------------------------------------------
   -- RESIZE UP
   ------------------------------------------
 
-  -- resize from CPLX16 up to CPLX18 
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=18
-  -- supported options: 'R'
+  --! @brief Resize from CPLX16 up to CPLX18.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=18.
+  --! Supported options: 'R'
   function resize (din:cplx16; w:positive; m:cplx_mode:="-") return cplx18;
 
-  -- resize from CPLX16 up to CPLX20 
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=20
-  -- supported options: 'R'
+  --! @brief Resize from CPLX16 up to CPLX20.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=20.
+  --! Supported options: 'R'
   function resize (din:cplx16; w:positive; m:cplx_mode:="-") return cplx20;
 
-  -- resize from CPLX18 up to CPLX20 
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=20
-  -- supported options: 'R'
+  --! @brief Resize from CPLX18 up to CPLX20.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=20.
+  --! Supported options: 'R'
   function resize (din:cplx18; w:positive; m:cplx_mode:="-") return cplx20;
 
-  -- resize from CPLX16 up to CPLX22 
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=22
-  -- supported options: 'R'
+  --! @brief Resize from CPLX16 up to CPLX22.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=22.
+  --! Supported options: 'R'
   function resize (din:cplx16; w:positive; m:cplx_mode:="-") return cplx22;
 
-  -- resize from CPLX18 up to CPLX22 
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=22
-  -- supported options: 'R'
+  --! @brief Resize from CPLX18 up to CPLX22.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=22.
+  --! Supported options: 'R'
   function resize (din:cplx18; w:positive; m:cplx_mode:="-") return cplx22;
 
-  -- resize from CPLX20 up to CPLX22 
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=22
-  -- supported options: 'R'
+  --! @brief Resize from CPLX20 up to CPLX22.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=22.
+  --! Supported options: 'R'
   function resize (din:cplx20; w:positive; m:cplx_mode:="-") return cplx22;
 
   ------------------------------------------
   -- RESIZE UP VECTOR
   ------------------------------------------
 
-  -- vector resize from CPLX16 up to CPLX18 
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=18
-  -- supported options: 'R'
+  --! @brief Vector resize from CPLX16 up to CPLX18.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=18.
+  --! Supported options: 'R'
   function resize (din:cplx16_vector; w:positive; m:cplx_mode:="-") return cplx18_vector;
 
-  -- vector resize from CPLX16 up to CPLX20 
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=20
-  -- supported options: 'R'
+  --! @brief Vector resize from CPLX16 up to CPLX20.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=20.
+  --! Supported options: 'R'
   function resize (din:cplx16_vector; w:positive; m:cplx_mode:="-") return cplx20_vector;
 
-  -- vector resize from CPLX18 up to CPLX20 
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=20
-  -- supported options: 'R'
+  --! @brief Vector resize from CPLX18 up to CPLX20.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=20.
+  --! Supported options: 'R'
   function resize (din:cplx18_vector; w:positive; m:cplx_mode:="-") return cplx20_vector;
 
-  -- vector resize from CPLX16 up to CPLX22 
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=22
-  -- supported options: 'R'
+  --! @brief Vector resize from CPLX16 up to CPLX22.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=22.
+  --! Supported options: 'R'
   function resize (din:cplx16_vector; w:positive; m:cplx_mode:="-") return cplx22_vector;
 
-  -- vector resize from CPLX18 up to CPLX22 
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=22
-  -- supported options: 'R'
+  --! @brief Vector resize from CPLX18 up to CPLX22.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=22.
+  --! Supported options: 'R'
   function resize (din:cplx18_vector; w:positive; m:cplx_mode:="-") return cplx22_vector;
 
-  -- vector resize from CPLX20 up to CPLX22 
-  -- To be compatible with the VHDL-2008 version of this package the output size is fixed: w=22
-  -- supported options: 'R'
+  --! @brief Vector resize from CPLX20 up to CPLX22.
+  --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=22.
+  --! Supported options: 'R'
   function resize (din:cplx20_vector; w:positive; m:cplx_mode:="-") return cplx22_vector;
 
   ------------------------------------------
   -- Basic complex arithmetic
   ------------------------------------------
 
-  -- complex minus with overflow detection
-  -- wrap only occurs when input is most-negative number
-  -- (bit width of output equals the bit width of input)
+  --! @brief Complex negation with overflow detection. Wrap only occurs when input is most-negative number. Bit width of output equals the bit width of input.
   function "-" (din:cplx16) return cplx16;
+  --! @brief Complex negation with overflow detection. Wrap only occurs when input is most-negative number. Bit width of output equals the bit width of input.
   function "-" (din:cplx18) return cplx18;
+  --! @brief Complex negation with overflow detection. Wrap only occurs when input is most-negative number. Bit width of output equals the bit width of input.
   function "-" (din:cplx20) return cplx20;
+  --! @brief Complex negation with overflow detection. Wrap only occurs when input is most-negative number. Bit width of output equals the bit width of input.
   function "-" (din:cplx22) return cplx22;
 
-  -- complex minus (vector)
+  --! @brief Complex vector negation with overflow detection. Wrap only occurs when input is most-negative number. Bit width of output equals the bit width of input.
   function "-" (din:cplx16_vector) return cplx16_vector;
+  --! @brief Complex vector negation with overflow detection. Wrap only occurs when input is most-negative number. Bit width of output equals the bit width of input.
   function "-" (din:cplx18_vector) return cplx18_vector;
+  --! @brief Complex vector negation with overflow detection. Wrap only occurs when input is most-negative number. Bit width of output equals the bit width of input.
   function "-" (din:cplx20_vector) return cplx20_vector;
+  --! @brief Complex vector negation with overflow detection. Wrap only occurs when input is most-negative number. Bit width of output equals the bit width of input.
   function "-" (din:cplx22_vector) return cplx22_vector;
 
-  -- complex conjugate
-  -- To be compatible with the VHDL-2008 version of this package the output
-  -- bit width w must be equal to the input bit width, i.e. w=0 or w=16.
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Complex conjugate.
+  --! To be compatible with the VHDL-2008 version of this package the output
+  --! bit width w must be equal to the input bit width, i.e. w=0 or w=16.
+  --! Supported options: 'R', 'O' and/or 'S'
   function conj (din:cplx16; w:natural:=16; m:cplx_mode:="-") return cplx16;
   function conj (din:cplx16_vector; w:natural:=16; m:cplx_mode:="-") return cplx16_vector;
 
-  -- complex conjugate
-  -- To be compatible with the VHDL-2008 version of this package the output
-  -- bit width w must be equal to the input bit width, i.e. w=0 or w=18.
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Complex conjugate
+  --! To be compatible with the VHDL-2008 version of this package the output
+  --! bit width w must be equal to the input bit width, i.e. w=0 or w=18.
+  --! Supported options: 'R', 'O' and/or 'S'
   function conj (din:cplx18; w:natural:=18; m:cplx_mode:="-") return cplx18;
   function conj (din:cplx18_vector; w:natural:=18; m:cplx_mode:="-") return cplx18_vector;
 
-  -- complex conjugate
-  -- To be compatible with the VHDL-2008 version of this package the output
-  -- bit width w must be equal to the input bit width, i.e. w=0 or w=20.
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Complex conjugate
+  --! To be compatible with the VHDL-2008 version of this package the output
+  --! bit width w must be equal to the input bit width, i.e. w=0 or w=20.
+  --! Supported options: 'R', 'O' and/or 'S'
   function conj (din:cplx20; w:natural:=20; m:cplx_mode:="-") return cplx20;
   function conj (din:cplx20_vector; w:natural:=20; m:cplx_mode:="-") return cplx20_vector;
 
-  -- complex conjugate
-  -- To be compatible with the VHDL-2008 version of this package the output
-  -- bit width w must be equal to the input bit width, i.e. w=0 or w=22.
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Complex conjugate
+  --! To be compatible with the VHDL-2008 version of this package the output
+  --! bit width w must be equal to the input bit width, i.e. w=0 or w=22.
+  --! Supported options: 'R', 'O' and/or 'S'
   function conj (din:cplx22; w:natural:=22; m:cplx_mode:="-") return cplx22;
   function conj (din:cplx22_vector; w:natural:=22; m:cplx_mode:="-") return cplx22_vector;
 
-  -- swap real and imaginary components
+  --! Swap real and imaginary components
   function swap (din:cplx16) return cplx16;
   function swap (din:cplx16_vector) return cplx16_vector;
 
-  -- swap real and imaginary components
+  --! Swap real and imaginary components
   function swap (din:cplx18) return cplx18;
   function swap (din:cplx18_vector) return cplx18_vector;
 
-  -- swap real and imaginary components
+  --! Swap real and imaginary components
   function swap (din:cplx20) return cplx20;
   function swap (din:cplx20_vector) return cplx20_vector;
 
-  -- swap real and imaginary components
+  --! Swap real and imaginary components
   function swap (din:cplx22) return cplx22;
   function swap (din:cplx22_vector) return cplx22_vector;
 
@@ -400,118 +432,118 @@ package cplx_pkg is
   -- ADDITION and ACCUMULATION
   ------------------------------------------
 
-  -- complex addition with optional clipping and overflow detection
-  -- Both inputs must have the same bit width.
-  -- To be compatible with the VHDL-2008 version of this package the output
-  -- bit width w must be equal to the input bit width, i.e. w=0 or w=16.
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Complex addition with optional clipping and overflow detection.
+  --! Both inputs must have the same bit width.
+  --! To be compatible with the VHDL-2008 version of this package the output
+  --! bit width w must be equal to the input bit width, i.e. w=0 or w=16.
+  --! Supported options: 'R', 'O' and/or 'S'
   function add (l,r: cplx16; w:natural:=16; m:cplx_mode:="-") return cplx16;
   function add (l,r: cplx16_vector; w:natural:=16; m:cplx_mode:="-") return cplx16_vector;
 
-  -- complex addition with optional clipping and overflow detection
-  -- Both inputs must have the same bit width.
-  -- To be compatible with the VHDL-2008 version of this package the output
-  -- bit width w must be equal to the input bit width, i.e. w=0 or w=18.
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Complex addition with optional clipping and overflow detection.
+  --! Both inputs must have the same bit width.
+  --! To be compatible with the VHDL-2008 version of this package the output
+  --! bit width w must be equal to the input bit width, i.e. w=0 or w=18.
+  --! Supported options: 'R', 'O' and/or 'S'
   function add (l,r: cplx18; w:natural:=18; m:cplx_mode:="-") return cplx18;
   function add (l,r: cplx18_vector; w:natural:=18; m:cplx_mode:="-") return cplx18_vector;
 
-  -- complex addition with optional clipping and overflow detection
-  -- Both inputs must have the same bit width.
-  -- To be compatible with the VHDL-2008 version of this package the output
-  -- bit width w must be equal to the input bit width, i.e. w=0 or w=20.
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Complex addition with optional clipping and overflow detection.
+  --! Both inputs must have the same bit width.
+  --! To be compatible with the VHDL-2008 version of this package the output
+  --! bit width w must be equal to the input bit width, i.e. w=0 or w=20.
+  --! Supported options: 'R', 'O' and/or 'S'
   function add (l,r: cplx20; w:natural:=20; m:cplx_mode:="-") return cplx20;
   function add (l,r: cplx20_vector; w:natural:=20; m:cplx_mode:="-") return cplx20_vector;
 
-  -- complex addition with optional clipping and overflow detection
-  -- Both inputs must have the same bit width.
-  -- To be compatible with the VHDL-2008 version of this package the output
-  -- bit width w must be equal to the input bit width, i.e. w=0 or w=22.
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Complex addition with optional clipping and overflow detection.
+  --! Both inputs must have the same bit width.
+  --! To be compatible with the VHDL-2008 version of this package the output
+  --! bit width w must be equal to the input bit width, i.e. w=0 or w=22.
+  --! Supported options: 'R', 'O' and/or 'S'
   function add (l,r: cplx22; w:natural:=22; m:cplx_mode:="-") return cplx22;
   function add (l,r: cplx22_vector; w:natural:=22; m:cplx_mode:="-") return cplx22_vector;
 
-  -- complex addition with wrap and overflow detection
+  --! Complex addition with wrap and overflow detection
   function "+" (l,r: cplx16) return cplx16;
   function "+" (l,r: cplx16_vector) return cplx16_vector;
 
-  -- complex addition with wrap and overflow detection
+  --! Complex addition with wrap and overflow detection
   function "+" (l,r: cplx18) return cplx18;
   function "+" (l,r: cplx18_vector) return cplx18_vector;
 
-  -- complex addition with wrap and overflow detection
+  --! Complex addition with wrap and overflow detection
   function "+" (l,r: cplx20) return cplx20;
   function "+" (l,r: cplx20_vector) return cplx20_vector;
 
-  -- complex addition with wrap and overflow detection
+  --! Complex addition with wrap and overflow detection
   function "+" (l,r: cplx22) return cplx22;
   function "+" (l,r: cplx22_vector) return cplx22_vector;
 
-  -- sum of vector elements (max 4 elements for simplicity reasons)
-  -- All inputs (i.e. vector elements) have the same bit width.
-  -- The output bit width is 2 bits wider than the input bit width, i.e. w=18.
+  --! @brief Sum of vector elements (max 4 elements for simplicity reasons).
+  --! All inputs (i.e. vector elements) have the same bit width.
+  --! The output bit width is 2 bits wider than the input bit width, i.e. w=18.
   function sum (din: cplx16_vector; w:natural:=18; m:cplx_mode:="-") return cplx18;
 
-  -- sum of vector elements (max 4 elements for simplicity reasons)
-  -- All inputs (i.e. vector elements) have the same bit width.
-  -- The output bit width is 2 bits wider than the input bit width, i.e. w=20.
+  --! @brief Sum of vector elements (max 4 elements for simplicity reasons).
+  --! All inputs (i.e. vector elements) have the same bit width.
+  --! The output bit width is 2 bits wider than the input bit width, i.e. w=20.
   function sum (din: cplx18_vector; w:natural:=20; m:cplx_mode:="-") return cplx20;
 
-  -- sum of vector elements (max 4 elements for simplicity reasons)
-  -- All inputs (i.e. vector elements) have the same bit width.
-  -- The output bit width is 2 bits wider than the input bit width, i.e. w=22.
+  --! @brief Sum of vector elements (max 4 elements for simplicity reasons).
+  --! All inputs (i.e. vector elements) have the same bit width.
+  --! The output bit width is 2 bits wider than the input bit width, i.e. w=22.
   function sum (din: cplx20_vector; w:natural:=22; m:cplx_mode:="-") return cplx22;
 
   ------------------------------------------
   -- SUBTRACTION
   ------------------------------------------
 
-  -- complex subtraction with optional clipping and overflow detection
-  -- Both inputs must have the same bit width.
-  -- To be compatible with the VHDL-2008 version of this package the output
-  -- bit width w must be equal to the input bit width, i.e. w=0 or w=16.
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Complex subtraction with optional clipping and overflow detection.
+  --! Both inputs must have the same bit width.
+  --! To be compatible with the VHDL-2008 version of this package the output
+  --! bit width w must be equal to the input bit width, i.e. w=0 or w=16.
+  --! Supported options: 'R', 'O' and/or 'S'
   function sub (l,r: cplx16; w:natural:=16; m:cplx_mode:="-") return cplx16;
   function sub (l,r: cplx16_vector; w:natural:=16; m:cplx_mode:="-") return cplx16_vector;
 
-  -- complex subtraction with optional clipping and overflow detection
-  -- Both inputs must have the same bit width.
-  -- To be compatible with the VHDL-2008 version of this package the output
-  -- bit width w must be equal to the input bit width, i.e. w=0 or w=18.
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Complex subtraction with optional clipping and overflow detection.
+  --! Both inputs must have the same bit width.
+  --! To be compatible with the VHDL-2008 version of this package the output
+  --! bit width w must be equal to the input bit width, i.e. w=0 or w=18.
+  --! Supported options: 'R', 'O' and/or 'S'
   function sub (l,r: cplx18; w:natural:=18; m:cplx_mode:="-") return cplx18;
   function sub (l,r: cplx18_vector; w:natural:=18; m:cplx_mode:="-") return cplx18_vector;
 
-  -- complex subtraction with optional clipping and overflow detection
-  -- Both inputs must have the same bit width.
-  -- To be compatible with the VHDL-2008 version of this package the output
-  -- bit width w must be equal to the input bit width, i.e. w=0 or w=20.
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Complex subtraction with optional clipping and overflow detection.
+  --! Both inputs must have the same bit width.
+  --! To be compatible with the VHDL-2008 version of this package the output
+  --! bit width w must be equal to the input bit width, i.e. w=0 or w=20.
+  --! Supported options: 'R', 'O' and/or 'S'
   function sub (l,r: cplx20; w:natural:=20; m:cplx_mode:="-") return cplx20;
   function sub (l,r: cplx20_vector; w:natural:=20; m:cplx_mode:="-") return cplx20_vector;
 
-  -- complex subtraction with optional clipping and overflow detection
-  -- Both inputs must have the same bit width.
-  -- To be compatible with the VHDL-2008 version of this package the output
-  -- bit width w must be equal to the input bit width, i.e. w=0 or w=22.
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Complex subtraction with optional clipping and overflow detection.
+  --! Both inputs must have the same bit width.
+  --! To be compatible with the VHDL-2008 version of this package the output
+  --! bit width w must be equal to the input bit width, i.e. w=0 or w=22.
+  --! Supported options: 'R', 'O' and/or 'S'
   function sub (l,r: cplx22; w:natural:=22; m:cplx_mode:="-") return cplx22;
   function sub (l,r: cplx22_vector; w:natural:=22; m:cplx_mode:="-") return cplx22_vector;
 
-  -- complex subtraction with wrap and overflow detection
+  --! Complex subtraction with wrap and overflow detection
   function "-" (l,r: cplx16) return cplx16;
   function "-" (l,r: cplx16_vector) return cplx16_vector;
 
-  -- complex subtraction with wrap and overflow detection
+  --! Complex subtraction with wrap and overflow detection
   function "-" (l,r: cplx18) return cplx18;
   function "-" (l,r: cplx18_vector) return cplx18_vector;
 
-  -- complex subtraction with wrap and overflow detection
+  --! Complex subtraction with wrap and overflow detection
   function "-" (l,r: cplx20) return cplx20;
   function "-" (l,r: cplx20_vector) return cplx20_vector;
 
-  -- complex subtraction with wrap and overflow detection
+  --! Complex subtraction with wrap and overflow detection
   function "-" (l,r: cplx22) return cplx22;
   function "-" (l,r: cplx22_vector) return cplx22_vector;
 
@@ -519,27 +551,27 @@ package cplx_pkg is
   -- SHIFT LEFT AND SATURATE/CLIP
   ------------------------------------------
 
-  -- complex signed shift left by n bits with optional clipping/saturation and overflow detection
-  -- The output bit width equals the input bit width.
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Complex signed shift left by n bits with optional clipping/saturation and overflow detection.
+  --! The output bit width equals the input bit width.
+  --! Supported options: 'R', 'O' and/or 'S'
   function shift_left (din:cplx16 ; n:natural; m:cplx_mode:="-") return cplx16;
   function shift_left (din:cplx16_vector ; n:natural; m:cplx_mode:="-") return cplx16_vector;
 
-  -- complex signed shift left by n bits with optional clipping/saturation and overflow detection
-  -- The output bit width equals the input bit width.
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Complex signed shift left by n bits with optional clipping/saturation and overflow detection.
+  --! The output bit width equals the input bit width.
+  --! Supported options: 'R', 'O' and/or 'S'
   function shift_left (din:cplx18 ; n:natural; m:cplx_mode:="-") return cplx18;
   function shift_left (din:cplx18_vector ; n:natural; m:cplx_mode:="-") return cplx18_vector;
 
-  -- complex signed shift left by n bits with optional clipping/saturation and overflow detection
-  -- The output bit width equals the input bit width.
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Complex signed shift left by n bits with optional clipping/saturation and overflow detection.
+  --! The output bit width equals the input bit width.
+  --! Supported options: 'R', 'O' and/or 'S'
   function shift_left (din:cplx20 ; n:natural; m:cplx_mode:="-") return cplx20;
   function shift_left (din:cplx20_vector ; n:natural; m:cplx_mode:="-") return cplx20_vector;
 
-  -- complex signed shift left by n bits with optional clipping/saturation and overflow detection
-  -- The output bit width equals the input bit width.
-  -- supported options: 'R', 'O' and/or 'S'
+  --! @brief Complex signed shift left by n bits with optional clipping/saturation and overflow detection.
+  --! The output bit width equals the input bit width.
+  --! Supported options: 'R', 'O' and/or 'S'
   function shift_left (din:cplx22 ; n:natural; m:cplx_mode:="-") return cplx22;
   function shift_left (din:cplx22_vector ; n:natural; m:cplx_mode:="-") return cplx22_vector;
 
@@ -547,27 +579,27 @@ package cplx_pkg is
   -- SHIFT RIGHT and ROUND
   ------------------------------------------
 
-  -- complex signed shift right by n bits with optional rounding
-  -- The output bit width equals the input bit width.
-  -- supported options: 'R' and/or ('D','N','U','Z' or 'I')
+  --! @brief Complex signed shift right by n bits with optional rounding.
+  --! The output bit width equals the input bit width.
+  --! Supported options: 'R' and/or ('D','N','U','Z' or 'I')
   function shift_right (din:cplx16 ; n:natural; m:cplx_mode:="-") return cplx16;
   function shift_right (din:cplx16_vector ; n:natural; m:cplx_mode:="-") return cplx16_vector;
 
-  -- complex signed shift right by n bits with optional rounding
-  -- The output bit width equals the input bit width.
-  -- supported options: 'R' and/or ('D','N','U','Z' or 'I')
+  --! @brief Complex signed shift right by n bits with optional rounding.
+  --! The output bit width equals the input bit width.
+  --! Supported options: 'R' and/or ('D','N','U','Z' or 'I')
   function shift_right (din:cplx18 ; n:natural; m:cplx_mode:="-") return cplx18;
   function shift_right (din:cplx18_vector ; n:natural; m:cplx_mode:="-") return cplx18_vector;
 
-  -- complex signed shift right by n bits with optional rounding
-  -- The output bit width equals the input bit width.
-  -- supported options: 'R' and/or ('D','N','U','Z' or 'I')
+  --! @brief Complex signed shift right by n bits with optional rounding.
+  --! The output bit width equals the input bit width.
+  --! Supported options: 'R' and/or ('D','N','U','Z' or 'I')
   function shift_right (din:cplx20 ; n:natural; m:cplx_mode:="-") return cplx20;
   function shift_right (din:cplx20_vector ; n:natural; m:cplx_mode:="-") return cplx20_vector;
 
-  -- complex signed shift right by n bits with optional rounding
-  -- The output bit width equals the input bit width.
-  -- supported options: 'R' and/or ('D','N','U','Z' or 'I')
+  --! @brief Complex signed shift right by n bits with optional rounding.
+  --! The output bit width equals the input bit width.
+  --! Supported options: 'R' and/or ('D','N','U','Z' or 'I')
   function shift_right (din:cplx22 ; n:natural; m:cplx_mode:="-") return cplx22;
   function shift_right (din:cplx22_vector ; n:natural; m:cplx_mode:="-") return cplx22_vector;
 
@@ -575,28 +607,28 @@ package cplx_pkg is
   -- STD_LOGIC_VECTOR to CPLX
   ------------------------------------------
 
-  -- convert SLV to cplx16 (real = 16 LSBs, imaginary = 16 MSBs)
+  --! Convert SLV to cplx16 (real = 16 LSBs, imaginary = 16 MSBs)
   function to_cplx (
     slv : std_logic_vector(31 downto 0);
     vld : std_logic; -- valid signal
     rst : std_logic:='0' -- reset, by default '0'
   ) return cplx16;
 
-  -- convert SLV to cplx18 (real = 18 LSBs, imaginary = 18 MSBs)
+  --! Convert SLV to cplx18 (real = 18 LSBs, imaginary = 18 MSBs)
   function to_cplx (
     slv : std_logic_vector(35 downto 0);
     vld : std_logic; -- valid signal
     rst : std_logic:='0' -- reset, by default '0'
   ) return cplx18;
 
-  -- convert SLV to cplx20 (real = 20 LSBs, imaginary = 20 MSBs)
+  --! Convert SLV to cplx20 (real = 20 LSBs, imaginary = 20 MSBs)
   function to_cplx (
     slv : std_logic_vector(39 downto 0);
     vld : std_logic; -- valid signal
     rst : std_logic:='0' -- reset, by default '0'
   ) return cplx20;
 
-  -- convert SLV to cplx22 (real = 22 LSBs, imaginary = 22 MSBs)
+  --! Convert SLV to cplx22 (real = 22 LSBs, imaginary = 22 MSBs)
   function to_cplx (
     slv : std_logic_vector(43 downto 0);
     vld : std_logic; -- valid signal
@@ -607,8 +639,8 @@ package cplx_pkg is
   -- STD_LOGIC_VECTOR to CPLX VECTOR
   ------------------------------------------
 
-  -- convert SLV to cplx16_vector, L = SLV'length must be a multiple of 32 
-  -- (L/n bits per vector element : real = L/n/2 LSBs, imaginary = L/n/2 MSBs)
+  --! @brief Convert SLV to cplx16_vector, L = SLV'length must be a multiple of 32.
+  --! (L/n bits per vector element : real = L/n/2 LSBs, imaginary = L/n/2 MSBs)
   function to_cplx_vector (
     slv : std_logic_vector; -- input vector (multiple of 32 bits)
     n   : positive; -- number of required vector elements
@@ -616,8 +648,8 @@ package cplx_pkg is
     rst : std_logic:='0' -- reset, by default '0'
   ) return cplx16_vector;
 
-  -- convert SLV to cplx18_vector, L = SLV'length must be a multiple of 36 
-  -- (L/n bits per vector element : real = L/n/2 LSBs, imaginary = L/n/2 MSBs)
+  --! @brief Convert SLV to cplx18_vector, L = SLV'length must be a multiple of 36.
+  --! (L/n bits per vector element : real = L/n/2 LSBs, imaginary = L/n/2 MSBs)
   function to_cplx_vector (
     slv : std_logic_vector; -- input vector (multiple of 36 bits)
     n   : positive; -- number of required vector elements
@@ -625,8 +657,8 @@ package cplx_pkg is
     rst : std_logic:='0' -- reset, by default '0'
   ) return cplx18_vector;
 
-  -- convert SLV to cplx20_vector, L = SLV'length must be a multiple of 40 
-  -- (L/n bits per vector element : real = L/n/2 LSBs, imaginary = L/n/2 MSBs)
+  --! @brief Convert SLV to cplx20_vector, L = SLV'length must be a multiple of 40.
+  --! (L/n bits per vector element : real = L/n/2 LSBs, imaginary = L/n/2 MSBs)
   function to_cplx_vector (
     slv : std_logic_vector; -- input vector (multiple of 40 bits)
     n   : positive; -- number of required vector elements
@@ -634,8 +666,8 @@ package cplx_pkg is
     rst : std_logic:='0' -- reset, by default '0'
   ) return cplx20_vector;
 
-  -- convert SLV to cplx22_vector, L = SLV'length must be a multiple of 44 
-  -- (L/n bits per vector element : real = L/n/2 LSBs, imaginary = L/n/2 MSBs)
+  --! @brief Convert SLV to cplx22_vector, L = SLV'length must be a multiple of 44.
+  --! (L/n bits per vector element : real = L/n/2 LSBs, imaginary = L/n/2 MSBs)
   function to_cplx_vector (
     slv : std_logic_vector; -- input vector (multiple of 44 bits)
     n   : positive; -- number of required vector elements
@@ -647,40 +679,40 @@ package cplx_pkg is
   -- CPLX to STD_LOGIC_VECTOR
   ------------------------------------------
  
-  -- convert cplx16 to SLV (real = 16 LSBs, imaginary = 16 MSBs)
-  -- supported options: 'R'
+  --! @brief Convert cplx16 to SLV (real = 16 LSBs, imaginary = 16 MSBs).
+  --! Supported options: 'R'
   function to_slv (din:cplx16; m:cplx_mode:="-") return std_logic_vector;
 
-  -- convert cplx18 to SLV (real = 18 LSBs, imaginary = 18 MSBs)
-  -- supported options: 'R'
+  --! @brief Convert cplx18 to SLV (real = 18 LSBs, imaginary = 18 MSBs).
+  --! Supported options: 'R'
   function to_slv (din:cplx18; m:cplx_mode:="-") return std_logic_vector;
 
-  -- convert cplx20 to SLV (real = 20 LSBs, imaginary = 20 MSBs)
-  -- supported options: 'R'
+  --! @brief Convert cplx20 to SLV (real = 20 LSBs, imaginary = 20 MSBs).
+  --! Supported options: 'R'
   function to_slv (din:cplx20; m:cplx_mode:="-") return std_logic_vector;
 
-  -- convert cplx22 to SLV (real = 22 LSBs, imaginary = 22 MSBs)
-  -- supported options: 'R'
+  --! @brief Convert cplx22 to SLV (real = 22 LSBs, imaginary = 22 MSBs).
+  --! Supported options: 'R'
   function to_slv (din:cplx22; m:cplx_mode:="-") return std_logic_vector;
 
   ------------------------------------------
   -- CPLX VECTOR to STD_LOGIC_VECTOR
   ------------------------------------------
 
-  -- convert cplx16 array to SLV (output width is 32*din'length bits)
-  -- supported options: 'R'
+  --! @brief Convert cplx16 array to SLV (output width is 32*din'length bits).
+  --! Supported options: 'R'
   function to_slv (din:cplx16_vector; m:cplx_mode:="-") return std_logic_vector;
 
-  -- convert cplx18 array to SLV (output width is 36*din'length bits)
-  -- supported options: 'R'
+  --! @brief Convert cplx18 array to SLV (output width is 36*din'length bits).
+  --! Supported options: 'R'
   function to_slv (din:cplx18_vector; m:cplx_mode:="-") return std_logic_vector;
 
-  -- convert cplx20 array to SLV (output width is 40*din'length bits)
-  -- supported options: 'R'
+  --! @brief Convert cplx20 array to SLV (output width is 40*din'length bits).
+  --! Supported options: 'R'
   function to_slv (din:cplx20_vector; m:cplx_mode:="-") return std_logic_vector;
 
-  -- convert cplx22 array to SLV (output width is 44*din'length bits)
-  -- supported options: 'R'
+  --! @brief Convert cplx22 array to SLV (output width is 44*din'length bits).
+  --! Supported options: 'R'
   function to_slv (din:cplx22_vector; m:cplx_mode:="-") return std_logic_vector;
 
 end package;
