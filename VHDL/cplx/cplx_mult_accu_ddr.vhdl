@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------------
--- FILE    : cplx_mult_accu_ddr.vhdl
--- AUTHOR  : Fixitfetish
--- DATE    : 06/Jan/2017
--- VERSION : 0.45
--- VHDL    : 1993
--- LICENSE : MIT License
+--! @file       cplx_mult_accu_ddr.vhdl
+--! @author     Fixitfetish
+--! @date       18/Feb/2017
+--! @version    0.50
+--! @copyright  MIT License
+--! @note       VHDL-1993
 -------------------------------------------------------------------------------
 -- Copyright (c) 2016-2017 Fixitfetish
 -------------------------------------------------------------------------------
@@ -15,18 +15,22 @@ library fixitfetish;
  use fixitfetish.cplx_pkg.all;
  use fixitfetish.ieee_extension.all;
 
--- Complex Multiply and Accumulate - Double Data Rate
--- In general this multiplier can be used when FPGA DSP cells are capable to
--- run with the double rate of the standard system clock.
--- Hence, a complex multiplication can be performed within one system clock
--- cycle with only half the amount of multiplier resources.
---
--- This implementation requires the FPGA type dependent module 'signed_mult_accu'.
---
--- NOTE: Within the 'clk2' domain always an even number of register stages
---       must be implemented. 
+--! @brief Complex Multiply and Accumulate - Double Data Rate.
+--! In general this multiplier can be used when FPGA DSP cells are capable to
+--! run with the double rate of the standard system clock.
+--! Hence, a complex multiplication can be performed within one system clock
+--! cycle with only half the amount of multiplier resources.
+--!
+--! This implementation requires the FPGA type dependent module signed_mult_accu.
+--! @image html cplx_mult_accu_ddr.svg "" width=600px
+--!
+--! NOTE: Within the 'clk2' domain always an even number of register stages
+--! must be implemented. 
 
 architecture ddr of cplx_mult_accu is
+
+  -- identifier for reports of warnings and errors
+  constant IMPLEMENTATION : string := "cplx_mult_accu(ddr)";
 
   -- auxiliary phase control signals
   signal toggle1, toggle2, phase : std_logic := '0';
@@ -69,6 +73,15 @@ architecture ddr of cplx_mult_accu is
   signal PIPE_DSP : natural;
 
 begin
+
+  -- check input/output register settings
+  assert (NUM_INPUT_REG>=1)
+    report "ERROR " & IMPLEMENTATION & ": Number of input registers must be at least 1"
+    severity failure;
+
+  assert (NUM_OUTPUT_REG>=1)
+    report "ERROR " & IMPLEMENTATION & ": Number of output registers must be at least 1"
+    severity failure;
 
   -- auxiliary phase control signals
   toggle1 <= not toggle1 when rising_edge(clk);
@@ -127,48 +140,52 @@ begin
   i_re : entity fixitfetish.signed_mult_accu
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
-    INPUT_REG          => true,
-    OUTPUT_REG         => false, -- separate output register - see below
+    NUM_INPUT_REG      => 1,
+    NUM_OUTPUT_REG     => 1, -- additional output register - see below
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     OUTPUT_ROUND       => (m='N'),
     OUTPUT_CLIP        => (m='S'),
     OUTPUT_OVERFLOW    => (m='O')
   )
   port map (
-   clk   => clk2,
-   clr   => clear,
-   sub   => sub_re,
-   vld   => dv,
-   x     => re_x,
-   y     => re_y,
-   r_vld => open, -- unused, bypassed
-   r_out => r_out_re,
-   r_ovf => r_ovf_re,
-   PIPE  => PIPE_DSP
+   clk        => clk2,
+   clr        => clear,
+   vld        => dv,
+   sub        => sub_re,
+   x          => re_x,
+   y          => re_y,
+   result     => r_out_re,
+   result_vld => open, -- unused, bypassed
+   result_ovf => r_ovf_re,
+   chainin    => open, -- unused
+   chainout   => open, -- unused
+   PIPESTAGES => PIPE_DSP
   );
 
   -- calculate imaginary component in 'clk2' domain
   i_im : entity fixitfetish.signed_mult_accu
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
-    INPUT_REG          => true,
-    OUTPUT_REG         => false, -- separate output register - see below
+    NUM_INPUT_REG      => 1,
+    NUM_OUTPUT_REG     => 1, -- additional output register - see below
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     OUTPUT_ROUND       => (m='N'),
     OUTPUT_CLIP        => (m='S'),
     OUTPUT_OVERFLOW    => (m='O')
   )
   port map (
-   clk   => clk2,
-   clr   => clear,
-   sub   => sub_im,
-   vld   => dv,
-   x     => im_x,
-   y     => im_y,
-   r_vld => open, -- unused, bypassed
-   r_out => r_out_im,
-   r_ovf => r_ovf_im,
-   PIPE  => open  -- unused, same as real component
+   clk        => clk2,
+   clr        => clear,
+   vld        => dv,
+   sub        => sub_im,
+   x          => im_x,
+   y          => im_y,
+   result     => r_out_im,
+   result_vld => open, -- unused, bypassed
+   result_ovf => r_ovf_im,
+   chainin    => open, -- unused
+   chainout   => open, -- unused
+   PIPESTAGES => open  -- same as real component
   );
 
   -- accumulator delay compensation (multiply-accumulate bypassed!)
