@@ -94,9 +94,9 @@ port (
   --! Result output overflow/clipping detection
   result_ovf : out std_logic;
   --! @brief Result output to other chained DSP cell (optional)
-  --! The chain width is device specific. A maximum width of 96 bits is supported.
+  --! The chain width is device specific. A maximum width of 80 bits is supported.
   --! If the device specific chain width is smaller then only the LSBs are used.
-  chainout   : out signed(95 downto 0) := (others=>'0');
+  chainout   : out signed(79 downto 0) := (others=>'0');
   --! Number of pipeline stages, constant, depends on configuration and device specific implementation
   PIPESTAGES : out natural := 0
 );
