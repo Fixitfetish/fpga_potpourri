@@ -22,10 +22,10 @@ library stratixv;
 --! for Altera Stratix-V.
 --! One signed multiplications with higher resolution is performed and results are accumulated.
 --!
---! This implementation requires a single Variable Precision DSP Block of mode 'm36x18'.
+--! This implementation requires a single Variable Precision DSP Block of mode 'm27x27' or 'm36x18'.
 --! For details please refer to the Altera Stratix V Device Handbook.
 --!
---! * Input Data      : 2 signed values, x<=36 bits, y<=18 bits
+--! * Input Data      : 2 signed values, either both max 27 bits or x<=36 and y<=18 bits
 --! * Input Register  : optional, at least one is strongly recommended
 --! * Input Chain     : optional, 64 bits
 --! * Accu Register   : 64 bits, enabled when NUM_OUTPUT_REG>0
@@ -62,6 +62,28 @@ architecture stratixv of signed_mult_accu is
     return res; 
   end function;
 
+  function x_max(lx,ly:integer) return natural is
+  begin
+    if lx<=27 then 
+      if ly<=27 then
+        return 27; -- mode = m27x27
+      else
+        report "ERROR " & IMPLEMENTATION & ": X<=27 bits but Y length exceeds 27 bits." severity failure;
+        return 0;
+      end if;
+    elsif lx<=36 then
+      if ly<=18 then
+        return 36; -- mode = m36x18
+      else
+        report "ERROR " & IMPLEMENTATION & ": X<=36 bits but Y length exceeds 18 bits." severity failure;
+        return 0;
+      end if;
+    else
+      report "ERROR " & IMPLEMENTATION & ": X length exceeds 36 bits." severity failure;
+      return 0;
+    end if;
+  end function;
+
   function use_chainadder(b:boolean) return string is
   begin
     if b then return "true"; else return "false"; end if;
@@ -83,8 +105,8 @@ architecture stratixv of signed_mult_accu is
     end if;
   end function;
 
-  constant MAX_WIDTH_X : positive := 36;
-  constant MAX_WIDTH_Y : positive := 18;
+  constant MAX_WIDTH_X : positive := x_max(x'length,y'length);
+  constant MAX_WIDTH_Y : positive := 54 - MAX_WIDTH_X;
 
   -- accumulator width in bits
   constant ACCU_WIDTH : positive := 64;
@@ -133,13 +155,13 @@ begin
            "Chain input width must be " & integer'image(ACCU_WIDTH) & " bits."
     severity failure;
 
-  -- check input/output length
-  assert (x'length<=MAX_WIDTH_X)
-    report "ERROR " & IMPLEMENTATION & ": Multiplier input X width cannot exceed " & integer'image(MAX_WIDTH_X)
-    severity failure;
-  assert (y'length<=MAX_WIDTH_Y)
-    report "ERROR " & IMPLEMENTATION & ": Multiplier input Y width cannot exceed " & integer'image(MAX_WIDTH_Y)
-    severity failure;
+--  -- check input/output length
+--  assert (x'length<=MAX_WIDTH_X)
+--    report "ERROR " & IMPLEMENTATION & ": Multiplier input X width cannot exceed " & integer'image(MAX_WIDTH_X)
+--    severity failure;
+--  assert (y'length<=MAX_WIDTH_Y)
+--    report "ERROR " & IMPLEMENTATION & ": Multiplier input Y width cannot exceed " & integer'image(MAX_WIDTH_Y)
+--    severity failure;
 
   assert GUARD_BITS_EVAL<=MAX_GUARD_BITS
     report "ERROR " & IMPLEMENTATION & ": " &
@@ -198,6 +220,7 @@ begin
   -- use only LSBs of chain input
   chainin_i <= std_logic_vector(chainin(ACCU_WIDTH-1 downto 0));
 
+  g_m37x18 : if MAX_WIDTH_X=36 generate
   dsp : stratixv_mac
   generic map (
     accumulate_clock          => clock(0,NUM_INPUT_REG),
@@ -288,6 +311,100 @@ begin
     scanout    => open,
     sub        => '0' -- unused
   );
+  end generate;
+
+  g_m27x27 : if MAX_WIDTH_X=27 generate
+  dsp : stratixv_mac
+  generic map (
+    accumulate_clock          => clock(0,NUM_INPUT_REG),
+    ax_clock                  => clock(0,NUM_INPUT_REG),
+    ax_width                  => MAX_WIDTH_X,
+    ay_scan_in_clock          => clock(0,NUM_INPUT_REG),
+    ay_scan_in_width          => MAX_WIDTH_Y,
+    ay_use_scan_in            => "false",
+    az_clock                  => "none", -- unused here
+    az_width                  => 1, -- unused here
+    bx_clock                  => "none", -- unused here
+    bx_width                  => 1, -- unused here
+    by_clock                  => "none", -- unused here
+    by_use_scan_in            => "false",
+    by_width                  => 1, -- unused here
+    coef_a_0                  => 0,
+    coef_a_1                  => 0,
+    coef_a_2                  => 0,
+    coef_a_3                  => 0,
+    coef_a_4                  => 0,
+    coef_a_5                  => 0,
+    coef_a_6                  => 0,
+    coef_a_7                  => 0,
+    coef_b_0                  => 0,
+    coef_b_1                  => 0,
+    coef_b_2                  => 0,
+    coef_b_3                  => 0,
+    coef_b_4                  => 0,
+    coef_b_5                  => 0,
+    coef_b_6                  => 0,
+    coef_b_7                  => 0,
+    coef_sel_a_clock          => "none",
+    coef_sel_b_clock          => "none",
+    complex_clock             => "none",
+    delay_scan_out_ay         => "false",
+    delay_scan_out_by         => "false",
+    load_const_clock          => clock(0,NUM_INPUT_REG),
+    load_const_value          => load_const_value(OUTPUT_ROUND, OUTPUT_SHIFT_RIGHT),
+    lpm_type                  => "stratixv_mac",
+    mode_sub_location         => 0,
+    negate_clock              => clock(0,NUM_INPUT_REG),
+    operand_source_max        => "input",
+    operand_source_may        => "input",
+    operand_source_mbx        => "input",
+    operand_source_mby        => "input",
+    operation_mode            => "m27x27",
+    output_clock              => clock(1,NUM_OUTPUT_REG),
+    preadder_subtract_a       => "false",
+    preadder_subtract_b       => "false",
+    result_a_width            => ACCU_WIDTH,
+    result_b_width            => 1,
+    scan_out_width            => 1,
+    signed_max                => "true",
+    signed_may                => "true",
+    signed_mbx                => "true",
+    signed_mby                => "true",
+    sub_clock                 => "none", -- unused
+    use_chainadder            => use_chainadder(USE_CHAIN_INPUT)
+  )
+  port map (
+    accumulate => ireg(0).accumulate,
+    aclr(0)    => '0', -- clear input registers
+    aclr(1)    => ireg(0).rst, -- clear output registers
+    ax         => std_logic_vector(ireg(0).x),
+    ay         => std_logic_vector(ireg(0).y),
+    az         => open,
+    bx         => open,
+    by         => open,
+    chainin    => chainin_i,
+    chainout   => chainout_i,
+    cin        => open,
+    clk(0)     => clk, -- input clock
+    clk(1)     => clk, -- output clock
+    clk(2)     => clk, -- unused
+    coefsela   => open,
+    coefselb   => open,
+    complex    => open,
+    cout       => open,
+    dftout     => open,
+    ena(0)     => '1', -- clk(0) enable
+    ena(1)     => ireg(0).vld, -- clk(1) enable
+    ena(2)     => '0', -- clk(2) enable - unused
+    loadconst  => ireg(0).loadconst,
+    negate     => ireg(0).negate,
+    resulta    => accu,
+    resultb    => open,
+    scanin     => open,
+    scanout    => open,
+    sub        => '0' -- unused
+  );
+  end generate;
 
   chainout(ACCU_WIDTH-1 downto 0) <= signed(chainout_i);
   g_chainout : for n in ACCU_WIDTH to (chainout'length-1) generate
