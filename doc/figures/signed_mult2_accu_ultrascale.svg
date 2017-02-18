@@ -154,7 +154,7 @@
       <g class="com.sun.star.drawing.CustomShape">
        <g id="id5">
         <rect class="BoundingBox" stroke="none" fill="none" x="3799" y="6599" width="11203" height="2803"/>
-        <path fill="rgb(102,204,255)" stroke="none" d="M 9400,9400 L 3800,9400 3800,6600 15000,6600 15000,9400 9400,9400 Z"/>
+        <path fill="rgb(255,204,0)" stroke="none" d="M 9400,9400 L 3800,9400 3800,6600 15000,6600 15000,9400 9400,9400 Z"/>
         <path fill="none" stroke="rgb(52,101,164)" d="M 9400,9400 L 3800,9400 3800,6600 15000,6600 15000,9400 9400,9400 Z"/>
         <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="282px" font-weight="700"><tspan class="TextPosition" x="13934" y="6983"><tspan fill="rgb(0,0,0)" stroke="none">DSP 1</tspan></tspan></tspan></text>
        </g>
@@ -556,7 +556,7 @@
       <g class="com.sun.star.drawing.CustomShape">
        <g id="id63">
         <rect class="BoundingBox" stroke="none" fill="none" x="3799" y="9399" width="11203" height="2803"/>
-        <path fill="rgb(102,204,255)" stroke="none" d="M 9400,12200 L 3800,12200 3800,9400 15000,9400 15000,12200 9400,12200 Z"/>
+        <path fill="rgb(255,204,0)" stroke="none" d="M 9400,12200 L 3800,12200 3800,9400 15000,9400 15000,12200 9400,12200 Z"/>
         <path fill="none" stroke="rgb(52,101,164)" d="M 9400,12200 L 3800,12200 3800,9400 15000,9400 15000,12200 9400,12200 Z"/>
         <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="282px" font-weight="700"><tspan class="TextPosition" x="13934" y="9783"><tspan fill="rgb(0,0,0)" stroke="none">DSP 0</tspan></tspan></tspan></text>
        </g>
