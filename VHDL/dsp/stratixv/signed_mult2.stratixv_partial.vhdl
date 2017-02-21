@@ -34,7 +34,8 @@ library stratixv;
 --! * Output Register : optional, at least one strongly recommend, another after rounding, shift-right and saturation
 --! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG
 --!
---! Note that negation of the product results is not supported by this implementation!
+--! Note that negation of the product results within the DSP cell is not supported.
+--! Hence, for each product one of the two input factors is negated using additional logic.
 --! @image html signed_mult2.stratixv_partial.svg "" width=800px
 --! This implementation does not support chaining.
 
@@ -123,10 +124,24 @@ begin
   ireg(NUM_INPUT_REG).vld <= vld;
 
   -- LSB bound data inputs
-  ireg(NUM_INPUT_REG).x0 <= resize(x0,MAX_WIDTH_X);
-  ireg(NUM_INPUT_REG).y0 <= resize(y0,MAX_WIDTH_Y);
-  ireg(NUM_INPUT_REG).x1 <= resize(x1,MAX_WIDTH_X);
-  ireg(NUM_INPUT_REG).y1 <= resize(y1,MAX_WIDTH_Y);
+  -- Negate input factor which does not have maximum width.
+  -- This avoids overflows when input is most negative number.
+  g_neg_x0 : if x0'length<MAX_WIDTH_X generate
+    ireg(NUM_INPUT_REG).x0 <= resize(x0,MAX_WIDTH_X) when neg(0)='0' else -resize(x0,MAX_WIDTH_X);
+    ireg(NUM_INPUT_REG).y0 <= resize(y0,MAX_WIDTH_Y);
+  end generate;
+  g_neg_y0 : if x0'length=MAX_WIDTH_X generate
+    ireg(NUM_INPUT_REG).x0 <= resize(x0,MAX_WIDTH_X);
+    ireg(NUM_INPUT_REG).y0 <= resize(y0,MAX_WIDTH_Y) when neg(0)='0' else -resize(y0,MAX_WIDTH_Y);
+  end generate;
+  g_neg_x1 : if x1'length<MAX_WIDTH_X generate
+    ireg(NUM_INPUT_REG).x1 <= resize(x1,MAX_WIDTH_X) when neg(1)='0' else -resize(x1,MAX_WIDTH_X);
+    ireg(NUM_INPUT_REG).y1 <= resize(y1,MAX_WIDTH_Y);
+  end generate;
+  g_neg_y1 : if x1'length=MAX_WIDTH_X generate
+    ireg(NUM_INPUT_REG).x1 <= resize(x1,MAX_WIDTH_X);
+    ireg(NUM_INPUT_REG).y1 <= resize(y1,MAX_WIDTH_Y) when neg(1)='0' else -resize(y1,MAX_WIDTH_Y);
+  end generate;
 
   g_reg : if NUM_INPUT_REG>=2 generate
   begin
