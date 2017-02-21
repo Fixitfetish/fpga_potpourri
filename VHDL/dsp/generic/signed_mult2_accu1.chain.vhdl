@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult4_accu_chain.vhdl
+--! @file       signed_mult2_accu1.chain.vhdl
 --! @author     Fixitfetish
---! @date       30/Jan/2017
---! @version    0.30
+--! @date       14/Feb/2017
+--! @version    0.10
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -15,11 +15,11 @@ library fixitfetish;
  use fixitfetish.ieee_extension.all;
 
 --! @brief This implementation uses two chained instances of
---! @link signed_mult2_accu signed_mult2_accu @endlink .
+--! @link signed_mult1_accu1 signed_mult1_accu1 @endlink .
 --! Hence, this implementation is not device specific and can be used for
---! simulation and synthesis based on the signed_mult2_accu implementation.
+--! simulation and synthesis based on the signed_mult_accu implementation.
 --!
---! * Input Data      : 4x2 signed values
+--! * Input Data      : 2x2 signed values
 --! * Input Register  : optional, at least one is strongly recommended
 --! * Accu Register   : width is implementation specific, always enabled
 --! * Rounding        : optional half-up
@@ -28,15 +28,15 @@ library fixitfetish;
 --! * Pipeline stages : NUM_INPUT_REG + NUM_PIPELINE_REG + NUM_OUTPUT_REG
 --!
 --! This implementation can be chained multiple times.
---! @image html signed_mult4_accu_chain.svg "" width=800px
+--! @image html signed_mult2_accu1.chain.svg "" width=800px
 
-architecture chain of signed_mult4_accu is
+architecture chain of signed_mult2_accu1 is
 
   -- chain width in bits - implementation and device specific !
   signal chain : signed(chainout'length-1 downto 0);
-  signal dummy : signed(17 downto 0);
 
   -- dummy sink to avoid warnings
+  signal dummy : signed(17 downto 0);
   procedure signed_sink(d:in signed) is
     variable b : boolean := false;
   begin b := (d(d'right)='1') or b; end procedure;
@@ -44,9 +44,9 @@ architecture chain of signed_mult4_accu is
 begin
 
   -- first instance performs just sum of two products without accumulation
-  i1 : entity fixitfetish.signed_mult2_accu
+  i1 : entity fixitfetish.signed_mult1_accu1
   generic map(
-    NUM_SUMMAND        => 2, -- irrelevant because chain output is used
+    NUM_SUMMAND        => 1, -- irrelevant because chain output is used
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
     NUM_INPUT_REG      => NUM_INPUT_REG,
     NUM_OUTPUT_REG     => 1,     -- use first output register as pipeline register
@@ -60,11 +60,9 @@ begin
    rst        => rst,
    clr        => '1', -- disable accumulation
    vld        => vld,
-   sub        => sub(0 to 1),
-   x0         => x0,
-   y0         => y0,
-   x1         => x1,
-   y1         => y1,
+   sub        => sub(0),
+   x          => x0,
+   y          => y0,
    result     => dummy, -- irrelevant because chain output is used
    result_vld => open,  -- irrelevant because chain output is used
    result_ovf => open,  -- irrelevant because chain output is used
@@ -76,7 +74,7 @@ begin
   signed_sink(dummy);
 
   -- second instance with accumulator
-  i2 : entity fixitfetish.signed_mult2_accu
+  i2 : entity fixitfetish.signed_mult1_accu1
   generic map(
     NUM_SUMMAND        => NUM_SUMMAND,
     USE_CHAIN_INPUT    => true,
@@ -92,11 +90,9 @@ begin
    rst        => rst,
    clr        => clr,
    vld        => vld,
-   sub        => sub(2 to 3),
-   x0         => x2,
-   y0         => y2,
-   x1         => x3,
-   y1         => y3,
+   sub        => sub(1),
+   x          => x1,
+   y          => y1,
    result     => result,
    result_vld => result_vld,
    result_ovf => result_ovf,

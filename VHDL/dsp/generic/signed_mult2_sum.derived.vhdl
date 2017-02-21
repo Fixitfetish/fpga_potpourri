@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult2_sum_derived.vhdl
+--! @file       signed_mult2_sum.derived.vhdl
 --! @author     Fixitfetish
 --! @date       30/Jan/2017
 --! @version    0.20
@@ -17,7 +17,7 @@ library fixitfetish;
 --! @brief This implementation subset of ACCU implementation. The accumulator is
 --! cleared with every valid input data. Hence, this implementation is not device
 --! specific and can be used for simulation and synthesis based on the
---! @link signed_mult2_accu signed_mult2_accu @endlink implementation.
+--! @link signed_mult2_accu1 signed_mult2_accu1 @endlink implementation.
 --!
 --! * Input Data      : 2x2 signed values
 --! * Input Register  : optional, at least one is strongly recommended
@@ -29,7 +29,7 @@ library fixitfetish;
 architecture derived of signed_mult2_sum is
 begin
 
-  dsp : entity fixitfetish.signed_mult2_accu
+  dsp : entity fixitfetish.signed_mult2_accu1
   generic map(
     NUM_SUMMAND => 2,
     USE_CHAIN_INPUT => false,

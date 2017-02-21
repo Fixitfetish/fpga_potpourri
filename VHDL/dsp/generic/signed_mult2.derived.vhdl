@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult2_derived.vhdl
+--! @file       signed_mult2.derived.vhdl
 --! @author     Fixitfetish
 --! @date       08/Feb/2017
 --! @version    0.20
@@ -15,9 +15,9 @@ library fixitfetish;
  use fixitfetish.ieee_extension.all;
 
 --! @brief This implementation uses two parallel instances of
---! @link signed_mult signed_mult @endlink .
+--! @link signed_mult1 signed_mult1 @endlink .
 --! Hence, this implementation is not device specific and can be used for
---! simulation and synthesis based on the @link signed_mult signed_mult @endlink
+--! simulation and synthesis based on the @link signed_mult1 signed_mult1 @endlink
 --! implementation.
 --!
 --! * Input Data      : 2x2 signed values
@@ -30,7 +30,7 @@ library fixitfetish;
 architecture derived of signed_mult2 is
 begin
 
-  dsp0 : entity fixitfetish.signed_mult
+  dsp0 : entity fixitfetish.signed_mult1
   generic map(
     NUM_INPUT_REG => NUM_INPUT_REG,
     NUM_OUTPUT_REG => NUM_OUTPUT_REG,
@@ -52,7 +52,7 @@ begin
     PIPESTAGES => PIPESTAGES
   );
 
-  dsp1 : entity fixitfetish.signed_mult
+  dsp1 : entity fixitfetish.signed_mult1
   generic map(
     NUM_INPUT_REG => NUM_INPUT_REG,
     NUM_OUTPUT_REG => NUM_OUTPUT_REG,

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult_derived.vhdl
+--! @file       signed_mult1.derived.vhdl
 --! @author     Fixitfetish
 --! @date       08/Feb/2017
 --! @version    0.20
@@ -17,7 +17,7 @@ library fixitfetish;
 --! @brief This implementation is a subset of the ACCU implementation.
 --! The accumulator is cleared with every valid input data. Hence, this
 --! implementation is not device specific and can be used for simulation
---! and synthesis based on the @link signed_mult_accu signed_mult_accu @endlink
+--! and synthesis based on the @link signed_mult1_accu1 signed_mult1_accu1 @endlink
 --! implementation.
 --!
 --! * Input Data      : 2 signed values
@@ -27,10 +27,10 @@ library fixitfetish;
 --! * Output Register : optional, after shift-right and saturation
 --! * Pipeline stages : 1,2,3,... dependent on configuration
 
-architecture derived of signed_mult is
+architecture derived of signed_mult1 is
 begin
 
-  dsp : entity fixitfetish.signed_mult_accu
+  dsp : entity fixitfetish.signed_mult1_accu1
   generic map(
     NUM_SUMMAND => 1,
     USE_CHAIN_INPUT => false,
