@@ -14,8 +14,10 @@ library ieee;
 
 package ieee_extension_types is
 
-  -- general unconstrained vector type (preferably "to" direction)
+  --! General unconstrained unsigned vector type (preferably "to" direction)
   type unsigned_vector is array(integer range <>) of unsigned;
+
+  --! General unconstrained signed vector type (preferably "to" direction)
   type signed_vector is array(integer range <>) of signed;
 
   subtype unsigned8_vector   is unsigned_vector(open)( 7 downto 0);

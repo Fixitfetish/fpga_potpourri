@@ -17,7 +17,7 @@ library fixitfetish;
 --! @brief This implementation uses two chained instances of
 --! @link signed_mult1_accu1 signed_mult1_accu1 @endlink .
 --! Hence, this implementation is not device specific and can be used for
---! simulation and synthesis based on the signed_mult_accu implementation.
+--! simulation and synthesis based on the signed_mult1_accu1 implementation.
 --!
 --! * Input Data      : 2x2 signed values
 --! * Input Register  : optional, at least one is strongly recommended

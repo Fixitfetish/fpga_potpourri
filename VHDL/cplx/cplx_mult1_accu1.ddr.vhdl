@@ -15,7 +15,7 @@ library fixitfetish;
  use fixitfetish.cplx_pkg.all;
  use fixitfetish.ieee_extension.all;
 
---! @brief Complex Multiply and Accumulate - Double Data Rate.
+--! @brief Complex Multiply and Accumulate (Double Data Rate).
 --! In general this multiplier can be used when FPGA DSP cells are capable to
 --! run with the double rate of the standard system clock.
 --! Hence, a complex multiplication can be performed within one system clock
