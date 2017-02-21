@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_multN.vhdl
 --! @author     Fixitfetish
---! @date       19/Feb/2017
---! @version    0.10
+--! @date       21/Feb/2017
+--! @version    0.20
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -12,7 +12,7 @@ library ieee;
 library fixitfetish;
  use fixitfetish.ieee_extension_types.all;
 
---! @brief N signed multiplications.
+--! @brief N parallel and synchronous signed multiplications.
 --!
 --! @image html signed_multN.svg "" width=600px
 --!

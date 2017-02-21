@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_multN.stratixv.vhdl
 --! @author     Fixitfetish
---! @date       20/Feb/2017
---! @version    0.10
+--! @date       21/Feb/2017
+--! @version    0.20
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -25,8 +25,8 @@ library stratixv;
 --! This implementation supports four modes:
 --! * N x 18x18 PARTIAL (2 multiplications within 1 DSP block)  with x'length<=18, y'length<=18 and x'length+y'length<=32
 --! * N x 18x18 COMPACT (3 multiplications within 2 DSP blocks) with x'length<=18, y'length<=18
---! * N x 27x27 FULL    (1 multiplication  within 1 DSP blocks) with x'length<=27, y'length<=27
---! * N x 36x18 FULL    (1 multiplication  within 1 DSP blocks) with x'length<=36, y'length<=18
+--! * N x 27x27 FULL    (1 multiplication  within 1 DSP block)  with x'length<=27, y'length<=27
+--! * N x 36x18 FULL    (1 multiplication  within 1 DSP block)  with x'length<=36, y'length<=18
 --!
 --! This implementation does not instantiate primitives directly but uses Stratix-V specific entities instead.
 --!
