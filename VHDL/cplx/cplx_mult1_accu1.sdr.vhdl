@@ -1,12 +1,12 @@
 -------------------------------------------------------------------------------
---! @file       cplx_mult2_accu_sdr.vhdl
+--! @file       cplx_mult1_accu1.sdr.vhdl
 --! @author     Fixitfetish
 --! @date       16/Feb/2017
---! @version    0.40
+--! @version    0.80
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
--- Copyright (c) 2017 Fixitfetish
+-- Copyright (c) 2016-2017 Fixitfetish
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
@@ -15,16 +15,16 @@ library fixitfetish;
  use fixitfetish.cplx_pkg.all;
  use fixitfetish.ieee_extension.all;
 
---! @brief Two complex multiplications and accumulate all (Single Data Rate).
+--! @brief Complex Multiply and Accumulate (Single Data Rate).
 --! In general this multiplier can be used when FPGA DSP cells are clocked with
 --! the standard system clock. 
 --!
---! This implementation requires the FPGA device dependent module signed_mult4_accu.
---! @image html cplx_mult2_accu_sdr.svg "" width=800px
+--! This implementation requires the FPGA device dependent module signed_mult2_accu1.
+--! @image html cplx_mult1_accu1.sdr.svg "" width=600px
 --!
 --! NOTE: The double rate clock 'clk2' is irrelevant and unused here.
 
-architecture sdr of cplx_mult2_accu is
+architecture sdr of cplx_mult1_accu1 is
 
   -- The number of pipeline stages is reported as constant at the output port
   -- of the DSP implementation. PIPE_DSP is not a generic and it cannot be used
@@ -37,7 +37,7 @@ architecture sdr of cplx_mult2_accu is
 
   -- auxiliary
   signal vld : std_logic;
-  signal sub_n : std_logic_vector(sub'range);
+  signal sub_n : std_logic;
   signal data_reset : std_logic := '0';
 
   -- output signals
@@ -65,9 +65,10 @@ begin
   -- dummy sink for unused clock
   std_logic_sink(clk2);
 
-  rst(0) <= (x(0).rst or  y(0).rst or  x(1).rst or  y(1).rst);
-  ovf(0) <= (x(0).ovf or  y(0).ovf or  x(1).ovf or  y(1).ovf) when rst(0)='0' else '0';
-  vld <= (x(0).vld and y(0).vld and x(1).vld and y(1).vld) when rst(0)='0' else '0';
+  -- merge input control signals
+  rst(0) <= (x.rst  or y.rst);
+  ovf(0) <= (x.ovf  or y.ovf) when rst(0)='0' else '0';
+  vld <= (x.vld and y.vld) when rst(0)='0' else '0';
 
   -- reset result data output to zero
   data_reset <= rst(0) when m='R' else '0';
@@ -76,7 +77,7 @@ begin
   sub_n <= not sub;
 
   -- calculate real component
-  i_re : entity fixitfetish.signed_mult4_accu
+  i_re : entity fixitfetish.signed_mult2_accu1
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAIN_INPUT    => false, -- unused here
@@ -92,18 +93,12 @@ begin
    rst        => data_reset, 
    clr        => clr,
    vld        => vld,
-   sub(0)     => sub(0),
-   sub(1)     => sub_n(0),
-   sub(2)     => sub(1),
-   sub(3)     => sub_n(1),
-   x0         => x(0).re,
-   y0         => y(0).re,
-   x1         => x(0).im,
-   y1         => y(0).im,
-   x2         => x(1).re,
-   y2         => y(1).re,
-   x3         => x(1).im,
-   y3         => y(1).im,
+   sub(0)     => sub,
+   sub(1)     => sub_n,
+   x0         => x.re,
+   y0         => y.re,
+   x1         => x.im,
+   y1         => y.im,
    result     => rslt(0).re,
    result_vld => rslt(0).vld,
    result_ovf => r_ovf_re,
@@ -113,7 +108,7 @@ begin
   );
 
   -- calculate imaginary component
-  i_im : entity fixitfetish.signed_mult4_accu
+  i_im : entity fixitfetish.signed_mult2_accu1
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAIN_INPUT    => false, -- unused here
@@ -129,18 +124,12 @@ begin
    rst        => data_reset, 
    clr        => clr,
    vld        => vld,
-   sub(0)     => sub(0),
-   sub(1)     => sub(0),
-   sub(2)     => sub(1),
-   sub(3)     => sub(1),
-   x0         => x(0).re,
-   y0         => y(0).im,
-   x1         => x(0).im,
-   y1         => y(0).re,
-   x2         => x(1).re,
-   y2         => y(1).im,
-   x3         => x(1).im,
-   y3         => y(1).re,
+   sub(0)     => sub,
+   sub(1)     => sub,
+   x0         => x.re,
+   y0         => y.im,
+   x1         => x.im,
+   y1         => y.re,
    result     => rslt(0).im,
    result_vld => open, -- same as real component
    result_ovf => r_ovf_im,

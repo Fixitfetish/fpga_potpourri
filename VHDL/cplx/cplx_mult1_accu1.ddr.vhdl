@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       cplx_mult_accu_ddr.vhdl
+--! @file       cplx_mult1_accu1.ddr.vhdl
 --! @author     Fixitfetish
 --! @date       18/Feb/2017
 --! @version    0.50
@@ -21,16 +21,16 @@ library fixitfetish;
 --! Hence, a complex multiplication can be performed within one system clock
 --! cycle with only half the amount of multiplier resources.
 --!
---! This implementation requires the FPGA type dependent module signed_mult_accu.
---! @image html cplx_mult_accu_ddr.svg "" width=600px
+--! This implementation requires the FPGA type dependent module signed_mult1_accu1.
+--! @image html cplx_mult1_accu1.ddr.svg "" width=600px
 --!
 --! NOTE: Within the 'clk2' domain always an even number of register stages
 --! must be implemented. 
 
-architecture ddr of cplx_mult_accu is
+architecture ddr of cplx_mult1_accu1 is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "cplx_mult_accu(ddr)";
+  constant IMPLEMENTATION : string := "cplx_mult1_accu1(ddr)";
 
   -- auxiliary phase control signals
   signal toggle1, toggle2, phase : std_logic := '0';
@@ -66,8 +66,8 @@ architecture ddr of cplx_mult_accu is
   -- output signals
   -- ! for 1993/2008 compatibility reasons do not use cplx record here !
   signal r_rst, r_vld, r_ovf, r_ovf_re, r_ovf_im : std_logic;
-  signal r_out_re, r_re : signed(r.re'length-1 downto 0);
-  signal r_out_im, r_im : signed(r.im'length-1 downto 0);
+  signal r_out_re, r_re : signed(result.re'length-1 downto 0);
+  signal r_out_im, r_im : signed(result.im'length-1 downto 0);
 
   -- pipeline stages of used DSP cell
   signal PIPE_DSP : natural;
@@ -120,7 +120,7 @@ begin
   x_q <= x_i when rising_edge(clk2);
   y_q <= y_i when rising_edge(clk2);
   
-  -- use clr signal to reset data
+  -- use clear signal to reset data
   data_reset <= (m='R' and (x_q.rst='1' or y_q.rst='1'));
   clear <= '1'   when data_reset else
            clr_q when phase='0'  else '0';
@@ -137,9 +137,10 @@ begin
   sub_im <= sub_q;
 
   -- calculate real component in 'clk2' domain
-  i_re : entity fixitfetish.signed_mult_accu
+  i_re : entity fixitfetish.signed_mult1_accu1
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
+    USE_CHAIN_INPUT    => false,
     NUM_INPUT_REG      => 1,
     NUM_OUTPUT_REG     => 1, -- additional output register - see below
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -149,6 +150,7 @@ begin
   )
   port map (
    clk        => clk2,
+   rst        => '0', -- TODO
    clr        => clear,
    vld        => dv,
    sub        => sub_re,
@@ -163,9 +165,10 @@ begin
   );
 
   -- calculate imaginary component in 'clk2' domain
-  i_im : entity fixitfetish.signed_mult_accu
+  i_im : entity fixitfetish.signed_mult1_accu1
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
+    USE_CHAIN_INPUT    => false,
     NUM_INPUT_REG      => 1,
     NUM_OUTPUT_REG     => 1, -- additional output register - see below
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -175,6 +178,7 @@ begin
   )
   port map (
    clk        => clk2,
+   rst        => '0', -- TODO
    clr        => clear,
    vld        => dv,
    sub        => sub_im,
@@ -204,21 +208,21 @@ begin
 
   g_out : if not OUTPUT_REG generate
     -- result directly from 'clk2' output register
-    r.rst<=r_rst; r.vld<=r_vld; r.ovf<=r_ovf; r.re<=r_re; r.im<=r_im;
+    result.rst<=r_rst; result.vld<=r_vld; result.ovf<=r_ovf; result.re<=r_re; result.im<=r_im;
   end generate;
 
   g_out_reg : if OUTPUT_REG generate
     process(clk)
     begin if rising_edge(clk) then
       -- result with additional output register in 'clk' domain
-      r.rst<=r_rst; r.vld<=r_vld; r.ovf<=r_ovf; r.re<=r_re; r.im<=r_im;
+      result.rst<=r_rst; result.vld<=r_vld; result.ovf<=r_ovf; result.re<=r_re; result.im<=r_im;
     end if; end process;
   end generate;
 
   -- report constant number of pipeline register stages (in 'clk' domain)
-  PIPE <= (PIPE_DSP+2)/2 + 2 when (INPUT_REG and OUTPUT_REG) else
-          (PIPE_DSP+2)/2 + 1 when (INPUT_REG or OUTPUT_REG) else
-          (PIPE_DSP+2)/2;
+  PIPESTAGES <= (PIPE_DSP+2)/2 + 2 when (INPUT_REG and OUTPUT_REG) else
+                (PIPE_DSP+2)/2 + 1 when (INPUT_REG or OUTPUT_REG) else
+                (PIPE_DSP+2)/2;
 
 end architecture;
 

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       cplx_mult4_accu_sdr.vhdl
+--! @file       cplx_mult4_accu1.sdr.vhdl
 --! @author     Fixitfetish
 --! @date       16/Feb/2017
 --! @version    0.40
@@ -19,12 +19,12 @@ library fixitfetish;
 --! In general this multiplier can be used when FPGA DSP cells are clocked with
 --! the standard system clock. 
 --!
---! This implementation requires the FPGA device dependent module signed_mult8_accu.
---! @image html cplx_mult4_accu_sdr.svg "" width=800px
+--! This implementation requires the FPGA device dependent module signed_mult8_accu1.
+--! @image html cplx_mult4_accu1.sdr.svg "" width=800px
 --!
 --! NOTE: The double rate clock 'clk2' is irrelevant and unused here.
 
-architecture sdr of cplx_mult4_accu is
+architecture sdr of cplx_mult4_accu1 is
 
   -- The number of pipeline stages is reported as constant at the output port
   -- of the DSP implementation. PIPE_DSP is not a generic and it cannot be used
@@ -81,7 +81,7 @@ begin
   sub_n <= not sub;
 
   -- calculate real component
-  i_re : entity fixitfetish.signed_mult8_accu
+  i_re : entity fixitfetish.signed_mult8_accu1
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAIN_INPUT    => false, -- unused here
@@ -130,7 +130,7 @@ begin
   );
 
   -- calculate imaginary component
-  i_im : entity fixitfetish.signed_mult8_accu
+  i_im : entity fixitfetish.signed_mult8_accu1
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAIN_INPUT    => false, -- unused here

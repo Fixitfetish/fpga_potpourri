@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       cplx_mult_accu.vhdl
+--! @file       cplx_mult1_accu1.vhdl
 --! @author     Fixitfetish
 --! @date       30/Jan/2017
 --! @version    0.50
@@ -17,7 +17,7 @@ library fixitfetish;
 --! @brief Complex Multiply and Accumulate.
 --! In general, this multiplier is a good choice when FPGA DSP cells shall be used.
 --!
---! @image html cplx_mult_accu.svg "" width=600px
+--! @image html cplx_mult1_accu1.svg "" width=600px
 --!
 --! The behavior is as follows
 --! * vld = x.vld and y.vld
@@ -48,7 +48,7 @@ library fixitfetish;
 --! Note that the double rate clock 'clk2' must have double the frequency of
 --! system clock 'clk' and must be synchronous and related to 'clk'.
 
-entity cplx_mult_accu is
+entity cplx_mult1_accu1 is
 generic (
   --! @brief The number of summands is important to determine the number of additional
   --! guard bits (MSBs) that are required for the accumulation process. @link NUM_SUMMAND More...
@@ -98,11 +98,11 @@ port (
 begin
 
   assert (m/='U' and m/='Z' and m/='I')
-    report "ERROR in cplx_mult_accu : Rounding options 'U', 'Z' and 'I' are not supported."
+    report "ERROR in cplx_mult1_accu1 : Rounding options 'U', 'Z' and 'I' are not supported."
     severity failure;
 
   assert (x.re'length=x.im'length) and (y.re'length=y.im'length) and (result.re'length=result.im'length)
-    report "ERROR in cplx_mult_accu : Real and imaginary components must have same size."
+    report "ERROR in cplx_mult1_accu1 : Real and imaginary components must have same size."
     severity failure;
 
 end entity;
