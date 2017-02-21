@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- FILE    : signed_mult2_sum_virtex4.vhdl
+-- FILE    : signed_mult2_sum.virtex4.vhdl
 -- AUTHOR  : Fixitfetish
 -- DATE    : 22/Jan/2017
 -- VERSION : 0.40
@@ -26,6 +26,9 @@ library unisim;
 -- Refer to Xilinx XtremeDSP User Guide, UG073 (v2.7) May 15, 2008
 
 architecture virtex4 of signed_mult2_sum is
+
+  -- identifier for reports of warnings and errors
+  constant IMPLEMENTATION : string := "signed_mult2_sum(virtex4)";
 
   -- accumulator width in bits
   constant ACCU_WIDTH : positive := 48;
@@ -72,7 +75,7 @@ begin
 
   -- check input/output length
   assert (x0'length<=18 and y0'length<=18 and x1'length<=18 and y1'length<=18)
-    report "ERROR signed_mult2_sum(virtex4): Multiplier input width cannot exceed 18 bits."
+    report "ERROR " & IMPLEMENTATION & ": Multiplier input width cannot exceed 18 bits."
     severity failure;
 
   -- LSB bound inputs

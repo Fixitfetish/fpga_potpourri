@@ -3,12 +3,12 @@
 
 # generic complex (VHDL-1993)
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx/cplx_pkg_1993.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx/cplx_mult_accu.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx/cplx_mult_accu_sdr.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx/cplx_mult2_accu.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx/cplx_mult2_accu_sdr.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx/cplx_mult4_accu.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx/cplx_mult4_accu_sdr.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx/cplx_mult1_accu1.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx/cplx_mult1_accu1.sdr.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx/cplx_mult2_accu1.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx/cplx_mult2_accu1.sdr.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx/cplx_mult4_accu1.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx/cplx_mult4_accu1.sdr.vhdl"]
 
 # set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx/cplx_weight.vhdl"]
 # set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx/cplx_weight_sdr.vhdl"]

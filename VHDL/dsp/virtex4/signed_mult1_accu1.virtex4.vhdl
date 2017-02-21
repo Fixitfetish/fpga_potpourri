@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- FILE    : signed_mult_accu_virtex4.vhdl
+-- FILE    : signed_mult1_accu1.virtex4.vhdl
 -- AUTHOR  : Fixitfetish
 -- DATE    : 20/Jan/2017
 -- VERSION : 0.75
@@ -24,7 +24,10 @@ library unisim;
 -- This implementation requires a single DSP48 Slice.
 -- Refer to Xilinx XtremeDSP User Guide, UG073 (v2.7) May 15, 2008
 
-architecture virtex4 of signed_mult_accu is
+architecture virtex4 of signed_mult1_accu1 is
+
+  -- identifier for reports of warnings and errors
+  constant IMPLEMENTATION : string := "signed_mult1_accu1(virtex4)";
 
   -- local auxiliary
   -- determine number of required additional guard bits (MSBs)
@@ -73,17 +76,17 @@ begin
 
   -- check input/output length
   assert (x'length<=18 and y'length<=18)
-    report "ERROR signed_mult_accu(virtex4): Multiplier input width cannot exceed 18 bits."
+    report "ERROR " & IMPLEMENTATION & ": Multiplier input width cannot exceed 18 bits."
     severity failure;
 
   assert GUARD_BITS_EVAL<=MAX_GUARD_BITS
-    report "ERROR signed_mult_accu(virtex4) : " & 
+    report "ERROR " & IMPLEMENTATION & ": " &
            "Maximum number of accumulator bits is " & integer'image(ACCU_WIDTH) & " ." &
            "Input bit widths allow only maximum number of guard bits = " & integer'image(MAX_GUARD_BITS)
     severity failure;
 
   assert OUTPUT_WIDTH<ACCU_USED_SHIFTED_WIDTH or not(OUTPUT_CLIP or OUTPUT_OVERFLOW)
-    report "ERROR signed_mult_accu(virtex4) : " & 
+    report "ERROR " & IMPLEMENTATION & ": " &
            "More guard bits required for saturation/clipping and/or overflow detection."
     severity failure;
 
