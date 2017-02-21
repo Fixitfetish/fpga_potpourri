@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult_accu_behave.vhdl
+--! @file       signed_mult2_sum.behave.vhdl
 --! @author     Fixitfetish
 --! @date       16/Feb/2017
---! @version    0.85
+--! @version    0.60
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -15,21 +15,21 @@ library fixitfetish;
  use fixitfetish.ieee_extension.all;
 
 --! @brief This implementation is a behavioral model of the entity 
---! @link signed_mult_accu signed_mult_accu @endlink for simulation.
---! One signed multiplication is performed and results are accumulated.
+--! @link signed_mult2_sum signed_mult2_sum @endlink for simulation.
+--! Two signed multiplications are performed and the results are summed.
 --! 
---! * Input Data      : 2 signed values, each max 27 bits
+--! * Input Data      : 2x2 signed values, each max 27 bits
 --! * Input Register  : optional, at least one is strongly recommended
---! * Accu Register   : 64 bits, first output register (strongly recommended in most cases)
+--! * Output Register : 64 bits, first output register (strongly recommended in most cases)
 --! * Rounding        : optional half-up
 --! * Output Data     : 1x signed value, max 64 bits
 --! * Output Register : optional, after rounding, shift-right and saturation
 --! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG
 
-architecture behave of signed_mult_accu is
+architecture behave of signed_mult2_sum is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "signed_mult_accu(behave)";
+  constant IMPLEMENTATION : string := "signed_mult2_sum(behave)";
 
   -- local auxiliary
   -- determine number of required additional guard bits (MSBs)
@@ -44,6 +44,9 @@ architecture behave of signed_mult_accu is
     return res; 
   end function;
 
+  -- constant number of summands
+  constant NUM_SUMMAND : natural := 2;
+
   constant MAX_WIDTH_X : positive := 27;
   constant MAX_WIDTH_Y : positive := 27;
 
@@ -52,7 +55,7 @@ architecture behave of signed_mult_accu is
 
   -- derived constants
   constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
-  constant PRODUCT_WIDTH : natural := x'length + y'length;
+  constant PRODUCT_WIDTH : natural := x0'length + y0'length;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
   constant GUARD_BITS_EVAL : natural := guard_bits(NUM_SUMMAND,MAX_GUARD_BITS);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
@@ -63,10 +66,9 @@ architecture behave of signed_mult_accu is
   type r_ireg is
   record
     rst, vld : std_logic;
-    clr : std_logic;
-    sub : std_logic;
-    x   : signed(MAX_WIDTH_X-1 downto 0);
-    y   : signed(MAX_WIDTH_Y-1 downto 0);
+    sub : std_logic_vector(sub'range);
+    x0, x1 : signed(MAX_WIDTH_X-1 downto 0);
+    y0, y1 : signed(MAX_WIDTH_Y-1 downto 0);
   end record;
   type array_ireg is array(integer range <>) of r_ireg;
   signal ireg : array_ireg(NUM_INPUT_REG downto 0);
@@ -81,8 +83,7 @@ architecture behave of signed_mult_accu is
   type array_oreg is array(integer range <>) of r_oreg;
   signal rslt : array_oreg(0 to NUM_OUTPUT_REG);
 
-  signal p : signed(PRODUCT_WIDTH-1 downto 0);
-  signal sum, chainin_i : signed(ACCU_WIDTH-1 downto 0) := (others=>'0');
+  signal p0, p1, sum : signed(PRODUCT_WIDTH downto 0);
   signal accu : signed(ACCU_WIDTH-1 downto 0);
   signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
   signal accu_used_shifted : signed(ACCU_USED_SHIFTED_WIDTH-1 downto 0);
@@ -91,12 +92,6 @@ architecture behave of signed_mult_accu is
   constant clkena : std_logic := '1';
 
 begin
-
-  -- check chain in/out length
-  assert (chainin'length>=ACCU_WIDTH or (not USE_CHAIN_INPUT))
-    report "ERROR " & IMPLEMENTATION & ": " &
-           "Chain input width must be " & integer'image(ACCU_WIDTH) & " bits."
-    severity failure;
 
   assert PRODUCT_WIDTH<=ACCU_WIDTH
     report "ERROR " & IMPLEMENTATION & ": " &
@@ -117,12 +112,13 @@ begin
   -- control signal inputs
   ireg(NUM_INPUT_REG).rst <= rst;
   ireg(NUM_INPUT_REG).vld <= vld;
-  ireg(NUM_INPUT_REG).clr <= clr;
   ireg(NUM_INPUT_REG).sub <= sub;
 
   -- LSB bound data inputs
-  ireg(NUM_INPUT_REG).x <= resize(x,MAX_WIDTH_X);
-  ireg(NUM_INPUT_REG).y <= resize(y,MAX_WIDTH_Y);
+  ireg(NUM_INPUT_REG).x0 <= resize(x0,MAX_WIDTH_X);
+  ireg(NUM_INPUT_REG).y0 <= resize(y0,MAX_WIDTH_Y);
+  ireg(NUM_INPUT_REG).x1 <= resize(x1,MAX_WIDTH_X);
+  ireg(NUM_INPUT_REG).y1 <= resize(y1,MAX_WIDTH_Y);
 
   g_in : if NUM_INPUT_REG>=1 generate
   begin
@@ -133,19 +129,17 @@ begin
   end generate;
 
   -- multiplier result
-  p <= resize(ireg(0).x * ireg(0).y, PRODUCT_WIDTH);
+  p0 <= resize(ireg(0).x0 * ireg(0).y0, PRODUCT_WIDTH+1);
+  p1 <= resize(ireg(0).x1 * ireg(0).y1, PRODUCT_WIDTH+1);
 
-  -- chain input
-  g_chain : if USE_CHAIN_INPUT generate
-    chainin_i <= chainin(ACCU_WIDTH-1 downto 0);
-  end generate;
-
-  -- temporary sum of multiplier result and chain input
-  sum <= chainin_i - p when ireg(0).sub='1' else
-         chainin_i + p;
+  -- temporary sum of multiplier result
+  sum <=  p0+p1 when (ireg(0).sub="00") else
+          p0-p1 when (ireg(0).sub="01") else
+         -p0+p1 when (ireg(0).sub="10") else
+         -p0-p1;
 
   g_accu_off : if NUM_OUTPUT_REG=0 generate
-    accu <= sum;
+    accu <= resize(sum, ACCU_WIDTH);
   end generate;
   
   g_accu_on : if NUM_OUTPUT_REG>0 generate
@@ -153,15 +147,13 @@ begin
   p_accu : process(clk)
   begin
     if rising_edge(clk) then
-      if ireg(0).clr='1' then
-        if ireg(0).vld='1' then
-          accu <= sum;
-        else
+      if clkena='1' then
+        if ireg(0).rst='1' then
           accu <= (others=>'0');
-        end if;
-      else  
-        if ireg(0).vld='1' then
-          accu <= accu + sum;
+        else
+          if ireg(0).vld='1' then
+            accu <= resize(sum, ACCU_WIDTH);
+          end if;
         end if;
       end if;
     end if;

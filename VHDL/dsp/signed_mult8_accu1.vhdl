@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult16_accu.vhdl
+--! @file       signed_mult8_accu1.vhdl
 --! @author     Fixitfetish
 --! @date       14/Feb/2017
---! @version    0.30
+--! @version    0.50
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -10,9 +10,9 @@ library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
 
---! @brief Sixteen signed multiplications and accumulate all product results.
---! 
---! @image html signed_mult16_accu.svg "" width=600px
+--! @brief Eight signed multiplications and accumulate all product results.
+--!
+--! @image html signed_mult8_accu1.svg "" width=600px
 --!
 --! The behavior is as follows
 --! * CLR=1  VLD=0  ->  r = undefined                      # reset accumulator
@@ -57,7 +57,7 @@ library ieee;
 -- Optimal settings for overflow detection and/or saturation/clipping :
 -- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH
 
-entity signed_mult16_accu is
+entity signed_mult8_accu1 is
 generic (
   --! @brief The number of summands is important to determine the number of additional
   --! guard bits (MSBs) that are required for the accumulation process. @link NUM_SUMMAND More...
@@ -107,8 +107,8 @@ port (
   clr        : in  std_logic;
   --! Valid signal for input factors, high-active
   vld        : in  std_logic;
-  --! Add/subtract for all products n=0..15 , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)). Subtraction is disabled by default.
-  sub        : in  std_logic_vector(0 to 15) := (others=>'0');
+  --! Add/subtract for all products n=0..7 , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)). Subtraction is disabled by default.
+  sub        : in  std_logic_vector(0 to 7) := (others=>'0');
   --! 1st product, 1st signed factor input
   x0         : in  signed;
   --! 1st product, 2nd signed factor input
@@ -141,38 +141,6 @@ port (
   x7         : in  signed;
   --! 8th product, 2nd signed factor input
   y7         : in  signed;
-  --! 1st product, 1st signed factor input
-  x8         : in  signed;
-  --! 1st product, 2nd signed factor input
-  y8         : in  signed;
-  --! 2nd product, 1st signed factor input
-  x9         : in  signed;
-  --! 2nd product, 2nd signed factor input
-  y9         : in  signed;
-  --! 3rd product, 1st signed factor input
-  x10        : in  signed;
-  --! 3rd product, 2nd signed factor input
-  y10        : in  signed;
-  --! 4th product, 1st signed factor input
-  x11        : in  signed;
-  --! 4th product, 2nd signed factor input
-  y11        : in  signed;
-  --! 5th product, 1st signed factor input
-  x12        : in  signed;
-  --! 5th product, 2nd signed factor input
-  y12        : in  signed;
-  --! 6th product, 1st signed factor input
-  x13        : in  signed;
-  --! 6th product, 2nd signed factor input
-  y13        : in  signed;
-  --! 7th product, 1st signed factor input
-  x14        : in  signed;
-  --! 7th product, 2nd signed factor input
-  y14        : in  signed;
-  --! 8th product, 1st signed factor input
-  x15        : in  signed;
-  --! 8th product, 2nd signed factor input
-  y15        : in  signed;
   --! @brief Resulting product/accumulator output (optionally rounded and clipped).
   --! The standard result output might be unused when chain output is used instead.
   result     : out signed;
@@ -193,26 +161,18 @@ port (
 );
 begin
 
-  assert (     (x0'length+y0'length)=( x1'length+ y1'length)
-           and (x0'length+y0'length)=( x2'length+ y2'length)
-           and (x0'length+y0'length)=( x3'length+ y3'length)
-           and (x0'length+y0'length)=( x4'length+ y4'length)
-           and (x0'length+y0'length)=( x5'length+ y5'length)
-           and (x0'length+y0'length)=( x6'length+ y6'length)
-           and (x0'length+y0'length)=( x7'length+ y7'length)
-           and (x0'length+y0'length)=( x8'length+ y8'length)
-           and (x0'length+y0'length)=( x9'length+ y9'length)
-           and (x0'length+y0'length)=(x10'length+y10'length)
-           and (x0'length+y0'length)=(x11'length+y11'length)
-           and (x0'length+y0'length)=(x12'length+y12'length)
-           and (x0'length+y0'length)=(x13'length+y13'length)
-           and (x0'length+y0'length)=(x14'length+y14'length)
-           and (x0'length+y0'length)=(x15'length+y15'length) )
-    report "ERROR signed_mult16_accu : All products must result in same size."
+  assert (     (x0'length+y0'length)=(x1'length+y1'length)
+           and (x0'length+y0'length)=(x2'length+y2'length)
+           and (x0'length+y0'length)=(x3'length+y3'length)
+           and (x0'length+y0'length)=(x4'length+y4'length)
+           and (x0'length+y0'length)=(x5'length+y5'length)
+           and (x0'length+y0'length)=(x6'length+y6'length)
+           and (x0'length+y0'length)=(x7'length+y7'length) )
+    report "ERROR signed_mult8_accu1 : All products must result in same size."
     severity failure;
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
-    report "WARNING signed_mult16_accu : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
+    report "WARNING signed_mult8_accu1 : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 
 end entity;

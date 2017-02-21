@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult2_accu_behave.vhdl
+--! @file       signed_mult2_accu1.behave.vhdl
 --! @author     Fixitfetish
 --! @date       16/Feb/2017
 --! @version    0.92
@@ -15,7 +15,7 @@ library fixitfetish;
  use fixitfetish.ieee_extension.all;
 
 --! @brief This implementation is a behavioral model of the entity 
---! @link signed_mult2_accu signed_mult2_accu @endlink for simulation.
+--! @link signed_mult2_accu1 signed_mult2_accu1 @endlink for simulation.
 --! Two signed multiplications are performed and all results are accumulated.
 --! 
 --! * Input Data      : 2x2 signed values, each max 27 bits
@@ -26,10 +26,10 @@ library fixitfetish;
 --! * Output Register : optional, after rounding, shift-right and saturation
 --! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG
 
-architecture behave of signed_mult2_accu is
+architecture behave of signed_mult2_accu1 is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "signed_mult2_accu(behave)";
+  constant IMPLEMENTATION : string := "signed_mult2_accu1(behave)";
 
   -- local auxiliary
   -- determine number of required additional guard bits (MSBs)
