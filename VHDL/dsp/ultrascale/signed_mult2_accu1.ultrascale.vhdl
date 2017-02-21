@@ -41,7 +41,7 @@ library fixitfetish;
 --! Therefore, less input registers are required when this implementation is chained multiple times.
 --! Drawback is a lower maximum frequency. If higher frequencies are required there are two options
 --! * Set NUM_INPUT_REG >= 2 when multiple chaining is not needed. This enables the pipeline register M within the the DSP cell.
---! * Use the implementation @link signed_mult2_accu signed_mult2_accu(chain) @endlink with enabled pipeline register P.
+--! * Use the implementation @link signed_mult2_accu1 signed_mult2_accu1(chain) @endlink with enabled pipeline register P.
 
 architecture ultrascale of signed_mult2_accu1 is
   
