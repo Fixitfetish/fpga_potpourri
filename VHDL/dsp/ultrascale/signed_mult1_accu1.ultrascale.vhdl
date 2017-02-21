@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult_accu_ultrascale.vhdl
+--! @file       signed_mult1_accu1.ultrascale.vhdl
 --! @author     Fixitfetish
 --! @date       16/Feb/2017
 --! @version    0.40
@@ -18,7 +18,7 @@ library unisim;
  use unisim.vcomponents.all;
 
 --! @brief This is an implementation of the entity 
---! @link signed_mult_accu signed_mult_accu @endlink
+--! @link signed_mult1_accu1 signed_mult1_accu1 @endlink
 --! for Xilinx UltraScale.
 --! One signed multiplication is performed and results are accumulated.
 --!
@@ -39,12 +39,12 @@ library unisim;
 --! This configuration might be useful when DSP cells are chained.
 --!
 --! This implementation can be chained multiple times.
---! @image html signed_mult_accu_ultrascale.svg "" width=800px
+--! @image html signed_mult1_accu1.ultrascale.svg "" width=800px
 
-architecture ultrascale of signed_mult_accu is
+architecture ultrascale of signed_mult1_accu1 is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "signed_mult_accu(ultrascale)";
+  constant IMPLEMENTATION : string := "signed_mult1_accu1(ultrascale)";
 
   -- local auxiliary
   -- determine number of required additional guard bits (MSBs)

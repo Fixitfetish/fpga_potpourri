@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult2_accu_stratixv.vhdl
+--! @file       signed_mult2_accu1.stratix10.vhdl
 --! @author     Fixitfetish
---! @date       15/Feb/2017
---! @version    0.80
+--! @date       16/Feb/2017
+--! @version    0.20
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -14,18 +14,19 @@ library ieee;
 library fixitfetish;
  use fixitfetish.ieee_extension.all;
 
-library stratixv;
- use stratixv.stratixv_components.all;
+library fourteennm;
+ use fourteennm.fourteennm_components.all;
 
 --! @brief This is an implementation of the entity 
---! @link signed_mult2_accu signed_mult2_accu @endlink
---! for Altera Stratix-V.
+--! @link signed_mult2_accu1 signed_mult2_accu1 @endlink
+--! for Altera Stratix 10.
 --! Two signed multiplications are performed and both results are accumulated.
 --!
---! This implementation requires a single Variable Precision DSP Block of mode 'm18x18_sumof2'.
---! For details please refer to the Altera Stratix V Device Handbook.
+--! This implementation requires a single Variable Precision DSP Block.
+--! Please refer to Stratix 10 Variable Precision DSP Blocks User Guide.
+--! Intel/Altera, UG-S10-DSP,  2016.10.31 
 --!
---! * Input Data      : 2x2 signed values, each max 18 bits
+--! * Input Data      : 2x2 signed values, x<=18 bits, y<=19 bits
 --! * Input Register  : optional, at least one is strongly recommended
 --! * Input Chain     : optional, 64 bits
 --! * Accu Register   : 64 bits, enabled when NUM_OUTPUT_REG>0
@@ -36,12 +37,12 @@ library stratixv;
 --! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG
 --!
 --! This implementation can be chained multiple times.
---! @image html signed_mult2_accu_stratixv.svg "" width=800px
+--! @image html signed_mult2_accu1.stratix10.svg "" width=800px
 
-architecture stratixv of signed_mult2_accu is
+architecture stratix10 of signed_mult2_accu1 is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "signed_mult2_accu(stratixv)";
+  constant IMPLEMENTATION : string := "signed_mult2_accu1(stratix10)";
 
   -- local auxiliary
   -- determine number of required additional guard bits (MSBs)
@@ -84,7 +85,7 @@ architecture stratixv of signed_mult2_accu is
   end function;
 
   constant MAX_WIDTH_X : positive := 18;
-  constant MAX_WIDTH_Y : positive := 18;
+  constant MAX_WIDTH_Y : positive := 19;
 
   -- accumulator width in bits
   constant ACCU_WIDTH : positive := 64;
@@ -178,15 +179,30 @@ begin
   ireg(NUM_INPUT_REG).x1 <= resize(x1,MAX_WIDTH_X);
   ireg(NUM_INPUT_REG).y1 <= resize(y1,MAX_WIDTH_Y);
 
-  g_reg : if NUM_INPUT_REG>=2 generate
+  g_reg : if NUM_INPUT_REG>=3 generate
   begin
-    g_1 : for n in 2 to NUM_INPUT_REG generate
+    g_1 : for n in 3 to NUM_INPUT_REG generate
     begin
       ireg(n-1) <= ireg(n) when rising_edge(clk);
     end generate;
   end generate;
 
-  g_in : if NUM_INPUT_REG>=1 generate
+  g_in2 : if NUM_INPUT_REG>=2 generate
+  begin
+    ireg(1).rst <= ireg(2).rst when rising_edge(clk);
+    ireg(1).vld <= ireg(2).vld when rising_edge(clk);
+    -- DSP cell registers are used for first input register stage
+    ireg(1).sub <= ireg(2).sub;
+    ireg(1).negate <= ireg(2).negate;
+    ireg(1).accumulate <= ireg(2).accumulate;
+    ireg(1).loadconst <= ireg(2).loadconst;
+    ireg(1).x0 <= ireg(2).x0;
+    ireg(1).y0 <= ireg(2).y0;
+    ireg(1).x1 <= ireg(2).x1;
+    ireg(1).y1 <= ireg(2).y1;
+  end generate;
+
+  g_in1 : if NUM_INPUT_REG>=1 generate
   begin
     ireg(0).rst <= ireg(1).rst when rising_edge(clk);
     ireg(0).vld <= ireg(1).vld when rising_edge(clk);
@@ -204,21 +220,24 @@ begin
   -- use only LSBs of chain input
   chainin_i <= std_logic_vector(chainin(ACCU_WIDTH-1 downto 0));
 
-  dsp : stratixv_mac
+  dsp : fourteennm_mac
   generic map (
-    accumulate_clock          => clock(0,NUM_INPUT_REG),
-    ax_clock                  => clock(0,NUM_INPUT_REG),
+    accum_pipeline_clock      => clock(0,NUM_INPUT_REG),
+    accumulate_clock          => clock(0,NUM_INPUT_REG-1),
+    ax_clock                  => clock(0,NUM_INPUT_REG-1),
     ax_width                  => MAX_WIDTH_X,
     ay_scan_in_clock          => clock(0,NUM_INPUT_REG),
     ay_scan_in_width          => MAX_WIDTH_Y,
     ay_use_scan_in            => "false",
     az_clock                  => "none", -- unused here
     az_width                  => 1, -- unused here
-    bx_clock                  => clock(0,NUM_INPUT_REG),
+    bx_clock                  => clock(0,NUM_INPUT_REG-1),
     bx_width                  => MAX_WIDTH_X,
-    by_clock                  => clock(0,NUM_INPUT_REG),
+    by_clock                  => clock(0,NUM_INPUT_REG-1),
     by_use_scan_in            => "false",
     by_width                  => MAX_WIDTH_Y,
+    bz_clock                  => clock(0,NUM_INPUT_REG-1),
+    bz_width                  => 18,
     coef_a_0                  => 0,
     coef_a_1                  => 0,
     coef_a_2                  => 0,
@@ -237,14 +256,17 @@ begin
     coef_b_7                  => 0,
     coef_sel_a_clock          => "none",
     coef_sel_b_clock          => "none",
-    complex_clock             => "none",
     delay_scan_out_ay         => "false",
     delay_scan_out_by         => "false",
-    load_const_clock          => clock(0,NUM_INPUT_REG),
+    enable_double_accum       => "false",
+    input_pipeline_clock      => clock(0,NUM_INPUT_REG),
+    load_const_clock          => clock(0,NUM_INPUT_REG-1),
+    load_const_pipeline_clock => clock(0,NUM_INPUT_REG),
     load_const_value          => load_const_value(OUTPUT_ROUND, OUTPUT_SHIFT_RIGHT),
-    lpm_type                  => "stratixv_mac",
+    lpm_type                  => "twentynm_mac",
     mode_sub_location         => 0,
-    negate_clock              => clock(0,NUM_INPUT_REG),
+    negate_clock              => clock(0,NUM_INPUT_REG-1),
+    negate_pipeline_clock     => clock(0,NUM_INPUT_REG),
     operand_source_max        => "input",
     operand_source_may        => "input",
     operand_source_mbx        => "input",
@@ -260,7 +282,8 @@ begin
     signed_may                => "true",
     signed_mbx                => "true",
     signed_mby                => "true",
-    sub_clock                 => clock(0,NUM_INPUT_REG),
+    sub_clock                 => clock(0,NUM_INPUT_REG-1),
+    sub_pipeline_clock        => clock(0,NUM_INPUT_REG),
     use_chainadder            => use_chainadder(USE_CHAIN_INPUT)
   )
   port map (
@@ -269,19 +292,17 @@ begin
     aclr(1)    => ireg(0).rst, -- clear output registers
     ax         => std_logic_vector(ireg(0).x0),
     ay         => std_logic_vector(ireg(0).y0),
-    az         => open,
+    az         => (others=>'0'),
     bx         => std_logic_vector(ireg(0).x1),
     by         => std_logic_vector(ireg(0).y1),
+    bz         => (others=>'0'),
     chainin    => chainin_i,
     chainout   => chainout_i,
-    cin        => open,
     clk(0)     => clk, -- input clock
     clk(1)     => clk, -- output clock
     clk(2)     => clk, -- unused
     coefsela   => open,
     coefselb   => open,
-    complex    => open,
-    cout       => open,
     dftout     => open,
     ena(0)     => '1', -- clk(0) enable
     ena(1)     => ireg(0).vld, -- clk(1) enable

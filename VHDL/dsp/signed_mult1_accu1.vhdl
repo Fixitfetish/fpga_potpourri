@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult2_accu.vhdl
+--! @file       signed_mult1_accu1.vhdl
 --! @author     Fixitfetish
 --! @date       14/Feb/2017
---! @version    0.91
+--! @version    0.86
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -10,21 +10,20 @@ library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
 
---! @brief Two signed multiplications and accumulate all product results.
+--! @brief Signed Multiply and Accumulate
 --!
---! @image html signed_mult2_accu.svg "" width=600px
+--! @image html signed_mult1_accu1.svg "" width=600px
 --!
 --! The behavior is as follows
---! * CLR=1  VLD=0  ->  result = undefined                    # reset accumulator
---! * CLR=1  VLD=1  ->  result = +/-(x0*y0) +/-(x1*y1)        # restart accumulation
---! * CLR=0  VLD=0  ->  result = result                       # hold accumulator
---! * CLR=0  VLD=1  ->  result = result +/-(x0*y0) +/-(x1*y1) # proceed accumulation
+--! * CLR=1  VLD=0  ->  r = undefined   # reset accumulator
+--! * CLR=1  VLD=1  ->  r = +/-(x*y)    # restart accumulation
+--! * CLR=0  VLD=0  ->  r = r           # hold accumulator
+--! * CLR=0  VLD=1  ->  r = r +/-(x*y)  # proceed accumulation
 --!
 --! The length of the input factors is flexible.
 --! The input factors are automatically resized with sign extensions bits to the
 --! maximum possible factor length.
 --! The maximum length of the input factors is device and implementation specific.
---! The resulting length of all products (x(n)'length + y(n)'length) must be the same.
 --!
 --! @image html accumulator_register.svg "" width=800px
 --!
@@ -49,16 +48,12 @@ library ieee;
 --!
 --! The delay depends on the configuration and the underlying hardware.
 --! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
---!
---! This entity can be used for example
---!   * for complex multiplication and accumulation
---!   * to calculate the mean square of a complex number
 
 --
 -- Optimal settings for overflow detection and/or saturation/clipping :
 -- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH
 
-entity signed_mult2_accu is
+entity signed_mult1_accu1 is
 generic (
   --! @brief The number of summands is important to determine the number of additional
   --! guard bits (MSBs) that are required for the accumulation process. @link NUM_SUMMAND More...
@@ -108,16 +103,12 @@ port (
   clr        : in  std_logic;
   --! Valid signal for input factors, high-active
   vld        : in  std_logic;
-  --! Add/subtract for all products n=0..1 , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)). Subtraction is disabled by default.
-  sub        : in  std_logic_vector(0 to 1) := (others=>'0');
-  --! 1st product, 1st signed factor input
-  x0         : in  signed;
-  --! 1st product, 2nd signed factor input
-  y0         : in  signed;
-  --! 2nd product, 1st signed factor input
-  x1         : in  signed;
-  --! 2nd product, 2nd signed factor input
-  y1         : in  signed;
+  --! Add/subtract product , '0' -> +(x*y), '1' -> -(x*y). Subtraction is disabled by default.
+  sub        : in  std_logic := '0';
+  --! 1st signed factor input
+  x          : in  signed;
+  --! 2nd signed factor input
+  y          : in  signed;
   --! @brief Resulting product/accumulator output (optionally rounded and clipped).
   --! The standard result output might be unused when chain output is used instead.
   result     : out signed;
@@ -138,12 +129,8 @@ port (
 );
 begin
 
-  assert (x0'length+y0'length)=(x1'length+y1'length)
-    report "ERROR signed_mult2_accu : All products must result in same size."
-    severity failure;
-
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
-    report "WARNING signed_mult2_accu : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
+    report "WARNING signed_mult1_accu1 : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 
 end entity;

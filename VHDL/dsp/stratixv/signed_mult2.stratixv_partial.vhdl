@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult2_stratixv_partial.vhdl
+--! @file       signed_mult2.stratixv_partial.vhdl
 --! @author     Fixitfetish
 --! @date       15/Feb/2017
 --! @version    0.30
@@ -35,7 +35,7 @@ library stratixv;
 --! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG
 --!
 --! Note that negation of the product results is not supported by this implementation!
---! @image html signed_mult2_stratixv_partial.svg "" width=800px
+--! @image html signed_mult2.stratixv_partial.svg "" width=800px
 --! This implementation does not support chaining.
 
 architecture stratixv_partial of signed_mult2 is
@@ -106,7 +106,7 @@ begin
     report "ERROR " & IMPLEMENTATION & ": Multiplier input Y width cannot exceed " & integer'image(MAX_WIDTH_Y)
     severity failure;
   assert (x0'length+y0'length<=MAX_PRODUCT_WIDTH and x1'length+y1'length<=MAX_PRODUCT_WIDTH)
-    report "ERROR " & IMPLEMENTATION & ": Resulting product length x'length + y'length exceeds" & integer'image(MAX_PRODUCT_WIDTH)
+    report "ERROR " & IMPLEMENTATION & ": Resulting product length x'length + y'length exceeds " & integer'image(MAX_PRODUCT_WIDTH)
     severity failure;
   assert (x0'length+y0'length)=(x1'length+y1'length)
     report "ERROR " & IMPLEMENTATION & ": Both products must result in same length."

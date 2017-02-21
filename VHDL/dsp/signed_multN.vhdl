@@ -1,31 +1,40 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult.vhdl
+--! @file       signed_multN.vhdl
 --! @author     Fixitfetish
---! @date       14/Feb/2017
---! @version    0.30
+--! @date       19/Feb/2017
+--! @version    0.10
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
+library fixitfetish;
+ use fixitfetish.ieee_extension_types.all;
 
---! @brief One single signed multiplication.
+--! @brief N signed multiplications.
+--!
+--! @image html signed_multN.svg "" width=600px
 --!
 --! The behavior is as follows
---! * vld=0  ->  result = result   # hold previous
---! * vld=1  ->  result = x*y      # multiply
+--! * vld=0  ->  r(n) = r(n)            # hold previous
+--! * vld=1  ->  r(n) = +/-(x(n)*y(n))  # multiply
 --!
 --! The length of the input factors is flexible.
 --! The input factors are automatically resized with sign extensions bits to the
 --! maximum possible factor length.
 --! The maximum length of the input factors is device and implementation specific.
+--! The resulting length of all products (x(n)'length + y(n)'length) must be the same.
 --!
+--! Note that the negation is not supported by all implementations of this entity.
+--! 
 --! The delay depends on the configuration and the underlying hardware.
 --! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
 
-entity signed_mult is
+entity signed_multN is
 generic (
+  --! Number of parallel multiplications - mandatory generic!
+  NUM_MULT : positive;
   --! @brief Number of additional input registers. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
   NUM_INPUT_REG : natural := 1;
@@ -57,24 +66,24 @@ port (
   --! Valid signal for input factors, high-active
   vld        : in  std_logic;
   --! Negation , '0' -> +(x*y), '1' -> -(x*y). Negation is disabled by default.
-  neg        : in  std_logic := '0';
-  --! 1st product, 1st signed factor input
-  x          : in  signed;
-  --! 1st product, 2nd signed factor input
-  y          : in  signed;
+  neg        : in  std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
+  --! First signed factor for the NUM_MULT multiplications (all X inputs must have same size)
+  x          : in  signed_vector(0 to NUM_MULT-1);
+  --! Second signed factor for the NUM_MULT multiplications (all Y inputs must have same size)
+  y          : in  signed_vector(0 to NUM_MULT-1);
   --! Resulting product output (optionally rounded and clipped).
-  result     : out signed;
-  --! Valid signal for result output, high-active
-  result_vld : out std_logic;
+  result     : out signed_vector(0 to NUM_MULT-1);
+  --! Valid signals for result output, high-active
+  result_vld : out std_logic_vector(0 to NUM_MULT-1);
   --! Result output overflow/clipping detection
-  result_ovf : out std_logic;
+  result_ovf : out std_logic_vector(0 to NUM_MULT-1);
   --! Number of pipeline stages, constant, depends on configuration and device specific implementation
   PIPESTAGES : out natural := 0
 );
 begin
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
-    report "WARNING signed_mult : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
+    report "WARNING signed_multN : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 
 end entity;
