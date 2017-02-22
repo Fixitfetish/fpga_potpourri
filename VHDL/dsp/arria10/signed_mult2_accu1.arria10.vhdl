@@ -226,7 +226,7 @@ begin
     accumulate_clock          => clock(0,NUM_INPUT_REG-1),
     ax_clock                  => clock(0,NUM_INPUT_REG-1),
     ax_width                  => MAX_WIDTH_X,
-    ay_scan_in_clock          => clock(0,NUM_INPUT_REG),
+    ay_scan_in_clock          => clock(0,NUM_INPUT_REG-1),
     ay_scan_in_width          => MAX_WIDTH_Y,
     ay_use_scan_in            => "false",
     az_clock                  => "none", -- unused here

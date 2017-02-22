@@ -105,7 +105,7 @@ architecture ultrascale of signed_mult1_accu1 is
   function RND(ena:boolean; shift:natural) return std_logic_vector is
     variable res : std_logic_vector(ACCU_WIDTH-1 downto 0) := (others=>'0');
   begin 
-    if ena and (OUTPUT_SHIFT_RIGHT>=1) then res(shift-1):='1'; end if;
+    if ena and (shift>=1) then res(shift-1):='1'; end if;
     return res;
   end function;
 

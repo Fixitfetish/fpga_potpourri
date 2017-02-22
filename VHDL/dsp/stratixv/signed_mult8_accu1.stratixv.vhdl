@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult8_accu_stratixv.vhdl
+--! @file       signed_mult8_accu1.stratixv.vhdl
 --! @author     Fixitfetish
 --! @date       15/Feb/2017
 --! @version    0.30
@@ -15,8 +15,8 @@ library fixitfetish;
  use fixitfetish.ieee_extension.all;
 
 --! @brief This implementation uses a chain of the two instances signed_mult4_sum and
---! signed_mult4_accu and requires one pipeline register less than the chaining
---! of two signed_mult4_accu instances. But, the chain input is not supported
+--! signed_mult4_accu1 and requires one pipeline register less than the chaining
+--! of two signed_mult4_accu1 instances. But, the chain input is not supported
 --! and the maximum possible frequency is lower.
 --!
 --! * Input Data      : 8x2 signed values
@@ -27,10 +27,10 @@ library fixitfetish;
 --! * Output Register : optional, after rounding, shift-right and saturation
 --! * Pipeline stages : NUM_INPUT_REG + 2 + NUM_OUTPUT_REG
 
-architecture stratixv of signed_mult8_accu is
+architecture stratixv of signed_mult8_accu1 is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "signed_mult8_accu(stratixv)";
+  constant IMPLEMENTATION : string := "signed_mult8_accu1(stratixv)";
 
   -- chain width in bits - implementation and device specific !
   signal chain : signed(chainout'length-1 downto 0);
@@ -84,7 +84,7 @@ begin
   signed_sink(dummy);
 
   -- second instance with accumulator
-  i2 : entity fixitfetish.signed_mult4_accu
+  i2 : entity fixitfetish.signed_mult4_accu1
   generic map(
     NUM_SUMMAND        => NUM_SUMMAND,
     USE_CHAIN_INPUT    => true,

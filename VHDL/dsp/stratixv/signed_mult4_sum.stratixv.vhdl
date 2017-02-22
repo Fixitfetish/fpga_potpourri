@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult4_sum_stratixv.vhdl
+--! @file       signed_mult4_sum.stratixv.vhdl
 --! @author     Fixitfetish
 --! @date       15/Feb/2017
 --! @version    0.40
@@ -37,13 +37,13 @@ library stratixv;
 --! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG
 --!
 --! The output can be chained with other DSP implementations.
---! @image html signed_mult4_sum_stratixv.svg "" width=800px
+--! @image html signed_mult4_sum.stratixv.svg "" width=800px
 --!
 --! NOTE 1: The product of the first input factor pair cannot be subtracted !
 --!
 --! NOTE 2: This implementation requires one pipeline register less than the
---! implementation 'signed_mutl4_accu'. Therefore, less registers in logic are required.
---! Drawback is a lower maximum frequency.
+--! implementation @link signed_mult4_accu1 signed_mult4_accu1 @endlink.
+--! Therefore, less registers in logic are required. Drawback is a lower maximum frequency.
 --!
 --! NOTE 3: The 'chainin' input port is unused here because the chain input cannot
 --! be enabled for mode_sub_location 0 in mode 'm18x18_sumof4'.

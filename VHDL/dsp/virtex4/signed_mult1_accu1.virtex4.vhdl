@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------------
--- FILE    : signed_mult1_accu1.virtex4.vhdl
--- AUTHOR  : Fixitfetish
--- DATE    : 20/Jan/2017
--- VERSION : 0.75
--- VHDL    : 1993
--- LICENSE : MIT License
+--! @file       signed_mult1_accu1.virtex4.vhdl
+--! @author     Fixitfetish
+--! @date       22/Feb/2017
+--! @version    0.80
+--! @copyright  MIT License
+--! @note       VHDL-1993
 -------------------------------------------------------------------------------
 -- Copyright (c) 2016-2017 Fixitfetish
 -------------------------------------------------------------------------------
@@ -14,15 +14,36 @@ library ieee;
 library fixitfetish;
  use fixitfetish.ieee_extension.all;
 
+library unisim;
+ use unisim.vcomponents.all;
+
 -- synopsys translate_off
 library XilinxCoreLib;
 -- synopsys translate_on
 
-library unisim;
- use unisim.vcomponents.all;
-
--- This implementation requires a single DSP48 Slice.
--- Refer to Xilinx XtremeDSP User Guide, UG073 (v2.7) May 15, 2008
+--! @brief This is an implementation of the entity 
+--! @link signed_mult1_accu1 signed_mult1_accu1 @endlink
+--! for Xilinx Virtex-4.
+--! One signed multiplication is performed and results are accumulated.
+--!
+--! This implementation requires a single DSP48 Slice.
+--! Refer to Xilinx XtremeDSP User Guide, UG073 (v2.7) May 15, 2008
+--!
+--! * Input Data      : 2 signed values, each max 18 bits
+--! * Input Register  : optional, at least one is strongly recommended
+--! * Input Chain     : optional, 48 bits
+--! * Accu Register   : 48 bits, first output register (strongly recommended in most cases)
+--! * Rounding        : optional half-up, within DSP cell
+--! * Output Data     : 1x signed value, max 48 bits
+--! * Output Register : optional, after shift-right and saturation
+--! * Output Chain    : optional, 48 bits
+--! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG
+--!
+--! If NUM_OUTPUT_REG=0 then the accumulator register P is disabled. 
+--! This configuration might be useful when DSP cells are chained.
+--!
+--! +++ TODO +++ his implementation can be chained multiple times.
+--! @image html signed_mult1_accu1.virtex4" width=800px
 
 architecture virtex4 of signed_mult1_accu1 is
 
@@ -38,45 +59,97 @@ architecture virtex4 of signed_mult1_accu1 is
       res := dflt; -- maximum possible (default)
     else
       res := LOG2CEIL(num_summand);
+      if res>dflt then 
+        report "WARNING " & IMPLEMENTATION & ": Too many summands. " & 
+           "Maximum number of " & integer'image(dflt) & " guard bits reached."
+           severity warning;
+        res:=dflt;
+      end if;
     end if;
     return res; 
   end function;
 
-  function to_integer(b:boolean) return integer is
-  begin
-    if b then return 1; else return 0; end if;
+  -- two data input registers are supported, the first and the third stage
+  function INREG(n:natural) return natural is
+  begin 
+    if    n<=1 then return n;
+    elsif n=2  then return 1; -- second input register uses MREG
+    else            return 2;
+    end if;
   end function;
+
+  -- MREG is used as second input register when NUM_INPUT_REG>=2
+  function MREG(n:natural) return natural is
+  begin if n>=2 then return 1; else return 0; end if; end function;
+
+  function CTRLREG(n:integer) return integer is
+  begin if n>=1 then return 1; else return 0; end if; end function;
+
+  -- PREG is the first output register when NUM_OUTPUT_REG=>1 (strongly recommended!)
+  function PREG(n:natural) return natural is
+  begin if n>=1 then return 1; else return 0; end if; end function;
+
+  constant MAX_WIDTH_A : positive := 18;
+  constant MAX_WIDTH_B : positive := 18;
 
   -- accumulator width in bits
   constant ACCU_WIDTH : positive := 48;
 
   -- derived constants
+  constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
   constant PRODUCT_WIDTH : natural := x'length + y'length;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
   constant GUARD_BITS_EVAL : natural := guard_bits(NUM_SUMMAND,MAX_GUARD_BITS);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
   constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
-  constant OUTPUT_WIDTH : positive := r_out'length;
+  constant OUTPUT_WIDTH : positive := result'length;
 
-  constant CLKENA : std_logic := '1'; -- clock enable
-  constant RESET : std_logic := '0';
+  -- rounding bit generation (+0.5)
+  function RND(ena:boolean; shift:natural) return std_logic_vector is
+    variable res : std_logic_vector(ACCU_WIDTH-1 downto 0) := (others=>'0');
+  begin 
+    if ena and (shift>=1) then res(shift-1):='1'; end if;
+    return res;
+  end function;
 
-  signal vld_i, vld_q : std_logic := '0';
-  signal a, b : signed(17 downto 0);
+  -- input register pipeline
+  type r_ireg is
+  record
+    rst, vld : std_logic;
+    sub : std_logic;
+    opmode_xy : std_logic_vector(3 downto 0);
+    opmode_z : std_logic_vector(2 downto 0);
+    a : signed(MAX_WIDTH_A-1 downto 0);
+    b : signed(MAX_WIDTH_B-1 downto 0);
+  end record;
+  type array_ireg is array(integer range <>) of r_ireg;
+  signal ireg : array_ireg(NUM_INPUT_REG downto 0);
+
+  -- output register pipeline
+  type r_oreg is
+  record
+    dat : signed(OUTPUT_WIDTH-1 downto 0);
+    vld : std_logic;
+    ovf : std_logic;
+  end record;
+  type array_oreg is array(integer range <>) of r_oreg;
+  signal rslt : array_oreg(0 to NUM_OUTPUT_REG);
+
+  constant clkena : std_logic := '1'; -- clock enable
+  constant reset : std_logic := '0';
+
+  signal chainin_i, chainout_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
   signal accu : std_logic_vector(ACCU_WIDTH-1 downto 0);
   signal accu_used_shifted : signed(ACCU_USED_SHIFTED_WIDTH-1 downto 0);
-
-  -- initial rounding
-  signal c : std_logic_vector(ACCU_WIDTH-1 downto 0) := (others=>'0');
-
-  signal opmode_xy : std_logic_vector(3 downto 0);
-  signal opmode_z : std_logic_vector(2 downto 0);
 
 begin
 
   -- check input/output length
-  assert (x'length<=18 and y'length<=18)
-    report "ERROR " & IMPLEMENTATION & ": Multiplier input width cannot exceed 18 bits."
+  assert (x'length<=MAX_WIDTH_A)
+    report "ERROR " & IMPLEMENTATION & ": Multiplier input X width cannot exceed " & integer'image(MAX_WIDTH_A)
+    severity failure;
+  assert (y'length<=MAX_WIDTH_B)
+    report "ERROR " & IMPLEMENTATION & ": Multiplier input Y width cannot exceed " & integer'image(MAX_WIDTH_B)
     severity failure;
 
   assert GUARD_BITS_EVAL<=MAX_GUARD_BITS
@@ -90,80 +163,125 @@ begin
            "More guard bits required for saturation/clipping and/or overflow detection."
     severity failure;
 
-  -- input register delay compensation
-  g_din : if not INPUT_REG generate
-    vld_i  <= vld;
-  end generate;
-  g_din_reg : if INPUT_REG generate
-    vld_i  <= vld when rising_edge(clk);
-  end generate;
-
-  -- LSB bound inputs
-  a <= resize(x,18);
-  b <= resize(y,18);
-
-  -- rounding bit generation
-  g_rnd_on : if (OUTPUT_ROUND and OUTPUT_SHIFT_RIGHT>0) generate
-    c(OUTPUT_SHIFT_RIGHT-1) <= '1';
-  end generate;
+  -- control signal inputs
+  ireg(NUM_INPUT_REG).rst <= rst;
+  ireg(NUM_INPUT_REG).vld <= vld;
+  ireg(NUM_INPUT_REG).sub <= sub;
 
   -- 0000 =>  XY = +/- CIN  ... hold current accumulator value
   -- 0101 =>  XY = +/- (AxB+CIN) ... enable product accumulation
   -- Note that the carry CIN is 0 and not used here. 
-  opmode_xy <= "0101" when vld='1' else "0000";
+  ireg(NUM_INPUT_REG).opmode_xy <= "0101" when vld='1' else "0000";
 
   -- 011 => P = C +/- XY   ... clear accumulator (with initial rounding bit)
   -- 010 => P = P +/- XY   ... accumulate
-  opmode_z <= "011" when clr='1' else "010";
+  ireg(NUM_INPUT_REG).opmode_z <= "011" when clr='1' else "010";
 
-  I_DSP48 : DSP48
+  -- LSB bound data inputs
+  ireg(NUM_INPUT_REG).a <= resize(x,MAX_WIDTH_A);
+  ireg(NUM_INPUT_REG).b <= resize(y,MAX_WIDTH_B);
+
+  g_reg : if NUM_INPUT_REG>=4 generate
+  begin
+    g_1 : for n in 4 to NUM_INPUT_REG generate
+    begin
+      ireg(n-1) <= ireg(n) when rising_edge(clk);
+    end generate;
+  end generate;
+
+  -- DSP cell data input registers A1/B1 are used as third input register stage.
+  g_in3 : if NUM_INPUT_REG>=3 generate
+  begin
+    ireg(2).rst <= ireg(3).rst when rising_edge(clk);
+    ireg(2).vld <= ireg(3).vld when rising_edge(clk);
+    ireg(2).sub <= ireg(3).sub when rising_edge(clk);
+    ireg(2).opmode_xy <= ireg(3).opmode_xy when rising_edge(clk);
+    ireg(2).opmode_z <= ireg(3).opmode_z when rising_edge(clk);
+    -- the following register are located within the DSP cell
+    ireg(2).a <= ireg(3).a;
+    ireg(2).b <= ireg(3).b;
+  end generate;
+
+  -- DSP cell MREG register is used as third data input register stage
+  g_in2 : if NUM_INPUT_REG>=2 generate
+  begin
+    ireg(1).rst <= ireg(2).rst when rising_edge(clk);
+    ireg(1).vld <= ireg(2).vld when rising_edge(clk);
+    ireg(1).sub <= ireg(2).sub when rising_edge(clk);
+    ireg(1).opmode_xy <= ireg(2).opmode_xy when rising_edge(clk);
+    ireg(1).opmode_z <= ireg(2).opmode_z when rising_edge(clk);
+    -- the following register are located within the DSP cell
+    ireg(1).a <= ireg(2).a;
+    ireg(1).b <= ireg(2).b;
+  end generate;
+
+  -- DSP cell data input registers A2/B2 are used as first input register stage.
+  g_in1 : if NUM_INPUT_REG>=1 generate
+  begin
+    ireg(0).rst <= ireg(1).rst when rising_edge(clk);
+    ireg(0).vld <= ireg(1).vld when rising_edge(clk);
+    -- the following register are located within the DSP cell
+    ireg(0).sub <= ireg(1).sub;
+    ireg(0).opmode_xy <= ireg(1).opmode_xy;
+    ireg(0).opmode_z <= ireg(1).opmode_z;
+    ireg(0).a <= ireg(1).a;
+    ireg(0).b <= ireg(1).b;
+  end generate;
+
+  -- use only LSBs of chain input
+  chainin_i <= std_logic_vector(chainin(ACCU_WIDTH-1 downto 0));
+
+  dsp : DSP48
   generic map(
-    AREG          => to_integer(INPUT_REG),
-    BREG          => to_integer(INPUT_REG),
+    AREG          => INREG(NUM_INPUT_REG),
+    BREG          => INREG(NUM_INPUT_REG),
     CREG          => 1,
-    PREG          => 1, -- accumulation/output register always enabled
-    MREG          => 0, -- unused here
-    OPMODEREG     => to_integer(INPUT_REG),
-    SUBTRACTREG   => to_integer(INPUT_REG),
+    PREG          => PREG(NUM_OUTPUT_REG),
+    MREG          => MREG(NUM_INPUT_REG),
+    OPMODEREG     => CTRLREG(NUM_INPUT_REG),
+    SUBTRACTREG   => CTRLREG(NUM_INPUT_REG),
     CARRYINSELREG => 0,
     CARRYINREG    => 0,
     B_INPUT       => "DIRECT",
     LEGACY_MODE   => "MULT18X18"
   )
   port map(
-    A(17 downto 0)         => std_logic_vector(a),
-    B(17 downto 0)         => std_logic_vector(b),
+    A(17 downto 0)         => std_logic_vector(ireg(0).a),
+    B(17 downto 0)         => std_logic_vector(ireg(0).b),
     BCIN(17 downto 0)      => (others=>'0'),
-    C(47 downto 0)         => c, -- C is used for initial rounding bit (static)
+    C(47 downto 0)         => RND(ROUND_ENABLE,OUTPUT_SHIFT_RIGHT),
     CARRYIN                => '0',
     CARRYINSEL(1 downto 0) => (others=>'0'),
-    CEA                    => CLKENA,
-    CEB                    => CLKENA,
-    CEC                    => CLKENA,
+    CEA                    => clkena,
+    CEB                    => clkena,
+    CEC                    => clkena,
     CECARRYIN              => '0',
-    CECINSUB               => CLKENA,
-    CECTRL                 => CLKENA,
-    CEM                    => CLKENA,
-    CEP                    => CLKENA,
+    CECINSUB               => clkena,
+    CECTRL                 => clkena,
+    CEM                    => clkena,
+    CEP                    => clkena,
     CLK                    => clk,
-    OPMODE(3 downto 0)     => opmode_xy,
-    OPMODE(6 downto 4)     => opmode_z,
-    PCIN                   => (others=>'0'),
-    RSTA                   => RESET,
-    RSTB                   => RESET,
-    RSTC                   => RESET,
-    RSTCARRYIN             => RESET,
-    RSTCTRL                => RESET,
-    RSTM                   => RESET,
-    RSTP                   => RESET,
-    SUBTRACT               => sub,
+    OPMODE(3 downto 0)     => ireg(0).opmode_xy,
+    OPMODE(6 downto 4)     => ireg(0).opmode_z,
+    PCIN                   => chainin_i,
+    RSTA                   => reset,
+    RSTB                   => reset,
+    RSTC                   => reset,
+    RSTCARRYIN             => reset,
+    RSTCTRL                => reset,
+    RSTM                   => reset,
+    RSTP                   => reset,
+    SUBTRACT               => ireg(0).sub,
     BCOUT                  => open,
     P(47 downto 0)         => accu,
-    PCOUT                  => open
+    PCOUT                  => chainout_i
   );
 
-  -- accumulator delay compensation
-  vld_q <= vld_i when rising_edge(clk);
+  chainout(ACCU_WIDTH-1 downto 0) <= signed(chainout_i);
+  g_chainout : for n in ACCU_WIDTH to (chainout'length-1) generate
+    -- sign extension (for simulation and to avoid warnings)
+    chainout(n) <= chainout_i(ACCU_WIDTH-1);
+  end generate;
 
   -- a.) just shift right without rounding because rounding bit is has been added 
   --     within the DSP cell already.
@@ -172,44 +290,46 @@ begin
   --     saturation and/or overflow detection is enabled.)
   accu_used_shifted <= signed(accu(ACCU_USED_WIDTH-1 downto OUTPUT_SHIFT_RIGHT));
 
---  -- shift right and round 
---  g_rnd_off : if ((not OUTPUT_ROUND) or OUTPUT_SHIFT_RIGHT=0) generate
+--  -- shift right and round
+--  g_rnd_off : if (not ROUND_ENABLE) generate
 --    accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT),ACCU_USED_SHIFTED_WIDTH);
 --  end generate;
---  g_rnd_on : if (OUTPUT_ROUND and OUTPUT_SHIFT_RIGHT>0) generate
+--  g_rnd_on : if (ROUND_ENABLE) generate
 --    accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT, nearest),ACCU_USED_SHIFTED_WIDTH);
 --  end generate;
 
-  g_dout : if not OUTPUT_REG generate
-    process(accu_used_shifted, vld_q)
-      variable v_dout : signed(OUTPUT_WIDTH-1 downto 0);
-      variable v_ovfl : std_logic;
-    begin
-      RESIZE_CLIP(din=>accu_used_shifted, dout=>v_dout, ovfl=>v_ovfl, clip=>OUTPUT_CLIP);
-      r_vld <= vld_q; 
-      r_out <= v_dout; 
-      if OUTPUT_OVERFLOW then r_ovf<=v_ovfl; else r_ovf<='0'; end if;
-    end process;
+  p_out : process(accu_used_shifted, ireg(0).vld)
+    variable v_dat : signed(OUTPUT_WIDTH-1 downto 0);
+    variable v_ovf : std_logic;
+  begin
+    RESIZE_CLIP(din=>accu_used_shifted, dout=>v_dat, ovfl=>v_ovf, clip=>OUTPUT_CLIP);
+    rslt(0).vld <= ireg(0).vld;
+    rslt(0).dat <= v_dat;
+    if OUTPUT_OVERFLOW then rslt(0).ovf<=v_ovf; else rslt(0).ovf<='0'; end if;
+  end process;
+
+  g_oreg1 : if NUM_OUTPUT_REG>=1 generate
+  begin
+    rslt(1).vld <= rslt(0).vld when rising_edge(clk); -- VLD bypass
+    -- DSP cell result/accumulator register is always used as first output register stage
+    rslt(1).dat <= rslt(0).dat;
+    rslt(1).ovf <= rslt(0).ovf;
   end generate;
 
-  g_dout_reg : if OUTPUT_REG generate
-    process(clk)
-      variable v_dout : signed(OUTPUT_WIDTH-1 downto 0);
-      variable v_ovfl : std_logic;
-    begin
-      if rising_edge(clk) then
-        RESIZE_CLIP(din=>accu_used_shifted, dout=>v_dout, ovfl=>v_ovfl, clip=>OUTPUT_CLIP);
-        r_vld <= vld_q; 
-        r_out <= v_dout; 
-        if OUTPUT_OVERFLOW then r_ovf<=v_ovfl; else r_ovf<='0'; end if;
-      end if;
-    end process;
+  -- additional output registers always in logic
+  g_oreg2 : if NUM_OUTPUT_REG>=2 generate
+    g_loop : for n in 2 to NUM_OUTPUT_REG generate
+      rslt(n) <= rslt(n-1) when rising_edge(clk);
+    end generate;
   end generate;
+
+  -- map result to output port
+  result <= rslt(NUM_OUTPUT_REG).dat;
+  result_vld <= rslt(NUM_OUTPUT_REG).vld;
+  result_ovf <= rslt(NUM_OUTPUT_REG).ovf;
 
   -- report constant number of pipeline register stages
-  PIPE <= 3 when (INPUT_REG and OUTPUT_REG) else
-          2 when (INPUT_REG or OUTPUT_REG) else
-          1;
+  PIPESTAGES <= NUM_INPUT_REG + NUM_OUTPUT_REG;
 
 end architecture;
 

@@ -36,7 +36,7 @@ architecture virtex4 of signed_mult2_sum is
 
   constant CLKENA : std_logic := '1'; -- clock enable
   constant RESET : std_logic := '0';
-  constant LOUT : positive := r_out'length;
+  constant LOUT : positive := result'length;
 
   signal rst_i, b_sub: std_logic; 
   signal clr_q, clr_i : std_logic; 
@@ -52,14 +52,17 @@ architecture virtex4 of signed_mult2_sum is
   signal opmode2_zyx_q : std_logic_vector(6 downto 0);
 
   -- auxiliary function
-  function reg1(b:boolean) return integer is
+  function num_in_regs(n:integer) return integer is
   begin
-    if b then return 1; else return 0; end if;
+    if n>=2 then return 2;
+    elsif n=1  then return 1;
+    else return 0; end if;
   end function;
 
-  function reg2(b:boolean) return integer is
+  function num_ctrl_regs(n:integer) return integer is
   begin
-    if b then return 2; else return 1; end if;
+    if n>=1  then return 1;
+    else return 0; end if;
   end function;
 
   function const(round: boolean; shifts:natural) return std_logic_vector is
@@ -109,13 +112,13 @@ begin
 
   DSP48_1 : DSP48
   generic map(
-    AREG          => reg1(INPUT_REG),
-    BREG          => reg1(INPUT_REG),
+    AREG          => num_in_regs(NUM_INPUT_REG),
+    BREG          => num_in_regs(NUM_INPUT_REG),
     CREG          => 1, -- constant input for rounding
     PREG          => 1, -- output register before PCOUT
     MREG          => 0, -- unused here
-    OPMODEREG     => reg1(INPUT_REG),
-    SUBTRACTREG   => reg1(INPUT_REG),
+    OPMODEREG     => num_ctrl_regs(NUM_INPUT_REG),
+    SUBTRACTREG   => num_ctrl_regs(NUM_INPUT_REG),
     CARRYINSELREG => 0,
     CARRYINREG    => 0,
     B_INPUT       => "DIRECT",
@@ -154,13 +157,13 @@ begin
 
   DSP48_2 : DSP48
   generic map(
-    AREG          => reg2(INPUT_REG),
-    BREG          => reg2(INPUT_REG),
+    AREG          => num_in_regs(NUM_INPUT_REG+1), -- additional pipeline register
+    BREG          => num_in_regs(NUM_INPUT_REG+1), -- additional pipeline register
     CREG          => 0, -- C is unused here
     PREG          => 1, -- accumulation/output register always enabled
     MREG          => 0, -- unused here
-    OPMODEREG     => 1,
-    SUBTRACTREG   => 1,
+    OPMODEREG     => 1, -- additional pipeline register
+    SUBTRACTREG   => 1, -- additional pipeline register
     CARRYINSELREG => 0,
     CARRYINREG    => 0,
     B_INPUT       => "DIRECT",
@@ -211,9 +214,9 @@ begin
       variable v_ovfl : std_logic;
     begin
       RESIZE_CLIP(din=>accu_shifted, dout=>v_dout, ovfl=>v_ovfl, clip=>OUTPUT_CLIP);
-      r_vld <= vld_q; 
-      r_out <= v_dout; 
-      if OUTPUT_OVERFLOW then r_ovf<=v_ovfl; else r_ovf<='0'; end if;
+      result_vld <= vld_q; 
+      result <= v_dout; 
+      if OUTPUT_OVERFLOW then result_ovf<=v_ovfl; else result_ovf<='0'; end if;
     end process;
   end generate;
 
@@ -224,16 +227,16 @@ begin
     begin
       if rising_edge(clk) then
         RESIZE_CLIP(din=>accu_shifted, dout=>v_dout, ovfl=>v_ovfl, clip=>OUTPUT_CLIP);
-        r_vld <= vld_q; 
-        r_out <= v_dout; 
-        if OUTPUT_OVERFLOW then r_ovf<=v_ovfl; else r_ovf<='0'; end if;
+        result_vld <= vld_q; 
+        result <= v_dout; 
+        if OUTPUT_OVERFLOW then result_ovf<=v_ovfl; else result_ovf<='0'; end if;
       end if;
     end process;
   end generate;
 
   -- report constant number of pipeline register stages
-  PIPE <= 4 when (INPUT_REG and OUTPUT_REG) else
-          3 when (INPUT_REG or OUTPUT_REG) else
-          2;
+  PIPESTAGES <= 4 when (INPUT_REG and OUTPUT_REG) else
+                3 when (INPUT_REG or OUTPUT_REG) else
+                2;
 
 end architecture;
