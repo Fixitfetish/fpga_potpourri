@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult1_accu1.virtex4.vhdl
 --! @author     Fixitfetish
---! @date       22/Feb/2017
---! @version    0.80
+--! @date       23/Feb/2017
+--! @version    0.81
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -82,6 +82,9 @@ architecture virtex4 of signed_mult1_accu1 is
   function MREG(n:natural) return natural is
   begin if n>=2 then return 1; else return 0; end if; end function;
 
+  function LEGACY_MODE(n:natural) return string is
+  begin if n>=2 then return "MULT18X18S"; else return "MULT18X18"; end if; end function;
+
   function CTRLREG(n:integer) return integer is
   begin if n>=1 then return 1; else return 0; end if; end function;
 
@@ -123,7 +126,8 @@ architecture virtex4 of signed_mult1_accu1 is
     b : signed(MAX_WIDTH_B-1 downto 0);
   end record;
   type array_ireg is array(integer range <>) of r_ireg;
-  signal ireg : array_ireg(NUM_INPUT_REG downto 0);
+  signal ireg : array_ireg(NUM_INPUT_REG downto 0)
+    := (others=>(rst=>'1',vld=>'0',sub=>'0',opmode_xy=>"0000",opmode_z=>"000",a|b=>(others=>'0')));
 
   -- output register pipeline
   type r_oreg is
@@ -143,6 +147,12 @@ architecture virtex4 of signed_mult1_accu1 is
   signal accu_used_shifted : signed(ACCU_USED_SHIFTED_WIDTH-1 downto 0);
 
 begin
+
+  -- check chain in/out length
+  assert (chainin'length>=ACCU_WIDTH or (not USE_CHAIN_INPUT))
+    report "ERROR " & IMPLEMENTATION & ": " &
+           "Chain input width must be " & integer'image(ACCU_WIDTH) & " bits."
+    severity failure;
 
   -- check input/output length
   assert (x'length<=MAX_WIDTH_A)
@@ -243,7 +253,7 @@ begin
     CARRYINSELREG => 0,
     CARRYINREG    => 0,
     B_INPUT       => "DIRECT",
-    LEGACY_MODE   => "MULT18X18"
+    LEGACY_MODE   => LEGACY_MODE(NUM_INPUT_REG)
   )
   port map(
     A(17 downto 0)         => std_logic_vector(ireg(0).a),

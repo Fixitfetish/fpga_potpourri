@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_multN.stratixv.vhdl
 --! @author     Fixitfetish
---! @date       21/Feb/2017
---! @version    0.20
+--! @date       23/Feb/2017
+--! @version    0.30
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -13,9 +13,6 @@ library ieee;
  use ieee.numeric_std.all;
 library fixitfetish;
  use fixitfetish.ieee_extension.all;
-
-library stratixv;
- use stratixv.stratixv_components.all;
 
 --! @brief This is an implementation of the entity 
 --! @link signed_multN signed_multN @endlink
@@ -28,10 +25,15 @@ library stratixv;
 --! * N x 27x27 FULL    (1 multiplication  within 1 DSP block)  with x'length<=27, y'length<=27
 --! * N x 36x18 FULL    (1 multiplication  within 1 DSP block)  with x'length<=36, y'length<=18
 --!
---! This implementation does not instantiate primitives directly but uses Stratix-V specific entities instead.
+--! This implementation does not instantiate primitives directly but uses Stratix-V specific architectures instead.
 --!
---! @image html signed_multN.stratixv.svg "" width=800px
---! This implementation does not support chaining.
+--! | X Len | Y Len | X+Y Len | DSP Blocks  | Entity Type Used   | Comment
+--! |:-----:|:-----:|:-------:|:-----------:|--------------------|-----------
+--! | <=18  | <=18  | <=32    | ceil(N/2)   | signed_mult2       | 18x18 Partial
+--! | <=18  | <=18  | <=36    | 2*ceil(N/3) | signed_mult3       | 18x18 Compact (only N>=2)
+--! | <=27  | <=27  | <=54    | N           | signed_mult1_accu1 | 27x27 Full
+--! | <=36  | <=18  | <=54    | N           | signed_mult1_accu1 | 36x18 Full
+--!
 
 architecture stratixv of signed_multN is
 
@@ -43,7 +45,8 @@ architecture stratixv of signed_multN is
   begin
     if lx<=18 and ly<=18 then
       if (lx+ly<=32) then return 2; -- m18x18_partial
-      else return 3; -- m18x18_compact
+      elsif NUM_MULT>1 then return 3; -- m18x18_compact
+      else return 1; -- full (saves one DSP Block when only single multiplication)
       end if; 
     elsif (lx<=36 and ly<=18) or (lx<=27 and ly<=27) then 
       return 1; -- m27x27 or m36x18
@@ -80,12 +83,12 @@ architecture stratixv of signed_multN is
 
 begin
 
-   -- Map inputs to internal signals.
-   g_in: for n in 0 to (NUM_MULT-1) generate
-     x_i(n) <= x(n);
-     y_i(n) <= y(n);
-     neg_i(n) <= neg(n);
-   end generate;
+  -- Map inputs to internal signals.
+  g_in: for n in 0 to (NUM_MULT-1) generate
+    x_i(n) <= x(n);
+    y_i(n) <= y(n);
+    neg_i(n) <= neg(n);
+  end generate;
 
   -----------------------------------------------------------------------------
 
@@ -125,7 +128,7 @@ begin
 
   -- use mode "M18x18_COMPACT" (three multiplications within two DSP blocks)
   -- Efficient DSP usage only for 2 or more multiplications, otherwise use FULL mode.
-  g_compact : if (NUM_MULT_PER_ENTITY=3 and NUM_MULT>=2) generate
+  g_compact : if NUM_MULT_PER_ENTITY=3 generate
    g_n: for n in 0 to (NUM_ENTITY-1) generate
 
     mult3 : entity fixitfetish.signed_mult3(stratixv_compact)
@@ -162,7 +165,7 @@ begin
   -----------------------------------------------------------------------------
 
   -- use mode "M27x27" or "M36x18" (one multiplications within one DSP block)
-  g_full : if (NUM_MULT_PER_ENTITY=1 or (NUM_MULT_PER_ENTITY=3 and NUM_MULT=1)) generate
+  g_full : if NUM_MULT_PER_ENTITY=1 generate
 
    g_n: for n in 0 to (NUM_ENTITY-1) generate
 
@@ -198,15 +201,15 @@ begin
 
   -----------------------------------------------------------------------------
 
-   -- Map inputs to internal signals.
-   g_out: for n in 0 to (NUM_MULT-1) generate
-     result(n) <= r_i(n);
-     result_vld(n) <= r_vld_i(n);
-     result_ovf(n) <= r_ovf_i(n);
-   end generate;
+  -- Map internal signals to output ports
+  g_out: for n in 0 to (NUM_MULT-1) generate
+    result(n) <= r_i(n);
+    result_vld(n) <= r_vld_i(n);
+    result_ovf(n) <= r_ovf_i(n);
+  end generate;
 
-   -- number of pipeline stages is the same for all entities - use from first entity
-   PIPESTAGES <= pipe(0);
+  -- number of pipeline stages is the same for all entities - use from first entity
+  PIPESTAGES <= pipe(0);
 
 end architecture;
 

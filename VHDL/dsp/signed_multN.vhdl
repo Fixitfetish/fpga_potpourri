@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_multN.vhdl
 --! @author     Fixitfetish
---! @date       21/Feb/2017
---! @version    0.20
+--! @date       23/Feb/2017
+--! @version    0.30
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -30,6 +30,32 @@ library fixitfetish;
 --! 
 --! The delay depends on the configuration and the underlying hardware.
 --! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
+--!
+--! VHDL Instantiation Template:
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
+--! I1 : signed_multN
+--! generic map(
+--!   NUM_MULT           => positive, -- number of parallel multiplications
+--!   NUM_INPUT_REG      => natural,  -- number of input registers
+--!   NUM_OUTPUT_REG     => natural,  -- number of output registers
+--!   OUTPUT_SHIFT_RIGHT => natural,  -- number of right shifts
+--!   OUTPUT_ROUND       => boolean,  -- enable rounding half-up
+--!   OUTPUT_CLIP        => boolean,  -- enable clipping
+--!   OUTPUT_OVERFLOW    => boolean   -- enable overflow detection
+--! )
+--! port map(
+--!   clk        => in  std_logic, -- clock
+--!   rst        => in  std_logic, -- reset
+--!   vld        => in  std_logic, -- valid
+--!   neg        => in  std_logic_vector(0 to NUM_MULT-1), -- negation
+--!   x          => in  signed_vector(0 to NUM_MULT-1), -- first factors
+--!   y          => in  signed_vector(0 to NUM_MULT-1), -- second factors
+--!   result     => out signed_vector(0 to NUM_MULT-1), -- product results
+--!   result_vld => out std_logic_vector(0 to NUM_MULT-1), -- output valid
+--!   result_ovf => out std_logic_vector(0 to NUM_MULT-1), -- output overflow
+--!   PIPESTAGES => out natural -- constant number of pipeline stages
+--! );
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 entity signed_multN is
 generic (

@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult1_accu1.ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       16/Feb/2017
---! @version    0.40
+--! @date       23/Feb/2017
+--! @version    0.50
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -136,6 +136,7 @@ architecture ultrascale of signed_mult1_accu1 is
   constant clkena : std_logic := '1'; -- clock enable
   constant reset : std_logic := '0';
 
+  signal clr_q, clr_i : std_logic;
   signal chainin_i, chainout_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
   signal accu : std_logic_vector(ACCU_WIDTH-1 downto 0);
   signal accu_used_shifted : signed(ACCU_USED_SHIFTED_WIDTH-1 downto 0);
@@ -167,6 +168,19 @@ begin
            "More guard bits required for saturation/clipping and/or overflow detection."
     severity failure;
 
+  -- support clr='1' when vld='0'
+  p_clr : process(clk)
+  begin
+    if rising_edge(clk) then
+      if clr='1' and vld='0' then
+        clr_q<='1';
+      elsif vld='1' then
+        clr_q<='0';
+      end if;
+    end if;
+  end process;
+  clr_i <= clr or clr_q;
+
   -- control signal inputs
   ireg(NUM_INPUT_REG).rst <= rst;
   ireg(NUM_INPUT_REG).vld <= vld;
@@ -177,7 +191,7 @@ begin
   ireg(NUM_INPUT_REG).inmode(4) <= '0'; -- BREG controlled input
   ireg(NUM_INPUT_REG).opmode_xy <= "0101"; -- constant, always multiplier result M
   ireg(NUM_INPUT_REG).opmode_z <= "001" when USE_CHAIN_INPUT else "000"; -- constant
-  ireg(NUM_INPUT_REG).opmode_w <= "10" when clr='1' else -- add rounding constant with clear signal
+  ireg(NUM_INPUT_REG).opmode_w <= "10" when clr_i='1' else -- add rounding constant with clear signal
                                   "00" when NUM_OUTPUT_REG=0 else -- add zero when P register disabled
                                   "01"; -- feedback P accumulator register output
 

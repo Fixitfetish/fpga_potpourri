@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_multN_accu1.vhdl
 --! @author     Fixitfetish
---! @date       19/Feb/2017
---! @version    0.10
+--! @date       23/Feb/2017
+--! @version    0.20
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -55,6 +55,37 @@ library fixitfetish;
 --! This entity can be used for example
 --!   * for complex multiplication and accumulation
 --!   * to calculate the mean square of a complex number
+--!
+--! VHDL Instantiation Template:
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
+--! I1 : signed_multN_accu1
+--! generic map(
+--!   NUM_MULT           => positive, -- number of parallel multiplications
+--!   NUM_SUMMAND        => natural,  -- overall number of summed products
+--!   USE_CHAIN_INPUT    => boolean,  -- enable chain input
+--!   NUM_INPUT_REG      => natural,  -- number of input registers
+--!   NUM_OUTPUT_REG     => natural,  -- number of output registers
+--!   OUTPUT_SHIFT_RIGHT => natural,  -- number of right shifts
+--!   OUTPUT_ROUND       => boolean,  -- enable rounding half-up
+--!   OUTPUT_CLIP        => boolean,  -- enable clipping
+--!   OUTPUT_OVERFLOW    => boolean   -- enable overflow detection
+--! )
+--! port map(
+--!   clk        => in  std_logic, -- clock
+--!   rst        => in  std_logic, -- reset
+--!   clr        => in  std_logic, -- clear accu
+--!   vld        => in  std_logic, -- valid
+--!   sub        => in  std_logic_vector(0 to NUM_MULT-1), -- add/subtract
+--!   x          => in  signed_vector(0 to NUM_MULT-1), -- first factors
+--!   y          => in  signed_vector(0 to NUM_MULT-1), -- second factors
+--!   result     => out signed, -- product result
+--!   result_vld => out std_logic, -- output valid
+--!   result_ovf => out std_logic, -- output overflow
+--!   chainin    => in  signed(79 downto 0), -- chain input
+--!   chainout   => out signed(79 downto 0), -- chain output
+--!   PIPESTAGES => out natural -- constant number of pipeline stages
+--! );
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 --
 -- Optimal settings for overflow detection and/or saturation/clipping :

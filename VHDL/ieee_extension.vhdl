@@ -57,7 +57,7 @@ package ieee_extension is
  ----------------------------------------------------------
 
  --! @brief The ALL_ONES function returns '1' if all selected bits are '1' (logical AND).
- --! More details about n can be found below.
+ --! More details about the optional argument n can be found below.
  --! * for n=0 : considers all bits (default)
  --! * for n>0 : considers only the |n| rightmost LSBs
  --! * for n<0 : considers only the |n| leftmost MSBs
@@ -67,7 +67,7 @@ package ieee_extension is
  function ALL_ONES (arg:signed; n:integer:=0) return std_logic;
 
  --! @brief The ANY_ONES function returns '1' if any of the selected bits is '1' (logical OR).
- --! More details about n can be found below.
+ --! More details about the optional argument n can be found below.
  --! * for n=0 : considers all bits (default)
  --! * for n>0 : considers only the |n| rightmost LSBs
  --! * for n<0 : considers only the |n| leftmost MSBs
@@ -77,7 +77,7 @@ package ieee_extension is
  function ANY_ONES (arg:signed; n:integer:=0) return std_logic;
 
  --! @brief The ALL_ZEROS function returns '1' if all selected bits are '0' (logical NOR).
- --! More details about n can be found below.
+ --! More details about the optional argument n can be found below.
  --! * for n=0 : considers all bits (default)
  --! * for n>0 : considers only the |n| rightmost LSBs
  --! * for n<0 : considers only the |n| leftmost MSBs
@@ -87,7 +87,7 @@ package ieee_extension is
  function ALL_ZEROS (arg:signed; n:integer:=0) return std_logic;
    
  --! @brief The ANY_ZEROS function returns '1' if any of the selected bits is '0' (logical NAND).
- --! More details about n can be found below.
+ --! More details about the optional argument n can be found below.
  --! * for n=0 : considers all bits (default)
  --! * for n>0 : considers only the |n| rightmost LSBs
  --! * for n<0 : considers only the |n| leftmost MSBs
@@ -97,7 +97,7 @@ package ieee_extension is
  function ANY_ZEROS (arg:signed; n:integer:=0) return std_logic;
 
  --! @brief The ALL_EQUAL function returns '1' if all selected bits are equal, i.e. all '0' or all '1'
- --! More details about n can be found below.
+ --! More details about the optional argument n can be found below.
  --! * for n=0 : considers all bits (default)
  --! * for n>0 : considers only the |n| rightmost LSBs
  --! * for n<0 : considers only the |n| leftmost MSBs
