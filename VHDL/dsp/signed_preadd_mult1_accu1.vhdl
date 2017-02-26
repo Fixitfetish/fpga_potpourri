@@ -10,7 +10,7 @@ library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
 
---! @brief Multiply a sum of two signed with a signed and accumulate results.
+--! @brief Multiply a sum of two signed (+/-AX +/-BX)with a signed (Y) and accumulate results.
 --!
 --! @image html signed_preadd_mult1_accu1.svg "" width=600px
 --!

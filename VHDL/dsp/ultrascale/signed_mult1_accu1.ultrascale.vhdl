@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult1_accu1.ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       23/Feb/2017
---! @version    0.50
+--! @date       26/Feb/2017
+--! @version    0.60
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -39,12 +39,29 @@ library unisim;
 --! This configuration might be useful when DSP cells are chained.
 --!
 --! This implementation can be chained multiple times.
---! @image html signed_mult1_accu1.ultrascale.svg "" width=800px
+--! @image html signed_mult1_accu1.ultrascale.svg "" width=1000px
 
 architecture ultrascale of signed_mult1_accu1 is
 
   -- identifier for reports of warnings and errors
   constant IMPLEMENTATION : string := "signed_mult1_accu1(ultrascale)";
+
+  -- maximum number of input registers supported within the DSP cell
+  constant NUM_DSP_INPUT_REG : natural := 3;
+
+  -- number of input registers within DSP cell
+  function n_ireg_dsp(n:natural) return natural is
+  begin
+    if n<=NUM_DSP_INPUT_REG then return n; else return NUM_DSP_INPUT_REG; end if;
+  end function;
+  constant NUM_IREG_DSP : natural := n_ireg_dsp(NUM_INPUT_REG);
+
+  -- number of additional input registers in logic (not within DSP cell)
+  function n_ireg_logic(n:natural) return natural is
+  begin
+    if n>NUM_DSP_INPUT_REG then return n-NUM_DSP_INPUT_REG; else return 0; end if;
+  end function;
+  constant NUM_IREG_LOGIC : natural := n_ireg_logic(NUM_INPUT_REG);
 
   -- local auxiliary
   -- determine number of required additional guard bits (MSBs)
@@ -65,8 +82,20 @@ architecture ultrascale of signed_mult1_accu1 is
     return res; 
   end function;
 
+  -- first data input register is supported, in the first stage only
+  function AREG(n:natural) return natural is
+  begin
+    if n=0 then return 0; else return 1; end if;
+  end function;
+
+  -- second data input register is supported, in the third stage only
+  function ADREG(n:natural) return natural is
+  begin
+    if n<=2 then return 0; else return 1; end if;
+  end function;
+
   -- two data input registers are supported, the first and the third stage
-  function INREG(n:natural) return natural is
+  function BREG(n:natural) return natural is
   begin 
     if    n<=1 then return n;
     elsif n=2  then return 1; -- second input register uses MREG
@@ -109,7 +138,18 @@ architecture ultrascale of signed_mult1_accu1 is
     return res;
   end function;
 
-  -- input register pipeline
+  -- logic input register pipeline
+  type r_lireg is
+  record
+    rst, clr, vld : std_logic;
+    sub : std_logic;
+    x : signed(x'length-1 downto 0);
+    y  : signed(y'length-1 downto 0);
+  end record;
+  type array_lireg is array(integer range <>) of r_lireg;
+  signal lireg : array_lireg(NUM_IREG_LOGIC downto 0);
+
+  -- DSP input register pipeline
   type r_ireg is
   record
     rst, vld : std_logic;
@@ -121,7 +161,7 @@ architecture ultrascale of signed_mult1_accu1 is
     b : signed(MAX_WIDTH_B-1 downto 0);
   end record;
   type array_ireg is array(integer range <>) of r_ireg;
-  signal ireg : array_ireg(NUM_INPUT_REG downto 0);
+  signal ireg : array_ireg(NUM_IREG_DSP downto 0);
 
   -- output register pipeline
   type r_oreg is
@@ -168,51 +208,58 @@ begin
            "More guard bits required for saturation/clipping and/or overflow detection."
     severity failure;
 
+  lireg(NUM_IREG_LOGIC).rst <= rst;
+  lireg(NUM_IREG_LOGIC).clr <= clr;
+  lireg(NUM_IREG_LOGIC).vld <= vld;
+  lireg(NUM_IREG_LOGIC).sub <= sub;
+  lireg(NUM_IREG_LOGIC).x  <= x;
+  lireg(NUM_IREG_LOGIC).y  <= y;
+
+  g_lireg : if NUM_IREG_LOGIC>=1 generate
+  begin
+    g_1 : for n in 1 to NUM_IREG_LOGIC generate
+    begin
+      lireg(n-1) <= lireg(n) when rising_edge(clk);
+    end generate;
+  end generate;
+
   -- support clr='1' when vld='0'
   p_clr : process(clk)
   begin
     if rising_edge(clk) then
-      if clr='1' and vld='0' then
+      if lireg(0).clr='1' and lireg(0).vld='0' then
         clr_q<='1';
       elsif vld='1' then
         clr_q<='0';
       end if;
     end if;
   end process;
-  clr_i <= clr or clr_q;
+  clr_i <= lireg(0).clr or clr_q;
 
   -- control signal inputs
-  ireg(NUM_INPUT_REG).rst <= rst;
-  ireg(NUM_INPUT_REG).vld <= vld;
-  ireg(NUM_INPUT_REG).inmode(0) <= '0'; -- AREG controlled input
-  ireg(NUM_INPUT_REG).inmode(1) <= '0'; -- do not gate A/B
-  ireg(NUM_INPUT_REG).inmode(2) <= '0'; -- set input D=0
-  ireg(NUM_INPUT_REG).inmode(3) <= sub; -- +/- A
-  ireg(NUM_INPUT_REG).inmode(4) <= '0'; -- BREG controlled input
-  ireg(NUM_INPUT_REG).opmode_xy <= "0101"; -- constant, always multiplier result M
-  ireg(NUM_INPUT_REG).opmode_z <= "001" when USE_CHAIN_INPUT else "000"; -- constant
-  ireg(NUM_INPUT_REG).opmode_w <= "10" when clr_i='1' else -- add rounding constant with clear signal
+  ireg(NUM_IREG_DSP).rst <= lireg(0).rst;
+  ireg(NUM_IREG_DSP).vld <= lireg(0).vld;
+  ireg(NUM_IREG_DSP).inmode(0) <= '0'; -- AREG controlled input
+  ireg(NUM_IREG_DSP).inmode(1) <= '0'; -- do not gate A/B
+  ireg(NUM_IREG_DSP).inmode(2) <= '0'; -- set input D=0
+  ireg(NUM_IREG_DSP).inmode(3) <= lireg(0).sub; -- +/- A
+  ireg(NUM_IREG_DSP).inmode(4) <= '0'; -- BREG controlled input
+  ireg(NUM_IREG_DSP).opmode_xy <= "0101"; -- constant, always multiplier result M
+  ireg(NUM_IREG_DSP).opmode_z <= "001" when USE_CHAIN_INPUT else "000"; -- constant
+  ireg(NUM_IREG_DSP).opmode_w <= "10" when clr_i='1' else -- add rounding constant with clear signal
                                   "00" when NUM_OUTPUT_REG=0 else -- add zero when P register disabled
                                   "01"; -- feedback P accumulator register output
 
   -- LSB bound data inputs
-  ireg(NUM_INPUT_REG).a <= resize(x,MAX_WIDTH_A);
-  ireg(NUM_INPUT_REG).b <= resize(y,MAX_WIDTH_B);
+  ireg(NUM_IREG_DSP).a <= resize(lireg(0).x,MAX_WIDTH_A);
+  ireg(NUM_IREG_DSP).b <= resize(lireg(0).y,MAX_WIDTH_B);
 
-  g_reg : if NUM_INPUT_REG>=4 generate
-  begin
-    g_1 : for n in 4 to NUM_INPUT_REG generate
-    begin
-      ireg(n-1) <= ireg(n) when rising_edge(clk);
-    end generate;
-  end generate;
-
-  -- DSP cell data input registers A1/B1 are used as third input register stage.
-  g_in3 : if NUM_INPUT_REG>=3 generate
+  -- DSP cell data input registers AD/B2 are used as third input register stage.
+  g_in3 : if NUM_IREG_DSP>=3 generate
   begin
     ireg(2).rst <= ireg(3).rst when rising_edge(clk);
     ireg(2).vld <= ireg(3).vld when rising_edge(clk);
-    ireg(2).inmode <= ireg(3).inmode when rising_edge(clk);
+    ireg(2).inmode <= ireg(3).inmode; -- for INMODE the third register delay stage is irrelevant
     ireg(2).opmode_w <= ireg(3).opmode_w when rising_edge(clk);
     ireg(2).opmode_xy <= ireg(3).opmode_xy when rising_edge(clk);
     ireg(2).opmode_z <= ireg(3).opmode_z when rising_edge(clk);
@@ -221,12 +268,12 @@ begin
     ireg(2).b <= ireg(3).b;
   end generate;
 
-  -- DSP cell MREG register is used as third data input register stage
-  g_in2 : if NUM_INPUT_REG>=2 generate
+  -- DSP cell MREG register is used as second data input register stage
+  g_in2 : if NUM_IREG_DSP>=2 generate
   begin
     ireg(1).rst <= ireg(2).rst when rising_edge(clk);
     ireg(1).vld <= ireg(2).vld when rising_edge(clk);
-    ireg(1).inmode <= ireg(2).inmode; -- for INMODE the MREG register delay is irrelevant
+    ireg(1).inmode <= ireg(2).inmode; -- for INMODE the second register delay stage is irrelevant
     ireg(1).opmode_w <= ireg(2).opmode_w when rising_edge(clk);
     ireg(1).opmode_xy <= ireg(2).opmode_xy when rising_edge(clk);
     ireg(1).opmode_z <= ireg(2).opmode_z when rising_edge(clk);
@@ -235,12 +282,12 @@ begin
     ireg(1).b <= ireg(2).b;
   end generate;
 
-  -- DSP cell data input registers A2/B2 are used as first input register stage.
-  g_in1 : if NUM_INPUT_REG>=1 generate
+  -- DSP cell data input registers A1/B1/D are used as first input register stage.
+  g_in1 : if NUM_IREG_DSP>=1 generate
   begin
     ireg(0).rst <= ireg(1).rst when rising_edge(clk);
     ireg(0).vld <= ireg(1).vld when rising_edge(clk);
-    -- the following register are located within the DSP cell
+    -- DSP cell registers are used for first input register stage
     ireg(0).inmode <= ireg(1).inmode;
     ireg(0).opmode_w <= ireg(1).opmode_w;
     ireg(0).opmode_xy <= ireg(1).opmode_xy;
@@ -290,16 +337,16 @@ begin
     IS_RSTM_INVERTED          => '0',
     IS_RSTP_INVERTED          => '0',
     -- Register Control Attributes: Pipeline Register Configuration
-    ACASCREG                  => INREG(NUM_INPUT_REG),-- 0,1 or 2
-    ADREG                     => 0, -- disable to be conform to B path
+    ACASCREG                  => AREG(NUM_INPUT_REG),-- 0,1 or 2
+    ADREG                     => ADREG(NUM_INPUT_REG),-- 0 or 1
     ALUMODEREG                => INMODEREG(NUM_INPUT_REG), -- 0 or 1
-    AREG                      => INREG(NUM_INPUT_REG),-- 0,1 or 2
-    BCASCREG                  => INREG(NUM_INPUT_REG),-- 0,1 or 2
-    BREG                      => INREG(NUM_INPUT_REG),-- 0,1 or 2
+    AREG                      => AREG(NUM_INPUT_REG),-- 0,1 or 2
+    BCASCREG                  => BREG(NUM_INPUT_REG),-- 0,1 or 2
+    BREG                      => BREG(NUM_INPUT_REG),-- 0,1 or 2
     CARRYINREG                => 1,
     CARRYINSELREG             => 1,
     CREG                      => 1,
-    DREG                      => 1,
+    DREG                      => AREG(NUM_INPUT_REG),-- 0 or 1
     INMODEREG                 => INMODEREG(NUM_INPUT_REG), -- 0 or 1
     MREG                      => MREG(NUM_INPUT_REG), -- 0 or 1
     OPMODEREG                 => INMODEREG(NUM_INPUT_REG), -- 0 or 1
@@ -344,7 +391,7 @@ begin
     -- Clock Enable: 1-bit (each) input: Clock Enable Inputs
     CEA1               => clkena,
     CEA2               => clkena,
-    CEAD               => clkena, -- ADREG disabled, irrelevant
+    CEAD               => clkena,
     CEALUMODE          => clkena,
     CEB1               => clkena,
     CEB2               => clkena,
@@ -362,7 +409,7 @@ begin
     RSTB               => reset, -- TODO
     RSTC               => '1', -- unused
     RSTCTRL            => reset, -- TODO
-    RSTD               => '1', -- unused
+    RSTD               => reset, -- TODO
     RSTINMODE          => reset, -- TODO
     RSTM               => reset, -- TODO
     RSTP               => reset  -- TODO
