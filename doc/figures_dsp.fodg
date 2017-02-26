@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <office:document xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0" xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:meta="urn:oasis:names:tc:opendocument:xmlns:meta:1.0" xmlns:number="urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0" xmlns:presentation="urn:oasis:names:tc:opendocument:xmlns:presentation:1.0" xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0" xmlns:chart="urn:oasis:names:tc:opendocument:xmlns:chart:1.0" xmlns:dr3d="urn:oasis:names:tc:opendocument:xmlns:dr3d:1.0" xmlns:math="http://www.w3.org/1998/Math/MathML" xmlns:form="urn:oasis:names:tc:opendocument:xmlns:form:1.0" xmlns:script="urn:oasis:names:tc:opendocument:xmlns:script:1.0" xmlns:config="urn:oasis:names:tc:opendocument:xmlns:config:1.0" xmlns:ooo="http://openoffice.org/2004/office" xmlns:ooow="http://openoffice.org/2004/writer" xmlns:oooc="http://openoffice.org/2004/calc" xmlns:dom="http://www.w3.org/2001/xml-events" xmlns:xforms="http://www.w3.org/2002/xforms" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:smil="urn:oasis:names:tc:opendocument:xmlns:smil-compatible:1.0" xmlns:anim="urn:oasis:names:tc:opendocument:xmlns:animation:1.0" xmlns:rpt="http://openoffice.org/2005/report" xmlns:of="urn:oasis:names:tc:opendocument:xmlns:of:1.2" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:grddl="http://www.w3.org/2003/g/data-view#" xmlns:officeooo="http://openoffice.org/2009/office" xmlns:tableooo="http://openoffice.org/2009/table" xmlns:drawooo="http://openoffice.org/2010/draw" xmlns:calcext="urn:org:documentfoundation:names:experimental:calc:xmlns:calcext:1.0" xmlns:loext="urn:org:documentfoundation:names:experimental:office:xmlns:loext:1.0" xmlns:field="urn:openoffice:names:experimental:ooo-ms-interop:xmlns:field:1.0" xmlns:formx="urn:openoffice:names:experimental:ooxml-odf-interop:xmlns:form:1.0" xmlns:css3t="http://www.w3.org/TR/css3-text/" office:version="1.2" office:mimetype="application/vnd.oasis.opendocument.graphics">
- <office:meta><meta:creation-date>2017-01-21T08:58:09.813000000</meta:creation-date><dc:date>2017-02-14T22:43:29.848000000</dc:date><meta:editing-duration>PT5H12M47S</meta:editing-duration><meta:editing-cycles>70</meta:editing-cycles><meta:generator>LibreOffice/5.2.4.2$Windows_X86_64 LibreOffice_project/3d5603e1122f0f102b62521720ab13a38a4e0eb0</meta:generator><meta:document-statistic meta:object-count="752"/></office:meta>
+ <office:meta><meta:creation-date>2017-01-21T08:58:09.813000000</meta:creation-date><dc:date>2017-02-25T22:52:34.678000000</dc:date><meta:editing-duration>PT5H12M51S</meta:editing-duration><meta:editing-cycles>72</meta:editing-cycles><meta:generator>LibreOffice/5.2.4.2$Windows_X86_64 LibreOffice_project/3d5603e1122f0f102b62521720ab13a38a4e0eb0</meta:generator><meta:document-statistic meta:object-count="786"/></office:meta>
  <office:settings>
   <config:config-item-set config:name="ooo:view-settings">
-   <config:config-item config:name="VisibleAreaTop" config:type="int">-1018</config:config-item>
-   <config:config-item config:name="VisibleAreaLeft" config:type="int">-291</config:config-item>
-   <config:config-item config:name="VisibleAreaWidth" config:type="int">18521</config:config-item>
-   <config:config-item config:name="VisibleAreaHeight" config:type="int">13287</config:config-item>
+   <config:config-item config:name="VisibleAreaTop" config:type="int">9493</config:config-item>
+   <config:config-item config:name="VisibleAreaLeft" config:type="int">-4405</config:config-item>
+   <config:config-item config:name="VisibleAreaWidth" config:type="int">18520</config:config-item>
+   <config:config-item config:name="VisibleAreaHeight" config:type="int">13286</config:config-item>
    <config:config-item-map-indexed config:name="Views">
     <config:config-item-map-entry>
      <config:config-item config:name="ViewId" config:type="string">view1</config:config-item>
@@ -29,14 +29,14 @@
      <config:config-item config:name="NoColors" config:type="boolean">true</config:config-item>
      <config:config-item config:name="RulerIsVisible" config:type="boolean">true</config:config-item>
      <config:config-item config:name="PageKind" config:type="short">0</config:config-item>
-     <config:config-item config:name="SelectedPage" config:type="short">4</config:config-item>
+     <config:config-item config:name="SelectedPage" config:type="short">0</config:config-item>
      <config:config-item config:name="IsLayerMode" config:type="boolean">true</config:config-item>
      <config:config-item config:name="IsDoubleClickTextEdit" config:type="boolean">true</config:config-item>
      <config:config-item config:name="IsClickChangeRotation" config:type="boolean">true</config:config-item>
      <config:config-item config:name="SlidesPerRow" config:type="short">4</config:config-item>
      <config:config-item config:name="EditMode" config:type="int">0</config:config-item>
-     <config:config-item config:name="VisibleAreaTop" config:type="int">-1018</config:config-item>
-     <config:config-item config:name="VisibleAreaLeft" config:type="int">-291</config:config-item>
+     <config:config-item config:name="VisibleAreaTop" config:type="int">9493</config:config-item>
+     <config:config-item config:name="VisibleAreaLeft" config:type="int">-4405</config:config-item>
      <config:config-item config:name="VisibleAreaWidth" config:type="int">18522</config:config-item>
      <config:config-item config:name="VisibleAreaHeight" config:type="int">13288</config:config-item>
      <config:config-item config:name="GridCoarseWidth" config:type="int">400</config:config-item>
@@ -307,30 +307,39 @@
    <style:graphic-properties svg:stroke-width="0.035cm" svg:stroke-color="#ff0000" draw:marker-start-width="0.252cm" draw:marker-end-width="0.252cm" draw:fill="none" draw:textarea-vertical-align="middle" fo:padding-top="0.142cm" fo:padding-bottom="0.142cm" fo:padding-left="0.267cm" fo:padding-right="0.267cm"/>
   </style:style>
   <style:style style:name="gr21" style:family="graphic" style:parent-style-name="standard">
-   <style:graphic-properties svg:stroke-width="0.018cm" svg:stroke-color="#000000" draw:marker-start-width="0.227cm" draw:marker-end-width="0.227cm" draw:fill-color="#ffffff" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="1.732cm" fo:min-width="0.282cm" fo:padding-top="0.134cm" fo:padding-bottom="0.134cm" fo:padding-left="0.259cm" fo:padding-right="0.259cm"/>
+   <style:graphic-properties svg:stroke-width="0.018cm" svg:stroke-color="#000000" draw:marker-start-width="0.227cm" draw:marker-end-width="0.227cm" draw:fill-color="#ffffff" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="0.927cm" fo:min-width="0.282cm" fo:padding-top="0.134cm" fo:padding-bottom="0.134cm" fo:padding-left="0.259cm" fo:padding-right="0.259cm"/>
   </style:style>
-  <style:style style:name="gr22" style:family="graphic" style:parent-style-name="objectwithoutfill">
+  <style:style style:name="gr22" style:family="graphic" style:parent-style-name="standard">
+   <style:graphic-properties svg:stroke-width="0.018cm" svg:stroke-color="#000000" draw:marker-start-width="0.227cm" draw:marker-end-width="0.227cm" draw:fill-color="#ffffff" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="1.132cm" fo:min-width="0.282cm" fo:padding-top="0.134cm" fo:padding-bottom="0.134cm" fo:padding-left="0.259cm" fo:padding-right="0.259cm"/>
+  </style:style>
+  <style:style style:name="gr23" style:family="graphic" style:parent-style-name="objectwithoutfill">
    <style:graphic-properties svg:stroke-width="0.018cm" draw:marker-start-width="0.242cm" draw:marker-end="Symmetric_20_Arrow" draw:marker-end-width="0.197cm" draw:fill="none" draw:textarea-vertical-align="middle" fo:padding-top="0.134cm" fo:padding-bottom="0.134cm" fo:padding-left="0.259cm" fo:padding-right="0.259cm"/>
   </style:style>
-  <style:style style:name="gr23" style:family="graphic" style:parent-style-name="standard">
-   <style:graphic-properties svg:stroke-width="0.018cm" svg:stroke-color="#000000" draw:marker-start-width="0.227cm" draw:marker-end-width="0.227cm" draw:fill-color="#cccccc" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="1.732cm" fo:min-width="0.27cm" fo:padding-top="0.134cm" fo:padding-bottom="0.134cm" fo:padding-left="0.259cm" fo:padding-right="0.259cm"/>
-  </style:style>
   <style:style style:name="gr24" style:family="graphic" style:parent-style-name="standard">
-   <style:graphic-properties svg:stroke-width="0.018cm" svg:stroke-color="#000000" draw:marker-start-width="0.227cm" draw:marker-end-width="0.227cm" draw:fill-color="#ffffff" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="1.132cm" fo:min-width="0.682cm" fo:padding-top="0.134cm" fo:padding-bottom="0.134cm" fo:padding-left="0.259cm" fo:padding-right="0.259cm"/>
+   <style:graphic-properties svg:stroke-width="0.018cm" svg:stroke-color="#000000" draw:marker-start-width="0.227cm" draw:marker-end-width="0.227cm" draw:fill-color="#cccccc" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="1.527cm" fo:min-width="0.27cm" fo:padding-top="0.134cm" fo:padding-bottom="0.134cm" fo:padding-left="0.259cm" fo:padding-right="0.259cm"/>
   </style:style>
   <style:style style:name="gr25" style:family="graphic" style:parent-style-name="standard">
-   <style:graphic-properties svg:stroke-width="0.018cm" svg:stroke-color="#000000" draw:marker-start-width="0.227cm" draw:marker-end-width="0.227cm" draw:fill-color="#eeeeee" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="3.332cm" fo:min-width="8.482cm" fo:padding-top="0.134cm" fo:padding-bottom="0.134cm" fo:padding-left="0.259cm" fo:padding-right="0.259cm"/>
+   <style:graphic-properties svg:stroke-width="0.018cm" svg:stroke-color="#000000" draw:marker-start-width="0.227cm" draw:marker-end-width="0.227cm" draw:fill-color="#ffffff" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="1.732cm" fo:min-width="0.282cm" fo:padding-top="0.134cm" fo:padding-bottom="0.134cm" fo:padding-left="0.259cm" fo:padding-right="0.259cm"/>
   </style:style>
   <style:style style:name="gr26" style:family="graphic" style:parent-style-name="standard">
-   <style:graphic-properties svg:stroke-width="0.018cm" svg:stroke-color="#000000" draw:marker-start-width="0.227cm" draw:marker-end-width="0.227cm" draw:fill-color="#ffffff" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="2.732cm" fo:min-width="0.282cm" fo:padding-top="0.134cm" fo:padding-bottom="0.134cm" fo:padding-left="0.259cm" fo:padding-right="0.259cm"/>
+   <style:graphic-properties svg:stroke-width="0.018cm" svg:stroke-color="#000000" draw:marker-start-width="0.227cm" draw:marker-end-width="0.227cm" draw:fill-color="#cccccc" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="1.732cm" fo:min-width="0.27cm" fo:padding-top="0.134cm" fo:padding-bottom="0.134cm" fo:padding-left="0.259cm" fo:padding-right="0.259cm"/>
   </style:style>
   <style:style style:name="gr27" style:family="graphic" style:parent-style-name="standard">
-   <style:graphic-properties svg:stroke-width="0.018cm" svg:stroke-color="#000000" draw:marker-start-width="0.227cm" draw:marker-end-width="0.227cm" draw:fill-color="#cccccc" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="2.732cm" fo:min-width="0.27cm" fo:padding-top="0.134cm" fo:padding-bottom="0.134cm" fo:padding-left="0.259cm" fo:padding-right="0.259cm"/>
+   <style:graphic-properties svg:stroke-width="0.018cm" svg:stroke-color="#000000" draw:marker-start-width="0.227cm" draw:marker-end-width="0.227cm" draw:fill-color="#ffffff" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="1.132cm" fo:min-width="0.682cm" fo:padding-top="0.134cm" fo:padding-bottom="0.134cm" fo:padding-left="0.259cm" fo:padding-right="0.259cm"/>
   </style:style>
   <style:style style:name="gr28" style:family="graphic" style:parent-style-name="standard">
+   <style:graphic-properties svg:stroke-width="0.018cm" svg:stroke-color="#000000" draw:marker-start-width="0.227cm" draw:marker-end-width="0.227cm" draw:fill-color="#eeeeee" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="3.332cm" fo:min-width="8.482cm" fo:padding-top="0.134cm" fo:padding-bottom="0.134cm" fo:padding-left="0.259cm" fo:padding-right="0.259cm"/>
+  </style:style>
+  <style:style style:name="gr29" style:family="graphic" style:parent-style-name="standard">
+   <style:graphic-properties svg:stroke-width="0.018cm" svg:stroke-color="#000000" draw:marker-start-width="0.227cm" draw:marker-end-width="0.227cm" draw:fill-color="#ffffff" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="2.732cm" fo:min-width="0.282cm" fo:padding-top="0.134cm" fo:padding-bottom="0.134cm" fo:padding-left="0.259cm" fo:padding-right="0.259cm"/>
+  </style:style>
+  <style:style style:name="gr30" style:family="graphic" style:parent-style-name="standard">
+   <style:graphic-properties svg:stroke-width="0.018cm" svg:stroke-color="#000000" draw:marker-start-width="0.227cm" draw:marker-end-width="0.227cm" draw:fill-color="#cccccc" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="2.732cm" fo:min-width="0.27cm" fo:padding-top="0.134cm" fo:padding-bottom="0.134cm" fo:padding-left="0.259cm" fo:padding-right="0.259cm"/>
+  </style:style>
+  <style:style style:name="gr31" style:family="graphic" style:parent-style-name="standard">
    <style:graphic-properties svg:stroke-width="0.018cm" svg:stroke-color="#000000" draw:marker-start-width="0.227cm" draw:marker-end-width="0.227cm" draw:fill-color="#ffffff" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="0.332cm" fo:min-width="0.282cm" fo:padding-top="0.134cm" fo:padding-bottom="0.134cm" fo:padding-left="0.259cm" fo:padding-right="0.259cm"/>
   </style:style>
-  <style:style style:name="gr29" style:family="graphic" style:parent-style-name="objectwithoutfill">
+  <style:style style:name="gr32" style:family="graphic" style:parent-style-name="objectwithoutfill">
    <style:graphic-properties draw:stroke="dash" draw:stroke-dash="Dashed_20__28_var_29_" svg:stroke-width="0.035cm" draw:marker-start-width="0.252cm" draw:marker-end-width="0.252cm" draw:fill="none" draw:textarea-vertical-align="middle" fo:padding-top="0.142cm" fo:padding-bottom="0.142cm" fo:padding-left="0.267cm" fo:padding-right="0.267cm"/>
   </style:style>
   <style:style style:name="P1" style:family="paragraph">
@@ -1001,6 +1010,145 @@
       <text:p text:style-name="P9"><text:span text:style-name="T4">ACCU</text:span></text:p>
      </draw:text-box>
     </draw:frame>
+    <draw:custom-shape draw:style-name="gr1" draw:text-style-name="P1" draw:layer="layout" svg:width="9cm" svg:height="2.8cm" svg:x="2.2cm" svg:y="18.6cm">
+     <text:p/>
+     <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
+    </draw:custom-shape>
+    <draw:custom-shape draw:style-name="gr12" draw:text-style-name="P12" draw:layer="layout" svg:width="0.8cm" svg:height="0.8cm" svg:x="7.396cm" svg:y="19.005cm">
+     <text:p text:style-name="P2"><text:span text:style-name="T6">Output</text:span></text:p>
+     <text:p text:style-name="P2"><text:span text:style-name="T6">Reg</text:span></text:p>
+     <text:p text:style-name="P2"><text:span text:style-name="T6">1</text:span></text:p>
+     <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
+    </draw:custom-shape>
+    <draw:custom-shape draw:style-name="gr13" draw:text-style-name="P13" draw:layer="layout" svg:width="0.788cm" svg:height="0.8cm" svg:x="6.196cm" svg:y="19.005cm">
+     <text:p text:style-name="P2"><text:span text:style-name="T3">ADD</text:span></text:p>
+     <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
+    </draw:custom-shape>
+    <draw:line draw:style-name="gr14" draw:text-style-name="P14" draw:layer="layout" svg:x1="8.396cm" svg:y1="19.405cm" svg:x2="8.396cm" svg:y2="20.605cm">
+     <text:p/>
+    </draw:line>
+    <draw:custom-shape draw:style-name="gr21" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="1.195cm" svg:x="3.4cm" svg:y="19.005cm">
+     <text:p text:style-name="P2"><text:span text:style-name="T3">PRE</text:span></text:p>
+     <text:p text:style-name="P2"><text:span text:style-name="T3">ADD</text:span></text:p>
+     <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
+    </draw:custom-shape>
+    <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.196cm" svg:y1="19.605cm" svg:x2="4.596cm" svg:y2="19.605cm">
+     <text:p/>
+    </draw:line>
+    <draw:custom-shape draw:style-name="gr16" draw:text-style-name="P15" draw:layer="layout" svg:width="1.2cm" svg:height="0.789cm" svg:x="5.784cm" svg:y="20.216cm">
+     <text:p text:style-name="P2"><text:span text:style-name="T4">Clear</text:span></text:p>
+     <text:p text:style-name="P2"><text:span text:style-name="T4">Round</text:span></text:p>
+     <text:p text:style-name="P2"><text:span text:style-name="T4">Feedback</text:span></text:p>
+     <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
+    </draw:custom-shape>
+    <draw:custom-shape draw:style-name="gr17" draw:text-style-name="P15" draw:layer="layout" svg:width="1.2cm" svg:height="1.2cm" svg:x="8.796cm" svg:y="18.805cm">
+     <text:p text:style-name="P2"><text:span text:style-name="T4">Shift-Right</text:span></text:p>
+     <text:p text:style-name="P2"><text:span text:style-name="T4">Resize</text:span></text:p>
+     <text:p text:style-name="P2"><text:span text:style-name="T4">Clipping</text:span></text:p>
+     <text:p text:style-name="P2"><text:span text:style-name="T4">Overflow</text:span></text:p>
+     <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
+    </draw:custom-shape>
+    <draw:custom-shape draw:style-name="gr22" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="1.4cm" svg:x="4.6cm" svg:y="19.4cm">
+     <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
+     <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
+    </draw:custom-shape>
+    <draw:frame draw:style-name="gr10" draw:text-style-name="P24" draw:layer="layout" svg:width="0.7cm" svg:height="0.4cm" svg:x="3.396cm" svg:y="19.005cm">
+     <draw:text-box>
+      <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
+     </draw:text-box>
+    </draw:frame>
+    <draw:frame draw:style-name="gr10" draw:text-style-name="P24" draw:layer="layout" svg:width="0.7cm" svg:height="0.4cm" svg:x="3.396cm" svg:y="19.805cm">
+     <draw:text-box>
+      <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
+     </draw:text-box>
+    </draw:frame>
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="3cm" svg:y1="20.6cm" svg:x2="4.596cm" svg:y2="20.605cm">
+     <text:p/>
+    </draw:line>
+    <draw:line draw:style-name="gr18" draw:text-style-name="P17" draw:layer="layout" svg:x1="1.396cm" svg:y1="19.205cm" svg:x2="2.196cm" svg:y2="19.205cm">
+     <text:p text:style-name="P2"><text:span text:style-name="T7"/></text:p>
+     <text:p text:style-name="P16"><text:span text:style-name="T7">ax</text:span></text:p>
+    </draw:line>
+    <draw:line draw:style-name="gr18" draw:text-style-name="P17" draw:layer="layout" svg:x1="1.396cm" svg:y1="20.005cm" svg:x2="2.196cm" svg:y2="20.005cm">
+     <text:p text:style-name="P2"><text:span text:style-name="T7"/></text:p>
+     <text:p text:style-name="P16"><text:span text:style-name="T7">bx</text:span></text:p>
+    </draw:line>
+    <draw:line draw:style-name="gr18" draw:text-style-name="P17" draw:layer="layout" svg:x1="1.396cm" svg:y1="20.605cm" svg:x2="2.196cm" svg:y2="20.605cm">
+     <text:p text:style-name="P2"><text:span text:style-name="T7"/></text:p>
+     <text:p text:style-name="P16"><text:span text:style-name="T7">y</text:span></text:p>
+    </draw:line>
+    <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="6.996cm" svg:y1="19.405cm" svg:x2="7.396cm" svg:y2="19.405cm">
+     <text:p/>
+    </draw:line>
+    <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.4cm" svg:y1="19.6cm" svg:x2="6.2cm" svg:y2="19.6cm">
+     <text:p/>
+    </draw:line>
+    <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="8.196cm" svg:y1="19.405cm" svg:x2="8.796cm" svg:y2="19.405cm">
+     <text:p/>
+    </draw:line>
+    <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="6.596cm" svg:y1="20.205cm" svg:x2="6.596cm" svg:y2="19.805cm">
+     <text:p/>
+    </draw:line>
+    <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="7.396cm" svg:y1="20.605cm" svg:x2="6.996cm" svg:y2="20.605cm">
+     <text:p/>
+    </draw:line>
+    <draw:line draw:style-name="gr18" draw:text-style-name="P17" draw:layer="layout" svg:x1="11.196cm" svg:y1="19.405cm" svg:x2="12.196cm" svg:y2="19.405cm">
+     <text:p text:style-name="P2"><text:span text:style-name="T7"/></text:p>
+     <text:p text:style-name="P2"><text:span text:style-name="T7">result <text:s/></text:span></text:p>
+    </draw:line>
+    <draw:frame draw:style-name="gr10" draw:text-style-name="P19" draw:layer="layout" svg:width="5.6cm" svg:height="0.4cm" svg:x="1.396cm" svg:y="18.105cm">
+     <draw:text-box>
+      <text:p text:style-name="P18"><text:span text:style-name="T8">Signed Preadd Mult1 Accu1</text:span></text:p>
+     </draw:text-box>
+    </draw:frame>
+    <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.796cm" svg:y1="19.205cm" svg:x2="6.196cm" svg:y2="19.205cm">
+     <text:p/>
+    </draw:line>
+    <draw:line draw:style-name="gr14" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.796cm" svg:y1="18.605cm" svg:x2="5.796cm" svg:y2="19.205cm">
+     <text:p/>
+    </draw:line>
+    <draw:frame draw:style-name="gr10" draw:text-style-name="P20" draw:layer="layout" svg:width="1cm" svg:height="0.3cm" svg:x="5.896cm" svg:y="18.605cm">
+     <draw:text-box>
+      <text:p text:style-name="P18"><text:span text:style-name="T4">chainin</text:span></text:p>
+     </draw:text-box>
+    </draw:frame>
+    <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="7.396cm" svg:y1="20.605cm" svg:x2="7.396cm" svg:y2="21.405cm">
+     <text:p/>
+    </draw:line>
+    <draw:frame draw:style-name="gr10" draw:text-style-name="P20" draw:layer="layout" svg:width="1cm" svg:height="0.3cm" svg:x="7.496cm" svg:y="21.105cm">
+     <draw:text-box>
+      <text:p text:style-name="P18"><text:span text:style-name="T4">chainout</text:span></text:p>
+     </draw:text-box>
+    </draw:frame>
+    <draw:line draw:style-name="gr14" draw:text-style-name="P14" draw:layer="layout" svg:x1="8.396cm" svg:y1="20.605cm" svg:x2="7.396cm" svg:y2="20.605cm">
+     <text:p/>
+    </draw:line>
+    <draw:custom-shape draw:style-name="gr24" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="1.795cm" svg:x="2.208cm" svg:y="19.005cm">
+     <text:p text:style-name="P2"><text:span text:style-name="T3">Input</text:span></text:p>
+     <text:p text:style-name="P2"><text:span text:style-name="T3">Reg</text:span></text:p>
+     <text:p text:style-name="P2"><text:span text:style-name="T3">N</text:span></text:p>
+     <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
+    </draw:custom-shape>
+    <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="2.996cm" svg:y1="20.005cm" svg:x2="3.396cm" svg:y2="20.005cm">
+     <text:p/>
+    </draw:line>
+    <draw:custom-shape draw:style-name="gr19" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="0.8cm" svg:x="10.408cm" svg:y="19.005cm">
+     <text:p text:style-name="P2"><text:span text:style-name="T3">Output</text:span></text:p>
+     <text:p text:style-name="P2"><text:span text:style-name="T3">Reg</text:span></text:p>
+     <text:p text:style-name="P2"><text:span text:style-name="T3">2..N</text:span></text:p>
+     <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
+    </draw:custom-shape>
+    <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="9.996cm" svg:y1="19.405cm" svg:x2="10.396cm" svg:y2="19.405cm">
+     <text:p/>
+    </draw:line>
+    <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="2.996cm" svg:y1="19.205cm" svg:x2="3.396cm" svg:y2="19.205cm">
+     <text:p/>
+    </draw:line>
+    <draw:frame draw:style-name="gr10" draw:text-style-name="P20" draw:layer="layout" svg:width="0.8cm" svg:height="0.3cm" svg:x="7.396cm" svg:y="19.805cm">
+     <draw:text-box>
+      <text:p text:style-name="P9"><text:span text:style-name="T4">ACCU</text:span></text:p>
+     </draw:text-box>
+    </draw:frame>
    </draw:page>
    <draw:page draw:name="page2" draw:style-name="dp2" draw:master-page-name="Standard">
     <draw:custom-shape draw:style-name="gr1" draw:text-style-name="P1" draw:layer="layout" svg:width="9cm" svg:height="2.8cm" svg:x="2.2cm" svg:y="7cm">
@@ -1020,7 +1168,7 @@
     <draw:line draw:style-name="gr14" draw:text-style-name="P14" draw:layer="layout" svg:x1="8.4cm" svg:y1="7.8cm" svg:x2="8.4cm" svg:y2="9cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr21" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="2cm" svg:x="4.6cm" svg:y="7.4cm">
+    <draw:custom-shape draw:style-name="gr25" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="2cm" svg:x="4.6cm" svg:y="7.4cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">ADD</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
@@ -1060,7 +1208,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="9cm" svg:x2="4.6cm" svg:y2="9cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="9cm" svg:x2="4.6cm" svg:y2="9cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr18" draw:text-style-name="P17" draw:layer="layout" svg:x1="1.4cm" svg:y1="7.6cm" svg:x2="2.2cm" svg:y2="7.6cm">
@@ -1125,7 +1273,7 @@
     <draw:line draw:style-name="gr14" draw:text-style-name="P14" draw:layer="layout" svg:x1="8.4cm" svg:y1="9cm" svg:x2="7.4cm" svg:y2="9cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr23" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="2cm" svg:x="2.212cm" svg:y="7.4cm">
+    <draw:custom-shape draw:style-name="gr26" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="2cm" svg:x="2.212cm" svg:y="7.4cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">Input</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">Reg</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">N</text:span></text:p>
@@ -1163,7 +1311,7 @@
     <draw:line draw:style-name="gr14" draw:text-style-name="P14" draw:layer="layout" svg:x1="8.4cm" svg:y1="12.2cm" svg:x2="8.4cm" svg:y2="13.4cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr21" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="2cm" svg:x="4.6cm" svg:y="11.8cm">
+    <draw:custom-shape draw:style-name="gr25" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="2cm" svg:x="4.6cm" svg:y="11.8cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">ADD</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
@@ -1203,7 +1351,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="13.4cm" svg:x2="4.6cm" svg:y2="13.4cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="13.4cm" svg:x2="4.6cm" svg:y2="13.4cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr18" draw:text-style-name="P17" draw:layer="layout" svg:x1="1.4cm" svg:y1="12cm" svg:x2="2.2cm" svg:y2="12cm">
@@ -1264,7 +1412,7 @@
     <draw:line draw:style-name="gr14" draw:text-style-name="P14" draw:layer="layout" svg:x1="8.4cm" svg:y1="13.4cm" svg:x2="7.4cm" svg:y2="13.4cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr23" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="2cm" svg:x="2.212cm" svg:y="11.8cm">
+    <draw:custom-shape draw:style-name="gr26" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="2cm" svg:x="2.212cm" svg:y="11.8cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">Input</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">Reg</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">N</text:span></text:p>
@@ -1302,7 +1450,7 @@
     <draw:line draw:style-name="gr14" draw:text-style-name="P14" draw:layer="layout" svg:x1="10cm" svg:y1="15.4cm" svg:x2="10cm" svg:y2="16.6cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr21" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="2cm" svg:x="6.2cm" svg:y="15cm">
+    <draw:custom-shape draw:style-name="gr25" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="2cm" svg:x="6.2cm" svg:y="15cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">ADD</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
@@ -1342,7 +1490,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.8cm" svg:y1="16.6cm" svg:x2="6.2cm" svg:y2="16.6cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.8cm" svg:y1="16.6cm" svg:x2="6.2cm" svg:y2="16.6cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr18" draw:text-style-name="P17" draw:layer="layout" svg:x1="3cm" svg:y1="15.2cm" svg:x2="3.8cm" svg:y2="15.2cm">
@@ -1402,7 +1550,7 @@
     <draw:line draw:style-name="gr14" draw:text-style-name="P14" draw:layer="layout" svg:x1="10cm" svg:y1="16.6cm" svg:x2="9cm" svg:y2="16.6cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr23" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="2cm" svg:x="3.8cm" svg:y="15cm">
+    <draw:custom-shape draw:style-name="gr26" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="2cm" svg:x="3.8cm" svg:y="15cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">Input</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">Reg</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">N+1</text:span></text:p>
@@ -1460,7 +1608,7 @@
     <draw:line draw:style-name="gr14" draw:text-style-name="P14" draw:layer="layout" svg:x1="8.4cm" svg:y1="3cm" svg:x2="8.4cm" svg:y2="4.2cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr21" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="2cm" svg:x="4.6cm" svg:y="2.6cm">
+    <draw:custom-shape draw:style-name="gr25" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="2cm" svg:x="4.6cm" svg:y="2.6cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">ADD</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
@@ -1487,7 +1635,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="4.2cm" svg:x2="4.6cm" svg:y2="4.2cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="4.2cm" svg:x2="4.6cm" svg:y2="4.2cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr18" draw:text-style-name="P17" draw:layer="layout" svg:x1="1.4cm" svg:y1="2.8cm" svg:x2="2.2cm" svg:y2="2.8cm">
@@ -1532,7 +1680,7 @@
     <draw:line draw:style-name="gr14" draw:text-style-name="P14" draw:layer="layout" svg:x1="8.4cm" svg:y1="4.2cm" svg:x2="7.4cm" svg:y2="4.2cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr23" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="2cm" svg:x="2.212cm" svg:y="2.6cm">
+    <draw:custom-shape draw:style-name="gr26" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="2cm" svg:x="2.212cm" svg:y="2.6cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">Input</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">Reg</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">N</text:span></text:p>
@@ -1564,7 +1712,7 @@
       <text:p text:style-name="P22"><text:span text:style-name="T9">signed_mult2_sum</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:custom-shape draw:style-name="gr24" draw:text-style-name="P15" draw:layer="layout" svg:width="1.2cm" svg:height="1.4cm" svg:x="8.8cm" svg:y="2.3cm">
+    <draw:custom-shape draw:style-name="gr27" draw:text-style-name="P15" draw:layer="layout" svg:width="1.2cm" svg:height="1.4cm" svg:x="8.8cm" svg:y="2.3cm">
      <text:p text:style-name="P2"><text:span text:style-name="T4">Shift-Right</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T4">Round</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T4">Resize</text:span></text:p>
@@ -1607,15 +1755,15 @@
     </draw:custom-shape>
    </draw:page>
    <draw:page draw:name="page3" draw:style-name="dp2" draw:master-page-name="Standard">
-    <draw:custom-shape draw:style-name="gr25" draw:text-style-name="P1" draw:layer="layout" svg:width="9cm" svg:height="3.6cm" svg:x="2.2cm" svg:y="12.2cm">
+    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P1" draw:layer="layout" svg:width="9cm" svg:height="3.6cm" svg:x="2.2cm" svg:y="12.2cm">
      <text:p/>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr25" draw:text-style-name="P1" draw:layer="layout" svg:width="9cm" svg:height="3.6cm" svg:x="2.2cm" svg:y="7cm">
+    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P1" draw:layer="layout" svg:width="9cm" svg:height="3.6cm" svg:x="2.2cm" svg:y="7cm">
      <text:p/>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr26" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="3cm" svg:x="4.6cm" svg:y="7.2cm">
+    <draw:custom-shape draw:style-name="gr29" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="3cm" svg:x="4.6cm" svg:y="7.2cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">ADD</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
@@ -1629,7 +1777,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T8">Signed Mult8 Accu – Chain</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:custom-shape draw:style-name="gr27" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="3cm" svg:x="2.212cm" svg:y="7.2cm">
+    <draw:custom-shape draw:style-name="gr30" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="3cm" svg:x="2.212cm" svg:y="7.2cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">Input</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">Reg</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">N</text:span></text:p>
@@ -1686,7 +1834,7 @@
     <draw:line draw:style-name="gr20" draw:text-style-name="P14" draw:layer="layout" svg:x1="6.8cm" svg:y1="14.6cm" svg:x2="6.2cm" svg:y2="15.6cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="8.8cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="8.8cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">2</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -1694,7 +1842,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="9.1cm" svg:x2="4.6cm" svg:y2="9.1cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="9.6cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="9.6cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">3</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -1709,7 +1857,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="9.9cm" svg:x2="4.6cm" svg:y2="9.9cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="9.9cm" svg:x2="4.6cm" svg:y2="9.9cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="3cm" svg:y1="9.3cm" svg:x2="3.4cm" svg:y2="9.3cm">
@@ -1724,7 +1872,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="3cm" svg:y1="8.9cm" svg:x2="3.4cm" svg:y2="8.9cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="7.2cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="7.2cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">0</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -1732,7 +1880,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="7.5cm" svg:x2="4.6cm" svg:y2="7.5cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="8cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="8cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">1</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -1747,7 +1895,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="8.3cm" svg:x2="4.6cm" svg:y2="8.3cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="8.3cm" svg:x2="4.6cm" svg:y2="8.3cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="3cm" svg:y1="7.7cm" svg:x2="3.4cm" svg:y2="7.7cm">
@@ -1875,17 +2023,17 @@
       <text:p text:style-name="P22"><text:span text:style-name="T9">signed_mult4_accu</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:custom-shape draw:style-name="gr26" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="3cm" svg:x="4.6cm" svg:y="12.4cm">
+    <draw:custom-shape draw:style-name="gr29" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="3cm" svg:x="4.6cm" svg:y="12.4cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">ADD</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr27" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="3cm" svg:x="2.212cm" svg:y="12.4cm">
+    <draw:custom-shape draw:style-name="gr30" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="3cm" svg:x="2.212cm" svg:y="12.4cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">Input</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">Reg</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">N</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="14cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="14cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">2</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -1893,7 +2041,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="14.3cm" svg:x2="4.6cm" svg:y2="14.3cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="14.8cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="14.8cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">3</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -1908,7 +2056,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="15.1cm" svg:x2="4.6cm" svg:y2="15.1cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="15.1cm" svg:x2="4.6cm" svg:y2="15.1cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="3cm" svg:y1="14.5cm" svg:x2="3.4cm" svg:y2="14.5cm">
@@ -1923,7 +2071,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="3cm" svg:y1="14.1cm" svg:x2="3.4cm" svg:y2="14.1cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="12.4cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="12.4cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">0</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -1931,7 +2079,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="12.7cm" svg:x2="4.6cm" svg:y2="12.7cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="13.2cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="13.2cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">1</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -1946,7 +2094,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="13.5cm" svg:x2="4.6cm" svg:y2="13.5cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="13.5cm" svg:x2="4.6cm" svg:y2="13.5cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="3cm" svg:y1="12.9cm" svg:x2="3.4cm" svg:y2="12.9cm">
@@ -2054,21 +2202,21 @@
     <draw:line draw:style-name="gr20" draw:text-style-name="P14" draw:layer="layout" svg:x1="11.1cm" svg:y1="13.4cm" svg:x2="10.5cm" svg:y2="14.4cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr25" draw:text-style-name="P1" draw:layer="layout" svg:width="9cm" svg:height="3.6cm" svg:x="3.8cm" svg:y="16.2cm">
+    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P1" draw:layer="layout" svg:width="9cm" svg:height="3.6cm" svg:x="3.8cm" svg:y="16.2cm">
      <text:p/>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr26" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="3cm" svg:x="6.2cm" svg:y="16.4cm">
+    <draw:custom-shape draw:style-name="gr29" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="3cm" svg:x="6.2cm" svg:y="16.4cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">ADD</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr27" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="3cm" svg:x="3.812cm" svg:y="16.4cm">
+    <draw:custom-shape draw:style-name="gr30" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="3cm" svg:x="3.812cm" svg:y="16.4cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">Input</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">Reg</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">N+P</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="5cm" svg:y="18cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="5cm" svg:y="18cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">6</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -2076,7 +2224,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.8cm" svg:y1="18.3cm" svg:x2="6.2cm" svg:y2="18.3cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="5cm" svg:y="18.8cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="5cm" svg:y="18.8cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">7</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -2091,7 +2239,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.8cm" svg:y1="19.1cm" svg:x2="6.2cm" svg:y2="19.1cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.8cm" svg:y1="19.1cm" svg:x2="6.2cm" svg:y2="19.1cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.6cm" svg:y1="18.5cm" svg:x2="5cm" svg:y2="18.5cm">
@@ -2106,7 +2254,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.6cm" svg:y1="18.1cm" svg:x2="5cm" svg:y2="18.1cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="5cm" svg:y="16.4cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="5cm" svg:y="16.4cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">4</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -2114,7 +2262,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.8cm" svg:y1="16.7cm" svg:x2="6.2cm" svg:y2="16.7cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="5cm" svg:y="17.2cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="5cm" svg:y="17.2cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">5</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -2129,7 +2277,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.8cm" svg:y1="17.5cm" svg:x2="6.2cm" svg:y2="17.5cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.8cm" svg:y1="17.5cm" svg:x2="6.2cm" svg:y2="17.5cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.6cm" svg:y1="16.9cm" svg:x2="5cm" svg:y2="16.9cm">
@@ -2219,11 +2367,11 @@
       <text:p text:style-name="P22"><text:span text:style-name="T9">signed_mult4_accu</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:custom-shape draw:style-name="gr25" draw:text-style-name="P1" draw:layer="layout" svg:width="9cm" svg:height="3.6cm" svg:x="2.2cm" svg:y="2.2cm">
+    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P1" draw:layer="layout" svg:width="9cm" svg:height="3.6cm" svg:x="2.2cm" svg:y="2.2cm">
      <text:p/>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr26" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="3cm" svg:x="4.6cm" svg:y="2.4cm">
+    <draw:custom-shape draw:style-name="gr29" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="3cm" svg:x="4.6cm" svg:y="2.4cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">ADD</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
@@ -2232,13 +2380,13 @@
       <text:p text:style-name="P18"><text:span text:style-name="T8">Signed Mult4 Sum</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:custom-shape draw:style-name="gr27" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="3cm" svg:x="2.212cm" svg:y="2.4cm">
+    <draw:custom-shape draw:style-name="gr30" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="3cm" svg:x="2.212cm" svg:y="2.4cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">Input</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">Reg</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">N</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="4cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="4cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">2</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -2246,7 +2394,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="4.3cm" svg:x2="4.6cm" svg:y2="4.3cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="4.8cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="4.8cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">3</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -2261,7 +2409,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="5.1cm" svg:x2="4.6cm" svg:y2="5.1cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="5.1cm" svg:x2="4.6cm" svg:y2="5.1cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="3cm" svg:y1="4.5cm" svg:x2="3.4cm" svg:y2="4.5cm">
@@ -2276,7 +2424,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="3cm" svg:y1="4.1cm" svg:x2="3.4cm" svg:y2="4.1cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="2.4cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="2.4cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">0</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -2284,7 +2432,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="2.7cm" svg:x2="4.6cm" svg:y2="2.7cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="3.2cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="3.2cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">1</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -2299,7 +2447,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="3.5cm" svg:x2="4.6cm" svg:y2="3.5cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="3.5cm" svg:x2="4.6cm" svg:y2="3.5cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="3cm" svg:y1="2.9cm" svg:x2="3.4cm" svg:y2="2.9cm">
@@ -2349,7 +2497,7 @@
     <draw:line draw:style-name="gr14" draw:text-style-name="P14" draw:layer="layout" svg:x1="8.4cm" svg:y1="3.9cm" svg:x2="8.4cm" svg:y2="5.1cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr24" draw:text-style-name="P15" draw:layer="layout" svg:width="1.2cm" svg:height="1.4cm" svg:x="8.8cm" svg:y="3.2cm">
+    <draw:custom-shape draw:style-name="gr27" draw:text-style-name="P15" draw:layer="layout" svg:width="1.2cm" svg:height="1.4cm" svg:x="8.8cm" svg:y="3.2cm">
      <text:p text:style-name="P2"><text:span text:style-name="T4">Shift-Right</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T4">Round</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T4">Resize</text:span></text:p>
@@ -2422,15 +2570,15 @@
     </draw:frame>
    </draw:page>
    <draw:page draw:name="page4" draw:style-name="dp2" draw:master-page-name="Standard">
-    <draw:custom-shape draw:style-name="gr25" draw:text-style-name="P1" draw:layer="layout" svg:width="9cm" svg:height="3.6cm" svg:x="2.2cm" svg:y="7.4cm">
+    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P1" draw:layer="layout" svg:width="9cm" svg:height="3.6cm" svg:x="2.2cm" svg:y="7.4cm">
      <text:p/>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr25" draw:text-style-name="P1" draw:layer="layout" svg:width="9cm" svg:height="3.6cm" svg:x="2.2cm" svg:y="2.2cm">
+    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P1" draw:layer="layout" svg:width="9cm" svg:height="3.6cm" svg:x="2.2cm" svg:y="2.2cm">
      <text:p/>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr26" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="3cm" svg:x="4.6cm" svg:y="2.4cm">
+    <draw:custom-shape draw:style-name="gr29" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="3cm" svg:x="4.6cm" svg:y="2.4cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">ADD</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
@@ -2444,7 +2592,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T8">Signed Mult16 Accu – Chain</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:custom-shape draw:style-name="gr27" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="3cm" svg:x="2.212cm" svg:y="2.4cm">
+    <draw:custom-shape draw:style-name="gr30" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="3cm" svg:x="2.212cm" svg:y="2.4cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">Input</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">Reg</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">N</text:span></text:p>
@@ -2469,7 +2617,7 @@
     <draw:line draw:style-name="gr20" draw:text-style-name="P14" draw:layer="layout" svg:x1="6.8cm" svg:y1="9.8cm" svg:x2="6.2cm" svg:y2="10.8cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="4.8cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="4.8cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">7</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -2479,7 +2627,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="5.1cm" svg:x2="4.6cm" svg:y2="5.1cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="5.1cm" svg:x2="4.6cm" svg:y2="5.1cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="3cm" svg:y1="5.3cm" svg:x2="3.4cm" svg:y2="5.3cm">
@@ -2488,7 +2636,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="3cm" svg:y1="4.9cm" svg:x2="3.4cm" svg:y2="4.9cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="2.4cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="2.4cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">0</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -2496,7 +2644,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="2.7cm" svg:x2="4.6cm" svg:y2="2.7cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="3.2cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="3.2cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">1</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -2511,7 +2659,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="3.5cm" svg:x2="4.6cm" svg:y2="3.5cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="3.5cm" svg:x2="4.6cm" svg:y2="3.5cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="3cm" svg:y1="2.9cm" svg:x2="3.4cm" svg:y2="2.9cm">
@@ -2631,17 +2779,17 @@
       <text:p text:style-name="P22"><text:span text:style-name="T9">signed_mult8_accu</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:custom-shape draw:style-name="gr26" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="3cm" svg:x="4.6cm" svg:y="7.6cm">
+    <draw:custom-shape draw:style-name="gr29" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="3cm" svg:x="4.6cm" svg:y="7.6cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">ADD</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr27" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="3cm" svg:x="2.212cm" svg:y="7.6cm">
+    <draw:custom-shape draw:style-name="gr30" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="3cm" svg:x="2.212cm" svg:y="7.6cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">Input</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">Reg</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">N</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="10cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="10cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">7</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -2651,7 +2799,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="10.3cm" svg:x2="4.6cm" svg:y2="10.3cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="10.3cm" svg:x2="4.6cm" svg:y2="10.3cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="3cm" svg:y1="10.5cm" svg:x2="3.4cm" svg:y2="10.5cm">
@@ -2660,7 +2808,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="3cm" svg:y1="10.1cm" svg:x2="3.4cm" svg:y2="10.1cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="7.6cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="7.6cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">0</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -2668,7 +2816,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="7.9cm" svg:x2="4.6cm" svg:y2="7.9cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="8.4cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="8.4cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">1</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -2683,7 +2831,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="8.7cm" svg:x2="4.6cm" svg:y2="8.7cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="8.7cm" svg:x2="4.6cm" svg:y2="8.7cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="3cm" svg:y1="8.1cm" svg:x2="3.4cm" svg:y2="8.1cm">
@@ -2759,7 +2907,7 @@
     <draw:line draw:style-name="gr20" draw:text-style-name="P14" draw:layer="layout" svg:x1="11.1cm" svg:y1="8.6cm" svg:x2="10.5cm" svg:y2="9.6cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr25" draw:text-style-name="P1" draw:layer="layout" svg:width="9cm" svg:height="3.6cm" svg:x="3.8cm" svg:y="11.4cm">
+    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P1" draw:layer="layout" svg:width="9cm" svg:height="3.6cm" svg:x="3.8cm" svg:y="11.4cm">
      <text:p/>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
@@ -2838,10 +2986,10 @@
       <text:p text:style-name="P22"><text:span text:style-name="T9">signed_mult8_accu</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr29" draw:text-style-name="P14" draw:layer="layout" svg:x1="3.8cm" svg:y1="4cm" svg:x2="3.8cm" svg:y2="4.6cm">
+    <draw:line draw:style-name="gr32" draw:text-style-name="P14" draw:layer="layout" svg:x1="3.8cm" svg:y1="4cm" svg:x2="3.8cm" svg:y2="4.6cm">
      <text:p/>
     </draw:line>
-    <draw:line draw:style-name="gr29" draw:text-style-name="P14" draw:layer="layout" svg:x1="1.8cm" svg:y1="4.1cm" svg:x2="1.8cm" svg:y2="4.7cm">
+    <draw:line draw:style-name="gr32" draw:text-style-name="P14" draw:layer="layout" svg:x1="1.8cm" svg:y1="4.1cm" svg:x2="1.8cm" svg:y2="4.7cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr18" draw:text-style-name="P17" draw:layer="layout" svg:x1="1.4cm" svg:y1="7.7cm" svg:x2="2.2cm" svg:y2="7.7cm">
@@ -2868,23 +3016,23 @@
      <text:p text:style-name="P2"><text:span text:style-name="T7"/></text:p>
      <text:p text:style-name="P16"><text:span text:style-name="T7">y7</text:span></text:p>
     </draw:line>
-    <draw:line draw:style-name="gr29" draw:text-style-name="P14" draw:layer="layout" svg:x1="1.8cm" svg:y1="9.3cm" svg:x2="1.8cm" svg:y2="9.9cm">
+    <draw:line draw:style-name="gr32" draw:text-style-name="P14" draw:layer="layout" svg:x1="1.8cm" svg:y1="9.3cm" svg:x2="1.8cm" svg:y2="9.9cm">
      <text:p/>
     </draw:line>
-    <draw:line draw:style-name="gr29" draw:text-style-name="P14" draw:layer="layout" svg:x1="3.8cm" svg:y1="9.2cm" svg:x2="3.8cm" svg:y2="9.8cm">
+    <draw:line draw:style-name="gr32" draw:text-style-name="P14" draw:layer="layout" svg:x1="3.8cm" svg:y1="9.2cm" svg:x2="3.8cm" svg:y2="9.8cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr26" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="3cm" svg:x="6.2cm" svg:y="11.6cm">
+    <draw:custom-shape draw:style-name="gr29" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="3cm" svg:x="6.2cm" svg:y="11.6cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">ADD</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr27" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="3cm" svg:x="3.812cm" svg:y="11.6cm">
+    <draw:custom-shape draw:style-name="gr30" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="3cm" svg:x="3.812cm" svg:y="11.6cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">Input</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">Reg</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">N+P</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="5cm" svg:y="14cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="5cm" svg:y="14cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">15</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -2894,7 +3042,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.8cm" svg:y1="14.3cm" svg:x2="6.2cm" svg:y2="14.3cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.8cm" svg:y1="14.3cm" svg:x2="6.2cm" svg:y2="14.3cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.6cm" svg:y1="14.5cm" svg:x2="5cm" svg:y2="14.5cm">
@@ -2903,7 +3051,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.6cm" svg:y1="14.1cm" svg:x2="5cm" svg:y2="14.1cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="5cm" svg:y="11.6cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="5cm" svg:y="11.6cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">8</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -2911,7 +3059,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.8cm" svg:y1="11.9cm" svg:x2="6.2cm" svg:y2="11.9cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="5cm" svg:y="12.4cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="5cm" svg:y="12.4cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">9</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -2926,7 +3074,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.8cm" svg:y1="12.7cm" svg:x2="6.2cm" svg:y2="12.7cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.8cm" svg:y1="12.7cm" svg:x2="6.2cm" svg:y2="12.7cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.6cm" svg:y1="12.1cm" svg:x2="5cm" svg:y2="12.1cm">
@@ -2965,10 +3113,10 @@
      <text:p text:style-name="P2"><text:span text:style-name="T7"/></text:p>
      <text:p text:style-name="P16"><text:span text:style-name="T7">y15</text:span></text:p>
     </draw:line>
-    <draw:line draw:style-name="gr29" draw:text-style-name="P14" draw:layer="layout" svg:x1="3.4cm" svg:y1="13.3cm" svg:x2="3.4cm" svg:y2="13.9cm">
+    <draw:line draw:style-name="gr32" draw:text-style-name="P14" draw:layer="layout" svg:x1="3.4cm" svg:y1="13.3cm" svg:x2="3.4cm" svg:y2="13.9cm">
      <text:p/>
     </draw:line>
-    <draw:line draw:style-name="gr29" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.4cm" svg:y1="13.2cm" svg:x2="5.4cm" svg:y2="13.8cm">
+    <draw:line draw:style-name="gr32" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.4cm" svg:y1="13.2cm" svg:x2="5.4cm" svg:y2="13.8cm">
      <text:p/>
     </draw:line>
     <draw:custom-shape draw:style-name="gr12" draw:text-style-name="P12" draw:layer="layout" svg:width="0.8cm" svg:height="0.8cm" svg:x="7.4cm" svg:y="8.7cm">
@@ -2995,15 +3143,15 @@
     </draw:frame>
    </draw:page>
    <draw:page draw:name="page5" draw:style-name="dp2" draw:master-page-name="Standard">
-    <draw:custom-shape draw:style-name="gr25" draw:text-style-name="P1" draw:layer="layout" svg:width="9cm" svg:height="3.6cm" svg:x="2.2cm" svg:y="7.4cm">
+    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P1" draw:layer="layout" svg:width="9cm" svg:height="3.6cm" svg:x="2.2cm" svg:y="7.4cm">
      <text:p/>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr25" draw:text-style-name="P1" draw:layer="layout" svg:width="9cm" svg:height="3.6cm" svg:x="2.2cm" svg:y="2.2cm">
+    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P1" draw:layer="layout" svg:width="9cm" svg:height="3.6cm" svg:x="2.2cm" svg:y="2.2cm">
      <text:p/>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr26" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="3cm" svg:x="4.6cm" svg:y="2.4cm">
+    <draw:custom-shape draw:style-name="gr29" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="3cm" svg:x="4.6cm" svg:y="2.4cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">ADD</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
@@ -3017,7 +3165,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T8">Signed Mult32 Accu – Chain</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:custom-shape draw:style-name="gr27" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="3cm" svg:x="2.212cm" svg:y="2.4cm">
+    <draw:custom-shape draw:style-name="gr30" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="3cm" svg:x="2.212cm" svg:y="2.4cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">Input</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">Reg</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">N</text:span></text:p>
@@ -3042,7 +3190,7 @@
     <draw:line draw:style-name="gr20" draw:text-style-name="P14" draw:layer="layout" svg:x1="6.8cm" svg:y1="9.8cm" svg:x2="6.2cm" svg:y2="10.8cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="4.8cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="4.8cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">15</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -3052,7 +3200,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="5.1cm" svg:x2="4.6cm" svg:y2="5.1cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="5.1cm" svg:x2="4.6cm" svg:y2="5.1cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="3cm" svg:y1="5.3cm" svg:x2="3.4cm" svg:y2="5.3cm">
@@ -3061,7 +3209,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="3cm" svg:y1="4.9cm" svg:x2="3.4cm" svg:y2="4.9cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="2.4cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="2.4cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">0</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -3069,7 +3217,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="2.7cm" svg:x2="4.6cm" svg:y2="2.7cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="3.2cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="3.2cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">1</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -3084,7 +3232,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="3.5cm" svg:x2="4.6cm" svg:y2="3.5cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="3.5cm" svg:x2="4.6cm" svg:y2="3.5cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="3cm" svg:y1="2.9cm" svg:x2="3.4cm" svg:y2="2.9cm">
@@ -3198,17 +3346,17 @@
       <text:p text:style-name="P22"><text:span text:style-name="T9">signed_mult16_accu</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:custom-shape draw:style-name="gr26" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="3cm" svg:x="4.6cm" svg:y="7.6cm">
+    <draw:custom-shape draw:style-name="gr29" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="3cm" svg:x="4.6cm" svg:y="7.6cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">ADD</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr27" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="3cm" svg:x="2.212cm" svg:y="7.6cm">
+    <draw:custom-shape draw:style-name="gr30" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="3cm" svg:x="2.212cm" svg:y="7.6cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">Input</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">Reg</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">N</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="10cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="10cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">15</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -3218,7 +3366,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="10.3cm" svg:x2="4.6cm" svg:y2="10.3cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="10.3cm" svg:x2="4.6cm" svg:y2="10.3cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="3cm" svg:y1="10.5cm" svg:x2="3.4cm" svg:y2="10.5cm">
@@ -3227,7 +3375,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="3cm" svg:y1="10.1cm" svg:x2="3.4cm" svg:y2="10.1cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="7.6cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="7.6cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">0</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -3235,7 +3383,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="7.9cm" svg:x2="4.6cm" svg:y2="7.9cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="8.4cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="3.4cm" svg:y="8.4cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">1</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -3250,7 +3398,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="8.7cm" svg:x2="4.6cm" svg:y2="8.7cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.2cm" svg:y1="8.7cm" svg:x2="4.6cm" svg:y2="8.7cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="3cm" svg:y1="8.1cm" svg:x2="3.4cm" svg:y2="8.1cm">
@@ -3326,7 +3474,7 @@
     <draw:line draw:style-name="gr20" draw:text-style-name="P14" draw:layer="layout" svg:x1="11.1cm" svg:y1="8.6cm" svg:x2="10.5cm" svg:y2="9.6cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr25" draw:text-style-name="P1" draw:layer="layout" svg:width="9cm" svg:height="3.6cm" svg:x="3.8cm" svg:y="11.4cm">
+    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P1" draw:layer="layout" svg:width="9cm" svg:height="3.6cm" svg:x="3.8cm" svg:y="11.4cm">
      <text:p/>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
@@ -3405,10 +3553,10 @@
       <text:p text:style-name="P22"><text:span text:style-name="T9">signed_mult16_accu</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr29" draw:text-style-name="P14" draw:layer="layout" svg:x1="3.8cm" svg:y1="4cm" svg:x2="3.8cm" svg:y2="4.6cm">
+    <draw:line draw:style-name="gr32" draw:text-style-name="P14" draw:layer="layout" svg:x1="3.8cm" svg:y1="4cm" svg:x2="3.8cm" svg:y2="4.6cm">
      <text:p/>
     </draw:line>
-    <draw:line draw:style-name="gr29" draw:text-style-name="P14" draw:layer="layout" svg:x1="1.8cm" svg:y1="4.1cm" svg:x2="1.8cm" svg:y2="4.7cm">
+    <draw:line draw:style-name="gr32" draw:text-style-name="P14" draw:layer="layout" svg:x1="1.8cm" svg:y1="4.1cm" svg:x2="1.8cm" svg:y2="4.7cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr18" draw:text-style-name="P17" draw:layer="layout" svg:x1="1.4cm" svg:y1="7.7cm" svg:x2="2.2cm" svg:y2="7.7cm">
@@ -3435,23 +3583,23 @@
      <text:p text:style-name="P2"><text:span text:style-name="T7"/></text:p>
      <text:p text:style-name="P16"><text:span text:style-name="T7">y15</text:span></text:p>
     </draw:line>
-    <draw:line draw:style-name="gr29" draw:text-style-name="P14" draw:layer="layout" svg:x1="1.8cm" svg:y1="9.3cm" svg:x2="1.8cm" svg:y2="9.9cm">
+    <draw:line draw:style-name="gr32" draw:text-style-name="P14" draw:layer="layout" svg:x1="1.8cm" svg:y1="9.3cm" svg:x2="1.8cm" svg:y2="9.9cm">
      <text:p/>
     </draw:line>
-    <draw:line draw:style-name="gr29" draw:text-style-name="P14" draw:layer="layout" svg:x1="3.8cm" svg:y1="9.2cm" svg:x2="3.8cm" svg:y2="9.8cm">
+    <draw:line draw:style-name="gr32" draw:text-style-name="P14" draw:layer="layout" svg:x1="3.8cm" svg:y1="9.2cm" svg:x2="3.8cm" svg:y2="9.8cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr26" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="3cm" svg:x="6.2cm" svg:y="11.6cm">
+    <draw:custom-shape draw:style-name="gr29" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="3cm" svg:x="6.2cm" svg:y="11.6cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">ADD</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr27" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="3cm" svg:x="3.812cm" svg:y="11.6cm">
+    <draw:custom-shape draw:style-name="gr30" draw:text-style-name="P21" draw:layer="layout" svg:width="0.788cm" svg:height="3cm" svg:x="3.812cm" svg:y="11.6cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">Input</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">Reg</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">N+P</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="5cm" svg:y="14cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="5cm" svg:y="14cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">31</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -3461,7 +3609,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.8cm" svg:y1="14.3cm" svg:x2="6.2cm" svg:y2="14.3cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.8cm" svg:y1="14.3cm" svg:x2="6.2cm" svg:y2="14.3cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.6cm" svg:y1="14.5cm" svg:x2="5cm" svg:y2="14.5cm">
@@ -3470,7 +3618,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.6cm" svg:y1="14.1cm" svg:x2="5cm" svg:y2="14.1cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="5cm" svg:y="11.6cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="5cm" svg:y="11.6cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">16</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -3478,7 +3626,7 @@
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.8cm" svg:y1="11.9cm" svg:x2="6.2cm" svg:y2="11.9cm">
      <text:p/>
     </draw:line>
-    <draw:custom-shape draw:style-name="gr28" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="5cm" svg:y="12.4cm">
+    <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P13" draw:layer="layout" svg:width="0.8cm" svg:height="0.6cm" svg:x="5cm" svg:y="12.4cm">
      <text:p text:style-name="P2"><text:span text:style-name="T3">MULT</text:span></text:p>
      <text:p text:style-name="P2"><text:span text:style-name="T3">17</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -3493,7 +3641,7 @@
       <text:p text:style-name="P18"><text:span text:style-name="T10">+/-</text:span></text:p>
      </draw:text-box>
     </draw:frame>
-    <draw:line draw:style-name="gr22" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.8cm" svg:y1="12.7cm" svg:x2="6.2cm" svg:y2="12.7cm">
+    <draw:line draw:style-name="gr23" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.8cm" svg:y1="12.7cm" svg:x2="6.2cm" svg:y2="12.7cm">
      <text:p/>
     </draw:line>
     <draw:line draw:style-name="gr15" draw:text-style-name="P14" draw:layer="layout" svg:x1="4.6cm" svg:y1="12.1cm" svg:x2="5cm" svg:y2="12.1cm">
@@ -3532,10 +3680,10 @@
      <text:p text:style-name="P2"><text:span text:style-name="T7"/></text:p>
      <text:p text:style-name="P16"><text:span text:style-name="T7">y31</text:span></text:p>
     </draw:line>
-    <draw:line draw:style-name="gr29" draw:text-style-name="P14" draw:layer="layout" svg:x1="3.4cm" svg:y1="13.3cm" svg:x2="3.4cm" svg:y2="13.9cm">
+    <draw:line draw:style-name="gr32" draw:text-style-name="P14" draw:layer="layout" svg:x1="3.4cm" svg:y1="13.3cm" svg:x2="3.4cm" svg:y2="13.9cm">
      <text:p/>
     </draw:line>
-    <draw:line draw:style-name="gr29" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.4cm" svg:y1="13.2cm" svg:x2="5.4cm" svg:y2="13.8cm">
+    <draw:line draw:style-name="gr32" draw:text-style-name="P14" draw:layer="layout" svg:x1="5.4cm" svg:y1="13.2cm" svg:x2="5.4cm" svg:y2="13.8cm">
      <text:p/>
     </draw:line>
     <draw:custom-shape draw:style-name="gr12" draw:text-style-name="P12" draw:layer="layout" svg:width="0.8cm" svg:height="0.8cm" svg:x="9cm" svg:y="12.7cm">
