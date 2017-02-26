@@ -10,7 +10,7 @@ library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
 
---! @brief Multiply a sum of two signed (+/-AX +/-BX)with a signed (Y) and accumulate results.
+--! @brief Multiply a sum of two signed (+/-AX +/-BX) with a signed (Y) and accumulate results.
 --!
 --! @image html signed_preadd_mult1_accu1.svg "" width=600px
 --!
@@ -48,6 +48,40 @@ library ieee;
 --!
 --! The delay depends on the configuration and the underlying hardware.
 --! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
+--!
+--! VHDL Instantiation Template:
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
+--! I1 : signed_preadd_mult1_accu1
+--! generic map(
+--!   NUM_SUMMAND        => natural,  -- overall number of summed products
+--!   USE_CHAIN_INPUT    => boolean,  -- enable chain input
+--!   PREADDER_INPUT_AX  => string,   -- ax preadder mode
+--!   PREADDER_INPUT_BX  => string,   -- bx preadder mode
+--!   NUM_INPUT_REG      => natural,  -- number of input registers
+--!   NUM_OUTPUT_REG     => natural,  -- number of output registers
+--!   OUTPUT_SHIFT_RIGHT => natural,  -- number of right shifts
+--!   OUTPUT_ROUND       => boolean,  -- enable rounding half-up
+--!   OUTPUT_CLIP        => boolean,  -- enable clipping
+--!   OUTPUT_OVERFLOW    => boolean   -- enable overflow detection
+--! )
+--! port map(
+--!   clk        => in  std_logic, -- clock
+--!   rst        => in  std_logic, -- reset
+--!   clr        => in  std_logic, -- clear accu
+--!   vld        => in  std_logic, -- valid
+--!   sub_ax     => in  std_logic, -- add/subtract ax
+--!   sub_bx     => in  std_logic, -- add/subtract bx
+--!   ax         => in  signed, -- first preadder input, first factor
+--!   bx         => in  signed, -- second preadder input, first factor
+--!   y          => in  signed, -- second factors
+--!   result     => out signed, -- product result
+--!   result_vld => out std_logic, -- output valid
+--!   result_ovf => out std_logic, -- output overflow
+--!   chainin    => in  signed(79 downto 0), -- chain input
+--!   chainout   => out signed(79 downto 0), -- chain output
+--!   PIPESTAGES => out natural -- constant number of pipeline stages
+--! );
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 --
 -- Optimal settings for overflow detection and/or saturation/clipping :
