@@ -1,12 +1,12 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_2008.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 30/Dec/2016
--- VERSION : 0.97
+-- DATE    : 27/Feb/2017
+-- VERSION : 0.98
 -- VHDL    : 2008
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
--- Copyright (c) 2016 Fixitfetish
+-- Copyright (c) 2016-2017 Fixitfetish
 -- 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -405,11 +405,6 @@ package body cplx_pkg is
   -- local auxiliary
   ------------------------------------------
   
-  function max (l,r: integer) return integer is
-  begin
-    if l > r then return l; else return r; end if;
-  end function;
-
  -- if x/=0 then return x
  -- if x=0  then return dflt (default)
  function default_if_zero (x,dflt: integer) return integer is
@@ -649,8 +644,8 @@ package body cplx_pkg is
     w    : natural:=0; -- output bit width
     m    : cplx_mode:="-" -- mode, supported options: 'R','O' and/or 'S'
   ) return cplx is
-    constant LIN_RE : positive := max(l.re'length,r.re'length); -- default output length
-    constant LIN_IM : positive := max(l.im'length,r.im'length); -- default output length
+    constant LIN_RE : positive := MAXIMUM(l.re'length,r.re'length); -- default output length
+    constant LIN_IM : positive := MAXIMUM(l.im'length,r.im'length); -- default output length
     constant LOUT_RE : positive := default_if_zero(w, dflt=>LIN_RE); -- final output length
     constant LOUT_IM : positive := default_if_zero(w, dflt=>LIN_IM); -- final output length
     variable dout : cplx(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
@@ -670,8 +665,8 @@ package body cplx_pkg is
     constant WR_IM : positive := r(r'left).im'length; -- width right imaginary
     alias xl : cplx_vector(1 to l'length)(re(WL_RE-1 downto 0),im(WL_IM-1 downto 0)) is l; -- default range
     alias xr : cplx_vector(1 to r'length)(re(WR_RE-1 downto 0),im(WR_IM-1 downto 0)) is r; -- default range
-    constant LOUT_RE : positive := default_if_zero(w, dflt=>max(WL_RE,WR_RE)); -- final output length
-    constant LOUT_IM : positive := default_if_zero(w, dflt=>max(WL_IM,WR_IM)); -- final output length
+    constant LOUT_RE : positive := default_if_zero(w, dflt=>MAXIMUM(WL_RE,WR_RE)); -- final output length
+    constant LOUT_IM : positive := default_if_zero(w, dflt=>MAXIMUM(WL_IM,WR_IM)); -- final output length
     variable dout : cplx_vector(1 to l'length)(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
   begin
     assert (l'length=r'length)
@@ -700,7 +695,7 @@ package body cplx_pkg is
   ) return cplx
   is
     constant LVEC : positive := din'length; -- vector length
-    constant LIN : positive := max(din(din'left).re'length,din(din'left).im'length); -- default output bit width
+    constant LIN : positive := MAXIMUM(din(din'left).re'length,din(din'left).im'length); -- default output bit width
     constant LOUT : positive := default_if_zero(w, dflt=>LIN); -- final output bit width
     alias xdin : cplx_vector(1 to LVEC) is din; -- default range
     constant T : positive := LIN + LOG2CEIL(LVEC); -- width including additional accumulation bits
@@ -718,7 +713,7 @@ package body cplx_pkg is
     dout : out cplx; -- data output, result of sum
     m    : in  cplx_mode:="-" -- mode, supported options: 'R','O' and/or 'S'
   ) is
-    constant LOUT : positive := max(dout.re'length, dout.im'length);
+    constant LOUT : positive := MAXIMUM(dout.re'length, dout.im'length);
   begin
     dout := sum(din=>din, w=>LOUT, m=>m);
   end procedure;
@@ -753,8 +748,8 @@ package body cplx_pkg is
     w    : natural:=0; -- output bit width
     m    : cplx_mode:="-" -- mode, supported options: 'R','O' and/or 'S'
   ) return cplx is
-    constant LIN_RE : positive := max(l.re'length,r.re'length); -- default output length
-    constant LIN_IM : positive := max(l.im'length,r.im'length); -- default output length
+    constant LIN_RE : positive := MAXIMUM(l.re'length,r.re'length); -- default output length
+    constant LIN_IM : positive := MAXIMUM(l.im'length,r.im'length); -- default output length
     constant LOUT_RE : positive := default_if_zero(w, dflt=>LIN_RE); -- final output length
     constant LOUT_IM : positive := default_if_zero(w, dflt=>LIN_IM); -- final output length
     variable dout : cplx(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
@@ -774,8 +769,8 @@ package body cplx_pkg is
     constant WR_IM : positive := r(r'left).im'length; -- width right imaginary
     alias xl : cplx_vector(1 to l'length)(re(WL_RE-1 downto 0),im(WL_IM-1 downto 0)) is l; -- default range
     alias xr : cplx_vector(1 to r'length)(re(WR_RE-1 downto 0),im(WR_IM-1 downto 0)) is r; -- default range
-    constant LOUT_RE : positive := default_if_zero(w, dflt=>max(WL_RE,WR_RE)); -- final output length
-    constant LOUT_IM : positive := default_if_zero(w, dflt=>max(WL_IM,WR_IM)); -- final output length
+    constant LOUT_RE : positive := default_if_zero(w, dflt=>MAXIMUM(WL_RE,WR_RE)); -- final output length
+    constant LOUT_IM : positive := default_if_zero(w, dflt=>MAXIMUM(WL_IM,WR_IM)); -- final output length
     variable dout : cplx_vector(1 to l'length)(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
   begin
     assert (l'length=r'length)

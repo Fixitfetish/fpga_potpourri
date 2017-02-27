@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_preadd_mult1_accu1.stratixv.vhdl
 --! @author     Fixitfetish
---! @date       26/Feb/2017
---! @version    0.20
+--! @date       27/Feb/2017
+--! @version    0.30
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -124,7 +124,7 @@ architecture stratixv of signed_preadd_mult1_accu1 is
 
   -- derived constants
   constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
-  constant PRODUCT_WIDTH : natural := max(ax'length,bx'length) + 1 + y'length;
+  constant PRODUCT_WIDTH : natural := MAXIMUM(ax'length,bx'length) + 1 + y'length;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
   constant GUARD_BITS_EVAL : natural := guard_bits(NUM_SUMMAND,MAX_GUARD_BITS);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
@@ -347,8 +347,8 @@ begin
     ax         => std_logic_vector(ireg(0).ax),
     ay         => std_logic_vector(ireg(0).ay),
     az         => std_logic_vector(ireg(0).az),
-    bx         => (others=>'0'),
-    by         => (others=>'0'),
+    bx         => open,
+    by         => open,
     chainin    => chainin_i,
     chainout   => chainout_i,
     cin        => open,
@@ -378,7 +378,7 @@ begin
     chainout(n) <= chainout_i(ACCU_WIDTH-1);
   end generate;
 
-  -- a.) just shift right without rounding because rounding bit is has been added 
+  -- a.) just shift right without rounding because rounding bit has been added
   --     within the DSP cell already.
   -- b.) cut off unused sign extension bits
   --    (This reduces the logic consumption in the following steps when rounding,

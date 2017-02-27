@@ -1,12 +1,12 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_pkg_1993.vhdl
 --! @author     Fixitfetish
---! @date       18/Feb/2017
+--! @date       27/Feb/2017
 --! @version    0.98
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
--- Copyright (c) 2016 Fixitfetish
+-- Copyright (c) 2016-2017 Fixitfetish
 -- 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -720,15 +720,6 @@ end package;
 -------------------------------------------------------------------------------
 
 package body cplx_pkg is
-
-  ------------------------------------------
-  -- local auxiliary
-  ------------------------------------------
-
- function min (l,r: integer) return integer is
- begin
-   if l < r then return l; else return r; end if;
- end function;
 
   ------------------------------------------
   -- auxiliary
@@ -1593,7 +1584,7 @@ package body cplx_pkg is
       severity warning;
     dout := resize(d(1),LOUT);
     if LVEC>1 then
-      for i in 2 to min(LVEC,MAX_NUM_SUMMAND) loop
+      for i in 2 to MINIMUM(LVEC,MAX_NUM_SUMMAND) loop
         -- overflow not possible, saturation disabled
         dout := add(l=>dout, r=>resize(d(i),LOUT), w=>0, m=>"-");
       end loop;
@@ -1622,7 +1613,7 @@ package body cplx_pkg is
       severity warning;
     dout := resize(d(1),LOUT);
     if LVEC>1 then
-      for i in 2 to min(LVEC,MAX_NUM_SUMMAND) loop
+      for i in 2 to MINIMUM(LVEC,MAX_NUM_SUMMAND) loop
         -- overflow not possible, saturation disabled
         dout := add(l=>dout, r=>resize(d(i),LOUT), w=>0, m=>"-");
       end loop;
@@ -1651,7 +1642,7 @@ package body cplx_pkg is
       severity warning;
     dout := resize(d(1),LOUT);
     if LVEC>1 then
-      for i in 2 to min(LVEC,MAX_NUM_SUMMAND) loop
+      for i in 2 to MINIMUM(LVEC,MAX_NUM_SUMMAND) loop
         -- overflow not possible, saturation disabled
         dout := add(l=>dout, r=>resize(d(i),LOUT), w=>0, m=>"-");
       end loop;

@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_preadd_mult1_accu1.ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       26/Feb/2017
---! @version    0.20
+--! @date       27/Feb/2017
+--! @version    0.30
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -143,7 +143,7 @@ architecture ultrascale of signed_preadd_mult1_accu1 is
 
   -- derived constants
   constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
-  constant PRODUCT_WIDTH : natural := max(ax'length,bx'length) + 1 + y'length;
+  constant PRODUCT_WIDTH : natural := MAXIMUM(ax'length,bx'length) + 1 + y'length;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
   constant GUARD_BITS_EVAL : natural := guard_bits(NUM_SUMMAND,MAX_GUARD_BITS);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
@@ -218,7 +218,7 @@ architecture ultrascale of signed_preadd_mult1_accu1 is
     elsif (bmode="ADD") then return resize(bx,MAX_WIDTH_D);
     elsif (bmode="SUBTRACT") then return -resize(bx,MAX_WIDTH_D);
     else -- bmode="DYNAMIC"
-      if (amode="DYNAMIC" and sub_ax='0') then resize(ax,MAX_WIDTH_D);
+      if (amode="DYNAMIC" and sub_ax='0') then return resize(ax,MAX_WIDTH_D);
       else return -resize(ax,MAX_WIDTH_D); end if;
     end if;
   end function;
@@ -477,7 +477,7 @@ begin
     chainout(n) <= chainout_i(ACCU_WIDTH-1);
   end generate;
 
-  -- a.) just shift right without rounding because rounding bit is has been added 
+  -- a.) just shift right without rounding because rounding bit has been added
   --     within the DSP cell already.
   -- b.) cut off unused sign extension bits
   --    (This reduces the logic consumption in the following steps when rounding,

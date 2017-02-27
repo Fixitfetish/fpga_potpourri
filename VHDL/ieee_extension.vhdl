@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       ieee_extension.vhdl
 --! @author     Fixitfetish
---! @date       09/Feb/2017
---! @version    0.85
+--! @date       27/Feb/2017
+--! @version    0.86
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -19,6 +19,12 @@ package ieee_extension is
 
  --! convert boolean vector into std_logic_vector (false=>'0', true=>'1')
  function to_01(x:boolean_vector) return std_logic_vector;
+
+ --! maximum of two integers
+ function MAXIMUM (l,r: integer) return integer;
+
+ --! minimum of two integers
+ function MINIMUM (l,r: integer) return integer;
 
  -- This function calculates ceil(log2(n)).
  -- Optionally, the maximum result can be limited to 'bits' (bits = 2..32)
@@ -542,9 +548,14 @@ package body ieee_extension is
  -- local auxiliary
  ------------------------------------------
 
- function max (l,r: integer) return integer is
+ function MAXIMUM (l,r: integer) return integer is
  begin
    if l > r then return l; else return r; end if;
+ end function;
+
+ function MINIMUM (l,r: integer) return integer is
+ begin
+   if l < r then return l; else return r; end if;
  end function;
 
  -- if x/=0 then return x
@@ -1112,7 +1123,7 @@ package body ieee_extension is
    ovfl :out std_logic; -- '1' if overflow occurred
    clip :in  boolean:=false -- enable clipping
  ) is
-   constant LIN : positive := max(l'length,r'length);
+   constant LIN : positive := MAXIMUM(l'length,r'length);
    constant LT : positive := LIN+1; -- additional bit for overflow detection
    variable t : unsigned(LT-1 downto 0);
  begin
@@ -1128,7 +1139,7 @@ package body ieee_extension is
    ovfl :out std_logic; -- '1' if overflow occurred
    clip :in  boolean:=false -- enable clipping
  ) is
-   constant LIN : positive := max(l'length,r'length);
+   constant LIN : positive := MAXIMUM(l'length,r'length);
    constant LT : positive := LIN+1; -- additional bit for overflow detection
    variable t : signed(LT-1 downto 0);
  begin
@@ -1143,7 +1154,7 @@ package body ieee_extension is
    n    : natural:=0; -- output length
    clip : boolean:=false -- enable clipping
  ) return unsigned is
-   constant LIN : natural := max(l'length,r'length);
+   constant LIN : natural := MAXIMUM(l'length,r'length);
    constant LOUT : natural := default_if_zero(n, LIN);
    variable res : unsigned(LOUT-1 downto 0);
    variable dummy : std_logic;
@@ -1192,7 +1203,7 @@ package body ieee_extension is
    n    : natural:=0; -- output length
    clip : boolean:=false -- enable clipping
  ) return signed is
-   constant LIN : natural := max(l'length,r'length);
+   constant LIN : natural := MAXIMUM(l'length,r'length);
    constant LOUT : natural := default_if_zero(n, LIN);
    variable res : signed(LOUT-1 downto 0);
    variable dummy : std_logic;
@@ -1246,9 +1257,9 @@ package body ieee_extension is
    ovfl :out std_logic; -- '1' if overflow occurred
    clip :in  boolean:=false -- enable clipping
  ) is
-   constant LIN : positive := max(l'length,r'length);
+   constant LIN : positive := MAXIMUM(l'length,r'length);
    constant LOUT : positive := dout'length;
-   constant LT : positive := max(LIN+1,LOUT); -- additional bit for overflow detection
+   constant LT : positive := MAXIMUM(LIN+1,LOUT); -- additional bit for overflow detection
    variable t : unsigned(LT-1 downto 0);
    variable uvf, ovf : std_logic;
  begin
@@ -1270,9 +1281,9 @@ package body ieee_extension is
    ovfl :out std_logic; -- '1' if overflow occurred
    clip :in  boolean:=false -- enable clipping
  ) is
-   constant LIN : positive := max(l'length,r'length);
+   constant LIN : positive := MAXIMUM(l'length,r'length);
    constant LOUT : positive := dout'length;
-   constant LT : positive := max(LIN+1,LOUT);-- additional bit for overflow detection
+   constant LT : positive := MAXIMUM(LIN+1,LOUT);-- additional bit for overflow detection
    variable t : signed(LT-1 downto 0);
  begin
    t := RESIZE(l,LT) - RESIZE(r,LT);
@@ -1286,7 +1297,7 @@ package body ieee_extension is
    n    : natural:=0; -- output length
    clip : boolean:=false -- enable clipping
  ) return unsigned is
-   constant LIN : natural := max(l'length,r'length);
+   constant LIN : natural := MAXIMUM(l'length,r'length);
    constant LOUT : natural := default_if_zero(n, LIN);
    variable res : unsigned(LOUT-1 downto 0);
    variable dummy : std_logic;
@@ -1335,7 +1346,7 @@ package body ieee_extension is
    n    : natural:=0; -- output length
    clip : boolean:=false -- enable clipping
  ) return signed is
-   constant LIN : natural := max(l'length,r'length);
+   constant LIN : natural := MAXIMUM(l'length,r'length);
    constant LOUT : natural := default_if_zero(n, LIN);
    variable res : signed(LOUT-1 downto 0);
    variable dummy : std_logic;
