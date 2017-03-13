@@ -29,7 +29,8 @@ library ieee;
 --!
 --! * NUM_SUMMAND = configurable, @link NUM_SUMMAND more... @endlink
 --! * ACCU WIDTH = accumulator width (device specific)
---! * PRODUCT WIDTH = x'length + y'length
+--! * PRODUCT WIDTH (ax and bx same length)= ax'length + y'length + 1
+--! * PRODUCT WIDTH (ax and bx not same length)= max(ax'length,bx'length) + y'length
 --! * GUARD BITS = ceil(log2(NUM_SUMMAND))
 --! * ACCU USED WIDTH = PRODUCT WIDTH + GUARD BITS <= ACCU WIDTH
 --! * OUTPUT SHIFT RIGHT = number of LSBs to prune
@@ -38,7 +39,8 @@ library ieee;
 --! * ACCU USED SHIFTED WIDTH = ACCU USED WIDTH - OUTPUT SHIFT RIGHT
 --! * OUTPUT WIDTH = length of result output <= ACCU USED SHIFTED WIDTH
 --!
---! \b Example: The input lengths are x'length=18 and y'length=16, hence PRODUCT_WIDTH=34.
+--! \b Example: The input lengths are ax'length=18, bx'length=12 and y'length=16,
+--! hence the maximum PRODUCT_WIDTH=34.
 --! With NUM_SUMMAND=30 the number of additional guard bits is GUARD_BITS=5.
 --! If the output length is 22 then the standard shift-right setting (conservative,
 --! without risk of overflow) would be OUTPUT_SHIFT_RIGHT = 34 + 5 - 22 = 17.
@@ -129,7 +131,7 @@ generic (
   --! This flag is only relevant when OUTPUT_SHIFT_RIGHT>0.
   --! If the device specific DSP cell supports rounding then rounding is done
   --! within the DSP cell. If rounding in logic is necessary then it is recommended
-  --! to enable the additional output register.
+  --! to use an additional output register.
   OUTPUT_ROUND : boolean := true;
   --! Enable clipping when right shifted result exceeds output range.
   OUTPUT_CLIP : boolean := true;
@@ -177,10 +179,6 @@ port (
   PIPESTAGES : out natural := 0
 );
 begin
-
-  assert (ax'length=bx'length)
-    report "WARNING signed_preadd_mult1_accu1 : Both preadder inputs should have the same length."
-    severity warning;
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
     report "WARNING signed_preadd_mult1_accu1 : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."

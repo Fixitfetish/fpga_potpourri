@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_preadd_mult1_accu1.ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       27/Feb/2017
---! @version    0.30
+--! @date       11/Mar/2017
+--! @version    0.31
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -241,7 +241,7 @@ begin
 
   -- check input/output length
   assert (ax'length<=LIM_WIDTH_AD and bx'length<=LIM_WIDTH_AD)
-    report "ERROR " & IMPLEMENTATION & ": Multiplier input X width cannot exceed " & integer'image(LIM_WIDTH_AD)
+    report "ERROR " & IMPLEMENTATION & ": Preadder input AX and BX width cannot exceed " & integer'image(LIM_WIDTH_AD)
     severity failure;
   assert (y'length<=MAX_WIDTH_B)
     report "ERROR " & IMPLEMENTATION & ": Multiplier input Y width cannot exceed " & integer'image(MAX_WIDTH_B)

@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult1_accu1.ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       26/Feb/2017
---! @version    0.60
+--! @date       11/Mar/2017
+--! @version    0.70
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -114,9 +114,10 @@ architecture ultrascale of signed_mult1_accu1 is
   function PREG(n:natural) return natural is
   begin if n>=1 then return 1; else return 0; end if; end function;
 
-  constant MAX_WIDTH_A : positive := 30;
-  constant LIM_WIDTH_A : positive := 27;
-  constant MAX_WIDTH_B : positive := 18;
+  constant MAX_WIDTH_A  : positive := 30;
+  constant MAX_WIDTH_D  : positive := 27;
+  constant LIM_WIDTH_A  : positive := 27;
+  constant MAX_WIDTH_B  : positive := 18;
 
   -- accumulator width in bits
   constant ACCU_WIDTH : positive := 48;
@@ -158,6 +159,7 @@ architecture ultrascale of signed_mult1_accu1 is
     opmode_xy : std_logic_vector(3 downto 0);
     opmode_z : std_logic_vector(2 downto 0);
     a : signed(MAX_WIDTH_A-1 downto 0);
+    d : signed(MAX_WIDTH_D-1 downto 0);
     b : signed(MAX_WIDTH_B-1 downto 0);
   end record;
   type array_ireg is array(integer range <>) of r_ireg;
@@ -241,7 +243,7 @@ begin
   ireg(NUM_IREG_DSP).vld <= lireg(0).vld;
   ireg(NUM_IREG_DSP).inmode(0) <= '0'; -- AREG controlled input
   ireg(NUM_IREG_DSP).inmode(1) <= '0'; -- do not gate A/B
-  ireg(NUM_IREG_DSP).inmode(2) <= '0'; -- set input D=0
+  ireg(NUM_IREG_DSP).inmode(2) <= '1'; -- D into preadder
   ireg(NUM_IREG_DSP).inmode(3) <= lireg(0).sub; -- +/- A
   ireg(NUM_IREG_DSP).inmode(4) <= '0'; -- BREG controlled input
   ireg(NUM_IREG_DSP).opmode_xy <= "0101"; -- constant, always multiplier result M
@@ -253,6 +255,17 @@ begin
   -- LSB bound data inputs
   ireg(NUM_IREG_DSP).a <= resize(lireg(0).x,MAX_WIDTH_A);
   ireg(NUM_IREG_DSP).b <= resize(lireg(0).y,MAX_WIDTH_B);
+
+  -- When input X has the maximum supported length and the most negative value than
+  -- the negation of X in the preadder would cause an overflow. Only in this special
+  -- case the second preadder input D is set to -1 to avoid the overflow. Hence, the
+  -- negation of X is not -X but -X-1, which is the most positive value in this case.
+  -- Otherwise D is always 0.
+  ireg(NUM_IREG_DSP).d <= (others=>'1')
+    when ( x'length=LIM_WIDTH_A
+           and lireg(0).sub='1' 
+           and (lireg(0).x = to_signed(-2**(LIM_WIDTH_A-1),LIM_WIDTH_A)) )
+    else (others=>'0');
 
   -- DSP cell data input registers AD/B2 are used as third input register stage.
   g_in3 : if NUM_IREG_DSP>=3 generate
@@ -266,6 +279,7 @@ begin
     -- the following register are located within the DSP cell
     ireg(2).a <= ireg(3).a;
     ireg(2).b <= ireg(3).b;
+    ireg(2).d <= ireg(3).d;
   end generate;
 
   -- DSP cell MREG register is used as second data input register stage
@@ -280,6 +294,7 @@ begin
     -- the following register are located within the DSP cell
     ireg(1).a <= ireg(2).a;
     ireg(1).b <= ireg(2).b;
+    ireg(1).d <= ireg(2).d;
   end generate;
 
   -- DSP cell data input registers A1/B1/D are used as first input register stage.
@@ -294,6 +309,7 @@ begin
     ireg(0).opmode_z <= ireg(1).opmode_z;
     ireg(0).a <= ireg(1).a;
     ireg(0).b <= ireg(1).b;
+    ireg(0).d <= ireg(1).d;
   end generate;
 
   -- use only LSBs of chain input
@@ -387,7 +403,7 @@ begin
     B                  => std_logic_vector(ireg(0).b),
     C                  => (others=>'0'), -- unused
     CARRYIN            => '0', -- unused
-    D                  => (others=>'0'), -- unused
+    D                  => std_logic_vector(ireg(0).d),
     -- Clock Enable: 1-bit (each) input: Clock Enable Inputs
     CEA1               => clkena,
     CEA2               => clkena,
@@ -398,7 +414,7 @@ begin
     CEC                => '0', -- unused
     CECARRYIN          => '0', -- unused
     CECTRL             => clkena, -- for opmode
-    CED                => '0', -- unused
+    CED                => clkena,
     CEINMODE           => clkena,
     CEM                => clkena,
     CEP                => ireg(0).vld,
@@ -421,7 +437,7 @@ begin
     chainout(n) <= chainout_i(ACCU_WIDTH-1);
   end generate;
 
-  -- a.) just shift right without rounding because rounding bit is has been added 
+  -- a.) just shift right without rounding because rounding bit has been added
   --     within the DSP cell already.
   -- b.) cut off unused sign extension bits
   --    (This reduces the logic consumption in the following steps when rounding,
