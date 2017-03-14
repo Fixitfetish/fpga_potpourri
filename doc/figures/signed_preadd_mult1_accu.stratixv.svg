@@ -150,7 +150,7 @@
       <g class="com.sun.star.drawing.TextShape">
        <g id="id4">
         <rect class="BoundingBox" stroke="none" fill="none" x="1796" y="21701" width="7205" height="401"/>
-        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="318px" font-weight="700"><tspan class="TextPosition" x="1846" y="22011"><tspan fill="rgb(0,0,0)" stroke="none">Signed Preadd Mult1 Accu1 – Stratix V</tspan></tspan></tspan></text>
+        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="318px" font-weight="700"><tspan class="TextPosition" x="1846" y="22011"><tspan fill="rgb(0,0,0)" stroke="none">Signed Preadd Mult1 Accu – Stratix V</tspan></tspan></tspan></text>
        </g>
       </g>
       <g class="com.sun.star.drawing.CustomShape">
