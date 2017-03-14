@@ -13,15 +13,15 @@ set SWITCHES "-93 -explicit -dbg"
 
 vcom $SWITCHES -work $DSPLIB $BASEPATH/../ieee_extension_types_1993.vhdl
 vcom $SWITCHES -work $DSPLIB $BASEPATH/../ieee_extension.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult1_accu1.vhdl
+vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult1_accu.vhdl
 vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult2.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult2_accu1.vhdl
+vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult2_accu.vhdl
 vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult2_sum.vhdl
 vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult3.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult4_accu1.vhdl
+vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult4_accu.vhdl
 vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult4_sum.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult8_accu1.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult16_accu1.vhdl
+vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult8_accu.vhdl
+vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult16_accu.vhdl
 vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_multN.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_multN_accu1.vhdl
+vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_multN_accu.vhdl
 vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_multN_sum.vhdl

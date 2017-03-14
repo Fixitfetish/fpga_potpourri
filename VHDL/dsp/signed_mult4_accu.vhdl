@@ -1,20 +1,18 @@
 -------------------------------------------------------------------------------
---! @file       signed_multN_accu1.vhdl
+--! @file       signed_mult4_accu.vhdl
 --! @author     Fixitfetish
---! @date       23/Feb/2017
---! @version    0.20
+--! @date       14/Feb/2017
+--! @version    0.40
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
-library fixitfetish;
- use fixitfetish.ieee_extension_types.all;
 
---! @brief N signed multiplications and accumulate all product results.
+--! @brief Four signed multiplications and accumulate all product results.
 --!
---! @image html signed_multN_accu1.svg "" width=600px
+--! @image html signed_mult4_accu.svg "" width=600px
 --!
 --! The behavior is as follows
 --! * CLR=1  VLD=0  ->  r = undefined                      # reset accumulator
@@ -53,54 +51,17 @@ library fixitfetish;
 --! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
 --!
 --! This entity can be used for example
---!   * for complex multiplication and accumulation
---!   * to calculate the mean square of a complex number
---!
---! VHDL Instantiation Template:
---! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
---! I1 : signed_multN_accu1
---! generic map(
---!   NUM_MULT           => positive, -- number of parallel multiplications
---!   NUM_SUMMAND        => natural,  -- overall number of summed products
---!   USE_CHAIN_INPUT    => boolean,  -- enable chain input
---!   NUM_INPUT_REG      => natural,  -- number of input registers
---!   NUM_OUTPUT_REG     => natural,  -- number of output registers
---!   OUTPUT_SHIFT_RIGHT => natural,  -- number of right shifts
---!   OUTPUT_ROUND       => boolean,  -- enable rounding half-up
---!   OUTPUT_CLIP        => boolean,  -- enable clipping
---!   OUTPUT_OVERFLOW    => boolean   -- enable overflow detection
---! )
---! port map(
---!   clk        => in  std_logic, -- clock
---!   rst        => in  std_logic, -- reset
---!   clr        => in  std_logic, -- clear accu
---!   vld        => in  std_logic, -- valid
---!   sub        => in  std_logic_vector(0 to NUM_MULT-1), -- add/subtract
---!   x          => in  signed_vector(0 to NUM_MULT-1), -- first factors
---!   y          => in  signed_vector(0 to NUM_MULT-1), -- second factors
---!   result     => out signed, -- product result
---!   result_vld => out std_logic, -- output valid
---!   result_ovf => out std_logic, -- output overflow
---!   chainin    => in  signed(79 downto 0), -- chain input
---!   chainout   => out signed(79 downto 0), -- chain output
---!   PIPESTAGES => out natural -- constant number of pipeline stages
---! );
---! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--!   * for multiple complex multiplications and accumulation
+--!   * to calculate the mean square of complex numbers
 
---
 -- Optimal settings for overflow detection and/or saturation/clipping :
 -- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH
 
-entity signed_multN_accu1 is
+entity signed_mult4_accu is
 generic (
-  --! Number of parallel multiplications - mandatory generic!
-  NUM_MULT : positive;
   --! @brief The number of summands is important to determine the number of additional
   --! guard bits (MSBs) that are required for the accumulation process. @link NUM_SUMMAND More...
   --!
-  --! The number of summands can be much higher than the number of parallel
-  --! multiplications when results are accumulated over several clock cycles.
-  --! Typically NUM_SUMMAND must be greater than or equal NUM_MULT .
   --! The setting is relevant to save logic especially when saturation/clipping
   --! and/or overflow detection is enabled.
   --! * 0 => maximum possible, not recommended (worst case, hardware dependent)
@@ -146,12 +107,24 @@ port (
   clr        : in  std_logic;
   --! Valid signal for input factors, high-active
   vld        : in  std_logic;
-  --! Add/subtract for all products n=0..(NUM_MULT-1) , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)). Subtraction is disabled by default.
-  sub        : in  std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
-  --! First signed factor for the NUM_MULT multiplications (all X inputs must have same size)
-  x          : in  signed_vector(0 to NUM_MULT-1);
-  --! Second signed factor for the NUM_MULT multiplications (all Y inputs must have same size)
-  y          : in  signed_vector(0 to NUM_MULT-1);
+  --! Add/subtract for all products n=0..3 , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)). Subtraction is disabled by default.
+  sub        : in  std_logic_vector(0 to 3) := (others=>'0');
+  --! 1st product, 1st signed factor input
+  x0         : in  signed;
+  --! 1st product, 2nd signed factor input
+  y0         : in  signed;
+  --! 2nd product, 1st signed factor input
+  x1         : in  signed;
+  --! 2nd product, 2nd signed factor input
+  y1         : in  signed;
+  --! 3rd product, 1st signed factor input
+  x2         : in  signed;
+  --! 3rd product, 2nd signed factor input
+  y2         : in  signed;
+  --! 4th product, 1st signed factor input
+  x3         : in  signed;
+  --! 4th product, 2nd signed factor input
+  y3         : in  signed;
   --! @brief Resulting product/accumulator output (optionally rounded and clipped).
   --! The standard result output might be unused when chain output is used instead.
   result     : out signed;
@@ -172,8 +145,14 @@ port (
 );
 begin
 
+  assert (     (x0'length+y0'length)=(x1'length+y1'length)
+           and (x0'length+y0'length)=(x2'length+y2'length)
+           and (x0'length+y0'length)=(x3'length+y3'length) )
+    report "ERROR signed_mult4_accu : All products must result in same size."
+    severity failure;
+
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
-    report "WARNING signed_multN_accu1 : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
+    report "WARNING signed_mult4_accu : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 
 end entity;

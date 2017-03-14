@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       cplx_multN_accu1.sdr.vhdl
+--! @file       cplx_multN_accu.sdr.vhdl
 --! @author     Fixitfetish
 --! @date       23/Feb/2017
 --! @version    0.10
@@ -18,15 +18,15 @@ library fixitfetish;
 
 --! @brief N complex multiplications and accumulate all (Single Data Rate).
 --!
---! This implementation requires the FPGA device dependent module signed_multN_accu1.
---! @image html cplx_multN_accu1.sdr.svg "" width=800px
+--! This implementation requires the FPGA device dependent module signed_multN_accu.
+--! @image html cplx_multN_accu.sdr.svg "" width=800px
 --!
 --! In general this multiplier can be used when FPGA DSP cells are clocked with
 --! the standard system clock. 
 --!
 --! NOTE: The double rate clock 'clk2' is irrelevant and unused here.
 
-architecture sdr of cplx_multN_accu1 is
+architecture sdr of cplx_multN_accu is
 
   -- The number of pipeline stages is reported as constant at the output port
   -- of the DSP implementation. PIPE_DSP is not a generic and it cannot be used
@@ -106,7 +106,7 @@ begin
   end generate;
 
   -- calculate real component
-  i_re : entity fixitfetish.signed_multN_accu1
+  i_re : entity fixitfetish.signed_multN_accu
   generic map(
     NUM_MULT           => 2*NUM_MULT, -- two multiplications per complex multiplication
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
@@ -135,7 +135,7 @@ begin
   );
 
   -- calculate imaginary component
-  i_im : entity fixitfetish.signed_multN_accu1
+  i_im : entity fixitfetish.signed_multN_accu
   generic map(
     NUM_MULT           => 2*NUM_MULT, -- two multiplications per complex multiplication
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication

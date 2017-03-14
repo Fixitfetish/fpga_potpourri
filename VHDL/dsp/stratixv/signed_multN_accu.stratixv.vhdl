@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_multN_accu1.stratixv.vhdl
+--! @file       signed_multN_accu.stratixv.vhdl
 --! @author     Fixitfetish
 --! @date       23/Feb/2017
 --! @version    0.20
@@ -16,12 +16,12 @@ library fixitfetish;
  use fixitfetish.ieee_extension_types.all;
 
 --! @brief This is an implementation of the entity 
---! @link signed_multN_accu1 signed_multN_accu1 @endlink
+--! @link signed_multN_accu signed_multN_accu @endlink
 --! for Altera Stratix-V.
 --! N signed multiplications are performed and all results are accumulated.
 --!
 --! +++ TODO +++ Multiple instances of the implementation
---! +++ TODO +++ @link signed_mult2_accu1 signed_mult2_accu1 @endlink are chained.
+--! +++ TODO +++ @link signed_mult2_accu signed_mult2_accu @endlink are chained.
 --!
 --! +++ TODO +++ This implementation requires ceil(N/2) Variable Precision DSP Blocks of mode 'm18x18_sumof2'.
 --! +++ TODO +++ For details please refer to the Altera Stratix V Device Handbook.
@@ -37,12 +37,12 @@ library fixitfetish;
 --! * Pipeline stages : NUM_INPUT_REG + floor((N-1)/2) + NUM_OUTPUT_REG
 --!
 --! This implementation can be chained multiple times.
---! @image html signed_multN_accu1.stratixv.svg "" width=800px
+--! @image html signed_multN_accu.stratixv.svg "" width=800px
 
-architecture stratixv of signed_multN_accu1 is
+architecture stratixv of signed_multN_accu is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "signed_multN_accu1(stratixv)";
+  constant IMPLEMENTATION : string := "signed_multN_accu(stratixv)";
 
   -- derived constants
   constant NUM_MULT_PER_ENTITY : natural := 2;
@@ -118,7 +118,7 @@ begin
   clr_i(NUM_ENTITY-1) <= clr; -- accumulator enabled in last instance only!
 
   g_n: for n in 0 to (NUM_ENTITY-1) generate
-    mult2 : entity fixitfetish.signed_mult2_accu1
+    mult2 : entity fixitfetish.signed_mult2_accu
     generic map(
       NUM_SUMMAND        => summands(n),
       USE_CHAIN_INPUT    => chain_input(n),

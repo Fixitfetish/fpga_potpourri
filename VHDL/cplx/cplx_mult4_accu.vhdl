@@ -1,12 +1,12 @@
 -------------------------------------------------------------------------------
---! @file       cplx_mult1_accu1.vhdl
+--! @file       cplx_mult4_accu.vhdl
 --! @author     Fixitfetish
 --! @date       30/Jan/2017
---! @version    0.50
+--! @version    0.30
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
--- Copyright (c) 2016-2017 Fixitfetish
+-- Copyright (c) 2017 Fixitfetish
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
@@ -14,28 +14,29 @@ library ieee;
 library fixitfetish;
  use fixitfetish.cplx_pkg.all;
 
---! @brief Complex Multiply and Accumulate.
+--! @brief Four complex multiplications and accumulate all product results.
 --! In general, this multiplier is a good choice when FPGA DSP cells shall be used.
 --!
---! @image html cplx_mult1_accu1.svg "" width=600px
+--! @image html cplx_mult4_accu.svg "" width=600px
 --!
 --! The behavior is as follows
---! * vld = x.vld and y.vld
---! * CLR=1  VLD=0  ->  r = undefined    # reset accumulator
---! * CLR=1  VLD=1  ->  r = +/-(x*y)     # restart accumulation
---! * CLR=0  VLD=0  ->  r = r            # hold accumulator
---! * CLR=0  VLD=1  ->  r = r +/-(x*y)   # proceed accumulation
+--! * vld = x0.vld and y0.vld and x1.vld and y1.vld and x2.vld and y2.vld and x3.vld and y3.vld
+--! * CLR=1  VLD=0  ->  r = undefined                       # reset accumulator
+--! * CLR=1  VLD=1  ->  r = +/-(x0*y0) +/-(x1*y1) +/-...    # restart accumulation
+--! * CLR=0  VLD=0  ->  r = r                               # hold accumulator
+--! * CLR=0  VLD=1  ->  r = r +/-(x0*y0) +/-(x1*y1) +/-...  # proceed accumulation
 --!
 --! The length of the input factors is flexible.
 --! The input factors are automatically resized with sign extensions bits to the
 --! maximum possible factor length.
 --! The maximum length of the input factors is device and implementation specific.
 --! The size of the real and imaginary part of a complex input must be identical.
---! Without accumulation the result width in the accumulation register LSBs is
---!   W = x'length + y'length 
---! Dependent on result'length and additional N accumulation guard bits a shift
---! right is required to avoid overflow or clipping.
---!   OUTPUT_SHIFT_RIGHT = W - result'length - N
+--! Without sum and accumulation the maximum result width in the accumulation
+--! register LSBs is
+--!   W = x'length + y'length + 1  (complex multiplication requires additional guard bit)
+--! Dependent on result'length and NUM_SUMMAND a shift right is required to avoid
+--! overflow or clipping.
+--!   OUTPUT_SHIFT_RIGHT = W + ceil(log2(NUM_SUMMAND)) - result'length
 --!
 --! If just multiplication and the sum of products is required but not further
 --! accumulation then set CLR to constant '1'. 
@@ -48,7 +49,7 @@ library fixitfetish;
 --! Note that the double rate clock 'clk2' must have double the frequency of
 --! system clock 'clk' and must be synchronous and related to 'clk'.
 
-entity cplx_mult1_accu1 is
+entity cplx_mult4_accu is
 generic (
   --! @brief The number of summands is important to determine the number of additional
   --! guard bits (MSBs) that are required for the accumulation process. @link NUM_SUMMAND More...
@@ -84,12 +85,12 @@ port (
   --! @brief Clear accumulator (mark first valid input factors of accumulation sequence).
   --! If accumulation is not wanted then set constant '1'.
   clr        : in  std_logic;
-  --! Add/subtract, '0'-> +(x*y), '1'-> -(x*y). Subtraction is disabled by default.
-  sub        : in  std_logic := '0';
-  --! first complex factor 
-  x          : in  cplx;
-  --! second complex factor 
-  y          : in  cplx;
+  --! Add/subtract for all products n=0..3 , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)). Subtraction is disabled by default.
+  sub        : in  std_logic_vector(0 to 3) := (others=>'0');
+  --! x(n) are the first complex factors of the n multiplications
+  x          : in  cplx_vector(0 to 3);
+  --! y(n) are the second complex factors of the n multiplications
+  y          : in  cplx_vector(0 to 3);
   --! Resulting product/accumulator output (optionally rounded and clipped)
   result     : out cplx;
   --! Number of pipeline stages, constant, depends on configuration and device specific implementation
@@ -98,11 +99,11 @@ port (
 begin
 
   assert (m/='U' and m/='Z' and m/='I')
-    report "ERROR in cplx_mult1_accu1 : Rounding options 'U', 'Z' and 'I' are not supported."
+    report "ERROR in cplx_mult4_accu : Rounding options 'U', 'Z' and 'I' are not supported."
     severity failure;
 
-  assert (x.re'length=x.im'length) and (y.re'length=y.im'length) and (result.re'length=result.im'length)
-    report "ERROR in cplx_mult1_accu1 : Real and imaginary components must have same size."
+  assert (x(0).re'length=x(0).im'length) and (y(0).re'length=y(0).im'length) and (result.re'length=result.im'length)
+    report "ERROR in cplx_mult4_accu : Real and imaginary components must have same size."
     severity failure;
 
 end entity;

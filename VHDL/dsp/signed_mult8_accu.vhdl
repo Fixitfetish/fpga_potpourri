@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
---! @file       signed_preadd_mult1_accu1.vhdl
+--! @file       signed_mult8_accu.vhdl
 --! @author     Fixitfetish
---! @date       26/Feb/2017
---! @version    0.10
+--! @date       14/Feb/2017
+--! @version    0.50
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -10,27 +10,27 @@ library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
 
---! @brief Multiply a sum of two signed (+/-AX +/-BX) with a signed (Y) and accumulate results.
+--! @brief Eight signed multiplications and accumulate all product results.
 --!
---! @image html signed_preadd_mult1_accu1.svg "" width=600px
+--! @image html signed_mult8_accu.svg "" width=600px
 --!
 --! The behavior is as follows
---! * CLR=1  VLD=0  ->  r = undefined             # reset accumulator
---! * CLR=1  VLD=1  ->  r = (+/-ax +/-bx)*y       # restart accumulation
---! * CLR=0  VLD=0  ->  r = r                     # hold accumulator
---! * CLR=0  VLD=1  ->  r = r + (+/-ax +/-bx)*y   # proceed accumulation
+--! * CLR=1  VLD=0  ->  r = undefined                      # reset accumulator
+--! * CLR=1  VLD=1  ->  r = +/-(x0*y0) +/-(x1*y1) +/-...   # restart accumulation
+--! * CLR=0  VLD=0  ->  r = r                              # hold accumulator
+--! * CLR=0  VLD=1  ->  r = r +/-(x0*y0) +/-(x1*y1) +/-... # proceed accumulation
 --!
 --! The length of the input factors is flexible.
 --! The input factors are automatically resized with sign extensions bits to the
 --! maximum possible factor length.
 --! The maximum length of the input factors is device and implementation specific.
+--! The resulting length of all products (x(n)'length + y(n)'length) must be the same.
 --!
 --! @image html accumulator_register.svg "" width=800px
 --!
 --! * NUM_SUMMAND = configurable, @link NUM_SUMMAND more... @endlink
 --! * ACCU WIDTH = accumulator width (device specific)
---! * PRODUCT WIDTH (ax and bx same length)= ax'length + y'length + 1
---! * PRODUCT WIDTH (ax and bx not same length)= max(ax'length,bx'length) + y'length
+--! * PRODUCT WIDTH = x'length + y'length
 --! * GUARD BITS = ceil(log2(NUM_SUMMAND))
 --! * ACCU USED WIDTH = PRODUCT WIDTH + GUARD BITS <= ACCU WIDTH
 --! * OUTPUT SHIFT RIGHT = number of LSBs to prune
@@ -39,8 +39,7 @@ library ieee;
 --! * ACCU USED SHIFTED WIDTH = ACCU USED WIDTH - OUTPUT SHIFT RIGHT
 --! * OUTPUT WIDTH = length of result output <= ACCU USED SHIFTED WIDTH
 --!
---! \b Example: The input lengths are ax'length=18, bx'length=12 and y'length=16,
---! hence the maximum PRODUCT_WIDTH=34.
+--! \b Example: The input lengths are x'length=18 and y'length=16, hence PRODUCT_WIDTH=34.
 --! With NUM_SUMMAND=30 the number of additional guard bits is GUARD_BITS=5.
 --! If the output length is 22 then the standard shift-right setting (conservative,
 --! without risk of overflow) would be OUTPUT_SHIFT_RIGHT = 34 + 5 - 22 = 17.
@@ -51,45 +50,14 @@ library ieee;
 --! The delay depends on the configuration and the underlying hardware.
 --! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
 --!
---! VHDL Instantiation Template:
---! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
---! I1 : signed_preadd_mult1_accu1
---! generic map(
---!   NUM_SUMMAND        => natural,  -- overall number of summed products
---!   USE_CHAIN_INPUT    => boolean,  -- enable chain input
---!   PREADDER_INPUT_AX  => string,   -- ax preadder mode
---!   PREADDER_INPUT_BX  => string,   -- bx preadder mode
---!   NUM_INPUT_REG      => natural,  -- number of input registers
---!   NUM_OUTPUT_REG     => natural,  -- number of output registers
---!   OUTPUT_SHIFT_RIGHT => natural,  -- number of right shifts
---!   OUTPUT_ROUND       => boolean,  -- enable rounding half-up
---!   OUTPUT_CLIP        => boolean,  -- enable clipping
---!   OUTPUT_OVERFLOW    => boolean   -- enable overflow detection
---! )
---! port map(
---!   clk        => in  std_logic, -- clock
---!   rst        => in  std_logic, -- reset
---!   clr        => in  std_logic, -- clear accu
---!   vld        => in  std_logic, -- valid
---!   sub_ax     => in  std_logic, -- add/subtract ax
---!   sub_bx     => in  std_logic, -- add/subtract bx
---!   ax         => in  signed, -- first preadder input, first factor
---!   bx         => in  signed, -- second preadder input, first factor
---!   y          => in  signed, -- second factors
---!   result     => out signed, -- product result
---!   result_vld => out std_logic, -- output valid
---!   result_ovf => out std_logic, -- output overflow
---!   chainin    => in  signed(79 downto 0), -- chain input
---!   chainout   => out signed(79 downto 0), -- chain output
---!   PIPESTAGES => out natural -- constant number of pipeline stages
---! );
---! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--! This entity can be used for example
+--!   * for multiple complex multiplications and accumulation
+--!   * to calculate the mean square of complex numbers
 
---
 -- Optimal settings for overflow detection and/or saturation/clipping :
 -- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH
 
-entity signed_preadd_mult1_accu1 is
+entity signed_mult8_accu is
 generic (
   --! @brief The number of summands is important to determine the number of additional
   --! guard bits (MSBs) that are required for the accumulation process. @link NUM_SUMMAND More...
@@ -103,18 +71,9 @@ generic (
   --! * and so on ...
   --!
   --! Note that every single accumulated product result counts!
-  --! The two preadder inputs do not need to be considered here but just the products.
   NUM_SUMMAND : natural := 0;
   --! Enable chain input from neighbor DSP cell, i.e. enable additional accumulator input
   USE_CHAIN_INPUT : boolean := false;
-  --! @brief Preadder mode of input AX. Options are ADD, SUBTRACT or DYNAMIC.
-  --! In ADD and SUBTRACT mode sub_ax is ignored. In dynamic mode sub_ax='1' means subtract.
-  --! Note that additional logic might be required dependent on mode and FPGA type.
-  PREADDER_INPUT_AX : string := "ADD";
-  --! @brief Preadder mode of input BX. Options are ADD, SUBTRACT or DYNAMIC.
-  --! In ADD and SUBTRACT mode sub_bx is ignored. In dynamic mode sub_bx='1' means subtract.
-  --! Note that additional logic might be required dependent on mode and FPGA type.
-  PREADDER_INPUT_BX : string := "ADD";
   --! @brief Number of additional input registers. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
   NUM_INPUT_REG : natural := 1;
@@ -131,7 +90,7 @@ generic (
   --! This flag is only relevant when OUTPUT_SHIFT_RIGHT>0.
   --! If the device specific DSP cell supports rounding then rounding is done
   --! within the DSP cell. If rounding in logic is necessary then it is recommended
-  --! to use an additional output register.
+  --! to enable the additional output register.
   OUTPUT_ROUND : boolean := true;
   --! Enable clipping when right shifted result exceeds output range.
   OUTPUT_CLIP : boolean := true;
@@ -148,18 +107,40 @@ port (
   clr        : in  std_logic;
   --! Valid signal for input factors, high-active
   vld        : in  std_logic;
-  --! @brief Add/subtract product, '0' -> +(ax)*y, '1' -> -(ax)*y . 
-  --! Only relevant in DYNAMIC mode. In DYNAMIC mode subtraction is disabled by default.
-  sub_ax     : in  std_logic := '0';
-  --! @brief Add/subtract product, '0' -> +(bx)*y, '1' -> -(bx)*y . 
-  --! Only relevant in DYNAMIC mode. In DYNAMIC mode subtraction is disabled by default.
-  sub_bx     : in  std_logic := '0';
-  --! first preadder input (1st signed factor)
-  ax         : in  signed;
-  --! second preadder input (1st signed factor)
-  bx         : in  signed;
-  --! 2nd signed factor input
-  y          : in  signed;
+  --! Add/subtract for all products n=0..7 , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)). Subtraction is disabled by default.
+  sub        : in  std_logic_vector(0 to 7) := (others=>'0');
+  --! 1st product, 1st signed factor input
+  x0         : in  signed;
+  --! 1st product, 2nd signed factor input
+  y0         : in  signed;
+  --! 2nd product, 1st signed factor input
+  x1         : in  signed;
+  --! 2nd product, 2nd signed factor input
+  y1         : in  signed;
+  --! 3rd product, 1st signed factor input
+  x2         : in  signed;
+  --! 3rd product, 2nd signed factor input
+  y2         : in  signed;
+  --! 4th product, 1st signed factor input
+  x3         : in  signed;
+  --! 4th product, 2nd signed factor input
+  y3         : in  signed;
+  --! 5th product, 1st signed factor input
+  x4         : in  signed;
+  --! 5th product, 2nd signed factor input
+  y4         : in  signed;
+  --! 6th product, 1st signed factor input
+  x5         : in  signed;
+  --! 6th product, 2nd signed factor input
+  y5         : in  signed;
+  --! 7th product, 1st signed factor input
+  x6         : in  signed;
+  --! 7th product, 2nd signed factor input
+  y6         : in  signed;
+  --! 8th product, 1st signed factor input
+  x7         : in  signed;
+  --! 8th product, 2nd signed factor input
+  y7         : in  signed;
   --! @brief Resulting product/accumulator output (optionally rounded and clipped).
   --! The standard result output might be unused when chain output is used instead.
   result     : out signed;
@@ -180,8 +161,18 @@ port (
 );
 begin
 
+  assert (     (x0'length+y0'length)=(x1'length+y1'length)
+           and (x0'length+y0'length)=(x2'length+y2'length)
+           and (x0'length+y0'length)=(x3'length+y3'length)
+           and (x0'length+y0'length)=(x4'length+y4'length)
+           and (x0'length+y0'length)=(x5'length+y5'length)
+           and (x0'length+y0'length)=(x6'length+y6'length)
+           and (x0'length+y0'length)=(x7'length+y7'length) )
+    report "ERROR signed_mult8_accu : All products must result in same size."
+    severity failure;
+
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
-    report "WARNING signed_preadd_mult1_accu1 : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
+    report "WARNING signed_mult8_accu : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 
 end entity;

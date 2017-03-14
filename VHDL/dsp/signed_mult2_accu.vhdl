@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult2_accu1.vhdl
+--! @file       signed_mult2_accu.vhdl
 --! @author     Fixitfetish
 --! @date       14/Feb/2017
 --! @version    0.91
@@ -12,7 +12,7 @@ library ieee;
 
 --! @brief Two signed multiplications and accumulate all product results.
 --!
---! @image html signed_mult2_accu1.svg "" width=600px
+--! @image html signed_mult2_accu.svg "" width=600px
 --!
 --! The behavior is as follows
 --! * CLR=1  VLD=0  ->  result = undefined                    # reset accumulator
@@ -58,7 +58,7 @@ library ieee;
 -- Optimal settings for overflow detection and/or saturation/clipping :
 -- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH
 
-entity signed_mult2_accu1 is
+entity signed_mult2_accu is
 generic (
   --! @brief The number of summands is important to determine the number of additional
   --! guard bits (MSBs) that are required for the accumulation process. @link NUM_SUMMAND More...
@@ -139,11 +139,11 @@ port (
 begin
 
   assert (x0'length+y0'length)=(x1'length+y1'length)
-    report "ERROR signed_mult2_accu1 : All products must result in same size."
+    report "ERROR signed_mult2_accu : All products must result in same size."
     severity failure;
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
-    report "WARNING signed_mult2_accu1 : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
+    report "WARNING signed_mult2_accu : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 
 end entity;

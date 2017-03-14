@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_preadd_mult1_accu1.stratixv.vhdl
+--! @file       signed_preadd_mult1_accu.stratixv.vhdl
 --! @author     Fixitfetish
 --! @date       27/Feb/2017
 --! @version    0.30
@@ -18,7 +18,7 @@ library stratixv;
  use stratixv.stratixv_components.all;
 
 --! @brief This is an implementation of the entity 
---! @link signed_preadd_mult1_accu1 signed_preadd_mult1_accu1 @endlink
+--! @link signed_preadd_mult1_accu signed_preadd_mult1_accu @endlink
 --! for Altera Stratix-V.
 --! Multiply a sum of two signed (+/-AX +/-BX) with a signed Y and accumulate results.
 --!
@@ -51,12 +51,12 @@ library stratixv;
 --! | DYNAMIC   | DYNAMIC   |  AX  | +/-BX |  X+Y   | sub_ax | additional logic required
 --!
 --! This implementation can be chained multiple times.
---! @image html signed_preadd_mult1_accu1.stratixv.svg "" width=1000px
+--! @image html signed_preadd_mult1_accu.stratixv.svg "" width=1000px
 
-architecture stratixv of signed_preadd_mult1_accu1 is
+architecture stratixv of signed_preadd_mult1_accu is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "signed_preadd_mult1_accu1(stratixv)";
+  constant IMPLEMENTATION : string := "signed_preadd_mult1_accu(stratixv)";
 
   -- maximum number of input registers supported within the DSP cell
   constant NUM_DSP_INPUT_REG : natural := 1;

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult2_accu1.stratixv.vhdl
+--! @file       signed_mult2_accu.stratixv.vhdl
 --! @author     Fixitfetish
 --! @date       15/Feb/2017
 --! @version    0.80
@@ -18,7 +18,7 @@ library stratixv;
  use stratixv.stratixv_components.all;
 
 --! @brief This is an implementation of the entity 
---! @link signed_mult2_accu1 signed_mult2_accu1 @endlink
+--! @link signed_mult2_accu signed_mult2_accu @endlink
 --! for Altera Stratix-V.
 --! Two signed multiplications are performed and both results are accumulated.
 --!
@@ -36,12 +36,12 @@ library stratixv;
 --! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG
 --!
 --! This implementation can be chained multiple times.
---! @image html signed_mult2_accu1.stratixv.svg "" width=800px
+--! @image html signed_mult2_accu.stratixv.svg "" width=800px
 
-architecture stratixv of signed_mult2_accu1 is
+architecture stratixv of signed_mult2_accu is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "signed_mult2_accu1(stratixv)";
+  constant IMPLEMENTATION : string := "signed_mult2_accu(stratixv)";
 
   -- local auxiliary
   -- determine number of required additional guard bits (MSBs)

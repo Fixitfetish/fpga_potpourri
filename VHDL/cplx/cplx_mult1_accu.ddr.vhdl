@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       cplx_mult1_accu1.ddr.vhdl
+--! @file       cplx_mult1_accu.ddr.vhdl
 --! @author     Fixitfetish
 --! @date       18/Feb/2017
 --! @version    0.50
@@ -21,16 +21,16 @@ library fixitfetish;
 --! Hence, a complex multiplication can be performed within one system clock
 --! cycle with only half the amount of multiplier resources.
 --!
---! This implementation requires the FPGA type dependent module signed_mult1_accu1.
---! @image html cplx_mult1_accu1.ddr.svg "" width=600px
+--! This implementation requires the FPGA type dependent module signed_mult1_accu.
+--! @image html cplx_mult1_accu.ddr.svg "" width=600px
 --!
 --! NOTE: Within the 'clk2' domain always an even number of register stages
 --! must be implemented. 
 
-architecture ddr of cplx_mult1_accu1 is
+architecture ddr of cplx_mult1_accu is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "cplx_mult1_accu1(ddr)";
+  constant IMPLEMENTATION : string := "cplx_mult1_accu(ddr)";
 
   -- auxiliary phase control signals
   signal toggle1, toggle2, phase : std_logic := '0';
@@ -137,7 +137,7 @@ begin
   sub_im <= sub_q;
 
   -- calculate real component in 'clk2' domain
-  i_re : entity fixitfetish.signed_mult1_accu1
+  i_re : entity fixitfetish.signed_mult1_accu
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAIN_INPUT    => false,
@@ -165,7 +165,7 @@ begin
   );
 
   -- calculate imaginary component in 'clk2' domain
-  i_im : entity fixitfetish.signed_mult1_accu1
+  i_im : entity fixitfetish.signed_mult1_accu
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAIN_INPUT    => false,

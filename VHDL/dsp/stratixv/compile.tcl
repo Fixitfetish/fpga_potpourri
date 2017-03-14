@@ -26,11 +26,11 @@ vmap stratixv_ver $ALTERA_LIB/verilog_libs/stratixv_ver
 
 set SWITCHES "-93 -explicit -dbg"
 
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult1_accu1.stratixv.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult2_accu1.stratixv.vhdl
+vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult1_accu.stratixv.vhdl
+vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult2_accu.stratixv.vhdl
 vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult2.stratixv_partial.vhdl
 vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult3.stratixv_compact.vhdl
 vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult4_sum.stratixv.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_multN_accu1.stratixv.vhdl
+vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_multN_accu.stratixv.vhdl
 vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_multN_sum.stratixv.vhdl
 vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_multN.stratixv.vhdl

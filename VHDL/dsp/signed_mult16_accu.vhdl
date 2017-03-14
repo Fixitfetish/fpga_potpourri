@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult16_accu1.vhdl
+--! @file       signed_mult16_accu.vhdl
 --! @author     Fixitfetish
 --! @date       14/Feb/2017
 --! @version    0.30
@@ -12,7 +12,7 @@ library ieee;
 
 --! @brief Sixteen signed multiplications and accumulate all product results.
 --! 
---! @image html signed_mult16_accu1.svg "" width=600px
+--! @image html signed_mult16_accu.svg "" width=600px
 --!
 --! The behavior is as follows
 --! * CLR=1  VLD=0  ->  r = undefined                      # reset accumulator
@@ -57,7 +57,7 @@ library ieee;
 -- Optimal settings for overflow detection and/or saturation/clipping :
 -- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH
 
-entity signed_mult16_accu1 is
+entity signed_mult16_accu is
 generic (
   --! @brief The number of summands is important to determine the number of additional
   --! guard bits (MSBs) that are required for the accumulation process. @link NUM_SUMMAND More...
@@ -208,11 +208,11 @@ begin
            and (x0'length+y0'length)=(x13'length+y13'length)
            and (x0'length+y0'length)=(x14'length+y14'length)
            and (x0'length+y0'length)=(x15'length+y15'length) )
-    report "ERROR signed_mult16_accu1 : All products must result in same size."
+    report "ERROR signed_mult16_accu : All products must result in same size."
     severity failure;
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
-    report "WARNING signed_mult16_accu1 : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
+    report "WARNING signed_mult16_accu : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 
 end entity;

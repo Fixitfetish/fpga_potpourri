@@ -1,29 +1,32 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult1_accu1.vhdl
+--! @file       signed_multN_accu.vhdl
 --! @author     Fixitfetish
---! @date       14/Feb/2017
---! @version    0.86
+--! @date       23/Feb/2017
+--! @version    0.20
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
+library fixitfetish;
+ use fixitfetish.ieee_extension_types.all;
 
---! @brief Signed Multiply and Accumulate
+--! @brief N signed multiplications and accumulate all product results.
 --!
---! @image html signed_mult1_accu1.svg "" width=600px
+--! @image html signed_multN_accu.svg "" width=600px
 --!
 --! The behavior is as follows
---! * CLR=1  VLD=0  ->  r = undefined   # reset accumulator
---! * CLR=1  VLD=1  ->  r = +/-(x*y)    # restart accumulation
---! * CLR=0  VLD=0  ->  r = r           # hold accumulator
---! * CLR=0  VLD=1  ->  r = r +/-(x*y)  # proceed accumulation
+--! * CLR=1  VLD=0  ->  r = undefined                      # reset accumulator
+--! * CLR=1  VLD=1  ->  r = +/-(x0*y0) +/-(x1*y1) +/-...   # restart accumulation
+--! * CLR=0  VLD=0  ->  r = r                              # hold accumulator
+--! * CLR=0  VLD=1  ->  r = r +/-(x0*y0) +/-(x1*y1) +/-... # proceed accumulation
 --!
 --! The length of the input factors is flexible.
 --! The input factors are automatically resized with sign extensions bits to the
 --! maximum possible factor length.
 --! The maximum length of the input factors is device and implementation specific.
+--! The resulting length of all products (x(n)'length + y(n)'length) must be the same.
 --!
 --! @image html accumulator_register.svg "" width=800px
 --!
@@ -48,16 +51,56 @@ library ieee;
 --!
 --! The delay depends on the configuration and the underlying hardware.
 --! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
+--!
+--! This entity can be used for example
+--!   * for complex multiplication and accumulation
+--!   * to calculate the mean square of a complex number
+--!
+--! VHDL Instantiation Template:
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
+--! I1 : signed_multN_accu
+--! generic map(
+--!   NUM_MULT           => positive, -- number of parallel multiplications
+--!   NUM_SUMMAND        => natural,  -- overall number of summed products
+--!   USE_CHAIN_INPUT    => boolean,  -- enable chain input
+--!   NUM_INPUT_REG      => natural,  -- number of input registers
+--!   NUM_OUTPUT_REG     => natural,  -- number of output registers
+--!   OUTPUT_SHIFT_RIGHT => natural,  -- number of right shifts
+--!   OUTPUT_ROUND       => boolean,  -- enable rounding half-up
+--!   OUTPUT_CLIP        => boolean,  -- enable clipping
+--!   OUTPUT_OVERFLOW    => boolean   -- enable overflow detection
+--! )
+--! port map(
+--!   clk        => in  std_logic, -- clock
+--!   rst        => in  std_logic, -- reset
+--!   clr        => in  std_logic, -- clear accu
+--!   vld        => in  std_logic, -- valid
+--!   sub        => in  std_logic_vector(0 to NUM_MULT-1), -- add/subtract
+--!   x          => in  signed_vector(0 to NUM_MULT-1), -- first factors
+--!   y          => in  signed_vector(0 to NUM_MULT-1), -- second factors
+--!   result     => out signed, -- product result
+--!   result_vld => out std_logic, -- output valid
+--!   result_ovf => out std_logic, -- output overflow
+--!   chainin    => in  signed(79 downto 0), -- chain input
+--!   chainout   => out signed(79 downto 0), -- chain output
+--!   PIPESTAGES => out natural -- constant number of pipeline stages
+--! );
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 --
 -- Optimal settings for overflow detection and/or saturation/clipping :
 -- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH
 
-entity signed_mult1_accu1 is
+entity signed_multN_accu is
 generic (
+  --! Number of parallel multiplications - mandatory generic!
+  NUM_MULT : positive;
   --! @brief The number of summands is important to determine the number of additional
   --! guard bits (MSBs) that are required for the accumulation process. @link NUM_SUMMAND More...
   --!
+  --! The number of summands can be much higher than the number of parallel
+  --! multiplications when results are accumulated over several clock cycles.
+  --! Typically NUM_SUMMAND must be greater than or equal NUM_MULT .
   --! The setting is relevant to save logic especially when saturation/clipping
   --! and/or overflow detection is enabled.
   --! * 0 => maximum possible, not recommended (worst case, hardware dependent)
@@ -86,7 +129,7 @@ generic (
   --! This flag is only relevant when OUTPUT_SHIFT_RIGHT>0.
   --! If the device specific DSP cell supports rounding then rounding is done
   --! within the DSP cell. If rounding in logic is necessary then it is recommended
-  --! to use an additional output register.
+  --! to enable the additional output register.
   OUTPUT_ROUND : boolean := true;
   --! Enable clipping when right shifted result exceeds output range.
   OUTPUT_CLIP : boolean := true;
@@ -103,12 +146,12 @@ port (
   clr        : in  std_logic;
   --! Valid signal for input factors, high-active
   vld        : in  std_logic;
-  --! Add/subtract product , '0' -> +(x*y), '1' -> -(x*y). Subtraction is disabled by default.
-  sub        : in  std_logic := '0';
-  --! 1st signed factor input
-  x          : in  signed;
-  --! 2nd signed factor input
-  y          : in  signed;
+  --! Add/subtract for all products n=0..(NUM_MULT-1) , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)). Subtraction is disabled by default.
+  sub        : in  std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
+  --! First signed factor for the NUM_MULT multiplications (all X inputs must have same size)
+  x          : in  signed_vector(0 to NUM_MULT-1);
+  --! Second signed factor for the NUM_MULT multiplications (all Y inputs must have same size)
+  y          : in  signed_vector(0 to NUM_MULT-1);
   --! @brief Resulting product/accumulator output (optionally rounded and clipped).
   --! The standard result output might be unused when chain output is used instead.
   result     : out signed;
@@ -130,7 +173,7 @@ port (
 begin
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
-    report "WARNING signed_mult1_accu1 : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
+    report "WARNING signed_multN_accu : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 
 end entity;
