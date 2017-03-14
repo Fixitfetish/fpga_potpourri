@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult1_accu1.ultrascale.vhdl
+--! @file       signed_mult1_accu.ultrascale.vhdl
 --! @author     Fixitfetish
 --! @date       11/Mar/2017
 --! @version    0.70
@@ -18,7 +18,7 @@ library unisim;
  use unisim.vcomponents.all;
 
 --! @brief This is an implementation of the entity 
---! @link signed_mult1_accu1 signed_mult1_accu1 @endlink
+--! @link signed_mult1_accu signed_mult1_accu @endlink
 --! for Xilinx UltraScale.
 --! One signed multiplication is performed and results are accumulated.
 --!
@@ -39,12 +39,12 @@ library unisim;
 --! This configuration might be useful when DSP cells are chained.
 --!
 --! This implementation can be chained multiple times.
---! @image html signed_mult1_accu1.ultrascale.svg "" width=1000px
+--! @image html signed_mult1_accu.ultrascale.svg "" width=1000px
 
-architecture ultrascale of signed_mult1_accu1 is
+architecture ultrascale of signed_mult1_accu is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "signed_mult1_accu1(ultrascale)";
+  constant IMPLEMENTATION : string := "signed_mult1_accu(ultrascale)";
 
   -- maximum number of input registers supported within the DSP cell
   constant NUM_DSP_INPUT_REG : natural := 3;

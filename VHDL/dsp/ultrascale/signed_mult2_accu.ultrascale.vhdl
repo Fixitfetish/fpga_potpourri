@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult2_accu1.ultrascale.vhdl
+--! @file       signed_mult2_accu.ultrascale.vhdl
 --! @author     Fixitfetish
 --! @date       14/Feb/2017
 --! @version    0.30
@@ -15,7 +15,7 @@ library fixitfetish;
  use fixitfetish.ieee_extension.all;
 
 --! @brief This is an implementation of the entity 
---! @link signed_mult2_accu1 signed_mult2_accu1 @endlink
+--! @link signed_mult2_accu signed_mult2_accu @endlink
 --! for Xilinx UltraScale.
 --! Two signed multiplications are performed and both results are accumulated.
 --!
@@ -34,16 +34,16 @@ library fixitfetish;
 --! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG
 --!
 --! This implementation can be chained multiple times.
---! @image html signed_mult2_accu1.ultrascale.svg "" width=800px
+--! @image html signed_mult2_accu.ultrascale.svg "" width=800px
 --!
 --! NOTE: This implementation does not make use of the pipeline register P in DSP cell 0.
 --! This might be useful to be conform to implementations of other FPGA Vendors.
 --! Therefore, less input registers are required when this implementation is chained multiple times.
 --! Drawback is a lower maximum frequency. If higher frequencies are required there are two options
 --! * Set NUM_INPUT_REG >= 2 when multiple chaining is not needed. This enables the pipeline register M within the the DSP cell.
---! * Use the implementation @link signed_mult2_accu1 signed_mult2_accu1(chain) @endlink with enabled pipeline register P.
+--! * Use the implementation @link signed_mult2_accu signed_mult2_accu(chain) @endlink with enabled pipeline register P.
 
-architecture ultrascale of signed_mult2_accu1 is
+architecture ultrascale of signed_mult2_accu is
   
   -- chain width in bits - implementation and device specific !
   signal chain : signed(chainout'length-1 downto 0);
@@ -56,7 +56,7 @@ architecture ultrascale of signed_mult2_accu1 is
 
 begin
 
-  dsp0 : entity fixitfetish.signed_mult1_accu1(ultrascale)
+  dsp0 : entity fixitfetish.signed_mult1_accu(ultrascale)
   generic map(
     NUM_SUMMAND        => 1, -- irrelevant because chain output is used
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
@@ -85,7 +85,7 @@ begin
 
   signed_sink(dummy);
 
-  dsp1 : entity fixitfetish.signed_mult1_accu1(ultrascale)
+  dsp1 : entity fixitfetish.signed_mult1_accu(ultrascale)
   generic map(
     NUM_SUMMAND        => NUM_SUMMAND,
     USE_CHAIN_INPUT    => true,
