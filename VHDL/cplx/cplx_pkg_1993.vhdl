@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_pkg_1993.vhdl
 --! @author     Fixitfetish
---! @date       27/Feb/2017
---! @version    0.98
+--! @date       14/Mar/2017
+--! @version    0.99
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -818,8 +818,9 @@ package body cplx_pkg is
   -- Complex data reset on demand - to be placed into the data path
   -- supported options: 'R'
   function reset_on_demand (din:cplx16; m:cplx_mode:="-") return cplx16 is
-    variable dout : cplx16 := din; -- by default output = input
+    variable dout : cplx16;
   begin
+    dout := din; -- by default output = input
     if din.rst='1' then
       dout.vld:='0'; dout.ovf:='0'; -- always reset control signals
       -- reset data only when explicitly wanted
@@ -829,8 +830,9 @@ package body cplx_pkg is
   end function;
 
   function reset_on_demand (din:cplx18; m:cplx_mode:="-") return cplx18 is
-    variable dout : cplx18 := din; -- by default output = input
+    variable dout : cplx18;
   begin
+    dout := din; -- by default output = input
     if din.rst='1' then
       dout.vld:='0'; dout.ovf:='0'; -- always reset control signals
       -- reset data only when explicitly wanted
@@ -840,8 +842,9 @@ package body cplx_pkg is
   end function;
 
   function reset_on_demand (din:cplx20; m:cplx_mode:="-") return cplx20 is
-    variable dout : cplx20 := din; -- by default output = input
+    variable dout : cplx20;
   begin
+    dout := din; -- by default output = input
     if din.rst='1' then
       dout.vld:='0'; dout.ovf:='0'; -- always reset control signals
       -- reset data only when explicitly wanted
@@ -851,8 +854,9 @@ package body cplx_pkg is
   end function;
 
   function reset_on_demand (din:cplx22; m:cplx_mode:="-") return cplx22 is
-    variable dout : cplx22 := din; -- by default output = input
+    variable dout : cplx22;
   begin
+    dout := din; -- by default output = input
     if din.rst='1' then
       dout.vld:='0'; dout.ovf:='0'; -- always reset control signals
       -- reset data only when explicitly wanted
@@ -1936,7 +1940,7 @@ package body cplx_pkg is
 
   -- shift right CPLX16
   function shift_right (din:cplx16; n:natural; m:cplx_mode:="-") return cplx16 is
-    variable dout : cplx16 := din; -- default
+    variable dout : cplx16;
   begin
     help_shift_right(din.rst, din.re, n, dout.re, m);
     help_shift_right(din.rst, din.im, n, dout.im, m);
@@ -1956,7 +1960,7 @@ package body cplx_pkg is
 
   -- shift right CPLX18
   function shift_right (din:cplx18; n:natural; m:cplx_mode:="-") return cplx18 is
-    variable dout : cplx18 := din; -- default
+    variable dout : cplx18;
   begin
     help_shift_right(din.rst, din.re, n, dout.re, m);
     help_shift_right(din.rst, din.im, n, dout.im, m);
@@ -1976,7 +1980,7 @@ package body cplx_pkg is
 
   -- shift right CPLX20
   function shift_right (din:cplx20; n:natural; m:cplx_mode:="-") return cplx20 is
-    variable dout : cplx20 := din; -- default
+    variable dout : cplx20;
   begin
     help_shift_right(din.rst, din.re, n, dout.re, m);
     help_shift_right(din.rst, din.im, n, dout.im, m);
@@ -1996,7 +2000,7 @@ package body cplx_pkg is
 
   -- shift right CPLX22
   function shift_right (din:cplx22; n:natural; m:cplx_mode:="-") return cplx22 is
-    variable dout : cplx22 := din; -- default
+    variable dout : cplx22;
   begin
     help_shift_right(din.rst, din.re, n, dout.re, m);
     help_shift_right(din.rst, din.im, n, dout.im, m);

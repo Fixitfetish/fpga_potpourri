@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : cplx_pkg_2008.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 27/Feb/2017
--- VERSION : 0.98
+-- DATE    : 14/Mar/2017
+-- VERSION : 0.99
 -- VHDL    : 2008
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -460,9 +460,9 @@ package body cplx_pkg is
   end function;
 
   function reset_on_demand (din:cplx; m:cplx_mode:="-") return cplx is
-    -- by default pass input to output
-    variable dout : cplx(re(din.re'range),im(din.im'range)) := din;
+    variable dout : cplx(re(din.re'range),im(din.im'range));
   begin
+    dout := din; -- by default output = input
     if din.rst='1' then
       dout.vld:='0'; dout.ovf:='0'; -- always reset control signals
       -- reset data only when explicitly wanted
