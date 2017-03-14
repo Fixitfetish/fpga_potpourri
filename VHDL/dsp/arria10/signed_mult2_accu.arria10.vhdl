@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult2_accu1.arria10.vhdl
+--! @file       signed_mult2_accu.arria10.vhdl
 --! @author     Fixitfetish
 --! @date       16/Feb/2017
 --! @version    0.85
@@ -18,7 +18,7 @@ library twentynm;
  use twentynm.twentynm_components.all;
 
 --! @brief This is an implementation of the entity 
---! @link signed_mult2_accu1 signed_mult2_accu1 @endlink
+--! @link signed_mult2_accu signed_mult2_accu @endlink
 --! for Altera Arria 10.
 --! Two signed multiplications are performed and both results are accumulated.
 --!
@@ -37,12 +37,12 @@ library twentynm;
 --! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG
 --!
 --! This implementation can be chained multiple times.
---! @image html signed_mult2_accu1.arria10.svg "" width=800px
+--! @image html signed_mult2_accu.arria10.svg "" width=800px
 
-architecture arria10 of signed_mult2_accu1 is
+architecture arria10 of signed_mult2_accu is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "signed_mult2_accu1(arria10)";
+  constant IMPLEMENTATION : string := "signed_mult2_accu(arria10)";
 
   -- local auxiliary
   -- determine number of required additional guard bits (MSBs)
