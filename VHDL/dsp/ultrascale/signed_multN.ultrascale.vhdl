@@ -26,7 +26,7 @@ library fixitfetish;
 --!
 --! | X Len | Y Len | X+Y Len | DSP Slices | Entity Type Used   | Comment
 --! |:-----:|:-----:|:-------:|:----------:|--------------------|-----------
---! | <=27  | <=18  | <=45    | N          | signed_mult1_accu1 | 27x18 Full
+--! | <=27  | <=18  | <=45    | N          | signed_mult1_accu  | 27x18 Full
 --!
 
 architecture ultrascale of signed_multN is
@@ -84,7 +84,7 @@ begin
 
    g_n: for n in 0 to (NUM_ENTITY-1) generate
 
-    mult1 : entity fixitfetish.signed_mult1_accu1(ultrascale)
+    mult1 : entity fixitfetish.signed_mult1_accu(ultrascale)
     generic map(
       NUM_SUMMAND        => 1,
       USE_CHAIN_INPUT    => false,

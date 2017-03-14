@@ -31,8 +31,8 @@ library fixitfetish;
 --! |:-----:|:-----:|:-------:|:-----------:|--------------------|-----------
 --! | <=18  | <=18  | <=32    | ceil(N/2)   | signed_mult2       | 18x18 Partial
 --! | <=18  | <=18  | <=36    | 2*ceil(N/3) | signed_mult3       | 18x18 Compact (only N>=2)
---! | <=27  | <=27  | <=54    | N           | signed_mult1_accu1 | 27x27 Full
---! | <=36  | <=18  | <=54    | N           | signed_mult1_accu1 | 36x18 Full
+--! | <=27  | <=27  | <=54    | N           | signed_mult1_accu  | 27x27 Full
+--! | <=36  | <=18  | <=54    | N           | signed_mult1_accu  | 36x18 Full
 --!
 
 architecture stratixv of signed_multN is
@@ -169,7 +169,7 @@ begin
 
    g_n: for n in 0 to (NUM_ENTITY-1) generate
 
-    mult1 : entity fixitfetish.signed_mult1_accu1(stratixv)
+    mult1 : entity fixitfetish.signed_mult1_accu(stratixv)
     generic map(
       NUM_SUMMAND        => 1,
       USE_CHAIN_INPUT    => false,

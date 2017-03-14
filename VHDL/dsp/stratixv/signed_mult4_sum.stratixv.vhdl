@@ -42,7 +42,7 @@ library stratixv;
 --! NOTE 1: The product of the first input factor pair cannot be subtracted !
 --!
 --! NOTE 2: This implementation requires one pipeline register less than the
---! implementation @link signed_mult4_accu1 signed_mult4_accu1 @endlink.
+--! implementation @link signed_mult4_accu signed_mult4_accu @endlink.
 --! Therefore, less registers in logic are required. Drawback is a lower maximum frequency.
 --!
 --! NOTE 3: The 'chainin' input port is unused here because the chain input cannot

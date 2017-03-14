@@ -23,7 +23,7 @@ library fixitfetish;
 --! This implementation uses N4 = floor((N+1)/4) instances of 
 --! @link signed_mult4_sum signed_mult4_sum @endlink
 --! and N2 = ceil(N/2)-2*N4 instances of
---! @link signed_mult2_accu1 signed_mult2_accu1 @endlink .
+--! @link signed_mult2_accu signed_mult2_accu @endlink .
 --! Overall 2*N4 + N2 Altera Stratix-V DSP blocks are required.
 --!
 --! * Input Data      : Nx2 signed values, each max 18 bits
@@ -144,7 +144,7 @@ begin
   -----------------------------------------------------------------------------
   -- when NUM_MULT <= 2  (no adder stage in logic required)
   g2: if NUM_MULT<=2 generate
-    i4 : entity fixitfetish.signed_mult2_accu1
+    i4 : entity fixitfetish.signed_mult2_accu
     generic map(
       NUM_SUMMAND        => 2,
       USE_CHAIN_INPUT    => false,
@@ -261,7 +261,7 @@ begin
     -- additional MULT2 instance required if the number of MULT2 blocks is odd
     g2: if NUM_MULT4<NUM_INPUTS_STAGE(1) generate
     begin
-      i2 : entity fixitfetish.signed_mult2_accu1
+      i2 : entity fixitfetish.signed_mult2_accu
       generic map(
         NUM_SUMMAND        => 2,
         USE_CHAIN_INPUT    => false,
