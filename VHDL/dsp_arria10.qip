@@ -7,6 +7,6 @@ set_global_assignment -name QIP_FILE [file join $::quartus(qip_path) "dsp/compil
 set_global_assignment -name QIP_FILE [file join $::quartus(qip_path) "dsp/arria10/compile.qip"]
 
 # generic (chained, derived, etc.)
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/generic/signed_mult4_accu_chain.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/generic/signed_mult8_accu_chain.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/generic/signed_mult4_accu.chain.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/generic/signed_mult8_accu.chain.vhdl"]
 
