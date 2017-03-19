@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult1add1_accu.ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       17/Mar/2017
---! @version    0.10
+--! @date       19/Mar/2017
+--! @version    0.20
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -13,6 +13,7 @@ library ieee;
  use ieee.numeric_std.all;
 library fixitfetish;
  use fixitfetish.ieee_extension.all;
+ use fixitfetish.dsp_pkg_ultrascale.all;
 
 library unisim;
  use unisim.vcomponents.all;
@@ -48,48 +49,13 @@ architecture ultrascale of signed_mult1add1_accu is
   -- identifier for reports of warnings and errors
   constant IMPLEMENTATION : string := "signed_mult1add1_accu(ultrascale)";
 
-  -- maximum number of input registers supported within the DSP cell
-  constant NUM_DSP_INPUT_REG_XY : natural := 3;
-
-  -- number of input registers within DSP cell
-  function n_ireg_dsp(n:natural) return natural is
-  begin
-    if n<=NUM_DSP_INPUT_REG_XY then return n; else return NUM_DSP_INPUT_REG_XY; end if;
-  end function;
-  constant NUM_IREG_DSP : natural := n_ireg_dsp(NUM_INPUT_REG_XY);
-
-  -- number of additional input registers in logic (not within DSP cell)
-  function n_ireg_logic(n:natural) return natural is
-  begin
-    if n>NUM_DSP_INPUT_REG_XY then return n-NUM_DSP_INPUT_REG_XY; else return 0; end if;
-  end function;
-  constant NUM_IREG_LOGIC : natural := n_ireg_logic(NUM_INPUT_REG_XY);
+  -- number input registers within DSP and in LOGIC
+  constant NUM_IREG_DSP : natural := NUM_IREG("DSP",NUM_INPUT_REG_XY);
+  constant NUM_IREG_LOGIC : natural := NUM_IREG("LOGIC",NUM_INPUT_REG_XY);
 
   -- number of additional Z input registers in logic (not within DSP cell)
-  function n_zreg_logic(n:natural) return natural is
-  begin
-    if n>1 then return n-1; else return 0; end if;
-  end function;
-  constant NUM_ZREG_LOGIC : natural := n_zreg_logic(NUM_INPUT_REG_Z);
-
-  -- local auxiliary
-  -- determine number of required additional guard bits (MSBs)
-  function guard_bits(num_summand, dflt:natural) return integer is
-    variable res : integer;
-  begin
-    if num_summand=0 then
-      res := dflt; -- maximum possible (default)
-    else
-      res := LOG2CEIL(num_summand);
-      if res>dflt then 
-        report "WARNING " & IMPLEMENTATION & ": Too many summands. " & 
-           "Maximum number of " & integer'image(dflt) & " guard bits reached."
-           severity warning;
-        res:=dflt;
-      end if;
-    end if;
-    return res; 
-  end function;
+  constant NUM_IREG_Z_LOGIC : natural := NUM_IREG_C("LOGIC",NUM_INPUT_REG_Z);
+  constant NUM_IREG_Z_DSP : natural := NUM_IREG_C("DSP",NUM_INPUT_REG_Z);
 
   -- first data input register is supported, in the first stage only
   function AREG(n:natural) return natural is
@@ -112,64 +78,38 @@ architecture ultrascale of signed_mult1add1_accu is
     end if;
   end function;
 
-  function CREG(n:natural) return natural is
-  begin
-    if n=0 then return 0; else return 1; end if;
-  end function;
-
-  -- MREG is used as second input register when NUM_INPUT_REG_XY>=2
-  function MREG(n:natural) return natural is
-  begin if n>=2 then return 1; else return 0; end if; end function;
-
-  function INMODEREG(n:natural) return natural is
-  begin if n>=1 then return 1; else return 0; end if; end function;
-
-  -- PREG is the first output register when NUM_OUTPUT_REG=>1 (strongly recommended!)
-  function PREG(n:natural) return natural is
-  begin if n>=1 then return 1; else return 0; end if; end function;
-
   constant MAX_WIDTH_A  : positive := 30;
   constant MAX_WIDTH_D  : positive := 27;
   constant LIM_WIDTH_A  : positive := 27;
   constant MAX_WIDTH_B  : positive := 18;
-  constant MAX_WIDTH_C  : positive := 48;
-
-  -- accumulator width in bits
-  constant ACCU_WIDTH : positive := 48;
+  constant MAX_WIDTH_C  : positive := ACCU_WIDTH;
 
   -- derived constants
   constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
   constant PRODUCT_WIDTH : natural := x'length + y'length;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
-  constant GUARD_BITS_EVAL : natural := guard_bits(NUM_SUMMAND,MAX_GUARD_BITS);
+  constant GUARD_BITS_EVAL : natural := accu_guard_bits(NUM_SUMMAND,MAX_GUARD_BITS,IMPLEMENTATION);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
   constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
   constant OUTPUT_WIDTH : positive := result'length;
 
-  -- rounding bit generation (+0.5)
-  function RND(ena:boolean; shift:natural) return std_logic_vector is
-    variable res : std_logic_vector(ACCU_WIDTH-1 downto 0) := (others=>'0');
-  begin 
-    if ena and (shift>=1) then res(shift-1):='1'; end if;
-    return res;
-  end function;
-
   type array_zreg is array(integer range <>) of signed(z'length-1 downto 0);
-  signal zreg : array_zreg(NUM_ZREG_LOGIC downto 0);
+  signal zreg : array_zreg(NUM_IREG_Z_LOGIC downto 0);
+  signal c : signed(MAX_WIDTH_C-1 downto 0) := (others=>'0');
 
   -- logic input register pipeline
-  type r_lireg is
+  type r_logic_ireg is
   record
     rst, clr, vld : std_logic;
     sub : std_logic;
     x : signed(x'length-1 downto 0);
     y : signed(y'length-1 downto 0);
   end record;
-  type array_lireg is array(integer range <>) of r_lireg;
-  signal lireg : array_lireg(NUM_IREG_LOGIC downto 0);
+  type array_logic_ireg is array(integer range <>) of r_logic_ireg;
+  signal logic_ireg : array_logic_ireg(NUM_IREG_LOGIC downto 0);
 
   -- DSP input register pipeline
-  type r_ireg is
+  type r_dsp_ireg is
   record
     rst, vld : std_logic;
     inmode : std_logic_vector(4 downto 0);
@@ -180,8 +120,8 @@ architecture ultrascale of signed_mult1add1_accu is
     d : signed(MAX_WIDTH_D-1 downto 0);
     b : signed(MAX_WIDTH_B-1 downto 0);
   end record;
-  type array_ireg is array(integer range <>) of r_ireg;
-  signal ireg : array_ireg(NUM_IREG_DSP downto 0);
+  type array_dsp_ireg is array(integer range <>) of r_dsp_ireg;
+  signal ireg : array_dsp_ireg(NUM_IREG_DSP downto 0);
 
   -- output register pipeline
   type r_oreg is
@@ -201,7 +141,6 @@ architecture ultrascale of signed_mult1add1_accu is
   signal accu : std_logic_vector(ACCU_WIDTH-1 downto 0);
   signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
   signal accu_used_shifted : signed(ACCU_USED_SHIFTED_WIDTH-1 downto 0);
-  signal c : signed(ACCU_WIDTH-1 downto 0) := (others=>'0');
 
 begin
 
@@ -233,32 +172,32 @@ begin
            "More guard bits required for saturation/clipping and/or overflow detection."
     severity failure;
 
-  zreg(NUM_ZREG_LOGIC) <= z;
-  g_zreg : if NUM_ZREG_LOGIC>=1 generate
+  zreg(NUM_IREG_Z_LOGIC) <= z;
+  g_zreg : if NUM_IREG_Z_LOGIC>=1 generate
   begin
-    g_1 : for n in 1 to NUM_ZREG_LOGIC generate
+    g_1 : for n in 1 to NUM_IREG_Z_LOGIC generate
     begin
       zreg(n-1) <= zreg(n) when rising_edge(clk);
     end generate;
   end generate;
 
-  -- Usage of input Z only possible if chain input disabled
+  -- Usage of input Z only possible if chain input is disabled
   gc: if not USE_CHAIN_INPUT generate
-    c <= resize(zreg(0),ACCU_WIDTH);
+    c <= resize(zreg(0),MAX_WIDTH_C);
   end generate;
 
-  lireg(NUM_IREG_LOGIC).rst <= rst;
-  lireg(NUM_IREG_LOGIC).clr <= clr;
-  lireg(NUM_IREG_LOGIC).vld <= vld;
-  lireg(NUM_IREG_LOGIC).sub <= sub;
-  lireg(NUM_IREG_LOGIC).x  <= x;
-  lireg(NUM_IREG_LOGIC).y  <= y;
+  logic_ireg(NUM_IREG_LOGIC).rst <= rst;
+  logic_ireg(NUM_IREG_LOGIC).clr <= clr;
+  logic_ireg(NUM_IREG_LOGIC).vld <= vld;
+  logic_ireg(NUM_IREG_LOGIC).sub <= sub;
+  logic_ireg(NUM_IREG_LOGIC).x <= x;
+  logic_ireg(NUM_IREG_LOGIC).y <= y;
 
-  g_lireg : if NUM_IREG_LOGIC>=1 generate
+  g_ireg_logic : if NUM_IREG_LOGIC>=1 generate
   begin
     g_1 : for n in 1 to NUM_IREG_LOGIC generate
     begin
-      lireg(n-1) <= lireg(n) when rising_edge(clk);
+      logic_ireg(n-1) <= logic_ireg(n) when rising_edge(clk);
     end generate;
   end generate;
 
@@ -266,22 +205,22 @@ begin
   p_clr : process(clk)
   begin
     if rising_edge(clk) then
-      if lireg(0).clr='1' and lireg(0).vld='0' then
+      if logic_ireg(0).clr='1' and logic_ireg(0).vld='0' then
         clr_q<='1';
-      elsif vld='1' then
+      elsif logic_ireg(0).vld='1' then
         clr_q<='0';
       end if;
     end if;
   end process;
-  clr_i <= lireg(0).clr or clr_q;
+  clr_i <= logic_ireg(0).clr or clr_q;
 
   -- control signal inputs
-  ireg(NUM_IREG_DSP).rst <= lireg(0).rst;
-  ireg(NUM_IREG_DSP).vld <= lireg(0).vld;
+  ireg(NUM_IREG_DSP).rst <= logic_ireg(0).rst;
+  ireg(NUM_IREG_DSP).vld <= logic_ireg(0).vld;
   ireg(NUM_IREG_DSP).inmode(0) <= '0'; -- AREG controlled input
   ireg(NUM_IREG_DSP).inmode(1) <= '0'; -- do not gate A/B
   ireg(NUM_IREG_DSP).inmode(2) <= '1'; -- D into preadder
-  ireg(NUM_IREG_DSP).inmode(3) <= lireg(0).sub; -- +/- A
+  ireg(NUM_IREG_DSP).inmode(3) <= logic_ireg(0).sub; -- +/- A
   ireg(NUM_IREG_DSP).inmode(4) <= '0'; -- BREG controlled input
   ireg(NUM_IREG_DSP).opmode_xy <= "0101"; -- constant, always multiplier result M
   ireg(NUM_IREG_DSP).opmode_z <= "001" when USE_CHAIN_INPUT else "011"; -- constant, either chainin or C
@@ -290,8 +229,8 @@ begin
                                  "01"; -- feedback P accumulator register output
 
   -- LSB bound data inputs
-  ireg(NUM_IREG_DSP).a <= resize(lireg(0).x,MAX_WIDTH_A);
-  ireg(NUM_IREG_DSP).b <= resize(lireg(0).y,MAX_WIDTH_B);
+  ireg(NUM_IREG_DSP).a <= resize(logic_ireg(0).x,MAX_WIDTH_A);
+  ireg(NUM_IREG_DSP).b <= resize(logic_ireg(0).y,MAX_WIDTH_B);
 
   -- When input X has the maximum supported length and the most negative value than
   -- the negation of X in the preadder would cause an overflow. Only in this special
@@ -300,12 +239,12 @@ begin
   -- Otherwise D is always 0.
   ireg(NUM_IREG_DSP).d <= (others=>'1')
     when ( x'length=LIM_WIDTH_A
-           and lireg(0).sub='1' 
-           and (lireg(0).x = to_signed(-2**(LIM_WIDTH_A-1),LIM_WIDTH_A)) )
+           and logic_ireg(0).sub='1' 
+           and (logic_ireg(0).x = to_signed(-2**(LIM_WIDTH_A-1),LIM_WIDTH_A)) )
     else (others=>'0');
 
   -- DSP cell data input registers AD/B2 are used as third input register stage.
-  g_in3 : if NUM_IREG_DSP>=3 generate
+  g_dsp_ireg3 : if NUM_IREG_DSP>=3 generate
   begin
     ireg(2).rst <= ireg(3).rst when rising_edge(clk);
     ireg(2).vld <= ireg(3).vld when rising_edge(clk);
@@ -320,7 +259,7 @@ begin
   end generate;
 
   -- DSP cell MREG register is used as second data input register stage
-  g_in2 : if NUM_IREG_DSP>=2 generate
+  g_dsp_ireg2 : if NUM_IREG_DSP>=2 generate
   begin
     ireg(1).rst <= ireg(2).rst when rising_edge(clk);
     ireg(1).vld <= ireg(2).vld when rising_edge(clk);
@@ -335,7 +274,7 @@ begin
   end generate;
 
   -- DSP cell data input registers A1/B1/D are used as first input register stage.
-  g_in1 : if NUM_IREG_DSP>=1 generate
+  g_dsp_ireg1 : if NUM_IREG_DSP>=1 generate
   begin
     ireg(0).rst <= ireg(1).rst when rising_edge(clk);
     ireg(0).vld <= ireg(1).vld when rising_edge(clk);
@@ -398,7 +337,7 @@ begin
     BREG                      => BREG(NUM_INPUT_REG_XY),-- 0,1 or 2
     CARRYINREG                => 1,
     CARRYINSELREG             => 1,
-    CREG                      => CREG(NUM_INPUT_REG_Z),
+    CREG                      => NUM_IREG_Z_DSP,
     DREG                      => AREG(NUM_INPUT_REG_XY),-- 0 or 1
     INMODEREG                 => INMODEREG(NUM_INPUT_REG_XY), -- 0 or 1
     MREG                      => MREG(NUM_INPUT_REG_XY), -- 0 or 1

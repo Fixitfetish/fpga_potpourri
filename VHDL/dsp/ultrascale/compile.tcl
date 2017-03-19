@@ -13,6 +13,8 @@ vmap unisim $XILINX_LIB/unisim
 
 set SWITCHES "-93 -explicit -dbg"
 
+vcom $SWITCHES -work $DSPLIB $BASEPATH/dsp_pkg.ultrascale.vhdl
+
 vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult1_accu.ultrascale.vhdl
 vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult1add1_accu.ultrascale.vhdl
 vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult1add1_sum.ultrascale.vhdl
