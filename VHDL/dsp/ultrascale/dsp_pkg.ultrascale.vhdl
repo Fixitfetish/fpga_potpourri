@@ -25,9 +25,9 @@ package dsp_pkg_ultrascale is
 
   --! determine number of required additional guard bits (MSBs)
   function accu_guard_bits(
-    num_summand : natural; --! number of summands that are accumulated
-    dflt : natural; --! default value when num_summand=0
-    impl : string --! implementation identifier string for warnings and errors
+    num_summand : natural; -- number of summands that are accumulated
+    dflt : natural; -- default value when num_summand=0
+    impl : string -- implementation identifier string for warnings and errors
   ) return integer;
 
   --! rounding bit generation (+0.5)
@@ -38,17 +38,17 @@ package dsp_pkg_ultrascale is
 
   --! determine number of input registers within DSP cell and in LOGIC
   function NUM_IREG(
-    loc : string; --! location either "DSP" or "LOGIC"
-    n : natural --! overall number of input registers
+    loc : string; -- location either "DSP" or "LOGIC"
+    n : natural -- overall number of input registers
   ) return natural;
 
   --! determine number of C input registers within DSP cell and in LOGIC
   function NUM_IREG_C(
-    loc : string; --! location either "DSP" or "LOGIC"
-    n : natural --! overall number of input registers
+    loc : string; -- location either "DSP" or "LOGIC"
+    n : natural -- overall number of input registers
   ) return natural;
 
-  --! Register M is used as second input register when NUM_INPUT_REG_XY>=2
+  --! Register M is used as second input register when NUM_INPUT_REG>=2
   function MREG(n:natural) return natural;
 
   --! INMODE has only one register stage
@@ -65,9 +65,9 @@ package body dsp_pkg_ultrascale is
 
   --! determine number of required additional guard bits (MSBs)
   function accu_guard_bits(
-    num_summand : natural; --! number of summands that are accumulated
-    dflt : natural; --! default value when num_summand=0
-    impl : string --! implementation identifier string for warnings and errors
+    num_summand : natural; -- number of summands that are accumulated
+    dflt : natural; -- default value when num_summand=0
+    impl : string -- implementation identifier string for warnings and errors
   ) return integer is
     variable res : integer;
   begin
@@ -98,8 +98,8 @@ package body dsp_pkg_ultrascale is
 
   --! determine number of input registers within DSP cell and in LOGIC
   function NUM_IREG(
-    loc : string; --! location either "DSP" or "LOGIC"
-    n : natural --! overall number of input registers
+    loc : string; -- location either "DSP" or "LOGIC"
+    n : natural -- overall number of input registers
   ) return natural is
     -- maximum number of input registers supported within the DSP cell
     constant NUM_INPUT_REG_DSP : natural := 3;
@@ -117,8 +117,8 @@ package body dsp_pkg_ultrascale is
 
   --! determine number of C input registers within DSP cell and in LOGIC
   function NUM_IREG_C(
-    loc : string; --! location either "DSP" or "LOGIC"
-    n : natural --! overall number of input registers
+    loc : string; -- location either "DSP" or "LOGIC"
+    n : natural -- overall number of input registers
   ) return natural is
     -- maximum number of input registers supported within the DSP cell
     constant NUM_INPUT_REG_DSP : natural := 1;
@@ -134,7 +134,7 @@ package body dsp_pkg_ultrascale is
     end if;
   end function;
 
-  --! Register M is used as second input register when NUM_INPUT_REG_XY>=2
+  --! Register M is used as second input register when NUM_INPUT_REG>=2
   function MREG(n:natural) return natural is
   begin if n>=2 then return 1; else return 0; end if; end function;
 
