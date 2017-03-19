@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_preadd_mult1_accu.stratixv.vhdl
 --! @author     Fixitfetish
---! @date       27/Feb/2017
---! @version    0.30
+--! @date       19/Mar/2017
+--! @version    0.40
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -13,6 +13,7 @@ library ieee;
  use ieee.numeric_std.all;
 library fixitfetish;
  use fixitfetish.ieee_extension.all;
+ use fixitfetish.dsp_pkg_stratixv.all;
 
 library stratixv;
  use stratixv.stratixv_components.all;
@@ -58,81 +59,25 @@ architecture stratixv of signed_preadd_mult1_accu is
   -- identifier for reports of warnings and errors
   constant IMPLEMENTATION : string := "signed_preadd_mult1_accu(stratixv)";
 
-  -- maximum number of input registers supported within the DSP cell
-  constant NUM_DSP_INPUT_REG : natural := 1;
-
-  -- number of input registers within DSP cell
-  function n_ireg_dsp(n:natural) return natural is
-  begin
-    if n<=NUM_DSP_INPUT_REG then return n; else return NUM_DSP_INPUT_REG; end if;
-  end function;
-  constant NUM_IREG_DSP : natural := n_ireg_dsp(NUM_INPUT_REG);
-
-  -- number of additional input registers in logic (not within DSP cell)
-  function n_ireg_logic(n:natural) return natural is
-  begin
-    if n>NUM_DSP_INPUT_REG then return n-NUM_DSP_INPUT_REG; else return 0; end if;
-  end function;
-  constant NUM_IREG_LOGIC : natural := n_ireg_logic(NUM_INPUT_REG);
-
-  -- local auxiliary
-  -- determine number of required additional guard bits (MSBs)
-  function guard_bits(num_summand, dflt:natural) return integer is
-    variable res : integer;
-  begin
-    if num_summand=0 then
-      res := dflt; -- maximum possible (default)
-    else
-      res := LOG2CEIL(num_summand);
-      if res>dflt then 
-        report "WARNING " & IMPLEMENTATION & ": Too many summands. " & 
-           "Maximum number of " & integer'image(dflt) & " guard bits reached."
-           severity warning;
-        res:=dflt;
-      end if;
-    end if;
-    return res; 
-  end function;
-
-  function use_chainadder(b:boolean) return string is
-  begin
-    if b then return "true"; else return "false"; end if;
-  end function;
-
-  function load_const_value(round: boolean; shifts:natural) return natural is
-  begin
-    -- if rounding is enabled then +0.5 in the beginning of accumulation
-    if round and (shifts>0) then return (shifts-1); else return 0; end if;
-  end function;
-
-  -- clock select for input/output registers
-  function clock(clksel:integer range 0 to 2; nreg:integer) return string is
-  begin
-    if    clksel=0 and nreg>0 then return "0";
-    elsif clksel=1 and nreg>0 then return "1";
-    elsif clksel=2 and nreg>0 then return "2";
-    else return "none";
-    end if;
-  end function;
+  -- number input registers within DSP and in LOGIC
+  constant NUM_IREG_DSP : natural := NUM_IREG("DSP",NUM_INPUT_REG);
+  constant NUM_IREG_LOGIC : natural := NUM_IREG("LOGIC",NUM_INPUT_REG);
 
   constant MAX_WIDTH_X : positive := 25;
   constant LIM_WIDTH_X : positive := 24;
   constant MAX_WIDTH_Y : positive := 22;
 
-  -- accumulator width in bits
-  constant ACCU_WIDTH : positive := 64;
-
   -- derived constants
   constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
   constant PRODUCT_WIDTH : natural := MAXIMUM(ax'length,bx'length) + 1 + y'length;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
-  constant GUARD_BITS_EVAL : natural := guard_bits(NUM_SUMMAND,MAX_GUARD_BITS);
+  constant GUARD_BITS_EVAL : natural := accu_guard_bits(NUM_SUMMAND,MAX_GUARD_BITS,IMPLEMENTATION);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
   constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
   constant OUTPUT_WIDTH : positive := result'length;
 
   -- logic input register pipeline
-  type r_lireg is
+  type r_logic_ireg is
   record
     rst, clr, vld : std_logic;
     sub_ax, sub_bx : std_logic;
@@ -140,11 +85,11 @@ architecture stratixv of signed_preadd_mult1_accu is
     bx : signed(bx'length-1 downto 0);
     y  : signed(y'length-1 downto 0);
   end record;
-  type array_lireg is array(integer range <>) of r_lireg;
-  signal lireg : array_lireg(NUM_IREG_LOGIC downto 0);
+  type array_logic_ireg is array(integer range <>) of r_logic_ireg;
+  signal logic_ireg : array_logic_ireg(NUM_IREG_LOGIC downto 0);
 
-  -- DSP input register pipeline
-  type r_ireg is
+  -- input register pipeline
+  type r_dsp_ireg is
   record
     rst, vld : std_logic;
     negate : std_logic;
@@ -153,8 +98,8 @@ architecture stratixv of signed_preadd_mult1_accu is
     ay : signed(MAX_WIDTH_X-1 downto 0);
     az : signed(MAX_WIDTH_Y-1 downto 0);
   end record;
-  type array_ireg is array(integer range <>) of r_ireg;
-  signal ireg : array_ireg(NUM_IREG_DSP downto 0);
+  type array_dsp_ireg is array(integer range <>) of r_dsp_ireg;
+  signal ireg : array_dsp_ireg(NUM_IREG_DSP downto 0);
 
   -- output register pipeline
   type r_oreg is
@@ -199,6 +144,7 @@ architecture stratixv of signed_preadd_mult1_accu is
   signal clr_q, clr_i : std_logic;
   signal chainin_i, chainout_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
   signal accu : std_logic_vector(ACCU_WIDTH-1 downto 0);
+  signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
   signal accu_used_shifted : signed(ACCU_USED_SHIFTED_WIDTH-1 downto 0);
 
 begin
@@ -222,20 +168,20 @@ begin
            "More guard bits required for saturation/clipping and/or overflow detection."
     severity failure;
 
-  lireg(NUM_IREG_LOGIC).rst <= rst;
-  lireg(NUM_IREG_LOGIC).clr <= clr;
-  lireg(NUM_IREG_LOGIC).vld <= vld;
-  lireg(NUM_IREG_LOGIC).sub_ax <= sub_ax;
-  lireg(NUM_IREG_LOGIC).sub_bx <= sub_bx;
-  lireg(NUM_IREG_LOGIC).ax <= ax;
-  lireg(NUM_IREG_LOGIC).bx <= bx;
-  lireg(NUM_IREG_LOGIC).y  <= y;
+  logic_ireg(NUM_IREG_LOGIC).rst <= rst;
+  logic_ireg(NUM_IREG_LOGIC).clr <= clr;
+  logic_ireg(NUM_IREG_LOGIC).vld <= vld;
+  logic_ireg(NUM_IREG_LOGIC).sub_ax <= sub_ax;
+  logic_ireg(NUM_IREG_LOGIC).sub_bx <= sub_bx;
+  logic_ireg(NUM_IREG_LOGIC).ax <= ax;
+  logic_ireg(NUM_IREG_LOGIC).bx <= bx;
+  logic_ireg(NUM_IREG_LOGIC).y  <= y;
 
-  g_lireg : if NUM_IREG_LOGIC>=1 generate
+  g_ireg_logic : if NUM_IREG_LOGIC>=1 generate
   begin
     g_1 : for n in 1 to NUM_IREG_LOGIC generate
     begin
-      lireg(n-1) <= lireg(n) when rising_edge(clk);
+      logic_ireg(n-1) <= logic_ireg(n) when rising_edge(clk);
     end generate;
   end generate;
 
@@ -243,29 +189,29 @@ begin
   p_clr : process(clk)
   begin
     if rising_edge(clk) then
-      if lireg(0).clr='1' and lireg(0).vld='0' then
+      if logic_ireg(0).clr='1' and logic_ireg(0).vld='0' then
         clr_q<='1';
-      elsif vld='1' then
+      elsif logic_ireg(0).vld='1' then
         clr_q<='0';
       end if;
     end if;
   end process;
-  clr_i <= lireg(0).clr or clr_q;
+  clr_i <= logic_ireg(0).clr or clr_q;
 
   -- control signal inputs
-  ireg(NUM_IREG_DSP).rst <= lireg(0).rst;
-  ireg(NUM_IREG_DSP).vld <= lireg(0).vld;
-  ireg(NUM_IREG_DSP).negate <= negate(lireg(0).sub_ax,PREADDER_INPUT_AX);
-  ireg(NUM_IREG_DSP).accumulate <= lireg(0).vld and (not clr_i); -- TODO - valid required ? or is accu clkena sufficient ?
+  ireg(NUM_IREG_DSP).rst <= logic_ireg(0).rst;
+  ireg(NUM_IREG_DSP).vld <= logic_ireg(0).vld;
+  ireg(NUM_IREG_DSP).negate <= negate(logic_ireg(0).sub_ax,PREADDER_INPUT_AX);
+  ireg(NUM_IREG_DSP).accumulate <= logic_ireg(0).vld and (not clr_i); -- TODO - valid required ? or is accu clkena sufficient ?
   ireg(NUM_IREG_DSP).loadconst <= clr_i and to_01(ROUND_ENABLE);
 
   -- LSB bound data inputs
-  ireg(NUM_IREG_DSP).ax <= resize(lireg(0).ax, MAX_WIDTH_X);
-  ireg(NUM_IREG_DSP).ay <= get_bx(lireg(0).bx, lireg(0).sub_ax, lireg(0).sub_bx, PREADDER_INPUT_AX, PREADDER_INPUT_BX);
-  ireg(NUM_IREG_DSP).az <= resize(lireg(0).y, MAX_WIDTH_Y);
+  ireg(NUM_IREG_DSP).ax <= resize(logic_ireg(0).ax, MAX_WIDTH_X);
+  ireg(NUM_IREG_DSP).ay <= get_bx(logic_ireg(0).bx, logic_ireg(0).sub_ax, logic_ireg(0).sub_bx, PREADDER_INPUT_AX, PREADDER_INPUT_BX);
+  ireg(NUM_IREG_DSP).az <= resize(logic_ireg(0).y, MAX_WIDTH_Y);
 
   -- DSP cell data input registers are used as first input register stage.
-  g_in1 : if NUM_IREG_DSP>=1 generate
+  g_dsp_ireg1 : if NUM_IREG_DSP>=1 generate
   begin
     ireg(0).rst <= ireg(1).rst when rising_edge(clk);
     ireg(0).vld <= ireg(1).vld when rising_edge(clk);
@@ -378,12 +324,14 @@ begin
     chainout(n) <= chainout_i(ACCU_WIDTH-1);
   end generate;
 
-  -- a.) just shift right without rounding because rounding bit has been added
-  --     within the DSP cell already.
-  -- b.) cut off unused sign extension bits
-  --    (This reduces the logic consumption in the following steps when rounding,
-  --     saturation and/or overflow detection is enabled.)
-  accu_used_shifted <= signed(accu(ACCU_USED_WIDTH-1 downto OUTPUT_SHIFT_RIGHT));
+  -- cut off unused sign extension bits
+  -- (This reduces the logic consumption in the following steps when rounding,
+  --  saturation and/or overflow detection is enabled.)
+  accu_used <= signed(accu(ACCU_USED_WIDTH-1 downto 0));
+
+  -- just shift right without rounding because rounding bit has been added
+  -- within the DSP cell already.
+  accu_used_shifted <= accu_used(ACCU_USED_WIDTH-1 downto OUTPUT_SHIFT_RIGHT);
 
 --  -- shift right and round
 --  g_rnd_off : if (not ROUND_ENABLE) generate

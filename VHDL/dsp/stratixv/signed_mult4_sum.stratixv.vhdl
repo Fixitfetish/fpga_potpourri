@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult4_sum.stratixv.vhdl
 --! @author     Fixitfetish
---! @date       15/Feb/2017
---! @version    0.40
+--! @date       19/Mar/2017
+--! @version    0.50
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -13,6 +13,7 @@ library ieee;
  use ieee.numeric_std.all;
 library fixitfetish;
  use fixitfetish.ieee_extension.all;
+ use fixitfetish.dsp_pkg_stratixv.all;
 
 library stratixv;
  use stratixv.stratixv_components.all;
@@ -53,49 +54,44 @@ architecture stratixv of signed_mult4_sum is
   -- identifier for reports of warnings and errors
   constant IMPLEMENTATION : string := "signed_mult4_sum(stratixv)";
 
-  -- local auxiliary
-  -- determine number of required additional guard bits (MSBs)
-  function guard_bits(num_summand, dflt:natural) return integer is
-    variable res : integer;
-  begin
-    if num_summand=0 then
-      res := dflt; -- maximum possible (default)
-    else
-      res := LOG2CEIL(num_summand);
-    end if;
-    return res; 
-  end function;
+  -- number input registers within DSP and in LOGIC
+  constant NUM_IREG_DSP : natural := NUM_IREG("DSP",NUM_INPUT_REG);
+  constant NUM_IREG_LOGIC : natural := NUM_IREG("LOGIC",NUM_INPUT_REG);
 
   -- number of summands
   constant NUM_SUMMAND : positive := 4;
 
-  -- clock select for input/output registers
-  function clock(clksel:integer range 0 to 2; nreg:integer) return string is
-  begin
-    if    clksel=0 and nreg>0 then return "0";
-    elsif clksel=1 and nreg>0 then return "1";
-    elsif clksel=2 and nreg>0 then return "2";
-    else return "none";
-    end if;
-  end function;
-
   constant MAX_WIDTH_X : positive := 18;
   constant MAX_WIDTH_Y : positive := 18;
-
-  -- accumulator width in bits
-  constant ACCU_WIDTH : positive := 64;
 
   -- derived constants
   constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
   constant PRODUCT_WIDTH : natural := x0'length + y0'length;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
-  constant GUARD_BITS_EVAL : natural := guard_bits(NUM_SUMMAND,MAX_GUARD_BITS);
+  constant GUARD_BITS_EVAL : natural := accu_guard_bits(NUM_SUMMAND,MAX_GUARD_BITS,IMPLEMENTATION);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
   constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
   constant OUTPUT_WIDTH : positive := result'length;
 
+  -- logic input register pipeline
+  type r_logic_ireg is
+  record
+    rst, clr, vld : std_logic;
+    sub : std_logic_vector(sub'range);
+    x0 : signed(x0'length-1 downto 0);
+    y0 : signed(y0'length-1 downto 0);
+    x1 : signed(x1'length-1 downto 0);
+    y1 : signed(y1'length-1 downto 0);
+    x2 : signed(x2'length-1 downto 0);
+    y2 : signed(y2'length-1 downto 0);
+    x3 : signed(x3'length-1 downto 0);
+    y3 : signed(y3'length-1 downto 0);
+  end record;
+  type array_logic_ireg is array(integer range <>) of r_logic_ireg;
+  signal logic_ireg : array_logic_ireg(NUM_IREG_LOGIC downto 0);
+
   -- input register pipeline
-  type r_ireg is
+  type r_dsp_ireg is
   record
     rst, vld : std_logic;
     sub_a : std_logic; -- first DSP cell
@@ -103,8 +99,8 @@ architecture stratixv of signed_mult4_sum is
     x0, x1, x2, x3 : signed(MAX_WIDTH_X-1 downto 0);
     y0, y1, y2, y3 : signed(MAX_WIDTH_Y-1 downto 0);
   end record;
-  type array_ireg is array(integer range <>) of r_ireg;
-  signal ireg : array_ireg(NUM_INPUT_REG downto 0);
+  type array_dsp_ireg is array(integer range <>) of r_dsp_ireg;
+  signal ireg : array_dsp_ireg(NUM_IREG_DSP downto 0);
 
   -- output register pipeline
   type r_oreg is
@@ -147,32 +143,44 @@ begin
            "More guard bits required for saturation/clipping and/or overflow detection."
     severity failure;
 
-  -- control signal inputs
-  ireg(NUM_INPUT_REG).rst <= rst;
-  ireg(NUM_INPUT_REG).vld <= vld;
-  ireg(NUM_INPUT_REG).sub_a <= sub(1);
-  ireg(NUM_INPUT_REG).negate_b <= sub(3);
-  ireg(NUM_INPUT_REG).sub_b <= sub(2) xor sub(3);
+  logic_ireg(NUM_IREG_LOGIC).rst <= rst;
+  logic_ireg(NUM_IREG_LOGIC).vld <= vld;
+  logic_ireg(NUM_IREG_LOGIC).sub <= sub;
+  logic_ireg(NUM_IREG_LOGIC).x0 <= x0;
+  logic_ireg(NUM_IREG_LOGIC).y0 <= y0;
+  logic_ireg(NUM_IREG_LOGIC).x1 <= x1;
+  logic_ireg(NUM_IREG_LOGIC).y1 <= y1;
+  logic_ireg(NUM_IREG_LOGIC).x2 <= x2;
+  logic_ireg(NUM_IREG_LOGIC).y2 <= y2;
+  logic_ireg(NUM_IREG_LOGIC).x3 <= x3;
+  logic_ireg(NUM_IREG_LOGIC).y3 <= y3;
 
-  -- LSB bound data inputs
-  ireg(NUM_INPUT_REG).x0 <= resize(x0,MAX_WIDTH_X);
-  ireg(NUM_INPUT_REG).y0 <= resize(y0,MAX_WIDTH_Y);
-  ireg(NUM_INPUT_REG).x1 <= resize(x1,MAX_WIDTH_X);
-  ireg(NUM_INPUT_REG).y1 <= resize(y1,MAX_WIDTH_Y);
-  ireg(NUM_INPUT_REG).x2 <= resize(x2,MAX_WIDTH_X);
-  ireg(NUM_INPUT_REG).y2 <= resize(y2,MAX_WIDTH_Y);
-  ireg(NUM_INPUT_REG).x3 <= resize(x3,MAX_WIDTH_X);
-  ireg(NUM_INPUT_REG).y3 <= resize(y3,MAX_WIDTH_Y);
-
-  g_reg : if NUM_INPUT_REG>=2 generate
+  g_ireg_logic : if NUM_IREG_LOGIC>=1 generate
   begin
-    g_1 : for n in 2 to NUM_INPUT_REG generate
+    g_1 : for n in 1 to NUM_IREG_LOGIC generate
     begin
-      ireg(n-1) <= ireg(n) when rising_edge(clk);
+      logic_ireg(n-1) <= logic_ireg(n) when rising_edge(clk);
     end generate;
   end generate;
 
-  g_in : if NUM_INPUT_REG>=1 generate
+  -- control signal inputs
+  ireg(NUM_IREG_DSP).rst <= logic_ireg(0).rst;
+  ireg(NUM_IREG_DSP).vld <= logic_ireg(0).vld;
+  ireg(NUM_IREG_DSP).sub_a <= logic_ireg(0).sub(1);
+  ireg(NUM_IREG_DSP).negate_b <= logic_ireg(0).sub(3);
+  ireg(NUM_IREG_DSP).sub_b <= logic_ireg(0).sub(2) xor logic_ireg(0).sub(3);
+
+  -- LSB bound data inputs
+  ireg(NUM_IREG_DSP).x0 <= resize(logic_ireg(0).x0,MAX_WIDTH_X);
+  ireg(NUM_IREG_DSP).y0 <= resize(logic_ireg(0).y0,MAX_WIDTH_Y);
+  ireg(NUM_IREG_DSP).x1 <= resize(logic_ireg(0).x1,MAX_WIDTH_X);
+  ireg(NUM_IREG_DSP).y1 <= resize(logic_ireg(0).y1,MAX_WIDTH_Y);
+  ireg(NUM_IREG_DSP).x2 <= resize(logic_ireg(0).x2,MAX_WIDTH_X);
+  ireg(NUM_IREG_DSP).y2 <= resize(logic_ireg(0).y2,MAX_WIDTH_Y);
+  ireg(NUM_IREG_DSP).x3 <= resize(logic_ireg(0).x3,MAX_WIDTH_X);
+  ireg(NUM_IREG_DSP).y3 <= resize(logic_ireg(0).y3,MAX_WIDTH_Y);
+
+  g_dsp_ireg1 : if NUM_IREG_DSP>=1 generate
   begin
     ireg(0).rst <= ireg(1).rst when rising_edge(clk);
     ireg(0).vld <= ireg(1).vld when rising_edge(clk);
