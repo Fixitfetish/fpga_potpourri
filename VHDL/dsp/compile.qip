@@ -1,0 +1,23 @@
+# +++ FOR ALTERA QUARTUS SYNTHESIS +++
+# This script compiles all generic entities of the DSP Library.
+# The device specific architectures are compiled separately.
+
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "../ieee_extension_types_1993.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "../ieee_extension.vhdl"]
+
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "signed_mult1_accu.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "signed_mult1add_accu.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "signed_mult1add_sum.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "signed_mult2.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "signed_mult2_accu.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "signed_mult3.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "signed_mult4_sum.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "signed_multN.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "signed_multN_accu.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "signed_multN_sum.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "signed_preadd_mult1_accu.vhdl"]
+
+# generic --- TODO
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "signed_mult2_sum.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "signed_mult4_accu.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "signed_mult8_accu.vhdl"]

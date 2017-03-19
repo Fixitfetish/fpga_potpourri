@@ -1,16 +1,12 @@
-# generic signed
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "ieee_extension.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_mult2.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_mult2_accu.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_mult2_sum.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_mult4_accu.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_mult4_sum.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_mult8_accu.vhdl"]
-# set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_weight2.vhdl"]
+# +++ FOR ALTERA QUARTUS SYNTHESIS +++
 
+# generic entities
+set_global_assignment -name QIP_FILE [file join $::quartus(qip_path) "dsp/compile.qip"]
+
+# Arria-10 specific architectures
+set_global_assignment -name QIP_FILE [file join $::quartus(qip_path) "dsp/arria10/compile.qip"]
+
+# generic (chained, derived, etc.)
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/generic/signed_mult4_accu_chain.vhdl"]
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/generic/signed_mult8_accu_chain.vhdl"]
 
-# Arria 10 specific
-set_global_assignment -library twentynm -name VHDL_FILE [file join $::quartus(qip_path) "dsp/arria10/components.arria10.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/arria10/signed_mult2_accu.arria10.vhdl"]

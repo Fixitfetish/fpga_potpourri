@@ -1,37 +1,13 @@
-# entities
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "ieee_extension_types_1993.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "ieee_extension.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_mult1_accu.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_mult2.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_mult2_accu.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_mult2_sum.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_mult3.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_mult4_accu.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_mult4_sum.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_mult8_accu.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_mult16_accu.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_multN.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_multN_accu.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_multN_sum.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_preadd_mult1_accu.vhdl"]
-# set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/signed_weight2.vhdl"]
+# +++ FOR ALTERA QUARTUS SYNTHESIS +++
+
+# generic entities
+set_global_assignment -name QIP_FILE [file join $::quartus(qip_path) "dsp/compile.qip"]
+
+# Stratix-V specific architectures
+set_global_assignment -name QIP_FILE [file join $::quartus(qip_path) "dsp/stratixv/compile.qip"]
 
 # generic (chained, derived, etc.)
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/generic/signed_mult2_sum.derived.vhdl"]
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/generic/signed_mult4_accu.chain.vhdl"]
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/generic/signed_mult8_accu.chain.vhdl"]
-
-# Stratix V specific
-set_global_assignment -library stratixv -name VHDL_FILE [file join $::quartus(qip_path) "dsp/stratixv/components.stratixv.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/stratixv/signed_mult1_accu.stratixv.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/stratixv/signed_mult2_accu.stratixv.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/stratixv/signed_mult2.stratixv_partial.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/stratixv/signed_mult3.stratixv_compact.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/stratixv/signed_mult4_sum.stratixv.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/stratixv/signed_multN_accu.stratixv.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/stratixv/signed_multN_sum.stratixv.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/stratixv/signed_multN.stratixv.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/stratixv/signed_preadd_mult1_accu.stratixv.vhdl"]
-# set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/stratixv/signed_mult8_acc1.stratixv.vhdl"]
-# set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp/stratixv/signed_weight2.stratixv.vhdl"]
 
