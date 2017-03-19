@@ -317,22 +317,6 @@ begin
          resize(din_stage(s)(NUM_INPUTS_STAGE(s)-1)(WIDTH_STAGE(s)-1 downto 0),WIDTH_STAGE(s+1));
     end generate;
 
---    -- output result if last stage
---    final : if s=NUM_STAGES generate
---    begin
---      p_out : process(din_s(s+1)(0))
---       variable v_dat : signed(result'length-1 downto 0);
---       variable v_ovf : std_logic;
---      begin
---        RESIZE_CLIP(din  => din_s(s+1)(0)(WIDTH_STAGE(s+1)-1 downto 0),
---                    dout => v_dat,
---                    ovfl => v_ovf,
---                    clip => OUTPUT_CLIP );
---        rslt(0).dat <= v_dat;
---        if OUTPUT_OVERFLOW then rslt(0).ovf<=v_ovf; else rslt(0).ovf<='0'; end if;
---      end process;
---    end generate;
-
    end generate; -- for NUM_STAGES
 
    p_out : process(din_s(NUM_STAGES+1)(0))
