@@ -133,24 +133,24 @@ begin
   ireg(NUM_IREG_DSP).vld <= logic_ireg(0).vld;
 
   -- LSB bound data inputs
-  -- Negate input factor which does not have maximum width.
-  -- This avoids overflows when input is most negative number.
-  g_neg_x0 : if x0'length<MAX_WIDTH_X generate
+  -- Always negate the shorter input factor which does not have maximum width.
+  -- This also avoids overflows when input is most negative number.
+  g_neg_x0 : if x0'length<y0'length generate
     ireg(NUM_IREG_DSP).x0 <= resize(logic_ireg(0).x0,MAX_WIDTH_X) when logic_ireg(0).neg(0)='0' else
                             -resize(logic_ireg(0).x0,MAX_WIDTH_X);
     ireg(NUM_IREG_DSP).y0 <= resize(logic_ireg(0).y0,MAX_WIDTH_Y);
   end generate;
-  g_neg_y0 : if x0'length=MAX_WIDTH_X generate
+  g_neg_y0 : if x0'length>=y0'length generate
     ireg(NUM_IREG_DSP).x0 <= resize(logic_ireg(0).x0,MAX_WIDTH_X);
     ireg(NUM_IREG_DSP).y0 <= resize(logic_ireg(0).y0,MAX_WIDTH_Y) when logic_ireg(0).neg(0)='0' else
                             -resize(logic_ireg(0).y0,MAX_WIDTH_Y);
   end generate;
-  g_neg_x1 : if x1'length<MAX_WIDTH_X generate
+  g_neg_x1 : if x1'length<y1'length generate
     ireg(NUM_IREG_DSP).x1 <= resize(logic_ireg(0).x1,MAX_WIDTH_X) when logic_ireg(0).neg(1)='0' else
                             -resize(logic_ireg(0).x1,MAX_WIDTH_X);
     ireg(NUM_IREG_DSP).y1 <= resize(logic_ireg(0).y1,MAX_WIDTH_Y);
   end generate;
-  g_neg_y1 : if x1'length=MAX_WIDTH_X generate
+  g_neg_y1 : if x1'length>=y1'length generate
     ireg(NUM_IREG_DSP).x1 <= resize(logic_ireg(0).x1,MAX_WIDTH_X);
     ireg(NUM_IREG_DSP).y1 <= resize(logic_ireg(0).y1,MAX_WIDTH_Y) when logic_ireg(0).neg(1)='0' else
                             -resize(logic_ireg(0).y1,MAX_WIDTH_Y);

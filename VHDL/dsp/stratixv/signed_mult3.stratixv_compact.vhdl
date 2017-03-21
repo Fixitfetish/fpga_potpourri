@@ -34,7 +34,10 @@ library stratixv;
 --! * Output Register : optional, at least one strongly recommend, another after rounding, shift-right and saturation
 --! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG
 --!
---! Note that negation of the product results is not supported by this implementation!
+--! Note that negation of the product results within the DSP cell is not supported.
+--! Hence, for each product one of the two input factors is negated using additional logic.
+--! WARNING: If both input factors have the maximum size of 18 bits and the
+--! input that is going to be negated is the most negative number then an overflow occurs.
 --! @image html signed_mult3.stratixv_compact.svg "" width=800px
 --! This implementation does not support chaining.
 
@@ -97,11 +100,6 @@ architecture stratixv_compact of signed_mult3 is
   signal prod0_used, prod1_used, prod2_used : signed(PRODUCT_WIDTH-1 downto 0);
   signal prod0_used_shifted, prod1_used_shifted, prod2_used_shifted : signed(PRODUCT_SHIFTED_WIDTH-1 downto 0);
 
-  -- dummy sink to avoid warnings
-  procedure slv_sink(d:in std_logic_vector) is
-    variable b : boolean := false;
-  begin b := (d(d'right)='1') or b; end procedure;
-
 begin
 
   -- check input/output length
@@ -114,12 +112,6 @@ begin
   assert     (x0'length+y0'length)=(x1'length+y1'length)
          and (x0'length+y0'length)=(x2'length+y2'length)
     report "ERROR " & IMPLEMENTATION & ": All products must result in same length."
-    severity failure;
-
-  -- dummy sink for unused negation input (avoid warnings)
-  slv_sink(neg);
-  assert neg="000"
-    report "ERROR " & IMPLEMENTATION & ": Negation of products is not supported."
     severity failure;
 
   logic_ireg(NUM_IREG_LOGIC).rst <= rst;
@@ -145,12 +137,38 @@ begin
   ireg(NUM_IREG_DSP).vld <= logic_ireg(0).vld;
 
   -- LSB bound data inputs
-  ireg(NUM_IREG_DSP).x0 <= resize(logic_ireg(0).x0,MAX_WIDTH_X);
-  ireg(NUM_IREG_DSP).y0 <= resize(logic_ireg(0).y0,MAX_WIDTH_Y);
-  ireg(NUM_IREG_DSP).x1 <= resize(logic_ireg(0).x1,MAX_WIDTH_X);
-  ireg(NUM_IREG_DSP).y1 <= resize(logic_ireg(0).y1,MAX_WIDTH_Y);
-  ireg(NUM_IREG_DSP).x2 <= resize(logic_ireg(0).x2,MAX_WIDTH_X);
-  ireg(NUM_IREG_DSP).y2 <= resize(logic_ireg(0).y2,MAX_WIDTH_Y);
+  -- Always negate the shorter input factor which does not have maximum width.
+  -- This also avoids overflows when input is most negative number.
+  g_neg_x0 : if x0'length<y0'length generate
+    ireg(NUM_IREG_DSP).x0 <= resize(logic_ireg(0).x0,MAX_WIDTH_X) when logic_ireg(0).neg(0)='0' else
+                            -resize(logic_ireg(0).x0,MAX_WIDTH_X);
+    ireg(NUM_IREG_DSP).y0 <= resize(logic_ireg(0).y0,MAX_WIDTH_Y);
+  end generate;
+  g_neg_y0 : if x0'length>=y0'length generate
+    ireg(NUM_IREG_DSP).x0 <= resize(logic_ireg(0).x0,MAX_WIDTH_X);
+    ireg(NUM_IREG_DSP).y0 <= resize(logic_ireg(0).y0,MAX_WIDTH_Y) when logic_ireg(0).neg(0)='0' else
+                            -resize(logic_ireg(0).y0,MAX_WIDTH_Y);
+  end generate;
+  g_neg_x1 : if x1'length<y1'length generate
+    ireg(NUM_IREG_DSP).x1 <= resize(logic_ireg(0).x1,MAX_WIDTH_X) when logic_ireg(0).neg(1)='0' else
+                            -resize(logic_ireg(0).x1,MAX_WIDTH_X);
+    ireg(NUM_IREG_DSP).y1 <= resize(logic_ireg(0).y1,MAX_WIDTH_Y);
+  end generate;
+  g_neg_y1 : if x1'length>=y1'length generate
+    ireg(NUM_IREG_DSP).x1 <= resize(logic_ireg(0).x1,MAX_WIDTH_X);
+    ireg(NUM_IREG_DSP).y1 <= resize(logic_ireg(0).y1,MAX_WIDTH_Y) when logic_ireg(0).neg(1)='0' else
+                            -resize(logic_ireg(0).y1,MAX_WIDTH_Y);
+  end generate;
+  g_neg_x2 : if x2'length<y2'length generate
+    ireg(NUM_IREG_DSP).x2 <= resize(logic_ireg(0).x2,MAX_WIDTH_X) when logic_ireg(0).neg(2)='0' else
+                            -resize(logic_ireg(0).x2,MAX_WIDTH_X);
+    ireg(NUM_IREG_DSP).y2 <= resize(logic_ireg(0).y2,MAX_WIDTH_Y);
+  end generate;
+  g_neg_y2 : if x2'length>=y2'length generate
+    ireg(NUM_IREG_DSP).x2 <= resize(logic_ireg(0).x2,MAX_WIDTH_X);
+    ireg(NUM_IREG_DSP).y2 <= resize(logic_ireg(0).y2,MAX_WIDTH_Y) when logic_ireg(0).neg(2)='0' else
+                            -resize(logic_ireg(0).y2,MAX_WIDTH_Y);
+  end generate;
 
   g_dsp_ireg1 : if NUM_IREG_DSP>=1 generate
   begin
