@@ -67,7 +67,7 @@ begin
     result     => result,
     result_vld => result_vld,
     result_ovf => result_ovf,
-    chainin    => chain,
+    chainin    => chainin,
     chainout   => chainout,
     PIPESTAGES => PIPESTAGES
   );

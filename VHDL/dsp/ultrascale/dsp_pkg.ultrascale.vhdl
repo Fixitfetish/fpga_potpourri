@@ -40,13 +40,13 @@ package dsp_pkg_ultrascale is
   function NUM_IREG(
     loc : string; -- location either "DSP" or "LOGIC"
     n : natural -- overall number of input registers
-  ) return natural;
+  ) return integer;
 
   --! determine number of C input registers within DSP cell and in LOGIC
   function NUM_IREG_C(
     loc : string; -- location either "DSP" or "LOGIC"
     n : natural -- overall number of input registers
-  ) return natural;
+  ) return integer;
 
   --! Register M is used as second input register when NUM_INPUT_REG>=2
   function MREG(n:natural) return natural;
@@ -100,7 +100,7 @@ package body dsp_pkg_ultrascale is
   function NUM_IREG(
     loc : string; -- location either "DSP" or "LOGIC"
     n : natural -- overall number of input registers
-  ) return natural is
+  ) return integer is
     -- maximum number of input registers supported within the DSP cell
     constant NUM_INPUT_REG_DSP : natural := 3;
   begin
@@ -112,6 +112,7 @@ package body dsp_pkg_ultrascale is
     else
       report "ERROR: Input registers can be either within 'DSP' or in 'LOGIC'."
         severity failure;
+      return -1;
     end if;
   end function;
 
@@ -119,7 +120,7 @@ package body dsp_pkg_ultrascale is
   function NUM_IREG_C(
     loc : string; -- location either "DSP" or "LOGIC"
     n : natural -- overall number of input registers
-  ) return natural is
+  ) return integer is
     -- maximum number of input registers supported within the DSP cell
     constant NUM_INPUT_REG_DSP : natural := 1;
   begin
@@ -131,6 +132,7 @@ package body dsp_pkg_ultrascale is
     else
       report "ERROR: Input registers can be either within 'DSP' or in 'LOGIC'."
         severity failure;
+      return -1;
     end if;
   end function;
 

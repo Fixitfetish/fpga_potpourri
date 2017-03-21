@@ -51,7 +51,7 @@ package dsp_pkg_stratixv is
   function NUM_IREG(
     loc : string; -- location either "DSP" or "LOGIC"
     n : natural -- overall number of input registers
-  ) return natural;
+  ) return integer;
 
 end package;
 
@@ -116,7 +116,7 @@ package body dsp_pkg_stratixv is
   function NUM_IREG(
     loc : string; -- location either "DSP" or "LOGIC"
     n : natural -- overall number of input registers
-  ) return natural is
+  ) return integer is
     -- maximum number of input registers supported within the DSP cell
     constant NUM_INPUT_REG_DSP : natural := 1;
   begin
@@ -128,6 +128,7 @@ package body dsp_pkg_stratixv is
     else
       report "ERROR: Input registers can be either within 'DSP' or in 'LOGIC'."
         severity failure;
+      return -1;
     end if;
   end function;
 

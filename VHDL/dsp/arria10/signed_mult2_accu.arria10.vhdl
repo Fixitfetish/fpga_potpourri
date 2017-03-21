@@ -66,8 +66,10 @@ architecture arria10 of signed_mult2_accu is
   record
     rst, clr, vld : std_logic;
     sub : std_logic_vector(sub'range);
-    x0,x1 : signed(x'length-1 downto 0);
-    y0,y1 : signed(y'length-1 downto 0);
+    x0 : signed(x0'length-1 downto 0);
+    y0 : signed(y0'length-1 downto 0);
+    x1 : signed(x1'length-1 downto 0);
+    y1 : signed(y1'length-1 downto 0);
   end record;
   type array_logic_ireg is array(integer range <>) of r_logic_ireg;
   signal logic_ireg : array_logic_ireg(NUM_IREG_LOGIC downto 0);
