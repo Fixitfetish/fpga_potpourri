@@ -9,22 +9,26 @@ set BASEPATH [ file dirname [dict get [ info frame 0 ] file ] ]
 set DSPLIB "fixitfetish"
 vlib $DSPLIB
 
-set SWITCHES "-93 -explicit -dbg"
+# create file list
+set filelist [list]
+lappend filelist $BASEPATH/../ieee_extension_types_1993.vhdl
+lappend filelist $BASEPATH/../ieee_extension.vhdl
+lappend filelist $BASEPATH/signed_mult1_accu.vhdl
+lappend filelist $BASEPATH/signed_mult1add1_accu.vhdl
+lappend filelist $BASEPATH/signed_mult1add1_sum.vhdl
+lappend filelist $BASEPATH/signed_mult2.vhdl
+lappend filelist $BASEPATH/signed_mult2_accu.vhdl
+lappend filelist $BASEPATH/signed_mult2_sum.vhdl
+lappend filelist $BASEPATH/signed_mult3.vhdl
+lappend filelist $BASEPATH/signed_mult4_accu.vhdl
+lappend filelist $BASEPATH/signed_mult4_sum.vhdl
+lappend filelist $BASEPATH/signed_mult8_accu.vhdl
+lappend filelist $BASEPATH/signed_mult16_accu.vhdl
+lappend filelist $BASEPATH/signed_multN.vhdl
+lappend filelist $BASEPATH/signed_multN_accu.vhdl
+lappend filelist $BASEPATH/signed_multN_sum.vhdl
+lappend filelist $BASEPATH/signed_preadd_mult1_accu.vhdl
 
-vcom $SWITCHES -work $DSPLIB $BASEPATH/../ieee_extension_types_1993.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/../ieee_extension.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult1_accu.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult1add1_accu.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult1add1_sum.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult2.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult2_accu.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult2_sum.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult3.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult4_accu.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult4_sum.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult8_accu.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult16_accu.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_multN.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_multN_accu.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_multN_sum.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_preadd_mult1_accu.vhdl
+# compile file list
+set SWITCHES "-93 -explicit -dbg"
+vcom $SWITCHES -work $DSPLIB $filelist

@@ -11,13 +11,16 @@ if ![file exists $XILINX_LIB] {
 
 vmap unisim $XILINX_LIB/unisim
 
+# create file list
+set filelist [list]
+lappend filelist $BASEPATH/dsp_pkg.ultrascale.vhdl
+lappend filelist $BASEPATH/signed_mult1_accu.ultrascale.vhdl
+lappend filelist $BASEPATH/signed_mult1add1_accu.ultrascale.vhdl
+lappend filelist $BASEPATH/signed_mult1add1_sum.ultrascale.vhdl
+lappend filelist $BASEPATH/signed_mult2_accu.ultrascale.vhdl
+lappend filelist $BASEPATH/signed_multN.ultrascale.vhdl
+lappend filelist $BASEPATH/signed_preadd_mult1_accu.ultrascale.vhdl
+
+# compile file list
 set SWITCHES "-93 -explicit -dbg"
-
-vcom $SWITCHES -work $DSPLIB $BASEPATH/dsp_pkg.ultrascale.vhdl
-
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult1_accu.ultrascale.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult1add1_accu.ultrascale.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult1add1_sum.ultrascale.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_mult2_accu.ultrascale.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_multN.ultrascale.vhdl
-vcom $SWITCHES -work $DSPLIB $BASEPATH/signed_preadd_mult1_accu.ultrascale.vhdl
+vcom $SWITCHES -work $DSPLIB $filelist
