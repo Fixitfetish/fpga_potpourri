@@ -1,0 +1,24 @@
+# +++ FOR ALTERA QUARTUS SYNTHESIS +++
+# This script compiles the CPLX Library.
+# The CPLX library is based on the device specific DSP library.
+# Hence, the DSP library need to be compiled first.
+
+# General / Entities
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_pkg_1993.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult1_accu.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult2_accu.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult4_accu.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_multN.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_multN_accu.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_multN_sum.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_weightN.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_weightN_sum.vhdl"]
+
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult1_accu.sdr.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult2_accu.sdr.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult4_accu.sdr.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_multN.sdr.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_multN_accu.sdr.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_multN_sum.sdr.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_weightN.sdr.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_weightN_sum.sdr.vhdl"]

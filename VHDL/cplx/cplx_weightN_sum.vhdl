@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
---! @file       cplx_multN_sum.vhdl
+--! @file       cplx_weightN_sum.vhdl
 --! @author     Fixitfetish
---! @date       05/Mar/2017
+--! @date       25/Mar/2017
 --! @version    0.10
 --! @copyright  MIT License
 --! @note       VHDL-1993
@@ -12,24 +12,22 @@ library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
 library fixitfetish;
+ use fixitfetish.ieee_extension_types.all;
  use fixitfetish.cplx_pkg.all;
 
---! @brief N complex multiplications and sum all product results.
+--! @brief N complex values are weighted (scaled) with one scalar or N scalar
+--! values. Finally the weighted results are summed.
 --!
---! This entity can be used for :
---! * Scalar products of two complex vectors x and y
---! * complex matrix multiplication
+--! @image html cplx_weightN_sum.svg "" width=600px
 --!
---! If just scaling (only real factor) and summation is required use the entity
---! @link cplx_weightN_sum @endlink
---! instead because less multiplications and resources are required in this case.
+--! For pure scaling use this entity instead of @link cplx_multN_sum @endlink
+--! because less multiplications are required than with the entity cplx_multN_sum.
+--! Two operation modes are supported:
+--! 1. result = +/-x(0)*w(0) +/-x(1)*w(1) ...     # separate weighting factor w for each element of x
+--! 2. result = ( +/-x(0) +/-x(1) +/- ... ) * w   # weighting factor w is the same for all elements of x
 --!
---! @image html cplx_multN_sum.svg "" width=600px
---!
---! The behavior is as follows
---! * vld = (x0.vld and y0.vld) and (x1.vld and y1.vld) and ...
---! * VLD=1  ->  r = +/-(x0*y0) +/-(x1*y1) +/-...    # calculate sum
---! * VLD=0  ->  r = r                               # hold previous result
+--! Note that for the second mode a more efficient implementation might be possible
+--! because only one multiplication after summation is required.
 --!
 --! The length of the input factors is flexible.
 --! The input factors are automatically resized with sign extensions bits to the
@@ -37,12 +35,11 @@ library fixitfetish;
 --! The maximum length of the input factors is device and implementation specific.
 --! The size of the real and imaginary part of a complex input must be identical.
 --! The maximum result width is
---!   W = x'length + y'length + ceil(log2(2*NUM_MULT)) .
---! (Note that a complex multiplication requires two signed multiplication, hence
---!  an additional guard bit.)
+--!   WIDTH = x.re'length + w'length + ceil(log2(2*N)).
+--! Note that the width increases dependent on the number of summands.
 --!
---! Dependent on result'length a shift right is required to avoid overflow or clipping.
---!   OUTPUT_SHIFT_RIGHT = W - result'length .
+--! Dependent on result.re'length a shift right is required to avoid overflow or clipping.
+--!   OUTPUT_SHIFT_RIGHT = WIDTH - result.re'length .
 --! The number right shifts can also be smaller with the risk of overflows/clipping.
 --!
 --! The delay depends on the configuration and the underlying hardware.
@@ -60,15 +57,14 @@ library fixitfetish;
 --! Also available are the following entities:
 --! * cplx_weightN
 --! * cplx_weightN_accu
---! * cplx_weightN_sum
 --! * cplx_multN
 --! * cplx_multN_accu
+--! * cplx_multN_sum
 --!
 --! VHDL Instantiation Template:
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
---! I1 : cplx_multN_sum
+--! I1 : cplx_weightN_sum
 --! generic map(
---!   NUM_MULT           => positive, -- number of parallel multiplications
 --!   NUM_INPUT_REG      => natural,  -- number of input registers
 --!   NUM_OUTPUT_REG     => natural,  -- number of output registers
 --!   OUTPUT_SHIFT_RIGHT => natural,  -- number of right shifts
@@ -77,19 +73,17 @@ library fixitfetish;
 --! port map(
 --!   clk        => in  std_logic, -- clock
 --!   clk2       => in  std_logic, -- clock x2
---!   sub        => in  std_logic_vector(0 to NUM_MULT-1), -- add/subtract
---!   x          => in  cplx_vector(0 to NUM_MULT-1), -- first factors
---!   y          => in  cplx_vector(0 to NUM_MULT-1), -- second factors
---!   result     => out cplx, -- product result
+--!   sub        => in  std_logic_vector, -- add/subtract
+--!   x          => in  cplx_vector, -- complex values
+--!   w          => in  signed_vector, -- weighting factors
+--!   result     => out cplx, -- product/sum result
 --!   PIPESTAGES => out natural -- constant number of pipeline stages
 --! );
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 --!
 
-entity cplx_multN_sum is
+entity cplx_weightN_sum is
 generic (
-  --! Number of parallel multiplications - mandatory generic!
-  NUM_MULT : positive;
   --! @brief Number of additional input registers in system clock domain.
   --! At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
@@ -98,7 +92,7 @@ generic (
   --! At least one is recommended when logic for rounding and/or clipping is enabled.
   --! Typically all output registers are implemented in logic and are not part of a DSP cell.
   NUM_OUTPUT_REG : natural := 0;
-  --! Number of bits by which the product/accumulator result output is shifted right
+  --! Number of bits by which the product result output is shifted right
   OUTPUT_SHIFT_RIGHT : natural := 0;
   --! Supported operation modes 'R','O','N' and 'S'
   m : cplx_mode := "-"
@@ -108,31 +102,32 @@ port (
   clk        : in  std_logic;
   --! Optional double rate clock (only relevant when a DDR implementation is used)
   clk2       : in  std_logic := '0';
-  --! @brief Add/subtract for all products n=0..NUM_MULT-1 , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)).
-  --! Subtraction is disabled by default.
-  --! Dependent on the DSP cell type some implementations might not fully support
-  --! the subtraction feature. Either additional logic is required or subtraction
-  --! of certain input indices is not supported. Please refer to the description of
-  --! vendor specific implementation.
-  sub        : in  std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
-  --! x(n) are the first complex factors of the n multiplications
-  x          : in  cplx_vector(0 to NUM_MULT-1);
-  --! y(n) are the second complex factors of the n multiplications
-  y          : in  cplx_vector(0 to NUM_MULT-1);
-  --! Resulting product/accumulator output (optionally rounded and clipped)
+  --! Add/Subtract of all N inputs, '0' -> +(x(n)*w(n)), '1' -> -(x(n)*w(n)). Requires 'TO' range.
+  sub        : in  std_logic_vector;
+  --! x(n) are the complex values to be weighted with w. Use 'TO' range.
+  x          : in  cplx_vector;
+  --! weighting factor (either one for all elements of X or one per each element of X). Requires 'TO' range.
+  w          : in  signed_vector;
+  --! Resulting product output vector (optionally rounded and clipped)
   result     : out cplx;
   --! Number of pipeline stages, constant, depends on configuration and device specific implementation
   PIPESTAGES : out natural := 0
 );
 begin
+  assert (x'left<=x'right)
+    report "ERROR in cplx_weightN_sum : Input vector X must have 'TO' range."
+    severity failure;
+
+  assert (sub'length=x'length and sub'left<=sub'right)
+    report "ERROR in cplx_weightN_sum : Input vector SUB must have 'TO' range with same length as input vector X."
+    severity failure;
+
+  assert ((w'length=1 or w'length=x'length) and (w'left<=w'right))
+    report "ERROR in cplx_weightN_sum : Input vector W must have length of 1 or 'TO' range with same length as input X."
+    severity failure;
 
   assert (m/='U' and m/='Z' and m/='I')
-    report "ERROR in cplx_multN_sum : Rounding options 'U', 'Z' and 'I' are not supported."
+    report "ERROR in cplx_weightN_sum : Rounding options 'U', 'Z' and 'I' are not supported."
     severity failure;
-
-  assert (x(0).re'length=x(0).im'length) and (y(0).re'length=y(0).im'length) and (result.re'length=result.im'length)
-    report "ERROR in cplx_multN_sum : Real and imaginary components must have same size."
-    severity failure;
-
 end entity;
 

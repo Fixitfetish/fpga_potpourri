@@ -17,15 +17,21 @@ lappend filelist $BASEPATH/cplx_pkg_1993.vhdl
 lappend filelist $BASEPATH/cplx_mult1_accu.vhdl
 lappend filelist $BASEPATH/cplx_mult2_accu.vhdl
 lappend filelist $BASEPATH/cplx_mult4_accu.vhdl
+lappend filelist $BASEPATH/cplx_multN.vhdl
 lappend filelist $BASEPATH/cplx_multN_accu.vhdl
 lappend filelist $BASEPATH/cplx_multN_sum.vhdl
+lappend filelist $BASEPATH/cplx_weightN.vhdl
+lappend filelist $BASEPATH/cplx_weightN_sum.vhdl
 
 # Architectures
 lappend filelist $BASEPATH/cplx_mult1_accu.sdr.vhdl
 lappend filelist $BASEPATH/cplx_mult2_accu.sdr.vhdl
 lappend filelist $BASEPATH/cplx_mult4_accu.sdr.vhdl
 lappend filelist $BASEPATH/cplx_multN_accu.sdr.vhdl
+lappend filelist $BASEPATH/cplx_multN.sdr.vhdl
 lappend filelist $BASEPATH/cplx_multN_sum.sdr.vhdl
+lappend filelist $BASEPATH/cplx_weightN.sdr.vhdl
+lappend filelist $BASEPATH/cplx_weightN_sum.sdr.vhdl
 
 # compile file list
 set SWITCHES "-93 -explicit -dbg"
