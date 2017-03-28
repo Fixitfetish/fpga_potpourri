@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_multN_sum.stratixv.vhdl
 --! @author     Fixitfetish
---! @date       02/Mar/2017
---! @version    0.10
+--! @date       28/Mar/2017
+--! @version    0.20
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -128,6 +128,17 @@ architecture stratixv of signed_multN_sum is
         end if;  
       end if;
     end loop;
+    -- consider pipeline register after last adder stage before saturation/clipping
+    -- (avoid two additions and final saturation within one cycle)
+    if OUTPUT_CLIP then
+      if FAST_MODE then
+        -- always place register before saturation
+        res(n_stages+1) := true;
+      else
+        -- place register only if previous stage didn't have register
+        res(n_stages+1) := not res(n_stages);
+      end if;
+    end if;
     return res;
   end function;
   constant has_pipereg_stage : boolean_vector(1 to NUM_STAGES+1) := get_piperegs(NUM_STAGES);
@@ -319,11 +330,21 @@ begin
 
    end generate; -- for NUM_STAGES
 
-   p_out : process(din_s(NUM_STAGES+1)(0))
+   -- final pipeline register after adder tree
+   pipe_off : if not has_pipereg_stage(NUM_STAGES+1) generate
+     din_stage(NUM_STAGES+1)(0 to NUM_INPUTS_STAGE(NUM_STAGES+1)-1) <=
+         din_s(NUM_STAGES+1)(0 to NUM_INPUTS_STAGE(NUM_STAGES+1)-1);
+   end generate;
+   pipe_on : if has_pipereg_stage(NUM_STAGES+1) generate
+     din_stage(NUM_STAGES+1)(0 to NUM_INPUTS_STAGE(NUM_STAGES+1)-1) <= 
+         din_s(NUM_STAGES+1)(0 to NUM_INPUTS_STAGE(NUM_STAGES+1)-1) when rising_edge(clk);
+   end generate;
+
+   p_out : process(din_stage(NUM_STAGES+1)(0))
     variable v_dat : signed(OUTPUT_WIDTH-1 downto 0);
     variable v_ovf : std_logic;
    begin
-     RESIZE_CLIP(din  => din_s(NUM_STAGES+1)(0)(WIDTH_STAGE(NUM_STAGES+1)-1 downto 0),
+     RESIZE_CLIP(din  => din_stage(NUM_STAGES+1)(0)(WIDTH_STAGE(NUM_STAGES+1)-1 downto 0),
                  dout => v_dat,
                  ovfl => v_ovf,
                  clip => OUTPUT_CLIP );
