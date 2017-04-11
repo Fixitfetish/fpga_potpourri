@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_multN_sum.sdr.vhdl
 --! @author     Fixitfetish
---! @date       05/Mar/2017
---! @version    0.10
+--! @date       04/Apr/2017
+--! @version    0.20
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -18,7 +18,7 @@ library fixitfetish;
 
 --! @brief N complex multiplications and sum all (Single Data Rate).
 --!
---! This implementation requires the FPGA device dependent module signed_multN_sum.
+--! This implementation requires the FPGA device dependent entity signed_multN_sum.
 --! @image html cplx_multN_sum.sdr.svg "" width=800px
 --!
 --! In general this multiplier can be used when FPGA DSP cells are clocked with
@@ -38,8 +38,13 @@ architecture sdr of cplx_multN_sum is
   -- must be defined here. Increase the value if required.
   constant MAX_NUM_PIPE_DSP : positive := 16;
 
---  type t_x is array(integer range <>) of signed(x(0).re'length-1 downto 0);
---  type t_y is array(integer range <>) of signed(y(0).re'length-1 downto 0);
+  -- number of elements of complex factor vector y
+  -- (must be either 1 or the same length as x)
+  constant NUM_FACTOR : positive := y'length;
+
+  -- convert to default range
+  alias y_i : cplx_vector(0 to NUM_FACTOR-1) is y;
+
   signal x_re, x_im : signed_vector(0 to 2*NUM_MULT-1);
   signal y_re, y_im : signed_vector(0 to 2*NUM_MULT-1);
   signal sub_re, sub_im : std_logic_vector(0 to 2*NUM_MULT-1) := (others=>'0');
@@ -48,7 +53,8 @@ architecture sdr of cplx_multN_sum is
   signal rst_x, rst_y : std_logic_vector(0 to NUM_MULT-1);
   signal ovf_x, ovf_y : std_logic_vector(0 to NUM_MULT-1);
   signal vld_x, vld_y : std_logic_vector(0 to NUM_MULT-1);
-  signal rst, ovf : std_logic_vector(0 to MAX_NUM_PIPE_DSP);
+  signal rst : std_logic_vector(0 to MAX_NUM_PIPE_DSP) := (others=>'1');
+  signal ovf : std_logic_vector(0 to MAX_NUM_PIPE_DSP) := (others=>'0');
 
   -- auxiliary
   signal vld : std_logic;
@@ -80,46 +86,69 @@ begin
   std_logic_sink(clk2);
 
   g_merge : for n in 0 to NUM_MULT-1 generate
-    rst_x(n) <= x(n).rst; rst_y(n) <= y(n).rst;
-    vld_x(n) <= x(n).vld; vld_y(n) <= y(n).vld;
-    ovf_x(n) <= x(n).ovf; ovf_y(n) <= y(n).ovf;
+    rst_x(n) <= x(n).rst; rst_y(n) <= y_i(n).rst;
+    vld_x(n) <= x(n).vld; vld_y(n) <= y_i(n).vld;
+    ovf_x(n) <= x(n).ovf; ovf_y(n) <= y_i(n).ovf;
   end generate;
 
   rst(0) <= (ANY_ONES(rst_x) or  ANY_ONES(rst_y));
-  ovf(0) <= (ANY_ONES(ovf_x) or  ANY_ONES(ovf_y)) when rst(0)='0' else '0';
-  vld    <= (ALL_ONES(vld_x) and ALL_ONES(vld_y)) when rst(0)='0' else '0';
+  vld <= (ALL_ONES(vld_x) and ALL_ONES(vld_y)) when rst(0)='0' else '0';
 
-  -- reset result data output to zero
-  data_reset <= rst(0) when m='R' else '0';
+  -- Consider overflow flags of all inputs that are summed.
+  -- If the overflow flag of any input is set then also the result
+  -- will have the overflow flag set.   
+  ovf(0) <= '0' when (INPUT_OVERFLOW_IGNORE or rst(0)='1') else
+            (ANY_ONES(ovf_x) or  ANY_ONES(ovf_y));
 
   g_in : for n in 0 to NUM_MULT-1 generate
     -- map inputs for calculation of real component
     sub_re(2*n)   <= sub(n); -- +/-(+x.re*y.re)
     sub_re(2*n+1) <= not sub(n); -- +/-(-x.im*y.im)
     x_re(2*n)     <= x(n).re;
-    y_re(2*n)     <= y(n).re;
     x_re(2*n+1)   <= x(n).im;
-    y_re(2*n+1)   <= y(n).im;
     -- map inputs for calculation of imaginary component
     sub_im(2*n)   <= sub(n); -- +/-(+x.re*y.im)
     sub_im(2*n+1) <= sub(n); -- +/-(+x.im*y.re)
     x_im(2*n)     <= x(n).re;
-    y_im(2*n)     <= y(n).im;
     x_im(2*n+1)   <= x(n).im;
-    y_im(2*n+1)   <= y(n).re;
+    g_y1 : if NUM_FACTOR=1 generate
+      -- map inputs for calculation of real component
+      y_re(2*n)     <= y_i(0).re;
+      y_re(2*n+1)   <= y_i(0).im;
+      -- map inputs for calculation of imaginary component
+      y_im(2*n)     <= y_i(0).im;
+      y_im(2*n+1)   <= y_i(0).re;
+    end generate;
+    g_yn : if NUM_FACTOR=NUM_MULT generate
+      -- map inputs for calculation of real component
+      y_re(2*n)     <= y_i(n).re;
+      y_re(2*n+1)   <= y_i(n).im;
+      -- map inputs for calculation of imaginary component
+      y_im(2*n)     <= y_i(n).im;
+      y_im(2*n+1)   <= y_i(n).re;
+    end generate;
+  end generate;
+
+  -- reset result data output to zero
+  data_reset <= rst(0) when MODE='R' else '0';
+
+  -- accumulator delay compensation (DSP bypassed!)
+  g_delay : for n in 1 to MAX_NUM_PIPE_DSP generate
+    rst(n) <= rst(n-1) when rising_edge(clk);
+    ovf(n) <= ovf(n-1) when rising_edge(clk);
   end generate;
 
   -- calculate real component
   i_re : entity fixitfetish.signed_multN_sum
   generic map(
     NUM_MULT           => 2*NUM_MULT, -- two multiplications per complex multiplication
-    FAST_MODE          => false,
+    FAST_MODE          => HIGH_SPEED_MODE,
     NUM_INPUT_REG      => NUM_INPUT_REG,
     NUM_OUTPUT_REG     => 1, -- always enable DSP cell output register (= first output register)
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-    OUTPUT_ROUND       => (m='N'),
-    OUTPUT_CLIP        => (m='S'),
-    OUTPUT_OVERFLOW    => (m='O')
+    OUTPUT_ROUND       => (MODE='N'),
+    OUTPUT_CLIP        => (MODE='S'),
+    OUTPUT_OVERFLOW    => (MODE='O')
   )
   port map (
    clk        => clk,
@@ -138,13 +167,13 @@ begin
   i_im : entity fixitfetish.signed_multN_sum
   generic map(
     NUM_MULT           => 2*NUM_MULT, -- two multiplications per complex multiplication
-    FAST_MODE          => false,
+    FAST_MODE          => HIGH_SPEED_MODE,
     NUM_INPUT_REG      => NUM_INPUT_REG,
     NUM_OUTPUT_REG     => 1, -- always enable DSP cell output register (= first output register)
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-    OUTPUT_ROUND       => (m='N'),
-    OUTPUT_CLIP        => (m='S'),
-    OUTPUT_OVERFLOW    => (m='O')
+    OUTPUT_ROUND       => (MODE='N'),
+    OUTPUT_CLIP        => (MODE='S'),
+    OUTPUT_OVERFLOW    => (MODE='O')
   )
   port map (
    clk        => clk,
@@ -159,15 +188,12 @@ begin
    PIPESTAGES => open  -- same as real component
   );
 
-  -- accumulator delay compensation (DSP bypassed!)
-  g_delay : for n in 1 to MAX_NUM_PIPE_DSP generate
-    rst(n) <= rst(n-1) when rising_edge(clk);
-    ovf(n) <= ovf(n-1) when rising_edge(clk);
-  end generate;
+  -- pipeline delay is the same for all
   rslt(0).rst <= rst(PIPE_DSP);
-  rslt(0).ovf <= ovf(PIPE_DSP) or r_ovf_re or r_ovf_im;
+  rslt(0).ovf <= (r_ovf_re or r_ovf_im) when INPUT_OVERFLOW_IGNORE else
+                 (r_ovf_re or r_ovf_im or ovf(PIPE_DSP));
 
-  -- output registers
+  -- additional output registers
   g_out_reg : if NUM_OUTPUT_REG>=1 generate
     g_loop : for n in 1 to NUM_OUTPUT_REG generate
       rslt(n) <= rslt(n-1) when rising_edge(clk);

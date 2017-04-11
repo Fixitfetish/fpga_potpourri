@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_multN_sum.vhdl
 --! @author     Fixitfetish
---! @date       05/Mar/2017
---! @version    0.10
+--! @date       04/Apr/2017
+--! @version    0.20
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -16,6 +16,8 @@ library fixitfetish;
 
 --! @brief N complex multiplications and sum all product results.
 --!
+--! @image html cplx_multN_sum.svg "" width=600px
+--!
 --! This entity can be used for :
 --! * Scalar products of two complex vectors x and y
 --! * complex matrix multiplication
@@ -24,12 +26,13 @@ library fixitfetish;
 --! @link cplx_weightN_sum @endlink
 --! instead because less multiplications and resources are required in this case.
 --!
---! @image html cplx_multN_sum.svg "" width=600px
---!
 --! The behavior is as follows
 --! * vld = (x0.vld and y0.vld) and (x1.vld and y1.vld) and ...
 --! * VLD=1  ->  r = +/-(x0*y0) +/-(x1*y1) +/-...    # calculate sum
 --! * VLD=0  ->  r = r                               # hold previous result
+--!
+--! Note that for the second mode a more efficient implementation might be possible
+--! because only one multiplication after summation is required.
 --!
 --! The length of the input factors is flexible.
 --! The input factors are automatically resized with sign extensions bits to the
@@ -68,18 +71,20 @@ library fixitfetish;
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
 --! I1 : cplx_multN_sum
 --! generic map(
---!   NUM_MULT           => positive, -- number of parallel multiplications
---!   NUM_INPUT_REG      => natural,  -- number of input registers
---!   NUM_OUTPUT_REG     => natural,  -- number of output registers
---!   OUTPUT_SHIFT_RIGHT => natural,  -- number of right shifts
---!   m                  => cplx_mode -- options
+--!   NUM_MULT              => positive, -- number of parallel multiplications
+--!   HIGH_SPEED_MODE       => boolean,  -- enable high speed mode
+--!   NUM_INPUT_REG         => natural,  -- number of input registers
+--!   NUM_OUTPUT_REG        => natural,  -- number of output registers
+--!   INPUT_OVERFLOW_IGNORE => boolean,  -- ignore input overflows
+--!   OUTPUT_SHIFT_RIGHT    => natural,  -- number of right shifts
+--!   MODE                  => cplx_mode -- options
 --! )
 --! port map(
 --!   clk        => in  std_logic, -- clock
 --!   clk2       => in  std_logic, -- clock x2
 --!   sub        => in  std_logic_vector(0 to NUM_MULT-1), -- add/subtract
 --!   x          => in  cplx_vector(0 to NUM_MULT-1), -- first factors
---!   y          => in  cplx_vector(0 to NUM_MULT-1), -- second factors
+--!   y          => in  cplx_vector, -- second factor(s)
 --!   result     => out cplx, -- product result
 --!   PIPESTAGES => out natural -- constant number of pipeline stages
 --! );
@@ -90,6 +95,8 @@ entity cplx_multN_sum is
 generic (
   --! Number of parallel multiplications - mandatory generic!
   NUM_MULT : positive;
+  --! Enable high speed mode with more pipelining for higher clock rates
+  HIGH_SPEED_MODE : boolean := false;
   --! @brief Number of additional input registers in system clock domain.
   --! At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
@@ -98,41 +105,54 @@ generic (
   --! At least one is recommended when logic for rounding and/or clipping is enabled.
   --! Typically all output registers are implemented in logic and are not part of a DSP cell.
   NUM_OUTPUT_REG : natural := 0;
+  --! @brief By default the overflow flags of the inputs are propagated to the
+  --! output to not loose the overflow flags in processing chains.
+  --! If the input overflow flags are ignored then output overflow flags only
+  --! report overflows within this entity. Note that ignoring the input
+  --! overflows can save a little bit of logic.
+  INPUT_OVERFLOW_IGNORE : boolean := false;
   --! Number of bits by which the product/accumulator result output is shifted right
   OUTPUT_SHIFT_RIGHT : natural := 0;
   --! Supported operation modes 'R','O','N' and 'S'
-  m : cplx_mode := "-"
+  MODE : cplx_mode := "-"
 );
 port (
   --! Standard system clock
   clk        : in  std_logic;
   --! Optional double rate clock (only relevant when a DDR implementation is used)
   clk2       : in  std_logic := '0';
-  --! @brief Add/subtract for all products n=0..NUM_MULT-1 , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)).
+  --! @brief Add/subtract for all N products , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)).
   --! Subtraction is disabled by default.
   --! Dependent on the DSP cell type some implementations might not fully support
   --! the subtraction feature. Either additional logic is required or subtraction
   --! of certain input indices is not supported. Please refer to the description of
   --! vendor specific implementation.
   sub        : in  std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
-  --! x(n) are the first complex factors of the n multiplications
+  --! x(n) are the first complex factors of the N multiplications.
   x          : in  cplx_vector(0 to NUM_MULT-1);
-  --! y(n) are the second complex factors of the n multiplications
-  y          : in  cplx_vector(0 to NUM_MULT-1);
-  --! Resulting product/accumulator output (optionally rounded and clipped)
+  --! y(n) are the second complex factors of the N multiplications. Requires 'TO' range.
+  y          : in  cplx_vector;
+  --! Resulting product/accumulator output (optionally rounded and clipped).
   result     : out cplx;
   --! Number of pipeline stages, constant, depends on configuration and device specific implementation
   PIPESTAGES : out natural := 0
 );
 begin
 
-  assert (m/='U' and m/='Z' and m/='I')
-    report "ERROR in cplx_multN_sum : Rounding options 'U', 'Z' and 'I' are not supported."
+  assert ((y'length=1 or y'length=x'length) and (y'left<=y'right))
+    report "ERROR in " & cplx_multN_sum'INSTANCE_NAME & 
+           " Input vector Y must have length of 1 or 'TO' range with same length as input X."
     severity failure;
 
-  assert (x(0).re'length=x(0).im'length) and (y(0).re'length=y(0).im'length) and (result.re'length=result.im'length)
-    report "ERROR in cplx_multN_sum : Real and imaginary components must have same size."
+  assert (x(x'left).re'length=x(x'left).im'length) and (y(y'left).re'length=y(y'left).im'length)
+     and (result.re'length=result.im'length)
+    report "ERROR in " & cplx_multN_sum'INSTANCE_NAME & 
+           " Real and imaginary components must have same size."
+    severity failure;
+
+  assert (MODE/='U' and MODE/='Z' and MODE/='I')
+    report "ERROR in " & cplx_multN_sum'INSTANCE_NAME & 
+           " Rounding options 'U', 'Z' and 'I' are not supported."
     severity failure;
 
 end entity;
-
