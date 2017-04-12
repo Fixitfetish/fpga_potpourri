@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_weightN_sum.sdr.vhdl
 --! @author     Fixitfetish
---! @date       25/Mar/2017
---! @version    0.10
+--! @date       12/Apr/2017
+--! @version    0.20
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -34,27 +34,23 @@ architecture sdr of cplx_weightN_sum is
   -- must be defined here. Increase the value if required.
   constant MAX_NUM_PIPE_DSP : positive := 16;
 
-  -- number of complex vector elements
-  constant NUM_INPUTS : positive := x'length;
-
-  -- The number of weight factors must be either 1 or the same as the number
-  -- as complex input values X.
-  constant NUM_WEIGHTS : positive := w'length;
+  -- number of elements of weight factor vector w
+  -- (must be either 1 or the same length as x)
+  constant NUM_FACTOR : positive := w'length;
 
   -- convert to default range
-  alias sub_i : std_logic_vector(0 to NUM_INPUTS-1) is sub;
-  alias x_i : cplx_vector(0 to NUM_INPUTS-1) is x;
-  alias w_i : signed_vector(0 to NUM_WEIGHTS-1) is w;
+  alias w_i : signed_vector(0 to NUM_FACTOR-1) is w;
 
-  -- multiplier input signals
-  signal sub_dsp : std_logic_vector(0 to NUM_INPUTS-1);
-  signal x_re_dsp : signed_vector(0 to NUM_INPUTS-1);
-  signal x_im_dsp : signed_vector(0 to NUM_INPUTS-1);
-  signal w_dsp : signed_vector(0 to NUM_INPUTS-1);
+  signal x_re, x_im : signed_vector(0 to NUM_MULT-1);
+  signal sub_re, sub_im : std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
+  signal w_dsp : signed_vector(0 to NUM_MULT-1);
 
   -- merged input signals and compensate for multiplier pipeline stages
---  type t_delay is array(integer range <>) of std_logic_vector(0 to NUM_INPUTS-1);
-  signal rst, ovf : std_logic_vector(0 to MAX_NUM_PIPE_DSP);
+  signal rst_x : std_logic_vector(0 to NUM_MULT-1);
+  signal ovf_x : std_logic_vector(0 to NUM_MULT-1);
+  signal vld_x : std_logic_vector(0 to NUM_MULT-1);
+  signal rst : std_logic_vector(0 to MAX_NUM_PIPE_DSP) := (others=>'1');
+  signal ovf : std_logic_vector(0 to MAX_NUM_PIPE_DSP) := (others=>'0');
 
   -- auxiliary
   signal vld : std_logic;
@@ -85,91 +81,103 @@ begin
   -- dummy sink for unused clock
   std_logic_sink(clk2);
 
-  g_in : for k in 0 to NUM_INPUTS-1 generate 
-    -- mapping of complex inputs
-    sub_dsp(k)  <= sub_i(k);
-    x_re_dsp(k) <= x_i(k).re;
-    x_im_dsp(k) <= x_i(k).im;
-
-    -- mapping of weighting factor(s)
-    g_w1 : if NUM_WEIGHTS=1 generate
-      -- same weighting factor for all complex vector elements
-      w_dsp(k) <= w_i(0);
-    end generate;
-    g_wn : if NUM_WEIGHTS=NUM_INPUTS generate
-      -- separate weighting factor for each complex vector element
-      w_dsp(k) <= w_i(k);
-    end generate;
-
+  g_merge : for n in 0 to NUM_MULT-1 generate
+    rst_x(n) <= x(n).rst;
+    vld_x(n) <= x(n).vld;
+    ovf_x(n) <= x(n).ovf;
   end generate;
 
   -- merge input control signals
-  rst(0) <= x_i(0).rst;
-  ovf(0) <= x_i(0).ovf when x_i(0).rst='0' else '0';
+  rst(0) <= (ANY_ONES(rst_x));
+  vld <= ALL_ONES(vld_x) when rst(0)='0' else '0';
 
-  -- valid must be the same for all inputs (derive from first vector element)
-  vld <= x_i(0).vld when x_i(0).rst='0' else '0';
+  -- Consider overflow flags of all inputs that are summed.
+  -- If the overflow flag of any input is set then also the result
+  -- will have the overflow flag set.   
+  ovf(0) <= '0' when (INPUT_OVERFLOW_IGNORE or rst(0)='1') else
+            ANY_ONES(ovf_x);
+
+  g_in : for n in 0 to NUM_MULT-1 generate
+    -- mapping of complex inputs
+    sub_re(n) <= sub(n);
+    sub_im(n) <= sub(n);
+    x_re(n) <= x(n).re;
+    x_im(n) <= x(n).im;
+    g_w1 : if NUM_FACTOR=1 generate
+      -- same weighting factor for all complex vector elements
+      w_dsp(n) <= w_i(0);
+    end generate;
+    g_wn : if NUM_FACTOR=NUM_MULT generate
+      -- separate weighting factor for each complex vector element
+      w_dsp(n) <= w_i(n);
+    end generate;
+  end generate;
 
   -- reset result data output to zero
-  data_reset <= x_i(0).rst when m='R' else '0';
-
-  -- weighting
-  i_real : entity fixitfetish.signed_multN_sum
-  generic map(
-    NUM_MULT           => NUM_INPUTS,
-    NUM_INPUT_REG      => NUM_INPUT_REG,
-    NUM_OUTPUT_REG     => 1, -- always enable DSP internal output register
-    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-    OUTPUT_ROUND       => (m='N'),
-    OUTPUT_CLIP        => (m='S'),
-    OUTPUT_OVERFLOW    => (m='O')
-  )
-  port map (
-    clk           => clk,
-    rst           => data_reset,
-    vld           => vld,
-    sub           => sub_dsp,
-    x             => x_re_dsp,
-    y             => w_dsp,
-    result        => rslt(0).re,
-    result_vld    => rslt(0).vld,
-    result_ovf    => r_ovf_re,
-    PIPESTAGES    => PIPE_DSP
-  );
-
-  -- weighting
-  i_imag : entity fixitfetish.signed_multN_sum
-  generic map(
-    NUM_MULT           => NUM_INPUTS,
-    NUM_INPUT_REG      => NUM_INPUT_REG,
-    NUM_OUTPUT_REG     => 1, -- always enable DSP internal output register
-    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-    OUTPUT_ROUND       => (m='N'),
-    OUTPUT_CLIP        => (m='S'),
-    OUTPUT_OVERFLOW    => (m='O')
-  )
-  port map (
-    clk           => clk,
-    rst           => data_reset,
-    vld           => vld,
-    sub           => sub_dsp,
-    x             => x_im_dsp,
-    y             => w_dsp,
-    result        => rslt(0).im,
-    result_vld    => open, -- same as real component
-    result_ovf    => r_ovf_im,
-    PIPESTAGES    => open -- same as real component
-  );
+  data_reset <= rst(0) when MODE='R' else '0';
 
   -- accumulator delay compensation (DSP bypassed!)
   g_delay : for n in 1 to MAX_NUM_PIPE_DSP generate
     rst(n) <= rst(n-1) when rising_edge(clk);
     ovf(n) <= ovf(n-1) when rising_edge(clk);
   end generate;
-  rslt(0).rst <= rst(PIPE_DSP);
-  rslt(0).ovf <= ovf(PIPE_DSP) or r_ovf_re or r_ovf_im;
 
-  -- output registers
+  -- weighting
+  i_re : entity fixitfetish.signed_multN_sum
+  generic map(
+    NUM_MULT           => NUM_MULT,
+    FAST_MODE          => HIGH_SPEED_MODE,
+    NUM_INPUT_REG      => NUM_INPUT_REG,
+    NUM_OUTPUT_REG     => 1, -- always enable DSP cell output register (= first output register)
+    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
+    OUTPUT_ROUND       => (MODE='N'),
+    OUTPUT_CLIP        => (MODE='S'),
+    OUTPUT_OVERFLOW    => (MODE='O')
+  )
+  port map (
+    clk        => clk,
+    rst        => data_reset,
+    vld        => vld,
+    sub        => sub_re,
+    x          => x_re,
+    y          => w_dsp,
+    result     => rslt(0).re,
+    result_vld => rslt(0).vld,
+    result_ovf => r_ovf_re,
+    PIPESTAGES => PIPE_DSP
+  );
+
+  -- weighting
+  i_im : entity fixitfetish.signed_multN_sum
+  generic map(
+    NUM_MULT           => NUM_MULT,
+    FAST_MODE          => HIGH_SPEED_MODE,
+    NUM_INPUT_REG      => NUM_INPUT_REG,
+    NUM_OUTPUT_REG     => 1, -- always enable DSP cell output register (= first output register)
+    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
+    OUTPUT_ROUND       => (MODE='N'),
+    OUTPUT_CLIP        => (MODE='S'),
+    OUTPUT_OVERFLOW    => (MODE='O')
+  )
+  port map (
+    clk        => clk,
+    rst        => data_reset,
+    vld        => vld,
+    sub        => sub_im,
+    x          => x_im,
+    y          => w_dsp,
+    result     => rslt(0).im,
+    result_vld => open, -- same as real component
+    result_ovf => r_ovf_im,
+    PIPESTAGES => open  -- same as real component
+  );
+
+  -- pipeline delay is the same for all
+  rslt(0).rst <= rst(PIPE_DSP);
+  rslt(0).ovf <= (r_ovf_re or r_ovf_im) when INPUT_OVERFLOW_IGNORE else
+                 (r_ovf_re or r_ovf_im or ovf(PIPE_DSP));
+
+  -- additional output registers
   g_out_reg : if NUM_OUTPUT_REG>=1 generate
     g_loop : for n in 1 to NUM_OUTPUT_REG generate
       rslt(n) <= rslt(n-1) when rising_edge(clk);

@@ -91,6 +91,7 @@ begin
     ovf_x(n) <= x(n).ovf; ovf_y(n) <= y_i(n).ovf;
   end generate;
 
+  -- merge input control signals
   rst(0) <= (ANY_ONES(rst_x) or  ANY_ONES(rst_y));
   vld <= (ALL_ONES(vld_x) and ALL_ONES(vld_y)) when rst(0)='0' else '0';
 
@@ -151,16 +152,16 @@ begin
     OUTPUT_OVERFLOW    => (MODE='O')
   )
   port map (
-   clk        => clk,
-   rst        => data_reset, 
-   vld        => vld,
-   sub        => sub_re,
-   x          => x_re,
-   y          => y_re,
-   result     => rslt(0).re,
-   result_vld => rslt(0).vld,
-   result_ovf => r_ovf_re,
-   PIPESTAGES => PIPE_DSP
+    clk        => clk,
+    rst        => data_reset,
+    vld        => vld,
+    sub        => sub_re,
+    x          => x_re,
+    y          => y_re,
+    result     => rslt(0).re,
+    result_vld => rslt(0).vld,
+    result_ovf => r_ovf_re,
+    PIPESTAGES => PIPE_DSP
   );
 
   -- calculate imaginary component
@@ -176,16 +177,16 @@ begin
     OUTPUT_OVERFLOW    => (MODE='O')
   )
   port map (
-   clk        => clk,
-   rst        => data_reset, 
-   vld        => vld,
-   sub        => sub_im,
-   x          => x_im,
-   y          => y_im,
-   result     => rslt(0).im,
-   result_vld => open, -- same as real component
-   result_ovf => r_ovf_im,
-   PIPESTAGES => open  -- same as real component
+    clk        => clk,
+    rst        => data_reset,
+    vld        => vld,
+    sub        => sub_im,
+    x          => x_im,
+    y          => y_im,
+    result     => rslt(0).im,
+    result_vld => open, -- same as real component
+    result_ovf => r_ovf_im,
+    PIPESTAGES => open  -- same as real component
   );
 
   -- pipeline delay is the same for all

@@ -67,7 +67,7 @@ architecture behave of signed_multN_sum is
     ovf : std_logic;
   end record;
   type array_oreg is array(integer range <>) of r_oreg;
-  signal rslt : array_oreg(1 to NUM_DELAY_REG);
+  signal rslt : array_oreg(1 to NUM_DELAY_REG) := (others=>(dat=>(others=>'0'),vld|ovf=>'0'));
 
   signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0) := (others=>'0');
   signal accu_used_shifted : signed(ACCU_USED_SHIFTED_WIDTH-1 downto 0);
