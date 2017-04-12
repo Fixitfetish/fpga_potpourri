@@ -27,8 +27,8 @@ lappend filelist $BASEPATH/cplx_weightN_sum.vhdl
 lappend filelist $BASEPATH/cplx_mult1_accu.sdr.vhdl
 lappend filelist $BASEPATH/cplx_mult2_accu.sdr.vhdl
 lappend filelist $BASEPATH/cplx_mult4_accu.sdr.vhdl
-lappend filelist $BASEPATH/cplx_multN_accu.sdr.vhdl
 lappend filelist $BASEPATH/cplx_multN.sdr.vhdl
+lappend filelist $BASEPATH/cplx_multN_accu.sdr.vhdl
 lappend filelist $BASEPATH/cplx_multN_sum.sdr.vhdl
 lappend filelist $BASEPATH/cplx_weightN.sdr.vhdl
 lappend filelist $BASEPATH/cplx_weightN_sum.sdr.vhdl
