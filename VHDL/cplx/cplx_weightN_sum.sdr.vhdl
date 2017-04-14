@@ -12,8 +12,9 @@ library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
 library fixitfetish;
- use fixitfetish.ieee_extension_types.all;
  use fixitfetish.cplx_pkg.all;
+ use fixitfetish.ieee_extension.all;
+ use fixitfetish.ieee_extension_types.all;
 
 --! @brief Single Data Rate implementation of the entity cplx_weightN_sum .
 --! N complex values are weighted (scaled) with one scalar or N scalar
