@@ -13,22 +13,22 @@ set filelist [list]
 
 # General / Entities
 lappend filelist $SCRIPTPATH/cplx_pkg_1993.vhdl
+lappend filelist $SCRIPTPATH/cplx_mult_accu.vhdl
+lappend filelist $SCRIPTPATH/cplx_mult_sum.vhdl
 lappend filelist $SCRIPTPATH/cplx_mult1_accu.vhdl
 lappend filelist $SCRIPTPATH/cplx_mult2_accu.vhdl
 lappend filelist $SCRIPTPATH/cplx_mult4_accu.vhdl
 lappend filelist $SCRIPTPATH/cplx_multN.vhdl
-lappend filelist $SCRIPTPATH/cplx_multN_accu.vhdl
-lappend filelist $SCRIPTPATH/cplx_multN_sum.vhdl
 lappend filelist $SCRIPTPATH/cplx_weightN.vhdl
 lappend filelist $SCRIPTPATH/cplx_weightN_sum.vhdl
 
 # Architectures
+lappend filelist $SCRIPTPATH/cplx_mult_accu.sdr.vhdl
+lappend filelist $SCRIPTPATH/cplx_mult_sum.sdr.vhdl
 lappend filelist $SCRIPTPATH/cplx_mult1_accu.sdr.vhdl
 lappend filelist $SCRIPTPATH/cplx_mult2_accu.sdr.vhdl
 lappend filelist $SCRIPTPATH/cplx_mult4_accu.sdr.vhdl
 lappend filelist $SCRIPTPATH/cplx_multN.sdr.vhdl
-lappend filelist $SCRIPTPATH/cplx_multN_accu.sdr.vhdl
-lappend filelist $SCRIPTPATH/cplx_multN_sum.sdr.vhdl
 lappend filelist $SCRIPTPATH/cplx_weightN.sdr.vhdl
 lappend filelist $SCRIPTPATH/cplx_weightN_sum.sdr.vhdl
 

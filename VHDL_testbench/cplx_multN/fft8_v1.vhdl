@@ -89,7 +89,7 @@ begin
   dftmtx_18bit <= to_cplx_vector(slv=>dftmtx_slv, n=>8, vld=>'1');
 
   -- multiplier / scalar product
-  i_mult : entity fixitfetish.cplx_multN_sum
+  i_mult : entity fixitfetish.cplx_mult_sum
   generic map(
     NUM_MULT => fft_in'length,
     HIGH_SPEED_MODE => false,
