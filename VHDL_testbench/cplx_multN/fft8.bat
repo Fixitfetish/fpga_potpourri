@@ -47,16 +47,15 @@ set LIB=fixitfetish
 %COMPILE%%LIB% ifft8_v1.vhdl
 %COMPILE%%LIB% fft8_tb.vhdl
 
-pause
+@pause
 
 :: run testbench
 @echo.--------------------------------------------------------------------------
 @echo.INFO: Starting simulation ...
 %SIMULATE% fft8_tb --stop-time=500ns --vcd=%VCD%
 
-pause
-
-goto END
+@pause
+@goto END
 
 :: start waveform viewer
 ::@if not exist %VCD% goto END

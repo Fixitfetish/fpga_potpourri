@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_mult.sdr.vhdl
 --! @author     Fixitfetish
---! @date       25/Mar/2017
---! @version    0.10
+--! @date       14/Apr/2017
+--! @version    0.20
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -12,8 +12,8 @@ library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
 library fixitfetish;
- use fixitfetish.ieee_extension_types.all;
  use fixitfetish.cplx_pkg.all;
+ use fixitfetish.ieee_extension_types.all;
 
 --! @brief Single Data Rate implementation of the entity cplx_mult .
 --! N complex multiplications are performed.
@@ -34,33 +34,29 @@ architecture sdr of cplx_mult is
   -- must be defined here. Increase the value if required.
   constant MAX_NUM_PIPE_DSP : positive := 16;
 
-  -- number of elements of complex input vector x
-  constant NUM_INPUTS : positive := x'length;
-  
   -- number of elements of complex factor vector y
   -- (must be either 1 or the same length as x)
   constant NUM_FACTOR : positive := y'length;
 
   -- convert to default range
-  alias neg_i : std_logic_vector(0 to NUM_INPUTS-1) is neg;
-  alias x_i : cplx_vector(0 to NUM_INPUTS-1) is x;
   alias y_i : cplx_vector(0 to NUM_FACTOR-1) is y;
 
-  signal x_re, x_im : signed_vector(0 to 2*NUM_INPUTS-1);
-  signal y_re, y_im : signed_vector(0 to 2*NUM_INPUTS-1);
-  signal sub_re, sub_im : std_logic_vector(0 to 2*NUM_INPUTS-1) := (others=>'0');
+  signal x_re, x_im : signed_vector(0 to 2*NUM_MULT-1);
+  signal y_re, y_im : signed_vector(0 to 2*NUM_MULT-1);
+  signal sub_re, sub_im : std_logic_vector(0 to 2*NUM_MULT-1) := (others=>'0');
 
   -- merged input signals and compensate for multiplier pipeline stages
-  type t_delay is array(integer range <>) of std_logic_vector(0 to NUM_INPUTS-1);
-  signal rst, ovf : t_delay(0 to MAX_NUM_PIPE_DSP);
+  type t_delay is array(integer range <>) of std_logic_vector(0 to NUM_MULT-1);
+  signal rst : t_delay(0 to MAX_NUM_PIPE_DSP) := (others=>(others=>'1'));
+  signal ovf : t_delay(0 to MAX_NUM_PIPE_DSP) := (others=>(others=>'0'));
 
   -- auxiliary
-  signal vld : std_logic_vector(0 to NUM_INPUTS-1) := (others=>'0');
-  signal data_reset : std_logic_vector(0 to NUM_INPUTS-1) := (others=>'0');
+  signal vld : std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
+  signal data_reset : std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
 
   -- output signals
   -- ! for 1993/2008 compatibility reasons do not use cplx record here !
-  signal r_ovf_re, r_ovf_im : std_logic_vector(0 to NUM_INPUTS-1);
+  signal r_ovf_re, r_ovf_im : std_logic_vector(0 to NUM_MULT-1);
   type record_result is
   record
     rst, vld, ovf : std_logic;
@@ -68,12 +64,12 @@ architecture sdr of cplx_mult is
     im : signed(result(result'left).im'length-1 downto 0);
   end record;
   type vector_result is array(integer range<>) of record_result;
-  type matrix_result is array(integer range<>) of vector_result(0 to NUM_INPUTS-1);
+  type matrix_result is array(integer range<>) of vector_result(0 to NUM_MULT-1);
   signal rslt : matrix_result(0 to NUM_OUTPUT_REG);
 
   -- pipeline stages of used DSP cell
   type t_pipe is array(integer range <>) of natural;
-  signal PIPE_DSP : t_pipe(0 to NUM_INPUTS-1);
+  signal PIPE_DSP : t_pipe(0 to NUM_MULT-1);
 
   -- dummy sink to avoid warnings
   procedure std_logic_sink(x:in std_logic) is
@@ -85,17 +81,28 @@ begin
   -- dummy sink for unused clock
   std_logic_sink(clk2);
 
-  g_in : for n in 0 to NUM_INPUTS-1 generate
+  g_merge : for n in 0 to NUM_MULT-1 generate
+    -- merge input control signals
+    rst(0)(n) <= (x(n).rst or y_i(n).rst);
+    vld(n) <= (x(n).vld and y_i(n).vld) when rst(0)(n)='0' else '0';
+    -- Consider overflow flags of all inputs.
+    -- If the overflow flag of any input is set then also the result
+    -- will have the overflow flag set.   
+    ovf(0)(n) <= '0' when (INPUT_OVERFLOW_IGNORE or rst(0)(n)='1') else
+                 (x(n).ovf or y_i(n).ovf);
+  end generate;
+
+  g_in : for n in 0 to NUM_MULT-1 generate
     -- map inputs for calculation of real component
-    sub_re(2*n)   <= neg_i(n); -- +/-(+x.re*y.re)
-    sub_re(2*n+1) <= not neg_i(n); -- +/-(-x.im*y.im)
-    x_re(2*n)     <= x_i(n).re;
-    x_re(2*n+1)   <= x_i(n).im;
+    sub_re(2*n)   <= neg(n); -- +/-(+x.re*y.re)
+    sub_re(2*n+1) <= not neg(n); -- +/-(-x.im*y.im)
+    x_re(2*n)     <= x(n).re;
+    x_re(2*n+1)   <= x(n).im;
     -- map inputs for calculation of imaginary component
-    sub_im(2*n)   <= neg_i(n); -- +/-(+x.re*y.im)
-    sub_im(2*n+1) <= neg_i(n); -- +/-(+x.im*y.re)
-    x_im(2*n)     <= x_i(n).re;
-    x_im(2*n+1)   <= x_i(n).im;
+    sub_im(2*n)   <= neg(n); -- +/-(+x.re*y.im)
+    sub_im(2*n+1) <= neg(n); -- +/-(+x.im*y.re)
+    x_im(2*n)     <= x(n).re;
+    x_im(2*n+1)   <= x(n).im;
     g_y1 : if NUM_FACTOR=1 generate
       -- map inputs for calculation of real component
       y_re(2*n)     <= y_i(0).re;
@@ -103,46 +110,38 @@ begin
       -- map inputs for calculation of imaginary component
       y_im(2*n)     <= y_i(0).im;
       y_im(2*n+1)   <= y_i(0).re;
-      -- merge input control signals
-      rst(0)(n) <= (x_i(n).rst or y_i(0).rst);
-      ovf(0)(n) <= (x_i(n).ovf or y_i(0).ovf) when rst(0)(n)='0' else '0';
-      vld(n) <= (x_i(n).vld and y_i(0).vld) when rst(0)(n)='0' else '0';
     end generate;
-    g_yn : if NUM_FACTOR=NUM_INPUTS generate
+    g_yn : if NUM_FACTOR=NUM_MULT generate
       -- map inputs for calculation of real component
       y_re(2*n)     <= y_i(n).re;
       y_re(2*n+1)   <= y_i(n).im;
       -- map inputs for calculation of imaginary component
       y_im(2*n)     <= y_i(n).im;
       y_im(2*n+1)   <= y_i(n).re;
-      -- merge input control signals
-      rst(0)(n) <= (x_i(n).rst or y_i(n).rst);
-      ovf(0)(n) <= (x_i(n).ovf or y_i(n).ovf) when rst(0)(n)='0' else '0';
-      vld(n) <= (x_i(n).vld and y_i(n).vld) when rst(0)(n)='0' else '0';
     end generate;
   end generate;
 
   -- reset result data output to zero
-  data_reset <= rst(0) when m='R' else (others=>'0');
+  data_reset <= rst(0) when MODE='R' else (others=>'0');
 
   -- accumulator delay compensation (DSP bypassed!)
-  g_loop : for n in 1 to MAX_NUM_PIPE_DSP generate
+  g_delay : for n in 1 to MAX_NUM_PIPE_DSP generate
     rst(n) <= rst(n-1) when rising_edge(clk);
     ovf(n) <= ovf(n-1) when rising_edge(clk);
   end generate;
 
-  g_mult : for n in 0 to NUM_INPUTS-1 generate
+  g_mult : for n in 0 to NUM_MULT-1 generate
     -- calculate real component
     i_re : entity fixitfetish.signed_multN_sum
     generic map(
       NUM_MULT           => 2, -- two multiplications per complex multiplication
-      FAST_MODE          => false,
+      FAST_MODE          => HIGH_SPEED_MODE,
       NUM_INPUT_REG      => NUM_INPUT_REG,
       NUM_OUTPUT_REG     => 1, -- always enable DSP cell output register (= first output register)
       OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-      OUTPUT_ROUND       => (m='N'),
-      OUTPUT_CLIP        => (m='S'),
-      OUTPUT_OVERFLOW    => (m='O')
+      OUTPUT_ROUND       => (MODE='N'),
+      OUTPUT_CLIP        => (MODE='S'),
+      OUTPUT_OVERFLOW    => (MODE='O')
     )
     port map (
      clk        => clk,
@@ -161,13 +160,13 @@ begin
     i_im : entity fixitfetish.signed_multN_sum
     generic map(
       NUM_MULT           => 2, -- two multiplications per complex multiplication
-      FAST_MODE          => false,
+      FAST_MODE          => HIGH_SPEED_MODE,
       NUM_INPUT_REG      => NUM_INPUT_REG,
       NUM_OUTPUT_REG     => 1, -- always enable DSP cell output register (= first output register)
       OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-      OUTPUT_ROUND       => (m='N'),
-      OUTPUT_CLIP        => (m='S'),
-      OUTPUT_OVERFLOW    => (m='O')
+      OUTPUT_ROUND       => (MODE='N'),
+      OUTPUT_CLIP        => (MODE='S'),
+      OUTPUT_OVERFLOW    => (MODE='O')
     )
     port map (
      clk        => clk,
@@ -184,10 +183,11 @@ begin
 
     -- pipeline delay is the same for all
     rslt(0)(n).rst <= rst(PIPE_DSP(0))(n);
-    rslt(0)(n).ovf <= ovf(PIPE_DSP(0))(n) or r_ovf_re(n) or r_ovf_im(n);
+    rslt(0)(n).ovf <= (r_ovf_re(n) or r_ovf_im(n)) when INPUT_OVERFLOW_IGNORE else
+                      (r_ovf_re(n) or r_ovf_im(n) or ovf(PIPE_DSP(0))(n));
   end generate;
 
-  -- output registers
+  -- additional output registers
   g_out_reg : if NUM_OUTPUT_REG>=1 generate
     g_loop : for n in 1 to NUM_OUTPUT_REG generate
       rslt(n) <= rslt(n-1) when rising_edge(clk);
@@ -195,7 +195,7 @@ begin
   end generate;
 
   -- map result to output port
-  g_out : for k in 0 to NUM_INPUTS-1 generate
+  g_out : for k in 0 to NUM_MULT-1 generate
     result(k).rst <= rslt(NUM_OUTPUT_REG)(k).rst;
     result(k).vld <= rslt(NUM_OUTPUT_REG)(k).vld;
     result(k).ovf <= rslt(NUM_OUTPUT_REG)(k).ovf;

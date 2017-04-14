@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_mult.vhdl
 --! @author     Fixitfetish
---! @date       25/Mar/2017
---! @version    0.10
+--! @date       14/Apr/2017
+--! @version    0.20
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -62,18 +62,21 @@ library fixitfetish;
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
 --! I1 : cplx_mult
 --! generic map(
---!   NUM_INPUT_REG      => natural,  -- number of input registers
---!   NUM_OUTPUT_REG     => natural,  -- number of output registers
---!   OUTPUT_SHIFT_RIGHT => natural,  -- number of right shifts
---!   m                  => cplx_mode -- options
+--!   NUM_MULT              => positive, -- number of parallel multiplications
+--!   HIGH_SPEED_MODE       => boolean,  -- enable high speed mode
+--!   NUM_INPUT_REG         => natural,  -- number of input registers
+--!   NUM_OUTPUT_REG        => natural,  -- number of output registers
+--!   INPUT_OVERFLOW_IGNORE => boolean,  -- ignore input overflows
+--!   OUTPUT_SHIFT_RIGHT    => natural,  -- number of right shifts
+--!   MODE                  => cplx_mode -- options
 --! )
 --! port map(
 --!   clk        => in  std_logic, -- clock
 --!   clk2       => in  std_logic, -- clock x2
---!   neg        => in  std_logic_vector, -- negation per input X
---!   x          => in  cplx_vector, -- first factors
+--!   neg        => in  std_logic_vector(0 to NUM_MULT-1), -- negation per input X
+--!   x          => in  cplx_vector(0 to NUM_MULT-1), -- first factors
 --!   y          => in  cplx_vector, -- second factors
---!   result     => out cplx_vector, -- product results
+--!   result     => out cplx_vector(0 to NUM_MULT-1), -- product results
 --!   PIPESTAGES => out natural -- constant number of pipeline stages
 --! );
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -81,6 +84,10 @@ library fixitfetish;
 
 entity cplx_mult is
 generic (
+  --! Number of parallel multiplications - mandatory generic!
+  NUM_MULT : positive;
+  --! Enable high speed mode with more pipelining for higher clock rates
+  HIGH_SPEED_MODE : boolean := false;
   --! @brief Number of additional input registers in system clock domain.
   --! At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
@@ -89,10 +96,16 @@ generic (
   --! At least one is recommended when logic for rounding and/or clipping is enabled.
   --! Typically all output registers are implemented in logic and are not part of a DSP cell.
   NUM_OUTPUT_REG : natural := 0;
+  --! @brief By default the overflow flags of the inputs are propagated to the
+  --! output to not loose the overflow flags in processing chains.
+  --! If the input overflow flags are ignored then output overflow flags only
+  --! report overflows within this entity. Note that ignoring the input
+  --! overflows can save a little bit of logic.
+  INPUT_OVERFLOW_IGNORE : boolean := false;
   --! Number of bits by which the product/accumulator result output is shifted right
   OUTPUT_SHIFT_RIGHT : natural := 0;
   --! Supported operation modes 'R','O','N' and 'S'
-  m : cplx_mode := "-"
+  MODE : cplx_mode := "-"
 );
 port (
   --! Standard system clock
@@ -104,39 +117,32 @@ port (
   --! the negation feature. Either additional logic is required or negation
   --! of certain input indices is not supported. Please refer to the description of
   --! vendor specific implementation.
-  neg        : in  std_logic_vector;
-  --! x(n) are the complex inputs of the N multiplications. Requires 'TO' range.
-  x          : in  cplx_vector;
+  neg        : in  std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
+  --! x(n) are the complex inputs of the N multiplications.
+  x          : in  cplx_vector(0 to NUM_MULT-1);
   --! y(n) are the complex factors of the N multiplications. Requires 'TO' range.
   y          : in  cplx_vector;
-  --! Resulting product/accumulator output (optionally rounded and clipped). Requires 'TO' range.
-  result     : out cplx_vector;
+  --! Resulting product/accumulator output (optionally rounded and clipped).
+  result     : out cplx_vector(0 to NUM_MULT-1);
   --! Number of pipeline stages, constant, depends on configuration and device specific implementation
   PIPESTAGES : out natural := 0
 );
 begin
-  assert (x'left<=x'right)
-    report "ERROR in cplx_mult : Input vector X must have 'TO' range."
-    severity failure;
-
-  assert (neg'length=x'length and neg'left<=neg'right)
-    report "ERROR in cplx_mult : Input vector NEG must have 'TO' range with same length as input vector X."
-    severity failure;
 
   assert ((y'length=1 or y'length=x'length) and (y'left<=y'right))
-    report "ERROR in cplx_mult : Input vector Y must have length of 1 or 'TO' range with same length as input X."
+    report "ERROR in " & cplx_mult'INSTANCE_NAME & 
+           " Input vector Y must have length of 1 or 'TO' range with same length as input X."
     severity failure;
 
-  assert (result'length=x'length and result'left<=result'right)
-    report "ERROR in cplx_mult : Output vector RESULT must have 'TO' range with same length as input vector X."
-    severity failure;
-
-  assert (x(x'left).re'length=x(x'left).im'length) and (y(y'left).re'length=y(y'left).im'length) 
+  assert (x(x'left).re'length=x(x'left).im'length) and (y(y'left).re'length=y(y'left).im'length)
      and (result(result'left).re'length=result(result'left).im'length)
-    report "ERROR in cplx_mult : Real and imaginary components must have same size."
+    report "ERROR in " & cplx_mult'INSTANCE_NAME & 
+           " Real and imaginary components must have same size."
     severity failure;
 
-  assert (m/='U' and m/='Z' and m/='I')
-    report "ERROR in cplx_mult : Rounding options 'U', 'Z' and 'I' are not supported."
+  assert (MODE/='U' and MODE/='Z' and MODE/='I')
+    report "ERROR in " & cplx_mult'INSTANCE_NAME & 
+           " Rounding options 'U', 'Z' and 'I' are not supported."
     severity failure;
+
 end entity;
