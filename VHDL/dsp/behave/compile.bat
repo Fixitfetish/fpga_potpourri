@@ -24,7 +24,7 @@ setlocal
 echo.--------------------------------------------------------------------------
 echo.INFO: Start compiling behavioral architectures of the DSP Library ...
 
-:: Library name into which the entities are compiled
+:: Library name into which the architectures are compiled
 set LIB=fixitfetish
 
 :: path/location of this script

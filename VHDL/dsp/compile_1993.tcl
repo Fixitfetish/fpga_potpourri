@@ -2,11 +2,12 @@
 # This script compiles all generic entities of the DSP Library for VHDL-1993.
 # The device specific architectures are compiled separately.
 
-# path/location of this script
-set SCRIPTPATH [ file dirname [dict get [ info frame 0 ] file ] ]
-
+# Library name into which the entities are compiled
 set DSPLIB "fixitfetish"
 vlib $DSPLIB
+
+# path/location of this script
+set SCRIPTPATH [ file dirname [dict get [ info frame 0 ] file ] ]
 
 # create file list
 set filelist [list]
