@@ -11,7 +11,6 @@ if not exist output\ (
 :: GHDL compiler settings
 set VCOM_EXE=%GHDL_PATH%\bin\ghdl.exe
 set VCOM_FLAGS=-a --std=93 --workdir=work -Pwork --work=
-::set VCOM_LIB=--work=fixitfetish
 set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 
 :: GHDL simulator settings
@@ -19,8 +18,7 @@ set VSIM_EXE=%GHDL_PATH%\bin\ghdl.exe
 set VSIM_FLAGS=-r --std=93 --workdir=work -Pwork
 set SIMULATE=%VSIM_EXE% %VSIM_FLAGS%
 
-
-::set GHDL=%GHDL_PATH%\bin\ghdl
+:: Waveform viewer
 set GTKWAVE=%GTKWAVE_PATH%\bin\gtkwave
 
 :: waveform file
