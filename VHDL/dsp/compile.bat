@@ -1,14 +1,12 @@
-:: +++ FOR VHDL SIMULATION ONLY +++ #
-:: This script compiles all generic entities of the DSP Library for VHDL-1993.
+:: +++ FOR VHDL SIMULATION ONLY +++
+:: This script compiles all generic entities of the DSP Library.
 :: The device specific architectures are compiled separately.
 ::
-:: Required environment variables :
+:: ARGUMENTS
+::   %1 = 1993 or 2008, VHDL standard, default is 1993
 ::
+:: ENVIRONMENT VARIABLES
 ::   VCOM_EXE    e.g. set VCOM_EXE=C:\FPGA\ghdl.exe
-::
-::   VCOM_FLAGS  e.g. set VCOM_FLAGS=-a --std=93 --workdir=work -Pwork --work=
-::               Note that the flags need to be appended with the library name
-::               into which the files shalle be compiled.
 ::
 :: There two ways to call to this script.
 ::
@@ -21,14 +19,38 @@
 @echo off
 setlocal
 
-echo.--------------------------------------------------------------------------
-echo.INFO: Start compiling generic entities of the DSP Library ...
-
 :: Library name into which the entities are compiled
 set LIB=fixitfetish
 
 :: path/location of this script
 set SCRIPTPATH=%~dp0
+
+echo.--------------------------------------------------------------------------
+echo.INFO: Start compiling generic entities of the DSP Library ...
+:: Arguments
+if "%1"=="" (
+  :: by default use VHDL-1993
+  set VHDL=1993
+) else (
+  if "%1"=="1993" (
+    set VHDL=1993
+  ) else (
+    if "%1"=="2008" (
+      set VHDL=2008
+    ) else (
+      echo.ERROR: VHDL standard %1 not supported. Use either 1993 or 2008.
+      goto END
+    )
+  )
+)
+echo.INFO: Using standard VHDL-%VHDL% .
+
+:: GHDL flags
+if "%VHDL%"=="2008" (
+  set VCOM_FLAGS=-a --std=08 --workdir=work -Pwork --work=%LIB%
+) else (
+  set VCOM_FLAGS=-a --std=93 --workdir=work -Pwork --work=%LIB%
+)
 
 :: compiler check
 if "%VCOM_EXE%"=="" (
@@ -41,16 +63,10 @@ if "%VCOM_EXE%"=="" (
   )
 )
 
-:: compiler flag check
-if "%VCOM_FLAGS%"=="" (
-  echo.ERROR: Compiler flag environment variable VCOM_FLAGS is not defined.
-  goto END
-)
- 
 :: analyze/compile files
-set COMPILE=%VCOM_EXE% %VCOM_FLAGS%%LIB%
+set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 @echo on
-%COMPILE% %SCRIPTPATH%\..\ieee_extension_types_1993.vhdl
+%COMPILE% %SCRIPTPATH%\..\ieee_extension_types_%VHDL%.vhdl
 %COMPILE% %SCRIPTPATH%\..\ieee_extension.vhdl
 %COMPILE% %SCRIPTPATH%\signed_mult1add1_accu.vhdl
 %COMPILE% %SCRIPTPATH%\signed_mult1add1_sum.vhdl

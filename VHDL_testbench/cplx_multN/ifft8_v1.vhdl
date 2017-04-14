@@ -34,8 +34,8 @@ architecture rtl of ifft8_v1 is
 
   constant MAX_NUM_PIPE_DSP : positive := 10;
   
-  type integer_vector is array(integer range <>) of integer;
-  signal PIPESTAGES : integer_vector(0 to 7);
+  type natural_vector is array(integer range <>) of natural;
+  signal PIPESTAGES : natural_vector(0 to 7);
 
   type t_idx is array(integer range <>) of unsigned(2 downto 0);
   signal idx_q : t_idx(0 to MAX_NUM_PIPE_DSP);

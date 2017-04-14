@@ -50,6 +50,8 @@ set LIB=fixitfetish
 pause
 
 :: run testbench
+@echo.--------------------------------------------------------------------------
+@echo.INFO: Starting simulation ...
 %SIMULATE% fft8_tb --stop-time=500ns --vcd=%VCD%
 
 pause
