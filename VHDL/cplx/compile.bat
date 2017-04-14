@@ -4,7 +4,7 @@
 ::
 :: Required environment variables :
 ::
-::   VCOM_EXE    e.g. set VCOM_EXE=ghdl.exe
+::   VCOM_EXE    e.g. set VCOM_EXE=C:\FPGA\ghdl.exe
 ::
 ::   VCOM_FLAGS  e.g. set VCOM_FLAGS=-a --std=93 --workdir=work -Pwork --work=
 ::               Note that the flags need to be appended with the library name
