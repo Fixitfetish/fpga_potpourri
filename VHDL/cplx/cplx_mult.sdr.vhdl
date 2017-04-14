@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       cplx_multN.sdr.vhdl
+--! @file       cplx_mult.sdr.vhdl
 --! @author     Fixitfetish
 --! @date       25/Mar/2017
 --! @version    0.10
@@ -15,18 +15,18 @@ library fixitfetish;
  use fixitfetish.ieee_extension_types.all;
  use fixitfetish.cplx_pkg.all;
 
---! @brief Single Data Rate implementation of the entity cplx_multN .
+--! @brief Single Data Rate implementation of the entity cplx_mult .
 --! N complex multiplications are performed.
 --!
 --! This implementation requires the FPGA device dependent entity signed_multN_sum.
---! @image html cplx_multN.sdr.svg "" width=800px
+--! @image html cplx_mult.sdr.svg "" width=800px
 --!
 --! In general this multiplier can be used when FPGA DSP cells are clocked with
 --! the standard system clock. 
 --!
 --! NOTE: The double rate clock 'clk2' is irrelevant and unused here.
 
-architecture sdr of cplx_multN is
+architecture sdr of cplx_mult is
 
   -- The number of pipeline stages is reported as constant at the output port
   -- of the DSP implementation. PIPE_DSP is not a generic and it cannot be used

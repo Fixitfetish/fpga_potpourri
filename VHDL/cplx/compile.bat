@@ -68,23 +68,23 @@ set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 @echo on
 :: General / Entities
 %COMPILE% %SCRIPTPATH%\cplx_pkg_%VHDL%.vhdl
+%COMPILE% %SCRIPTPATH%\cplx_mult.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_mult_accu.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_mult_sum.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_mult1_accu.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_mult2_accu.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_mult4_accu.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_multN.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_weightN.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_weightN_sum.vhdl
+%COMPILE% %SCRIPTPATH%\cplx_weight.vhdl
+%COMPILE% %SCRIPTPATH%\cplx_weight_sum.vhdl
 :: Architectures
+%COMPILE% %SCRIPTPATH%\cplx_mult.sdr.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_mult_accu.sdr.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_mult_sum.sdr.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_mult1_accu.sdr.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_mult2_accu.sdr.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_mult4_accu.sdr.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_multN.sdr.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_weightN.sdr.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_weightN_sum.sdr.vhdl
+%COMPILE% %SCRIPTPATH%\cplx_weight.sdr.vhdl
+%COMPILE% %SCRIPTPATH%\cplx_weight_sum.sdr.vhdl
 
 :END
 @EXIT /B
