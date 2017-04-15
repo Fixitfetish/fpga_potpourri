@@ -66,8 +66,11 @@ if "%VCOM_EXE%"=="" (
 :: analyze/compile files
 set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 @echo on
-:: General / Entities
+:: General
 %COMPILE% %SCRIPTPATH%\cplx_pkg_%VHDL%.vhdl
+%COMPILE% %SCRIPTPATH%\cplx_vector_serialization.vhdl
+%COMPILE% %SCRIPTPATH%\cplx_vectorization.vhdl
+:: Multiplier Entities
 %COMPILE% %SCRIPTPATH%\cplx_mult.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_mult_accu.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_mult_sum.vhdl
