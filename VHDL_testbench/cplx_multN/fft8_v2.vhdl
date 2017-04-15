@@ -4,11 +4,16 @@ library ieee;
 library fixitfetish;
   use fixitfetish.cplx_pkg.all;
 
-entity ifft8_v1 is
+-- Version V2
+-- INPUT  = row vector (stream of single input values)
+-- OUTPUT = column vector (all output values parallel in one cycle)
+
+entity fft8_v2 is
 port (
-  clk      : in  std_logic;
-  rst      : in  std_logic;
-  start    : in  std_logic;
+  clk      : in  std_logic; -- clock
+  rst      : in  std_logic; -- reset
+  inverse  : in  std_logic := '0'; -- inverse FFT
+  start    : in  std_logic; -- start pulse
   idx_in   : in  unsigned(2 downto 0);
   data_in  : in  cplx;
   data_out : out cplx_vector(0 to 7) := cplx_vector_reset(18,8,"R")
@@ -17,7 +22,7 @@ end entity;
 
 -------------------------------------------------------------------------------
 
-architecture rtl of ifft8_v1 is
+architecture rtl of fft8_v2 is
 
   constant DFTMTX_RESOLUTION : positive range 8 to 32 := 16; -- Real/Imag width in bits
   constant DFTMTX_POWER_LD : positive := DFTMTX_RESOLUTION-1;
@@ -29,7 +34,8 @@ architecture rtl of ifft8_v1 is
   signal dftmtx_16bit : cplx16_vector(0 to 7);
   signal dftmtx_18bit : cplx_vector(0 to 7);
 
-  signal run : boolean;
+  signal run : std_logic := '0';
+  signal inverse_q,conj : std_logic := '0';
   signal idx : unsigned(2 downto 0);
 
   constant MAX_NUM_PIPE_DSP : positive := 10;
@@ -48,6 +54,9 @@ begin
   p_din : process(clk)
   begin
     if rising_edge(clk) then
+      if start='1' or run='0' then
+        inverse_q <= inverse;
+      end if;
       fft_in <= data_in;
       fft_start <= start;
     end if;
@@ -59,22 +68,24 @@ begin
     if rising_edge(clk) then
       if rst='1' then
         idx <= (others=>'0');
-        run <= false;
+        run <= '0';
 
-      elsif (start='1' or run) then
+      elsif (start='1' or run='1') then
         if idx=7 then
           idx <= (others=>'0');
-          run <= false;
+          run <= '0';
         else
           idx <= idx + 1;
-          run <= true;
+          run <= '1';
         end if;
       else
         idx <= (others=>'0');
-        run <= false;
+        run <= '0';
      end if; --reset
     end if; --clock
   end process;
+
+  conj <= inverse when start='1' else inverse_q;
 
   -- DFT-Matrix ROM,  one cycle delay
   i_dtfmtx : entity work.dftmtx8
@@ -86,7 +97,7 @@ begin
     clk  => clk,
     rst  => rst,
     idx  => idx,
-    conj => '1', -- ifft !
+    conj => conj,
     dout => dftmtx_slv
   );
 

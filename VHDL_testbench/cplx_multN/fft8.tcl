@@ -26,7 +26,7 @@ vcom -93 -explicit -dbg -work fixitfetish $LIBPATH/string_conversion_pkg.vhdl
 
 vcom -93 -explicit -dbg -work $TEST_LIB dftmtx8.vhdl
 vcom -93 -explicit -dbg -work $TEST_LIB fft8_v1.vhdl
-vcom -93 -explicit -dbg -work $TEST_LIB ifft8_v1.vhdl
+vcom -93 -explicit -dbg -work $TEST_LIB fft8_v2.vhdl
 vcom -93 -explicit -dbg -work $TEST_LIB ../cplx_logger4.vhdl
 
 vcom -93 -explicit -dbg -work $TEST_LIB fft8_tb.vhdl

@@ -153,6 +153,7 @@ begin
   port map (
     clk      => clk,
     rst      => rst,
+    inverse  => '0',
     start    => fft1_start,
     data_in  => fft1_in,
     idx_out  => fft1_out_idx,
@@ -161,10 +162,11 @@ begin
 
   ifft1_start <= fft1_out.vld when fft1_out_idx=0 else '0';
 
-  i_ifft1 : entity work.ifft8_v1
+  i_ifft1 : entity work.fft8_v2
   port map (
     clk      => clk,
     rst      => rst,
+    inverse  => '1',
     start    => ifft1_start,
     idx_in   => fft1_out_idx,
     data_in  => fft1_out,

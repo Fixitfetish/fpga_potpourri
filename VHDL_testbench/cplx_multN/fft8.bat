@@ -44,7 +44,7 @@ set LIB=fixitfetish
 %COMPILE%%LIB% ..\cplx_logger4.vhdl
 %COMPILE%%LIB% dftmtx8.vhdl
 %COMPILE%%LIB% fft8_v1.vhdl
-%COMPILE%%LIB% ifft8_v1.vhdl
+%COMPILE%%LIB% fft8_v2.vhdl
 %COMPILE%%LIB% fft8_tb.vhdl
 
 @pause
