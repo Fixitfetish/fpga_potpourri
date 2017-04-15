@@ -102,7 +102,7 @@ begin
   port map(
     clk        => clk,
     clk2       => open, -- unused
-    sub        => (others=>'0'),
+    neg        => (others=>'0'),
     x          => fft_in,
     y          => dftmtx_18bit,
     result     => data_out,

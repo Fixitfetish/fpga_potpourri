@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_mult_accu.sdr.vhdl
 --! @author     Fixitfetish
---! @date       12/Apr/2017
---! @version    0.20
+--! @date       14/Apr/2017
+--! @version    0.30
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ architecture sdr of cplx_mult_accu is
 
   signal x_re, x_im : signed_vector(0 to 2*NUM_MULT-1);
   signal y_re, y_im : signed_vector(0 to 2*NUM_MULT-1);
-  signal sub_re, sub_im : std_logic_vector(0 to 2*NUM_MULT-1) := (others=>'0');
+  signal neg_re, neg_im : std_logic_vector(0 to 2*NUM_MULT-1) := (others=>'0');
 
   -- merged input signals and compensate for multiplier pipeline stages
   signal rst_x, rst_y : std_logic_vector(0 to NUM_MULT-1);
@@ -99,13 +99,13 @@ begin
 
   g_in : for n in 0 to NUM_MULT-1 generate
     -- map inputs for calculation of real component
-    sub_re(2*n)   <= sub(n); -- +/-(+x.re*y.re)
-    sub_re(2*n+1) <= not sub(n); -- +/-(-x.im*y.im)
+    neg_re(2*n)   <= neg(n); -- +/-(+x.re*y.re)
+    neg_re(2*n+1) <= not neg(n); -- +/-(-x.im*y.im)
     x_re(2*n)     <= x(n).re;
     x_re(2*n+1)   <= x(n).im;
     -- map inputs for calculation of imaginary component
-    sub_im(2*n)   <= sub(n); -- +/-(+x.re*y.im)
-    sub_im(2*n+1) <= sub(n); -- +/-(+x.im*y.re)
+    neg_im(2*n)   <= neg(n); -- +/-(+x.re*y.im)
+    neg_im(2*n+1) <= neg(n); -- +/-(+x.im*y.re)
     x_im(2*n)     <= x(n).re;
     x_im(2*n+1)   <= x(n).im;
     g_y1 : if NUM_FACTOR=1 generate
@@ -153,7 +153,7 @@ begin
     rst        => data_reset,
     clr        => clr,
     vld        => vld,
-    sub        => sub_re,
+    sub        => neg_re,
     x          => x_re,
     y          => y_re,
     result     => rslt(0).re,
@@ -182,7 +182,7 @@ begin
     rst        => data_reset,
     clr        => clr,
     vld        => vld,
-    sub        => sub_im,
+    sub        => neg_im,
     x          => x_im,
     y          => y_im,
     result     => rslt(0).im,

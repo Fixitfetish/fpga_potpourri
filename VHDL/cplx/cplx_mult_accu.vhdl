@@ -23,7 +23,7 @@ library fixitfetish;
 --! * complex matrix multiplication
 --!
 --! If just scaling (only real factor) and accumulation is required use the entity
---! @link cplx_weightN_accu @endlink
+--! @link cplx_weight_accu @endlink
 --! instead because less multiplications and resources are required in this case.
 --!
 --! The behavior is as follows
@@ -62,11 +62,11 @@ library fixitfetish;
 --! system clock 'clk' and must be synchronous and related to 'clk'.
 --!
 --! Also available are the following entities:
+--! * cplx_mult
+--! * cplx_mult_sum
 --! * cplx_weight
 --! * cplx_weight_accu
 --! * cplx_weight_sum
---! * cplx_mult
---! * cplx_mult_sum
 --!
 --! VHDL Instantiation Template:
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
@@ -84,7 +84,7 @@ library fixitfetish;
 --!   clk        => in  std_logic, -- clock
 --!   clk2       => in  std_logic, -- clock x2
 --!   clr        => in  std_logic, -- clear accumulator
---!   sub        => in  std_logic_vector(0 to NUM_MULT-1), -- add/subtract
+--!   neg        => in  std_logic_vector(0 to NUM_MULT-1), -- negation
 --!   x          => in  cplx_vector(0 to NUM_MULT-1), -- first factors
 --!   y          => in  cplx_vector, -- second factor(s)
 --!   result     => out cplx, -- product/accumulation result
@@ -124,7 +124,7 @@ generic (
   --! report overflows within this entity. Note that ignoring the input
   --! overflows can save a little bit of logic.
   INPUT_OVERFLOW_IGNORE : boolean := false;
-  --! Number of bits by which the product/accumulator result output is shifted right
+  --! Number of bits by which the result output is shifted right
   OUTPUT_SHIFT_RIGHT : natural := 0;
   --! Supported operation modes 'R','O','N' and 'S'
   MODE : cplx_mode := "-"
@@ -137,8 +137,9 @@ port (
   --! @brief Clear accumulator (mark first valid input factors of accumulation sequence).
   --! If accumulation is not wanted then set constant '1'.
   clr        : in  std_logic;
-  --! Add/subtract for all products n=0..NUM_MULT-1 , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)). Subtraction is disabled by default.
-  sub        : in  std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
+  --! @brief Negation of partial products , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)).
+  --! Negation is disabled by default.
+  neg        : in  std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
   --! x(n) are the first complex factors of the N multiplications.
   x          : in  cplx_vector(0 to NUM_MULT-1);
   --! y(n) are the second complex factors of the N multiplications. Requires 'TO' range.

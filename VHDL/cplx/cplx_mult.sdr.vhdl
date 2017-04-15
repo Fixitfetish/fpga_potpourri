@@ -34,7 +34,7 @@ architecture sdr of cplx_mult is
   -- must be defined here. Increase the value if required.
   constant MAX_NUM_PIPE_DSP : positive := 16;
 
-  -- number of elements of complex factor vector y
+  -- number of elements of factor vector
   -- (must be either 1 or the same length as x)
   constant NUM_FACTOR : positive := y'length;
 
@@ -103,7 +103,7 @@ begin
     sub_im(2*n+1) <= neg(n); -- +/-(+x.im*y.re)
     x_im(2*n)     <= x(n).re;
     x_im(2*n+1)   <= x(n).im;
-    g_y1 : if NUM_FACTOR=1 generate
+    g1 : if NUM_FACTOR=1 generate
       -- map inputs for calculation of real component
       y_re(2*n)     <= y_i(0).re;
       y_re(2*n+1)   <= y_i(0).im;
@@ -111,7 +111,7 @@ begin
       y_im(2*n)     <= y_i(0).im;
       y_im(2*n+1)   <= y_i(0).re;
     end generate;
-    g_yn : if NUM_FACTOR=NUM_MULT generate
+    gn : if NUM_FACTOR=NUM_MULT generate
       -- map inputs for calculation of real component
       y_re(2*n)     <= y_i(n).re;
       y_re(2*n+1)   <= y_i(n).im;

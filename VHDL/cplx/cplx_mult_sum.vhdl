@@ -61,11 +61,11 @@ library fixitfetish;
 --! system clock 'clk' and must be synchronous and related to 'clk'.
 --!
 --! Also available are the following entities:
+--! * cplx_mult
+--! * cplx_mult_accu
 --! * cplx_weight
 --! * cplx_weight_accu
 --! * cplx_weight_sum
---! * cplx_mult
---! * cplx_mult_accu
 --!
 --! VHDL Instantiation Template:
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
@@ -82,7 +82,7 @@ library fixitfetish;
 --! port map(
 --!   clk        => in  std_logic, -- clock
 --!   clk2       => in  std_logic, -- clock x2
---!   sub        => in  std_logic_vector(0 to NUM_MULT-1), -- add/subtract
+--!   neg        => in  std_logic_vector(0 to NUM_MULT-1), -- negation
 --!   x          => in  cplx_vector(0 to NUM_MULT-1), -- first factors
 --!   y          => in  cplx_vector, -- second factor(s)
 --!   result     => out cplx, -- product result
@@ -111,7 +111,7 @@ generic (
   --! report overflows within this entity. Note that ignoring the input
   --! overflows can save a little bit of logic.
   INPUT_OVERFLOW_IGNORE : boolean := false;
-  --! Number of bits by which the product/accumulator result output is shifted right
+  --! Number of bits by which the result output is shifted right
   OUTPUT_SHIFT_RIGHT : natural := 0;
   --! Supported operation modes 'R','O','N' and 'S'
   MODE : cplx_mode := "-"
@@ -121,13 +121,13 @@ port (
   clk        : in  std_logic;
   --! Optional double rate clock (only relevant when a DDR implementation is used)
   clk2       : in  std_logic := '0';
-  --! @brief Add/subtract for all N products , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)).
-  --! Subtraction is disabled by default.
+  --! @brief Negation of partial products , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)).
+  --! Negation is disabled by default.
   --! Dependent on the DSP cell type some implementations might not fully support
   --! the subtraction feature. Either additional logic is required or subtraction
   --! of certain input indices is not supported. Please refer to the description of
   --! vendor specific implementation.
-  sub        : in  std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
+  neg        : in  std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
   --! x(n) are the first complex factors of the N multiplications.
   x          : in  cplx_vector(0 to NUM_MULT-1);
   --! y(n) are the second complex factors of the N multiplications. Requires 'TO' range.

@@ -43,7 +43,7 @@ architecture sdr of cplx_weight_sum is
   alias w_i : signed_vector(0 to NUM_FACTOR-1) is w;
 
   signal x_re, x_im : signed_vector(0 to NUM_MULT-1);
-  signal sub_re, sub_im : std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
+  signal neg_re, neg_im : std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
   signal w_dsp : signed_vector(0 to NUM_MULT-1);
 
   -- merged input signals and compensate for multiplier pipeline stages
@@ -100,8 +100,8 @@ begin
 
   g_in : for n in 0 to NUM_MULT-1 generate
     -- mapping of complex inputs
-    sub_re(n) <= sub(n);
-    sub_im(n) <= sub(n);
+    neg_re(n) <= neg(n);
+    neg_im(n) <= neg(n);
     x_re(n) <= x(n).re;
     x_im(n) <= x(n).im;
     g_w1 : if NUM_FACTOR=1 generate
@@ -139,7 +139,7 @@ begin
     clk        => clk,
     rst        => data_reset,
     vld        => vld,
-    sub        => sub_re,
+    sub        => neg_re,
     x          => x_re,
     y          => w_dsp,
     result     => rslt(0).re,
@@ -164,7 +164,7 @@ begin
     clk        => clk,
     rst        => data_reset,
     vld        => vld,
-    sub        => sub_im,
+    sub        => neg_im,
     x          => x_im,
     y          => w_dsp,
     result     => rslt(0).im,

@@ -52,11 +52,11 @@ library fixitfetish;
 --! system clock 'clk' and must be synchronous and related to 'clk'.
 --!
 --! Also available are the following entities:
+--! * cplx_mult_accu
+--! * cplx_mult_sum
 --! * cplx_weight
 --! * cplx_weight_accu
 --! * cplx_weight_sum
---! * cplx_mult_accu
---! * cplx_mult_sum
 --!
 --! VHDL Instantiation Template:
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
@@ -73,7 +73,7 @@ library fixitfetish;
 --! port map(
 --!   clk        => in  std_logic, -- clock
 --!   clk2       => in  std_logic, -- clock x2
---!   neg        => in  std_logic_vector(0 to NUM_MULT-1), -- negation per input X
+--!   neg        => in  std_logic_vector(0 to NUM_MULT-1), -- negation per input x
 --!   x          => in  cplx_vector(0 to NUM_MULT-1), -- first factors
 --!   y          => in  cplx_vector, -- second factors
 --!   result     => out cplx_vector(0 to NUM_MULT-1), -- product results
@@ -102,7 +102,7 @@ generic (
   --! report overflows within this entity. Note that ignoring the input
   --! overflows can save a little bit of logic.
   INPUT_OVERFLOW_IGNORE : boolean := false;
-  --! Number of bits by which the product/accumulator result output is shifted right
+  --! Number of bits by which the result output is shifted right
   OUTPUT_SHIFT_RIGHT : natural := 0;
   --! Supported operation modes 'R','O','N' and 'S'
   MODE : cplx_mode := "-"
@@ -112,7 +112,8 @@ port (
   clk        : in  std_logic;
   --! Optional double rate clock (only relevant when a DDR implementation is used)
   clk2       : in  std_logic := '0';
-  --! @brief Negation for all N products , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)).
+  --! @brief Negation of partial products , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)).
+  --! By default negation is disabled.
   --! Dependent on the DSP cell type some implementations might not fully support
   --! the negation feature. Either additional logic is required or negation
   --! of certain input indices is not supported. Please refer to the description of
@@ -120,9 +121,9 @@ port (
   neg        : in  std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
   --! x(n) are the complex inputs of the N multiplications.
   x          : in  cplx_vector(0 to NUM_MULT-1);
-  --! y(n) are the complex factors of the N multiplications. Requires 'TO' range.
+  --! complex factor (either one for all elements of X or one per each element of X). Requires 'TO' range.
   y          : in  cplx_vector;
-  --! Resulting product/accumulator output (optionally rounded and clipped).
+  --! Resulting product output vector (optionally rounded and clipped).
   result     : out cplx_vector(0 to NUM_MULT-1);
   --! Number of pipeline stages, constant, depends on configuration and device specific implementation
   PIPESTAGES : out natural := 0

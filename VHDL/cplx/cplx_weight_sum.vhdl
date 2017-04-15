@@ -55,11 +55,11 @@ library fixitfetish;
 --! system clock 'clk' and must be synchronous and related to 'clk'.
 --!
 --! Also available are the following entities:
---! * cplx_weight
---! * cplx_weight_accu
 --! * cplx_mult
 --! * cplx_mult_accu
 --! * cplx_mult_sum
+--! * cplx_weight
+--! * cplx_weight_accu
 --!
 --! VHDL Instantiation Template:
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
@@ -76,10 +76,10 @@ library fixitfetish;
 --! port map(
 --!   clk        => in  std_logic, -- clock
 --!   clk2       => in  std_logic, -- clock x2
---!   sub        => in  std_logic_vector(0 to NUM_MULT-1), -- add/subtract
+--!   neg        => in  std_logic_vector(0 to NUM_MULT-1), -- negation
 --!   x          => in  cplx_vector(0 to NUM_MULT-1), -- complex values
 --!   w          => in  signed_vector, -- weighting factors
---!   result     => out cplx, -- product/sum result
+--!   result     => out cplx, -- product sum result
 --!   PIPESTAGES => out natural -- constant number of pipeline stages
 --! );
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -105,7 +105,7 @@ generic (
   --! report overflows within this entity. Note that ignoring the input
   --! overflows can save a little bit of logic.
   INPUT_OVERFLOW_IGNORE : boolean := false;
-  --! Number of bits by which the product/accumulator result output is shifted right
+  --! Number of bits by which the result output is shifted right
   OUTPUT_SHIFT_RIGHT : natural := 0;
   --! Supported operation modes 'R','O','N' and 'S'
   MODE : cplx_mode := "-"
@@ -115,13 +115,14 @@ port (
   clk        : in  std_logic;
   --! Optional double rate clock (only relevant when a DDR implementation is used)
   clk2       : in  std_logic := '0';
-  --! Add/Subtract of all N inputs, '0' -> +(x(n)*w(n)), '1' -> -(x(n)*w(n)).
-  sub        : in  std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
+  --! @brief Negation of partial products , '0' -> +(x(n)*w(n)), '1' -> -(x(n)*w(n)).
+  --! Negation is disabled by default.
+  neg        : in  std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
   --! x(n) are the complex values to be weighted with w.
   x          : in  cplx_vector(0 to NUM_MULT-1);
   --! weighting factor (either one for all elements of X or one per each element of X). Requires 'TO' range.
   w          : in  signed_vector;
-  --! Resulting product/accumulator output (optionally rounded and clipped).
+  --! Resulting product sum output (optionally rounded and clipped).
   result     : out cplx;
   --! Number of pipeline stages, constant, depends on configuration and device specific implementation
   PIPESTAGES : out natural := 0
