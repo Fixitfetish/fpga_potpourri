@@ -13,6 +13,7 @@ set SCRIPTPATH [ file dirname [dict get [ info frame 0 ] file ] ]
 set filelist [list]
 lappend filelist $SCRIPTPATH/../ieee_extension_types_1993.vhdl
 lappend filelist $SCRIPTPATH/../ieee_extension.vhdl
+lappend filelist $SCRIPTPATH/signed_accu.vhdl
 lappend filelist $SCRIPTPATH/signed_mult1add1_accu.vhdl
 lappend filelist $SCRIPTPATH/signed_mult1add1_sum.vhdl
 lappend filelist $SCRIPTPATH/signed_mult1_accu.vhdl

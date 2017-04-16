@@ -68,6 +68,7 @@ set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 @echo on
 %COMPILE% %SCRIPTPATH%\..\ieee_extension_types_%VHDL%.vhdl
 %COMPILE% %SCRIPTPATH%\..\ieee_extension.vhdl
+%COMPILE% %SCRIPTPATH%\signed_accu.vhdl
 %COMPILE% %SCRIPTPATH%\signed_mult1add1_accu.vhdl
 %COMPILE% %SCRIPTPATH%\signed_mult1add1_sum.vhdl
 %COMPILE% %SCRIPTPATH%\signed_mult1_accu.vhdl

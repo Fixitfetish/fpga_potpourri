@@ -5,6 +5,7 @@
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "../ieee_extension_types_1993.vhdl"]
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "../ieee_extension.vhdl"]
 
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "signed_accu.vhdl"]
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "signed_mult1_accu.vhdl"]
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "signed_mult1add1_accu.vhdl"]
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "signed_mult1add1_sum.vhdl"]
