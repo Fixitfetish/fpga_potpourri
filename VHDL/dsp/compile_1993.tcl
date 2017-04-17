@@ -14,6 +14,7 @@ set filelist [list]
 lappend filelist $SCRIPTPATH/../ieee_extension_types_1993.vhdl
 lappend filelist $SCRIPTPATH/../ieee_extension.vhdl
 lappend filelist $SCRIPTPATH/signed_accu.vhdl
+lappend filelist $SCRIPTPATH/signed_adder_tree.vhdl
 lappend filelist $SCRIPTPATH/signed_mult1add1_accu.vhdl
 lappend filelist $SCRIPTPATH/signed_mult1add1_sum.vhdl
 lappend filelist $SCRIPTPATH/signed_mult1_accu.vhdl
@@ -25,6 +26,7 @@ lappend filelist $SCRIPTPATH/signed_mult4_accu.vhdl
 lappend filelist $SCRIPTPATH/signed_mult4_sum.vhdl
 lappend filelist $SCRIPTPATH/signed_mult8_accu.vhdl
 lappend filelist $SCRIPTPATH/signed_mult16_accu.vhdl
+lappend filelist $SCRIPTPATH/signed_multn_chain_accu.vhdl
 lappend filelist $SCRIPTPATH/signed_multN.vhdl
 lappend filelist $SCRIPTPATH/signed_multN_accu.vhdl
 lappend filelist $SCRIPTPATH/signed_multN_sum.vhdl
