@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       ieee_extension_types_1993.vhdl
 --! @author     Fixitfetish
---! @date       19/Feb/2017
---! @version    0.10
+--! @date       17/Apr/2017
+--! @version    0.11
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -20,6 +20,8 @@ library ieee;
 
 package ieee_extension_types is
 
+  type unsigned4_vector  is array(integer range<>) of unsigned( 3 downto 0);
+  type unsigned6_vector  is array(integer range<>) of unsigned( 5 downto 0);
   type unsigned8_vector  is array(integer range<>) of unsigned( 7 downto 0);
   type unsigned10_vector is array(integer range<>) of unsigned( 9 downto 0);
   type unsigned12_vector is array(integer range<>) of unsigned(11 downto 0);
@@ -35,10 +37,18 @@ package ieee_extension_types is
   type unsigned32_vector is array(integer range<>) of unsigned(31 downto 0);
   type unsigned34_vector is array(integer range<>) of unsigned(33 downto 0);
   type unsigned36_vector is array(integer range<>) of unsigned(35 downto 0);
+  type unsigned38_vector is array(integer range<>) of unsigned(37 downto 0);
+  type unsigned40_vector is array(integer range<>) of unsigned(39 downto 0);
+  type unsigned42_vector is array(integer range<>) of unsigned(41 downto 0);
+  type unsigned44_vector is array(integer range<>) of unsigned(43 downto 0);
+  type unsigned46_vector is array(integer range<>) of unsigned(45 downto 0);
+  type unsigned48_vector is array(integer range<>) of unsigned(47 downto 0);
 
   --! default standard unsigned vector type
   alias unsigned_vector is unsigned18_vector;
 
+  type signed4_vector  is array(integer range<>) of signed( 3 downto 0);
+  type signed6_vector  is array(integer range<>) of signed( 5 downto 0);
   type signed8_vector  is array(integer range<>) of signed( 7 downto 0);
   type signed10_vector is array(integer range<>) of signed( 9 downto 0);
   type signed12_vector is array(integer range<>) of signed(11 downto 0);
@@ -54,6 +64,12 @@ package ieee_extension_types is
   type signed32_vector is array(integer range<>) of signed(31 downto 0);
   type signed34_vector is array(integer range<>) of signed(33 downto 0);
   type signed36_vector is array(integer range<>) of signed(35 downto 0);
+  type signed38_vector is array(integer range<>) of signed(37 downto 0);
+  type signed40_vector is array(integer range<>) of signed(39 downto 0);
+  type signed42_vector is array(integer range<>) of signed(41 downto 0);
+  type signed44_vector is array(integer range<>) of signed(43 downto 0);
+  type signed46_vector is array(integer range<>) of signed(45 downto 0);
+  type signed48_vector is array(integer range<>) of signed(47 downto 0);
 
   --! default standard signed vector type
   alias signed_vector is signed18_vector;
