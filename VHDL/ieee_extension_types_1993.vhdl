@@ -20,6 +20,8 @@ library ieee;
 
 package ieee_extension_types is
 
+  type integer_vector is array(natural range <>) of integer;
+
   type unsigned4_vector  is array(integer range<>) of unsigned( 3 downto 0);
   type unsigned6_vector  is array(integer range<>) of unsigned( 5 downto 0);
   type unsigned8_vector  is array(integer range<>) of unsigned( 7 downto 0);

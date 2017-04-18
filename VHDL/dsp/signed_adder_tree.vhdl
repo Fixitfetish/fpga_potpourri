@@ -96,8 +96,6 @@ architecture behave of signed_adder_tree is
   constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
   constant OUTPUT_WIDTH : positive := result'length;
 
-  type integer_vector is array(integer range <>) of integer;
-
   -- input register pipeline
   type t_xvec is array(integer range <>) of signed(INPUT_WIDTH-1 downto 0);
   type r_ireg is
