@@ -154,7 +154,6 @@ architecture behave of signed_accu is
   type array_oreg is array(integer range <>) of r_oreg;
   signal rslt : array_oreg(0 to NUM_OUTPUT_REG);
 
-  signal x_shifted : signed(INPUT_WIDTH-1 downto 0);
   signal sum, chainin_i : signed(ACCU_WIDTH-1 downto 0) := (others=>'0');
   signal accu : signed(ACCU_WIDTH-1 downto 0);
   signal accu_shifted : signed(ACCU_SHIFTED_WIDTH-1 downto 0);

@@ -34,9 +34,6 @@ architecture sim of fft8_tb is
   signal ifft1_out : cplx_vector(0 to 7);
   signal ifft1_out_ser : cplx;
 
-  signal test_out : cplx_vector(0 to 7);
-  signal test_out_ser : cplx;
-
   type integer_vector is array(integer range <>) of integer;
   type integer_matrix8 is array(integer range <>) of integer_vector(0 to 7);
 
@@ -148,6 +145,7 @@ begin
     end loop;
     wait until rising_edge(clk);
 
+    finish <= '1';
     -- endless loop
     loop
       wait for 1 ms;
@@ -198,25 +196,6 @@ begin
     ser_out  => ifft1_out_ser
   );
 
-  i_test : entity fixitfetish.cplx_vectorization
-  port map (
-    clk      => clk,
-    rst      => rst,
-    start    => ifft1_out_ser.vld,
-    ser_in   => ifft1_out_ser,
-    vec_out  => test_out
-  );
-
-  i_test_rev : entity fixitfetish.cplx_vector_serialization
-  port map (
-    clk      => clk,
-    rst      => rst,
-    start    => test_out(0).vld,
-    vec_in   => test_out,
-    idx_out  => open,
-    ser_out  => test_out_ser
-  );
-
   i_log : entity work.cplx_logger4
   generic map(
     LOG_DECIMAL => true,
@@ -225,7 +204,7 @@ begin
     TITLE1 => "FFT1_IN",
     TITLE2 => "FFT1 OUT",
     TITLE3 => "IFFT_OUT",
-    TITLE4 => "TEST"
+    TITLE4 => "UNUSED"
   )
   port map (
     clk    => clk,
@@ -233,7 +212,7 @@ begin
     din1   => fft1_in_ser,
     din2   => fft1_out,
     din3   => ifft1_out_ser,
-    din4   => test_out_ser,
+    din4   => open,
     finish => finish
   );
 

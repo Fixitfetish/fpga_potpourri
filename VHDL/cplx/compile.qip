@@ -3,8 +3,12 @@
 # The CPLX library is based on the device specific DSP library.
 # Hence, the DSP library need to be compiled first.
 
-# General / Entities
+# General
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_pkg_1993.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_vector_serialization.vhdl"]
+set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_vectorization.vhdl"]
+
+# Entities
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult.vhdl"]
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult_accu.vhdl"]
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult_sum.vhdl"]
@@ -14,6 +18,7 @@ set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_weight.vhdl"]
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_weight_sum.vhdl"]
 
+# Architectures
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult.sdr.vhdl"]
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult_accu.sdr.vhdl"]
 set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult_sum.sdr.vhdl"]

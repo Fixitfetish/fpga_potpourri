@@ -11,8 +11,12 @@ set CPLXLIB "fixitfetish"
 # create file list
 set filelist [list]
 
-# General / Entities
+# General
 lappend filelist $SCRIPTPATH/cplx_pkg_1993.vhdl
+lappend filelist $SCRIPTPATH/cplx_vector_serialization.vhdl
+lappend filelist $SCRIPTPATH/cplx_vectorization.vhdl
+
+# Entities
 lappend filelist $SCRIPTPATH/cplx_mult.vhdl
 lappend filelist $SCRIPTPATH/cplx_mult_accu.vhdl
 lappend filelist $SCRIPTPATH/cplx_mult_sum.vhdl
