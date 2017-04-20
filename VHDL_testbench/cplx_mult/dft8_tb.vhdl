@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- FILE    : fft8_tb.vhdl
+-- FILE    : dft8_tb.vhdl
 -- AUTHOR  : Fixitfetish
 -- DATE    : 05/Apr/2017
 -- VERSION : 0.10
@@ -16,10 +16,10 @@ library fixitfetish;
 
 use std.textio.all;
 
-entity fft8_tb is
+entity dft8_tb is
 end entity;
 
-architecture sim of fft8_tb is
+architecture sim of dft8_tb is
 
   signal clk : std_logic := '1';
   signal rst : std_logic := '1';
@@ -152,7 +152,7 @@ begin
     end loop;
   end process;
 
-  i_fft1 : entity work.fft8_v1
+  i_fft1 : entity work.dft8_v1
   port map (
     clk      => clk,
     rst      => rst,
@@ -165,7 +165,7 @@ begin
 
   ifft1_start <= fft1_out.vld when fft1_out_idx=0 else '0';
 
-  i_ifft1 : entity work.fft8_v2
+  i_ifft1 : entity work.dft8_v2
   port map (
     clk      => clk,
     rst      => rst,

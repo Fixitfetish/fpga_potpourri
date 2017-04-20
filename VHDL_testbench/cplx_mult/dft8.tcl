@@ -25,16 +25,16 @@ source $LIBPATH/cplx/compile_1993.tcl
 vcom -93 -explicit -dbg -work fixitfetish $LIBPATH/string_conversion_pkg.vhdl
 
 vcom -93 -explicit -dbg -work $TEST_LIB dftmtx8.vhdl
-vcom -93 -explicit -dbg -work $TEST_LIB fft8_v1.vhdl
-vcom -93 -explicit -dbg -work $TEST_LIB fft8_v2.vhdl
+vcom -93 -explicit -dbg -work $TEST_LIB dft8_v1.vhdl
+vcom -93 -explicit -dbg -work $TEST_LIB dft8_v2.vhdl
 vcom -93 -explicit -dbg -work $TEST_LIB ../cplx_logger4.vhdl
 
-vcom -93 -explicit -dbg -work $TEST_LIB fft8_tb.vhdl
+vcom -93 -explicit -dbg -work $TEST_LIB dft8_tb.vhdl
 
 # get read access to all signals
-vsim +access +r fft8_tb
+vsim +access +r dft8_tb
 
 # waveforms
-do fft8.do
+do dft8.do
 
 run 0.1 us

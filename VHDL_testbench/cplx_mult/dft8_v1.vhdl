@@ -8,7 +8,7 @@ library fixitfetish;
 -- INPUT  = column vector (all input values parallel in one cycle)
 -- OUTPUT = row vector (stream of single output values)
 
-entity fft8_v1 is
+entity dft8_v1 is
 port (
   clk      : in  std_logic; -- clock
   rst      : in  std_logic; -- reset
@@ -22,7 +22,7 @@ end entity;
 
 -------------------------------------------------------------------------------
 
-architecture rtl of fft8_v1 is
+architecture rtl of dft8_v1 is
 
   constant DFTMTX_RESOLUTION : positive range 8 to 32 := 18; -- Real/Imag width in bits
   constant DFTMTX_POWER_LD : positive := DFTMTX_RESOLUTION-1;

@@ -22,7 +22,7 @@ set SIMULATE=%VSIM_EXE% %VSIM_FLAGS%
 set GTKWAVE=%GTKWAVE_PATH%\bin\gtkwave
 
 :: waveform file
-set VCD=output\fft8.vcd
+set VCD=output\dft8.vcd
 if exist %VCD% (
   del %VCD%
 )
@@ -43,22 +43,22 @@ set LIB=fixitfetish
 @set LIB=work
 %COMPILE%%LIB% ..\cplx_logger4.vhdl
 %COMPILE%%LIB% dftmtx8.vhdl
-%COMPILE%%LIB% fft8_v1.vhdl
-%COMPILE%%LIB% fft8_v2.vhdl
-%COMPILE%%LIB% fft8_tb.vhdl
+%COMPILE%%LIB% dft8_v1.vhdl
+%COMPILE%%LIB% dft8_v2.vhdl
+%COMPILE%%LIB% dft8_tb.vhdl
 
 @pause
 
 :: run testbench
 @echo.--------------------------------------------------------------------------
 @echo.INFO: Starting simulation ...
-%SIMULATE% fft8_tb --stop-time=500ns --vcd=%VCD%
+%SIMULATE% dft8_tb --stop-time=500ns --vcd=%VCD%
 
 @pause
 @goto END
 
 :: start waveform viewer
 ::@if not exist %VCD% goto END
-::%GTKWAVE% %VCD% fft8.gtkw
+::%GTKWAVE% %VCD% dft8.gtkw
 
 :END
