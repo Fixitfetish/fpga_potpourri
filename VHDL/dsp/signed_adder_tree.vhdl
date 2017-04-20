@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_adder_tree.vhdl
 --! @author     Fixitfetish
---! @date       17/Apr/2017
---! @version    0.10
+--! @date       20/Apr/2017
+--! @version    0.20
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -13,23 +13,23 @@ library fixitfetish;
  use fixitfetish.ieee_extension.all;
  use fixitfetish.ieee_extension_types.all;
 
---! @brief Signed Adder Tree. Sum of N inputs using FPGA logic.
+--! @brief Signed Adder Tree. Sum of N signed values.
 
 entity signed_adder_tree is
 generic (
   --! Enable high speed mode with more pipelining for higher clock rates
   HIGH_SPEED_MODE : boolean := false;
-  --! @brief Number of additional input registers. At least one is strongly recommended.
-  --! If available the input registers within the DSP cell are used.
+  --! @brief Number of additional input registers. At least one is strongly
+  --! recommended if DSP cells are used for the adder tree.
   NUM_INPUT_REG : natural := 1;
-  --! Defines how many LSBs of each element of input vector X are used. Mandatory!
+  --! Defines how many LSBs of each element of input vector X are used. 
+  --! This generic is required for VHDL-1993. Mandatory!
   INPUT_WIDTH : positive range 4 to 48;
   --! @brief Number of result output registers. 
-  --! At least one register is required which is typically the result/accumulation
-  --! register within the DSP cell. A second output register is recommended
-  --! when logic for rounding, clipping and/or overflow detection is enabled.
-  --! Typically all output registers after the first one are not part of a DSP cell
-  --! and therefore implemented in logic.
+  --! At least one register is required as adder tree result register.
+  --! At least one more output register is recommended when logic for rounding,
+  --! clipping and/or overflow detection (after adder tree) is enabled.
+  --! Typically all additional output registers after the first one are implemented in logic.
   NUM_OUTPUT_REG : positive := 1;
   --! Number of bits by which the accumulator result output is shifted right.
   OUTPUT_SHIFT_RIGHT : natural := 0;
@@ -38,11 +38,11 @@ generic (
   --! If the device specific DSP cell supports rounding then rounding is done
   --! within the DSP cell. If rounding in logic is necessary then it is recommended
   --! to use an additional output register.
-  OUTPUT_ROUND : boolean := true;
+  OUTPUT_ROUND : boolean := false;
   --! Enable clipping when right shifted result exceeds output range.
-  OUTPUT_CLIP : boolean := true;
+  OUTPUT_CLIP : boolean := false;
   --! Enable overflow/clipping detection 
-  OUTPUT_OVERFLOW : boolean := true
+  OUTPUT_OVERFLOW : boolean := false
 );
 port (
   --! Standard system clock
@@ -79,10 +79,14 @@ end entity;
 
 -------------------------------------------------------------------------------
 
+--! @brief This is an implementation of the entity 
+--! @link signed_adder_tree signed_adder_tree @endlink .
+--! N signed values are added using FPGA logic.
+
 architecture behave of signed_adder_tree is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := signed_adder_tree'INSTANCE_NAME;
+--  constant IMPLEMENTATION : string := signed_adder_tree'INSTANCE_NAME;
 
   -- number of required adder tree stages - is at least 1 +++ TODO 0!?
   constant INPUT_LENGTH : natural := x'length;
@@ -125,19 +129,17 @@ architecture behave of signed_adder_tree is
     ovf : std_logic;
   end record;
   type array_oreg is array(integer range <>) of r_oreg;
-  signal rslt : array_oreg(0 to NUM_OUTPUT_REG);
+  signal rslt : array_oreg(1 to NUM_OUTPUT_REG);
 
   -- calculate number of inputs to each stage
   function calc_num_inputs(n:natural) return integer_vector is
-    variable res : integer_vector(1 to NUM_STAGES);
+    variable res : integer_vector(1 to NUM_STAGES+1);
   begin
     res(1) := n;
-    if NUM_STAGES>=2 then 
-      for i in 2 to NUM_STAGES loop res(i):=(res(i-1)+1)/2; end loop;
-    end if;
+    for i in 2 to res'length loop res(i):=(res(i-1)+1)/2; end loop;
     return res;
   end function;
-  constant NUM_INPUTS_STAGE : integer_vector(1 to NUM_STAGES) := calc_num_inputs(INPUT_LENGTH);
+  constant NUM_INPUTS_STAGE : integer_vector(1 to NUM_STAGES+1) := calc_num_inputs(INPUT_LENGTH);
 
   function get_piperegs(n:natural) return boolean_vector is
     variable res : boolean_vector(1 to n) := (others=>false);
@@ -188,11 +190,13 @@ begin
     end generate;
   end generate;
 
+  -- resize input signals for adder tree 
   g_init : for n in 0 to INPUT_LENGTH-1 generate
   begin
     dout(0,n) <= resize(ireg(0).x(n),FINAL_WIDTH);
   end generate;
 
+  -- adder tree
   g_stages : for s in 1 to NUM_STAGES generate
   begin
 
@@ -209,15 +213,15 @@ begin
          resize(dout(s-1,NUM_INPUTS_STAGE(s)-1)(INPUT_WIDTH+s-2 downto 0),INPUT_WIDTH+s);
     end generate;
 
-    -- pipeline register
-    pipe_off : if not HAS_PIPEREG_STAGE(s) generate
-      gi : for i in 0 to (NUM_INPUTS_STAGE(s)-1) generate
-        dout(s,i) <= resize(dsum(s,i),FINAL_WIDTH);
+    -- pipeline register (with sign extension relevant for simulation only)
+    pipe_on : if HAS_PIPEREG_STAGE(s) generate
+      gi : for i in 0 to (NUM_INPUTS_STAGE(s+1)-1) generate
+        dout(s,i) <= resize(dsum(s,i)(INPUT_WIDTH+s-1 downto 0),FINAL_WIDTH) when rising_edge(clk);
       end generate;
     end generate;
-    pipe_on : if HAS_PIPEREG_STAGE(s) generate
-      gi : for i in 0 to (NUM_INPUTS_STAGE(s)-1) generate
-        dout(s,i) <= resize(dsum(s,i),FINAL_WIDTH) when rising_edge(clk);
+    pipe_off : if not HAS_PIPEREG_STAGE(s) generate
+      gi : for i in 0 to (NUM_INPUTS_STAGE(s+1)-1) generate
+        dout(s,i) <= resize(dsum(s,i)(INPUT_WIDTH+s-1 downto 0),FINAL_WIDTH);
       end generate;
     end generate;
 
@@ -236,8 +240,8 @@ begin
     variable v_ovf : std_logic;
   begin
     RESIZE_CLIP(din=>final_shifted, dout=>v_dat, ovfl=>v_ovf, clip=>OUTPUT_CLIP);
-    rslt(0).dat <= v_dat;
-    if OUTPUT_OVERFLOW then rslt(0).ovf<=v_ovf; else rslt(0).ovf<='0'; end if;
+    rslt(1).dat <= v_dat;
+    if OUTPUT_OVERFLOW then rslt(1).ovf<=v_ovf; else rslt(1).ovf<='0'; end if;
   end process;
 
   -- input into VLD pipeline
@@ -245,10 +249,10 @@ begin
   gvld : for n in 1 to NUM_PIPELINE_REG generate
     vld_q(n) <= vld_q(n-1) when rising_edge(clk);
   end generate;
-  rslt(0).vld <= vld_q(NUM_PIPELINE_REG);
+  rslt(1).vld <= vld_q(NUM_PIPELINE_REG);
 
-  g_oreg : if NUM_OUTPUT_REG>=1 generate
-    g_loop : for n in 1 to NUM_OUTPUT_REG generate
+  g_oreg : if NUM_OUTPUT_REG>=2 generate
+    g_loop : for n in 2 to NUM_OUTPUT_REG generate
       rslt(n) <= rslt(n-1) when rising_edge(clk);
     end generate;
   end generate;
@@ -259,6 +263,7 @@ begin
   result_ovf <= rslt(NUM_OUTPUT_REG).ovf;
 
   -- report constant number of pipeline register stages
-  PIPESTAGES <= NUM_INPUT_REG + NUM_PIPELINE_REG + NUM_OUTPUT_REG;
+  -- (note: first output register is last pipeline register)
+  PIPESTAGES <= NUM_INPUT_REG + NUM_PIPELINE_REG + NUM_OUTPUT_REG - 1;
 
 end architecture;
