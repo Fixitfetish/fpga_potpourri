@@ -59,7 +59,7 @@ generic (
   --! This resolution influences the depth of generated look-up table ROM.
   PHASE_MAJOR_WIDTH : positive := 11;
   --! @brief Minor phase resolution in bits (LSBs of the phase input).
-  --! This resolution defines granularity of the linear interpolation.
+  --! This resolution defines granularity of the interpolation/approximation.
   PHASE_MINOR_WIDTH : natural := 0;
   --! @brief Output resolution in bits. 
   --! This resolution influences the width of the generated look-up table ROM.
