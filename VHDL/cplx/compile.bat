@@ -1,5 +1,5 @@
 :: +++ FOR VHDL SIMULATION ONLY +++
-:: This script compiles the CPLX Library.
+:: This script compiles the CPLXLIB Library.
 :: It is required to compile the DSP library first !
 ::
 :: ARGUMENTS
@@ -20,13 +20,13 @@
 setlocal
 
 :: Library name into which the entities are compiled
-set LIB=fixitfetish
+set LIB=cplxlib
 
 :: path/location of this script
 set SCRIPTPATH=%~dp0
 
 echo.--------------------------------------------------------------------------
-echo.INFO: Start compiling the Complex Library CPLX ...
+echo.INFO: Starting to compile the CPLXLIB Library ...
 :: Arguments
 if "%1"=="" (
   :: by default use VHDL-1993

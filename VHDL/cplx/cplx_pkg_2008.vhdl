@@ -27,10 +27,10 @@
 -- IN THE SOFTWARE.
 -------------------------------------------------------------------------------
 library ieee;
- use ieee.std_logic_1164.all;
- use ieee.numeric_std.all;
-library fixitfetish;
- use fixitfetish.ieee_extension.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
+library baselib;
+  use baselib.ieee_extension.all;
 
 -- This package provides types, functions and procedures that allow basic
 -- operations with complex integer numbers. Only the most common signals are

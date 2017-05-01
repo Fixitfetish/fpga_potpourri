@@ -1,18 +1,16 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_vector_serialization.vhdl
 --! @author     Fixitfetish
---! @date       15/Apr/2017
---! @version    0.10
+--! @date       01/May/2017
+--! @version    0.20
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
--- Copyright (c) 2017 Fixitfetish
--------------------------------------------------------------------------------
 library ieee;
- use ieee.std_logic_1164.all;
- use ieee.numeric_std.all;
-library fixitfetish;
-  use fixitfetish.cplx_pkg.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
+library cplxlib;
+  use cplxlib.cplx_pkg.all;
 
 --! @brief Serialize a complex vector of length N into a complex data stream of
 --! N consecutive cycles.

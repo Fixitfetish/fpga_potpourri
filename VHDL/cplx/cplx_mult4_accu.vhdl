@@ -1,18 +1,16 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_mult4_accu.vhdl
 --! @author     Fixitfetish
---! @date       30/Jan/2017
---! @version    0.30
+--! @date       01/May/2017
+--! @version    0.50
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
--- Copyright (c) 2017 Fixitfetish
--------------------------------------------------------------------------------
 library ieee;
- use ieee.std_logic_1164.all;
- use ieee.numeric_std.all;
-library fixitfetish;
- use fixitfetish.cplx_pkg.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
+library cplxlib;
+  use cplxlib.cplx_pkg.all;
 
 --! @brief Four complex multiplications and accumulate all product results.
 --! In general, this multiplier is a good choice when FPGA DSP cells shall be used.

@@ -1,12 +1,12 @@
 # +++ FOR VHDL SIMULATORS ONLY +++ #
-# This script compiles the CPLX Library for VHDL-1993.
-# It is required to compile the DSP library first !
+# This script compiles the CPLXLIB Library for VHDL-1993.
+# It is required to compile the DSPLIB library first !
 
 # path/location of this script
 set SCRIPTPATH [ file dirname [dict get [ info frame 0 ] file ] ]
 
-set CPLXLIB "fixitfetish"
-# vlib $CPLXLIB
+set LIB "cplxlib"
+# vlib $LIB
 
 # create file list
 set filelist [list]
@@ -38,4 +38,4 @@ lappend filelist $SCRIPTPATH/cplx_weight_sum.sdr.vhdl
 
 # compile file list
 set SWITCHES "-93 -explicit -dbg"
-vcom $SWITCHES -work $CPLXLIB $filelist
+vcom $SWITCHES -work $LIB $filelist

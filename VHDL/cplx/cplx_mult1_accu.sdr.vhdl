@@ -1,19 +1,19 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_mult1_accu.sdr.vhdl
 --! @author     Fixitfetish
---! @date       16/Feb/2017
---! @version    0.80
+--! @date       01/May/2017
+--! @version    0.85
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
--- Copyright (c) 2016-2017 Fixitfetish
--------------------------------------------------------------------------------
 library ieee;
- use ieee.std_logic_1164.all;
- use ieee.numeric_std.all;
-library fixitfetish;
- use fixitfetish.cplx_pkg.all;
- use fixitfetish.ieee_extension.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
+library baselib;
+  use baselib.ieee_extension.all;
+library cplxlib;
+  use cplxlib.cplx_pkg.all;
+library dsplib;
 
 --! @brief Complex Multiply and Accumulate (Single Data Rate).
 --! In general this multiplier can be used when FPGA DSP cells are clocked with
@@ -66,27 +66,34 @@ begin
   std_logic_sink(clk2);
 
   -- merge input control signals
-  rst(0) <= (x.rst  or y.rst);
-  ovf(0) <= (x.ovf  or y.ovf) when rst(0)='0' else '0';
+  rst(0) <= (x.rst or y.rst);
   vld <= (x.vld and y.vld) when rst(0)='0' else '0';
 
+  -- Consider overflow flags of all inputs that are accumulated.
+  -- If the overflow flag of any input is set then also the accumulation result
+  -- will have the overflow flag set.   
+  ovf(0) <= '0' when (INPUT_OVERFLOW_IGNORE or rst(0)='1') else -- reset overflow flag
+            (x.ovf  or y.ovf) when (vld='1' and clr='1') else -- restart accumulation
+            ovf(1) or (x.ovf  or y.ovf) when (vld='1') else -- consider every new input
+            ovf(1); -- hold overflow flag when invalid
+
   -- reset result data output to zero
-  data_reset <= rst(0) when m='R' else '0';
+  data_reset <= rst(0) when MODE='R' else '0';
 
   -- add/subtract inversion
   sub_n <= not sub;
 
   -- calculate real component
-  i_re : entity fixitfetish.signed_mult2_accu
+  i_re : entity dsplib.signed_mult2_accu
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAIN_INPUT    => false, -- unused here
     NUM_INPUT_REG      => NUM_INPUT_REG,
     NUM_OUTPUT_REG     => 1, -- always enable accumulator (= first output register)
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-    OUTPUT_ROUND       => (m='N'),
-    OUTPUT_CLIP        => (m='S'),
-    OUTPUT_OVERFLOW    => (m='O')
+    OUTPUT_ROUND       => (MODE='N'),
+    OUTPUT_CLIP        => (MODE='S'),
+    OUTPUT_OVERFLOW    => (MODE='O')
   )
   port map (
    clk        => clk,
@@ -108,16 +115,16 @@ begin
   );
 
   -- calculate imaginary component
-  i_im : entity fixitfetish.signed_mult2_accu
+  i_im : entity dsplib.signed_mult2_accu
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAIN_INPUT    => false, -- unused here
     NUM_INPUT_REG      => NUM_INPUT_REG,
     NUM_OUTPUT_REG     => 1, -- always enable accumulator (= first output register)
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-    OUTPUT_ROUND       => (m='N'),
-    OUTPUT_CLIP        => (m='S'),
-    OUTPUT_OVERFLOW    => (m='O')
+    OUTPUT_ROUND       => (MODE='N'),
+    OUTPUT_CLIP        => (MODE='S'),
+    OUTPUT_OVERFLOW    => (MODE='O')
   )
   port map (
    clk        => clk,
@@ -144,7 +151,8 @@ begin
     ovf(n) <= ovf(n-1) when rising_edge(clk);
   end generate;
   rslt(0).rst <= rst(PIPE_DSP);
-  rslt(0).ovf <= ovf(PIPE_DSP) or r_ovf_re or r_ovf_im;
+  rslt(0).ovf <= (r_ovf_re or r_ovf_im) when INPUT_OVERFLOW_IGNORE else
+                 (r_ovf_re or r_ovf_im or ovf(PIPE_DSP));
 
   -- output registers
   g_out_reg : if NUM_OUTPUT_REG>=1 generate

@@ -1,20 +1,20 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_weight_sum.sdr.vhdl
 --! @author     Fixitfetish
---! @date       12/Apr/2017
---! @version    0.20
+--! @date       01/May/2017
+--! @version    0.30
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
--- Copyright (c) 2017 Fixitfetish
--------------------------------------------------------------------------------
 library ieee;
- use ieee.std_logic_1164.all;
- use ieee.numeric_std.all;
-library fixitfetish;
- use fixitfetish.cplx_pkg.all;
- use fixitfetish.ieee_extension.all;
- use fixitfetish.ieee_extension_types.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
+library baselib;
+  use baselib.ieee_extension_types.all;
+  use baselib.ieee_extension.all;
+library cplxlib;
+  use cplxlib.cplx_pkg.all;
+library dsplib;
 
 --! @brief Single Data Rate implementation of the entity cplx_weight_sum .
 --! N complex values are weighted (scaled) with one scalar or N scalar
@@ -124,7 +124,7 @@ begin
   end generate;
 
   -- weighting
-  i_re : entity fixitfetish.signed_multN_sum
+  i_re : entity dsplib.signed_multN_sum
   generic map(
     NUM_MULT           => NUM_MULT,
     FAST_MODE          => HIGH_SPEED_MODE,
@@ -149,7 +149,7 @@ begin
   );
 
   -- weighting
-  i_im : entity fixitfetish.signed_multN_sum
+  i_im : entity dsplib.signed_multN_sum
   generic map(
     NUM_MULT           => NUM_MULT,
     FAST_MODE          => HIGH_SPEED_MODE,

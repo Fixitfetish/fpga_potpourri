@@ -1,19 +1,19 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_mult4_accu.sdr.vhdl
 --! @author     Fixitfetish
---! @date       16/Feb/2017
---! @version    0.40
+--! @date       01/May/2017
+--! @version    0.50
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
--- Copyright (c) 2017 Fixitfetish
--------------------------------------------------------------------------------
 library ieee;
- use ieee.std_logic_1164.all;
- use ieee.numeric_std.all;
-library fixitfetish;
- use fixitfetish.cplx_pkg.all;
- use fixitfetish.ieee_extension.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
+library baselib;
+  use baselib.ieee_extension.all;
+library cplxlib;
+  use cplxlib.cplx_pkg.all;
+library dsplib;
 
 --! @brief Four complex multiplications and accumulate all (Single Data Rate).
 --! In general this multiplier can be used when FPGA DSP cells are clocked with
@@ -81,7 +81,7 @@ begin
   sub_n <= not sub;
 
   -- calculate real component
-  i_re : entity fixitfetish.signed_mult8_accu
+  i_re : entity dsplib.signed_mult8_accu
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAIN_INPUT    => false, -- unused here
@@ -130,7 +130,7 @@ begin
   );
 
   -- calculate imaginary component
-  i_im : entity fixitfetish.signed_mult8_accu
+  i_im : entity dsplib.signed_mult8_accu
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAIN_INPUT    => false, -- unused here

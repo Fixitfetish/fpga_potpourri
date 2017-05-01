@@ -1,19 +1,18 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_weight_sum.vhdl
 --! @author     Fixitfetish
---! @date       12/Apr/2017
---! @version    0.20
+--! @date       01/May/2017
+--! @version    0.30
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
--- Copyright (c) 2017 Fixitfetish
--------------------------------------------------------------------------------
 library ieee;
- use ieee.std_logic_1164.all;
- use ieee.numeric_std.all;
-library fixitfetish;
- use fixitfetish.ieee_extension_types.all;
- use fixitfetish.cplx_pkg.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
+library baselib;
+  use baselib.ieee_extension_types.all;
+library cplxlib;
+  use cplxlib.cplx_pkg.all;
 
 --! @brief N complex values are weighted (scaled) with one scalar or N scalar
 --! values. Finally the weighted results are summed.

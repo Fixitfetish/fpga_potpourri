@@ -6,13 +6,11 @@
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
--- Copyright (c) 2016-2017 Fixitfetish
--------------------------------------------------------------------------------
 library ieee;
- use ieee.std_logic_1164.all;
- use ieee.numeric_std.all;
-library fixitfetish;
- use fixitfetish.cplx_pkg.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
+library cplxlib;
+  use cplxlib.cplx_pkg.all;
 
 --! @brief Complex Multiply and Accumulate.
 --! In general, this multiplier is a good choice when FPGA DSP cells shall be used.
@@ -71,10 +69,16 @@ generic (
   --! At least one is recommended when logic for rounding and/or clipping is enabled.
   --! Typically all output registers are implemented in logic and are not part of a DSP cell.
   NUM_OUTPUT_REG : natural := 0;
+  --! @brief By default the overflow flags of the inputs are propagated to the
+  --! output to not loose the overflow flags in processing chains.
+  --! If the input overflow flags are ignored then output overflow flags only
+  --! report overflows within this entity. Note that ignoring the input
+  --! overflows can save a little bit of logic.
+  INPUT_OVERFLOW_IGNORE : boolean := false;
   --! Number of bits by which the product/accumulator result output is shifted right
   OUTPUT_SHIFT_RIGHT : natural := 0;
   --! Supported operation modes 'R','O','N' and 'S'
-  m : cplx_mode := "-"
+  MODE : cplx_mode := "-"
 );
 port (
   --! Standard system clock
@@ -97,12 +101,14 @@ port (
 );
 begin
 
-  assert (m/='U' and m/='Z' and m/='I')
-    report "ERROR in cplx_mult1_accu : Rounding options 'U', 'Z' and 'I' are not supported."
+  assert (x.re'length=x.im'length) and (y.re'length=y.im'length) and (result.re'length=result.im'length)
+    report "ERROR in " & cplx_mult1_accu'INSTANCE_NAME & 
+           " Real and imaginary components must have same size."
     severity failure;
 
-  assert (x.re'length=x.im'length) and (y.re'length=y.im'length) and (result.re'length=result.im'length)
-    report "ERROR in cplx_mult1_accu : Real and imaginary components must have same size."
+  assert (MODE/='U' and MODE/='Z' and MODE/='I')
+    report "ERROR in " & cplx_mult1_accu'INSTANCE_NAME & 
+           " Rounding options 'U', 'Z' and 'I' are not supported."
     severity failure;
 
 end entity;

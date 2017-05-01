@@ -1,19 +1,19 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_mult.sdr.vhdl
 --! @author     Fixitfetish
---! @date       14/Apr/2017
---! @version    0.20
+--! @date       01/May/2017
+--! @version    0.30
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
--- Copyright (c) 2017 Fixitfetish
--------------------------------------------------------------------------------
 library ieee;
- use ieee.std_logic_1164.all;
- use ieee.numeric_std.all;
-library fixitfetish;
- use fixitfetish.cplx_pkg.all;
- use fixitfetish.ieee_extension_types.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
+library baselib;
+  use baselib.ieee_extension_types.all;
+library cplxlib;
+  use cplxlib.cplx_pkg.all;
+library dsplib;
 
 --! @brief Single Data Rate implementation of the entity cplx_mult .
 --! N complex multiplications are performed.
@@ -132,7 +132,7 @@ begin
 
   g_mult : for n in 0 to NUM_MULT-1 generate
     -- calculate real component
-    i_re : entity fixitfetish.signed_multN_sum
+    i_re : entity dsplib.signed_multN_sum
     generic map(
       NUM_MULT           => 2, -- two multiplications per complex multiplication
       FAST_MODE          => HIGH_SPEED_MODE,
@@ -157,7 +157,7 @@ begin
     );
 
     -- calculate imaginary component
-    i_im : entity fixitfetish.signed_multN_sum
+    i_im : entity dsplib.signed_multN_sum
     generic map(
       NUM_MULT           => 2, -- two multiplications per complex multiplication
       FAST_MODE          => HIGH_SPEED_MODE,

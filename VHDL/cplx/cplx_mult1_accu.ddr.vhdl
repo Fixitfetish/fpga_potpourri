@@ -1,19 +1,19 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_mult1_accu.ddr.vhdl
 --! @author     Fixitfetish
---! @date       18/Feb/2017
---! @version    0.50
+--! @date       01/May/2017
+--! @version    0.55
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
--- Copyright (c) 2016-2017 Fixitfetish
--------------------------------------------------------------------------------
 library ieee;
- use ieee.std_logic_1164.all;
- use ieee.numeric_std.all;
-library fixitfetish;
- use fixitfetish.cplx_pkg.all;
- use fixitfetish.ieee_extension.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
+library baselib;
+  use baselib.ieee_extension.all;
+library cplxlib;
+  use cplxlib.cplx_pkg.all;
+library dsplib;
 
 --! @brief Complex Multiply and Accumulate (Double Data Rate).
 --! In general this multiplier can be used when FPGA DSP cells are capable to
@@ -137,7 +137,7 @@ begin
   sub_im <= sub_q;
 
   -- calculate real component in 'clk2' domain
-  i_re : entity fixitfetish.signed_mult1_accu
+  i_re : entity dsplib.signed_mult1_accu
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAIN_INPUT    => false,
@@ -165,7 +165,7 @@ begin
   );
 
   -- calculate imaginary component in 'clk2' domain
-  i_im : entity fixitfetish.signed_mult1_accu
+  i_im : entity dsplib.signed_mult1_accu
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAIN_INPUT    => false,
