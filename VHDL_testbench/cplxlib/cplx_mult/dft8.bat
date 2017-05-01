@@ -1,4 +1,8 @@
 @echo off
+
+set SRC_PATH=..\..\..\VHDL
+set TB_PATH=..\..\..\VHDL_testbench
+
 :: create work directory
 if not exist work\ (
   mkdir work
@@ -27,19 +31,20 @@ if exist %VCD% (
   del %VCD%
 )
 
-set BASEPATH=..\..\VHDL
-
-:: analyze files of fixitfetish library
-set LIB=fixitfetish
-@echo on
-%COMPILE%%LIB% %BASEPATH%\string_conversion_pkg.vhdl
-@call %BASEPATH%\dsp\compile.bat
-@call %BASEPATH%\dsp\behave\compile.bat
-@call %BASEPATH%\cplx\compile.bat
+:: analyze library files
+@call %SRC_PATH%\baselib\_compile.bat
+@call %SRC_PATH%\dsp\compile.bat
+@call %SRC_PATH%\dsp\behave\compile.bat
+@call %SRC_PATH%\cplx\compile.bat
 
 :: analyze testbench
 @echo.--------------------------------------------------------------------------
-@echo.INFO: Start compiling testbench ...
+@echo.INFO: Starting to compile the testbench ...
+@echo on
+
+@set LIB=fixitfetish
+%COMPILE%%LIB% %SRC_PATH%\string_conversion_pkg.vhdl
+
 @set LIB=work
 %COMPILE%%LIB% ..\cplx_logger4.vhdl
 %COMPILE%%LIB% dftmtx8.vhdl
