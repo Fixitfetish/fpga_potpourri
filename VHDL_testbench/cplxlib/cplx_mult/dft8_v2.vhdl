@@ -1,8 +1,9 @@
 library ieee;
- use ieee.std_logic_1164.all;
- use ieee.numeric_std.all;
-library fixitfetish;
-  use fixitfetish.cplx_pkg.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
+library cplxlib;
+  use cplxlib.cplx_pkg.all;
+library dsplib;
 
 -- Version V2
 -- INPUT  = row vector (stream of single input values)
@@ -107,7 +108,7 @@ begin
 
   g_loop : for n in 0 to 7 generate
   -- multiplier
-  i_mult : entity fixitfetish.cplx_mult1_accu
+  i_mult : entity cplxlib.cplx_mult1_accu
   generic map(
     NUM_SUMMAND => 8,
     NUM_INPUT_REG => 1,

@@ -52,6 +52,8 @@ if exist %VCD% (
 %COMPILE%%LIB% dft8_v2.vhdl
 %COMPILE%%LIB% dft8_tb.vhdl
 
+@echo.
+@echo.INFO: Compilation finished - ready to start simulation. 
 @pause
 
 :: run testbench

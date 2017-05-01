@@ -1,8 +1,9 @@
 library ieee;
- use ieee.std_logic_1164.all;
- use ieee.numeric_std.all;
-library fixitfetish;
-  use fixitfetish.cplx_pkg.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
+library cplxlib;
+  use cplxlib.cplx_pkg.all;
+library dsplib;
 
 -- Version V1
 -- INPUT  = column vector (all input values parallel in one cycle)
@@ -98,7 +99,7 @@ begin
   dftmtx_18bit <= to_cplx_vector(slv=>dftmtx_slv, n=>8, vld=>'1');
 
   -- multiplier / scalar product
-  i_mult : entity fixitfetish.cplx_mult_sum
+  i_mult : entity cplxlib.cplx_mult_sum
   generic map(
     NUM_MULT => fft_in'length,
     HIGH_SPEED_MODE => false,

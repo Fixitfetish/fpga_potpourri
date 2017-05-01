@@ -6,13 +6,11 @@
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
--- Copyright (c) 2017 Fixitfetish
--------------------------------------------------------------------------------
 library ieee;
- use ieee.std_logic_1164.all;
- use ieee.numeric_std.all;
-library fixitfetish;
- use fixitfetish.cplx_pkg.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
+library cplxlib;
+  use cplxlib.cplx_pkg.all;
 
 use std.textio.all;
 
@@ -176,7 +174,7 @@ begin
     data_out => ifft1_out
   );
 
-  i_fft_in_ser : entity fixitfetish.cplx_vector_serialization
+  i_fft_in_ser : entity cplxlib.cplx_vector_serialization
   port map (
     clk      => clk,
     rst      => rst,
@@ -186,7 +184,7 @@ begin
     ser_out  => fft1_in_ser
   );
 
-  i_ifft_out_ser : entity fixitfetish.cplx_vector_serialization
+  i_ifft_out_ser : entity cplxlib.cplx_vector_serialization
   port map (
     clk      => clk,
     rst      => rst,
