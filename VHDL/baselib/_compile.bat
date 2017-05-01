@@ -67,6 +67,7 @@ set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 %COMPILE% %SCRIPTPATH%\ieee_extension_types_%VHDL%.vhdl
 %COMPILE% %SCRIPTPATH%\ieee_extension.vhdl
 %COMPILE% %SCRIPTPATH%\string_conversion_pkg.vhdl
+%COMPILE% %SCRIPTPATH%\file_io_pkg.vhdl
 
 :END
 @EXIT /B
