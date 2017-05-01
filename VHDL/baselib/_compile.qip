@@ -1,0 +1,6 @@
+# +++ FOR ALTERA QUARTUS SYNTHESIS +++
+# This script compiles the BASELIB Library.
+
+set_global_assignment -library baselib -name VHDL_FILE [file join $::quartus(qip_path) "ieee_extension_types_1993.vhdl"]
+set_global_assignment -library baselib -name VHDL_FILE [file join $::quartus(qip_path) "ieee_extension.vhdl"]
+set_global_assignment -library baselib -name VHDL_FILE [file join $::quartus(qip_path) "string_conversion_pkg.vhdl"]
