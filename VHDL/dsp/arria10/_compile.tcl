@@ -3,7 +3,10 @@
 # It is required to compile the generic DSP entities first !
 
 # path/location of this script
-set BASEPATH [ file dirname [dict get [ info frame 0 ] file ] ]
+set SCRIPTPATH [ file dirname [dict get [ info frame 0 ] file ] ]
+
+# library name
+set LIB "dsplib"
 
 if ![file exists $ALTERA_LIB] {
   error "Path to Altera libraries not found - please provide global variable ALTERA_LIB"
@@ -17,9 +20,9 @@ vmap twentynm_ver $ALTERA_LIB/verilog_libs/twentynm_ver
 
 # create file list
 set filelist [list]
-lappend filelist $BASEPATH/dsp_pkg.arria10.vhdl
-lappend filelist $BASEPATH/signed_mult2_accu.arria10.vhdl
+lappend filelist $SCRIPTPATH/dsp_pkg.arria10.vhdl
+lappend filelist $SCRIPTPATH/signed_mult2_accu.arria10.vhdl
 
 # compile file list
 set SWITCHES "-93 -explicit -dbg"
-vcom $SWITCHES -work $DSPLIB $filelist
+vcom $SWITCHES -work $LIB $filelist

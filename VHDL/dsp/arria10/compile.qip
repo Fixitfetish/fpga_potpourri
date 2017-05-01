@@ -1,8 +1,0 @@
-# +++ FOR ALTERA QUARTUS SYNTHESIS +++
-# This script compiles all Arria 10 specific architectures of the DSP Library.
-# It is required to compile the generic DSP entities first !
-
-set_global_assignment -library twentynm -name VHDL_FILE [file join $::quartus(qip_path) "components.arria10.vhdl"]
-
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "dsp_pkg.arria10.vhdl"]
-set_global_assignment -library fixitfetish -name VHDL_FILE [file join $::quartus(qip_path) "signed_mult2_accu.arria10.vhdl"]
