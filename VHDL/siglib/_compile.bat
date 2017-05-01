@@ -18,13 +18,13 @@
 setlocal
 
 :: Library name into which the entities are compiled
-set LIB=fixitfetish
+set LIB=siglib
 
 :: path/location of this script
 set SCRIPTPATH=%~dp0
 
 echo.--------------------------------------------------------------------------
-echo.INFO: Start compiling generic entities of the DSP Library ...
+echo.INFO: Starting to compile the SIGLIB Library ...
 :: Arguments
 if "%1"=="" (
   :: by default use VHDL-1993
