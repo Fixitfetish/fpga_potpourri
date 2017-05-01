@@ -38,12 +38,10 @@ if exist %VCD% (
 :: analyze testbench
 @echo.--------------------------------------------------------------------------
 @echo.INFO: Starting to compile the testbench ...
-@echo on
 
-:: TODO ... final library name
-@set LIB=fixitfetish
-%COMPILE%%LIB% %SRC_PATH%\ieee_extension.vhdl
-%COMPILE%%LIB% %SRC_PATH%\cplx\cplx_pkg_1993.vhdl
+@echo on
+@set LIB=cplxlib
+%COMPILE%%LIB% %SRC_PATH%\cplxlib\cplx_pkg_1993.vhdl
 
 @set LIB=work
 %COMPILE%%LIB% %TB_PATH%\cplxlib\cplx_logger4.vhdl

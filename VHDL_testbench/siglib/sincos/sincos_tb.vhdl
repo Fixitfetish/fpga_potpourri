@@ -11,8 +11,8 @@
 library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
-library fixitfetish;
- use fixitfetish.cplx_pkg.all;
+library cplxlib;
+ use cplxlib.cplx_pkg.all;
 library siglib;
 
 use std.textio.all;
