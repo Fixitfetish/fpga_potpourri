@@ -34,8 +34,8 @@ if exist %VCD% (
 :: analyze library files
 @call %SRC_PATH%\baselib\_compile.bat
 @call %SRC_PATH%\dsp\compile.bat
-@call %SRC_PATH%\dsp\behave\compile.bat
-@call %SRC_PATH%\cplx\compile.bat
+@call %SRC_PATH%\dsp\behave\_compile.bat
+@call %SRC_PATH%\cplxlib\_compile.bat
 
 :: analyze testbench
 @echo.--------------------------------------------------------------------------
