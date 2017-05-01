@@ -4,7 +4,7 @@ if ![file exists $ALDEC] {
   error "Aldec Riviera-Pro not found - please set variable ALDEC in sim.tcl correctly"
 }
 
-set LIBPATH  "../../VHDL"
+set LIBPATH  "../../../VHDL"
 
 set TEST_LIB "work"
 vlib $TEST_LIB
@@ -16,13 +16,12 @@ set ALTERA_LIB $ALDEC/vlib/altera_14v1
 # XILINX library path
 set XILINX_LIB $ALDEC/vlib/xilinx_16v4
 
+source $LIBPATH/baselib/_compile_1993.tcl
 source $LIBPATH/dsp/compile_1993.tcl
-source $LIBPATH/dsp/stratixv/compile.tcl
-# source $LIBPATH/dsp/ultrascale/compile.tcl
-# source $LIBPATH/dsp/behave/compile.tcl
-source $LIBPATH/cplx/compile_1993.tcl
-
-vcom -93 -explicit -dbg -work fixitfetish $LIBPATH/string_conversion_pkg.vhdl
+source $LIBPATH/dsp/stratixv/_compile.tcl
+# source $LIBPATH/dsp/ultrascale/_compile.tcl
+# source $LIBPATH/dsp/behave/_compile.tcl
+source $LIBPATH/cplxlib/_compile_1993.tcl
 
 vcom -93 -explicit -dbg -work $TEST_LIB dftmtx8.vhdl
 vcom -93 -explicit -dbg -work $TEST_LIB dft8_v1.vhdl
