@@ -20,13 +20,13 @@
 setlocal
 
 :: Library name into which the entities are compiled
-set LIB=fixitfetish
+set LIB=dsplib
 
 :: path/location of this script
 set SCRIPTPATH=%~dp0
 
 echo.--------------------------------------------------------------------------
-echo.INFO: Start compiling generic entities of the DSP Library ...
+echo.INFO: Starting to compile generic entities of the DSPLIB Library ...
 :: Arguments
 if "%1"=="" (
   :: by default use VHDL-1993
@@ -66,8 +66,6 @@ if "%VCOM_EXE%"=="" (
 :: analyze/compile files
 set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 @echo on
-%COMPILE% %SCRIPTPATH%\..\ieee_extension_types_%VHDL%.vhdl
-%COMPILE% %SCRIPTPATH%\..\ieee_extension.vhdl
 %COMPILE% %SCRIPTPATH%\signed_accu.vhdl
 %COMPILE% %SCRIPTPATH%\signed_adder_tree.vhdl
 %COMPILE% %SCRIPTPATH%\signed_mult1add1_accu.vhdl
@@ -86,6 +84,8 @@ set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 %COMPILE% %SCRIPTPATH%\signed_multN_sum.vhdl
 %COMPILE% %SCRIPTPATH%\signed_preadd_mult1_accu.vhdl
 %COMPILE% %SCRIPTPATH%\signed_multn_chain_accu.vhdl
+
+%COMPILE% %SCRIPTPATH%\stratixv\signed_mult_sum.stratixv.vhdl
 
 :END
 @EXIT /B

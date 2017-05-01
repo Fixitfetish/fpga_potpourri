@@ -9,8 +9,8 @@
 library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
-library fixitfetish;
- use fixitfetish.ieee_extension.all;
+library baselib;
+ use baselib.ieee_extension.all;
 
 --! @brief Signed Accumulator
 

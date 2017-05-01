@@ -20,13 +20,13 @@
 setlocal
 
 :: Library name into which the architectures are compiled
-set LIB=fixitfetish
+set LIB=dsplib
 
 :: path/location of this script
 set SCRIPTPATH=%~dp0
 
 echo.--------------------------------------------------------------------------
-echo.INFO: Start compiling behavioral architectures of the DSP Library ...
+echo.INFO: Starting to compile the behavioral architectures of the DSPLIB Library ...
 :: Arguments
 if "%1"=="" (
   :: by default use VHDL-1993

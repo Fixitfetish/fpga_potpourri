@@ -1,18 +1,17 @@
 # +++ FOR VHDL SIMULATION ONLY +++ #
-# This script compiles all generic entities of the DSP Library for VHDL-1993.
+# This script compiles all generic entities of the DSPLIB Library for VHDL-1993.
 # The device specific architectures are compiled separately.
+# It is required to compile the BASELIB library first !
 
 # Library name into which the entities are compiled
-set DSPLIB "fixitfetish"
-vlib $DSPLIB
+set LIB "dsplib"
+vlib $LIB
 
 # path/location of this script
 set SCRIPTPATH [ file dirname [dict get [ info frame 0 ] file ] ]
 
 # create file list
 set filelist [list]
-lappend filelist $SCRIPTPATH/../ieee_extension_types_1993.vhdl
-lappend filelist $SCRIPTPATH/../ieee_extension.vhdl
 lappend filelist $SCRIPTPATH/signed_accu.vhdl
 lappend filelist $SCRIPTPATH/signed_adder_tree.vhdl
 lappend filelist $SCRIPTPATH/signed_mult1add1_accu.vhdl
@@ -34,4 +33,4 @@ lappend filelist $SCRIPTPATH/signed_preadd_mult1_accu.vhdl
 
 # compile file list
 set SWITCHES "-93 -explicit -dbg"
-vcom $SWITCHES -work $DSPLIB $filelist
+vcom $SWITCHES -work $LIB $filelist

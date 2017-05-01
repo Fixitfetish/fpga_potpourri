@@ -5,6 +5,9 @@
 # path/location of this script
 set SCRIPTPATH [ file dirname [dict get [ info frame 0 ] file ] ]
 
+# library name
+set LIB "dsplib"
+
 # create file list (with list compilation is faster)
 set filelist [list]
 lappend filelist $SCRIPTPATH/signed_mult1_accu.behave.vhdl
@@ -15,4 +18,4 @@ lappend filelist $SCRIPTPATH/signed_multN_sum.behave.vhdl
 
 # compile file list
 set SWITCHES "-93 -explicit -dbg"
-vcom $SWITCHES -work $DSPLIB $filelist
+vcom $SWITCHES -work $LIB $filelist

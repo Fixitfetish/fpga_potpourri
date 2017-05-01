@@ -1,17 +1,17 @@
 -------------------------------------------------------------------------------
 --! @file       signed_adder_tree.vhdl
 --! @author     Fixitfetish
---! @date       20/Apr/2017
---! @version    0.20
+--! @date       01/May/2017
+--! @version    0.30
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
-library fixitfetish;
- use fixitfetish.ieee_extension.all;
- use fixitfetish.ieee_extension_types.all;
+library baselib;
+ use baselib.ieee_extension_types.all;
+ use baselib.ieee_extension.all;
 
 --! @brief Signed Adder Tree. Sum of N signed values.
 
@@ -167,7 +167,7 @@ architecture behave of signed_adder_tree is
   constant HAS_PIPEREG_STAGE : boolean_vector(1 to NUM_STAGES) := get_piperegs(NUM_STAGES);
 
   -- number of pipeline registers
-  constant NUM_PIPELINE_REG : natural := SUM(HAS_PIPEREG_STAGE);
+  constant NUM_PIPELINE_REG : natural := NUMBER_OF_ONES(HAS_PIPEREG_STAGE);
 
   -- delayed valid signal
   signal vld_q : std_logic_vector(0 to NUM_PIPELINE_REG);
