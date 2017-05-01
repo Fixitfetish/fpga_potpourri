@@ -6,14 +6,13 @@
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
--- Copyright (c) 2017 Fixitfetish
--------------------------------------------------------------------------------
 library ieee;
- use ieee.std_logic_1164.all;
- use ieee.numeric_std.all;
-library fixitfetish;
- use fixitfetish.ieee_extension.all;
- use fixitfetish.dsp_pkg_ultrascale.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
+library baselib;
+  use baselib.ieee_extension.all;
+library dsplib;
+  use dsplib.dsp_pkg_ultrascale.all;
 
 library unisim;
  use unisim.vcomponents.all;

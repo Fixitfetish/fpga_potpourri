@@ -6,13 +6,11 @@
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
--- Copyright (c) 2017 Fixitfetish
--------------------------------------------------------------------------------
 library ieee;
- use ieee.std_logic_1164.all;
- use ieee.numeric_std.all;
-library fixitfetish;
- use fixitfetish.ieee_extension.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
+library baselib;
+  use baselib.ieee_extension.all;
 
 --! @brief This package includes a Xilinx UltraScale specific collection of common
 --! parameters and functions. It helps to minimize code duplication in the

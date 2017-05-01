@@ -1,9 +1,12 @@
 #+++ FOR VHDL SIMULATORS ONLY +++#
-# This script compiles all UltraScale specific architectures of the DSP Library.
+# This script compiles all UltraScale specific architectures of the DSPLIB Library.
 # It is required to compile the generic DSP entities first !
 
 # path/location of this script
 set SCRIPTPATH [ file dirname [dict get [ info frame 0 ] file ] ]
+
+# library name
+set LIB "dsplib"
 
 if ![file exists $XILINX_LIB] {
   error "Path to Xilinx libraries not found - please provide global variable XILINX_LIB"
@@ -23,4 +26,4 @@ lappend filelist $SCRIPTPATH/signed_preadd_mult1_accu.ultrascale.vhdl
 
 # compile file list
 set SWITCHES "-93 -explicit -dbg"
-vcom $SWITCHES -work $DSPLIB $filelist
+vcom $SWITCHES -work $LIB $filelist
