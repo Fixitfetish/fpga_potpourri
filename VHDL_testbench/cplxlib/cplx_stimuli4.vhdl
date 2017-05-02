@@ -124,11 +124,9 @@ begin
     file_close(ifile);
     report "Finished: Read complete CPLX stimuli file." severity note;
     finish_i <= '1';
-    
-    -- endless loop
-    loop
-      wait for 1 ms;
-    end loop;      
+    wait until rising_edge(clk);
+
+    wait; -- end of process
   end process;
 
 end architecture;

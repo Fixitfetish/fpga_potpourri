@@ -83,7 +83,8 @@ begin
       exit when (finish='1');
     end loop;
     file_close(ofile);
-	wait;
+    
+	  wait; -- end of process
   end process;
 
 g_hex : if not LOG_DECIMAL generate
