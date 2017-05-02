@@ -6,20 +6,18 @@
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
--- Copyright (c) 2016-2017 Fixitfetish
--------------------------------------------------------------------------------
 library ieee;
- use ieee.std_logic_1164.all;
- use ieee.numeric_std.all;
-library fixitfetish;
- use fixitfetish.ieee_extension.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
+library baselib;
+  use baselib.ieee_extension.all;
+
+library unisim;
+  use unisim.vcomponents.all;
 
 -- synopsys translate_off
 library XilinxCoreLib;
 -- synopsys translate_on
-
-library unisim;
- use unisim.vcomponents.all;
 
 -- This implementation requires a two DSP48 Slices and the delay is two system
 -- clock cycles when the additional input and output registers are disabled.

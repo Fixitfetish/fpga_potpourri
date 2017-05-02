@@ -15,7 +15,7 @@ library dsplib;
   use dsplib.dsp_pkg_ultrascale.all;
 
 library unisim;
- use unisim.vcomponents.all;
+  use unisim.vcomponents.all;
 
 --! @brief This is an implementation of the entity 
 --! @link signed_mult1add1_sum signed_mult1add1_sum @endlink
