@@ -6,8 +6,6 @@
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
--- Copyright (c) 2016-2017 Fixitfetish
--------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;

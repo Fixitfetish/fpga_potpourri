@@ -18,6 +18,8 @@ entity dft8_tb is
 end entity;
 
 architecture sim of dft8_tb is
+  
+  constant PERIOD : time := 1 ns; -- 1000MHz
 
   signal clk : std_logic := '1';
   signal rst : std_logic := '1';
@@ -58,15 +60,26 @@ architecture sim of dft8_tb is
 
 begin
 
-  clk <= not clk after 0.5 ns; -- 1000MHz
+  p_clk : process
+  begin
+    while finish='0' loop
+      wait for PERIOD/2;
+      clk <= not clk;
+    end loop;
+    -- epilog, 5 cycles
+    for n in 1 to 10 loop
+      wait for PERIOD/2;
+      clk <= not clk;
+    end loop;
+    report "INFO: Clock stopped. End of simulation." severity note;
+    wait; -- stop clock
+  end process;
 
   p_stimuli: process
   begin
-    wait until rising_edge(clk);
-    wait until rising_edge(clk);
-    wait until rising_edge(clk);
-    wait until rising_edge(clk);
-    wait until rising_edge(clk);
+    for k in 1 to 5 loop
+      wait until rising_edge(clk);
+    end loop;
     rst <= '0';
     wait until rising_edge(clk);
     wait until rising_edge(clk);
@@ -138,16 +151,16 @@ begin
     for i in 1 to 7 loop 
       wait until rising_edge(clk);
     end loop;
-    for n in 0 to 7 loop
+    for n in 0 to 7  loop
       fft1_in(n).vld <= '0';
     end loop;
-    wait until rising_edge(clk);
 
-    finish <= '1';
-    -- endless loop
-    loop
-      wait for 1 ms;
+    for k in 1 to 30 loop
+      wait until rising_edge(clk);
     end loop;
+    finish <= '1';
+    
+    wait; -- end of process
   end process;
 
   i_fft1 : entity work.dft8_v1

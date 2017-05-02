@@ -33,17 +33,14 @@ if exist %VCD% (
 
 :: analyze library files
 @call %SRC_PATH%\baselib\_compile.bat
-@call %SRC_PATH%\dsp\compile.bat
-@call %SRC_PATH%\dsp\behave\_compile.bat
+@call %SRC_PATH%\dsplib\_compile.bat
+@call %SRC_PATH%\dsplib\behave\_compile.bat
 @call %SRC_PATH%\cplxlib\_compile.bat
 
 :: analyze testbench
 @echo.--------------------------------------------------------------------------
 @echo.INFO: Starting to compile the testbench ...
 @echo on
-
-@set LIB=fixitfetish
-%COMPILE%%LIB% %SRC_PATH%\string_conversion_pkg.vhdl
 
 @set LIB=work
 %COMPILE%%LIB% ..\cplx_logger4.vhdl
@@ -59,7 +56,8 @@ if exist %VCD% (
 :: run testbench
 @echo.--------------------------------------------------------------------------
 @echo.INFO: Starting simulation ...
-%SIMULATE% dft8_tb --stop-time=500ns --vcd=%VCD%
+%SIMULATE% dft8_tb --vcd=%VCD%
+::%SIMULATE% dft8_tb --stop-time=500ns --vcd=%VCD%
 
 @pause
 @goto END
