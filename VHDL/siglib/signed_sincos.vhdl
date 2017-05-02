@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_sincos.vhdl
 --! @author     Fixitfetish
---! @date       01/May/2017
---! @version    0.20
+--! @date       02/May/2017
+--! @version    0.21
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -13,6 +13,9 @@ library ieee;
 library baselib;
  use baselib.ieee_extension.all;
 
+--! @brief Configurable look-up based phase to sine and cosine generator.
+--! Optionally interpolation/approximation can be enabled.
+--! 
 --! The phase input can be either signed or unsigned 
 --! * SIGNED with range -N/2 to N/2-1 (i.e. -pi to pi)
 --! * UNSIGNED with range 0 to N-1 (i.e. 0 to 2pi)
@@ -24,7 +27,7 @@ library baselib;
 --! The look-up table (LUT) only holds the 2**(PHASE_MAJOR_WIDTH-2) cosine and sine
 --! values of the 1st quadrant. Since LUT values are all positive the LUT
 --! doesn't include the sign bit.
---! Note the value 1.0 is mapped to highest possible unsigned number (others=>'1')
+--! Note that the value 1.0 is mapped to highest possible unsigned number (others=>'1')
 --! and therefore is not exactly 1. This inaccuracy is needed to keep the symmetry
 --! of positive and negative integer values and to save an additional bit in the
 --! LUT and at the output. The LUT will have the following size in bits: 
@@ -40,16 +43,16 @@ library baselib;
 --! * lut_sin' =  lut_cos / LUT_DEPTH * (pi/2)
 --!
 --! where pi/2 is roughly 25/16 = "11001".
---! To improve the accuracy the interpolation/approximation is either forward
---! or backward dependent on the value of the minor phase.
+--! To improve the accuracy the interpolation/approximation is performed either
+--! forward or backward dependent on the value of the minor phase.
 --! * Forward  : when minor phase is < 0.5 (look-up with major phase)
 --! * Backward : when minor phase is >= 0.5 (look-up with major phase + 1 )
 --!
 --! That means, the slope at the closest LUT value is used to interpolate
 --! between two LUT values.
 --!
---! The overall number of pipeline stages are reported at the constant output
---! port and are calculated as follows:
+--! The overall number of pipeline stages is reported at the constant output
+--! port PIPESTAGES. The pipeline stages are calculated as follows:
 --! * PHASE_MINOR_WIDTH=0   =>  PIPESTAGES=3
 --! * PHASE_MINOR_WIDTH>=1  =>  PIPESTAGES=4+PHASE_MINOR_WIDTH
 
@@ -59,7 +62,7 @@ generic (
   --! This resolution influences the depth of generated look-up table ROM.
   PHASE_MAJOR_WIDTH : positive := 11;
   --! @brief Minor phase resolution in bits (LSBs of the phase input).
-  --! This resolution defines granularity of the interpolation/approximation.
+  --! This resolution defines the granularity of the interpolation/approximation.
   PHASE_MINOR_WIDTH : natural := 0;
   --! @brief Output resolution in bits. 
   --! This resolution influences the width of the generated look-up table ROM.
