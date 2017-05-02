@@ -1,47 +1,27 @@
 -------------------------------------------------------------------------------
--- FILE    : string_conversion_pkg.vhdl
--- AUTHOR  : Fixitfetish
--- DATE    : 03/Jun/2016
--- VERSION : 0.7
--- VHDL    : 1993
--- LICENSE : MIT License
--------------------------------------------------------------------------------
--- Copyright (c) 2016 Fixitfetish
--- 
--- Permission is hereby granted, free of charge, to any person obtaining a copy
--- of this software and associated documentation files (the "Software"), to deal
--- in the Software without restriction, including without limitation the rights
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
--- copies of the Software, and to permit persons to whom the Software is
--- furnished to do so, subject to the following conditions:
--- 
--- The above copyright notice and this permission notice shall be included in
--- all copies or substantial portions of the Software.
--- 
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
--- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
--- IN THE SOFTWARE.
+--! @file       string_conversion_pkg.vhdl
+--! @author     Fixitfetish
+--! @date       03/Jun/2016
+--! @version    0.70
+--! @copyright  MIT License
+--! @note       VHDL-1993
 -------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
 
--------------------------------------------------------------------------------
--- This package includes string related conversion functions and procedures as
--- they are useful for
---   * testbenches and simulations
---   * conversion of constants and generics
--- Typically two similar implementations, i.e. function and procedure, are 
--- available to have more flexibility in applying the conversion. The functions
--- and procedures are not meant to be used in code that will be synthesized. 
--- Please consider standard functions like to_unsigned(), to_signed(), 
--- to_integer(), std_logic_vector(), unsigned() and signed() in addition to the
--- functions below.
--------------------------------------------------------------------------------
+--! @brief This package includes string related conversion functions and procedures as
+--! they are useful for
+--!   * testbenches and simulations
+--!   * conversion of constants and generics
+--!
+--! Typically two similar implementations, i.e. function and procedure, are 
+--! available to have more flexibility in applying the conversion. The functions
+--! and procedures are not meant to be used in code that will be synthesized. 
+--! Please consider standard functions like to_unsigned(), to_signed(), 
+--! to_integer(), std_logic_vector(), unsigned() and signed() in addition to the
+--! functions below.
+
 package string_conversion_pkg is
 
  -- Conversion of a decimal string to standard types.
