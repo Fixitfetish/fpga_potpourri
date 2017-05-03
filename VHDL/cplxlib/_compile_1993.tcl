@@ -6,7 +6,7 @@
 set SCRIPTPATH [ file dirname [dict get [ info frame 0 ] file ] ]
 
 set LIB "cplxlib"
-# vlib $LIB
+vlib $LIB
 
 # create file list
 set filelist [list]
