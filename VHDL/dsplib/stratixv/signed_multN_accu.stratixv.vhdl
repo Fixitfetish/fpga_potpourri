@@ -6,14 +6,12 @@
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
--- Copyright (c) 2017 Fixitfetish
--------------------------------------------------------------------------------
 library ieee;
- use ieee.std_logic_1164.all;
- use ieee.numeric_std.all;
-library fixitfetish;
- use fixitfetish.ieee_extension.all;
- use fixitfetish.ieee_extension_types.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
+library baselib;
+  use baselib.ieee_extension_types.all;
+  use baselib.ieee_extension.all;
 
 --! @brief This is an implementation of the entity 
 --! @link signed_multN_accu signed_multN_accu @endlink

@@ -6,17 +6,16 @@
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
--- Copyright (c) 2016-2017 Fixitfetish
--------------------------------------------------------------------------------
 library ieee;
- use ieee.std_logic_1164.all;
- use ieee.numeric_std.all;
-library fixitfetish;
- use fixitfetish.ieee_extension.all;
- use fixitfetish.dsp_pkg_stratixv.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
+library baselib;
+  use baselib.ieee_extension.all;
+library dsplib;
+  use dsplib.dsp_pkg_stratixv.all;
 
 library stratixv;
- use stratixv.stratixv_components.all;
+  use stratixv.stratixv_components.all;
 
 --! @brief This is an implementation of the entity 
 --! @link signed_mult2_accu signed_mult2_accu @endlink

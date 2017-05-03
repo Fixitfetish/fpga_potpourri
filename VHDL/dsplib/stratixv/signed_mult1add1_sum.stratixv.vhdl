@@ -6,16 +6,14 @@
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
--- Copyright (c) 2017 Fixitfetish
--------------------------------------------------------------------------------
 library ieee;
- use ieee.std_logic_1164.all;
- use ieee.numeric_std.all;
-library fixitfetish;
- use fixitfetish.ieee_extension.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
+library baselib;
+  use baselib.ieee_extension.all;
 
 library stratixv;
- use stratixv.stratixv_components.all;
+  use stratixv.stratixv_components.all;
 
 --! @brief This is an implementation of the entity
 --! @link signed_mult1add1_sum signed_mult1add1_sum @endlink
