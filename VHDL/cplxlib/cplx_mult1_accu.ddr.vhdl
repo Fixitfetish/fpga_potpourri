@@ -121,7 +121,7 @@ begin
   y_q <= y_i when rising_edge(clk2);
   
   -- use clear signal to reset data
-  data_reset <= (m='R' and (x_q.rst='1' or y_q.rst='1'));
+  data_reset <= (MODE='R' and (x_q.rst='1' or y_q.rst='1'));
   clear <= '1'   when data_reset else
            clr_q when phase='0'  else '0';
   dv <= '0' when data_reset else (x_q.vld and y_q.vld);
@@ -144,9 +144,9 @@ begin
     NUM_INPUT_REG      => 1,
     NUM_OUTPUT_REG     => 1, -- additional output register - see below
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-    OUTPUT_ROUND       => (m='N'),
-    OUTPUT_CLIP        => (m='S'),
-    OUTPUT_OVERFLOW    => (m='O')
+    OUTPUT_ROUND       => (MODE='N'),
+    OUTPUT_CLIP        => (MODE='S'),
+    OUTPUT_OVERFLOW    => (MODE='O')
   )
   port map (
    clk        => clk2,
@@ -172,9 +172,9 @@ begin
     NUM_INPUT_REG      => 1,
     NUM_OUTPUT_REG     => 1, -- additional output register - see below
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-    OUTPUT_ROUND       => (m='N'),
-    OUTPUT_CLIP        => (m='S'),
-    OUTPUT_OVERFLOW    => (m='O')
+    OUTPUT_ROUND       => (MODE='N'),
+    OUTPUT_CLIP        => (MODE='S'),
+    OUTPUT_OVERFLOW    => (MODE='O')
   )
   port map (
    clk        => clk2,
