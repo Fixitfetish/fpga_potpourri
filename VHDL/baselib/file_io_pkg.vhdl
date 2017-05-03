@@ -1,11 +1,10 @@
 -------------------------------------------------------------------------------
--- FILE    : file_io_pkg.vhdl
--- DATE    : 04/Jun/2016
--- VERSION : 0.10
--- VHDL    : 1993
--- LICENSE : MIT License
--------------------------------------------------------------------------------
--- Copyright (c) 2016 Fixitfetish
+--! @file       file_io_pkg.vhdl
+--! @author     Fixitfetish
+--! @date       04/Jun/2016
+--! @version    0.10
+--! @copyright  MIT License
+--! @note       VHDL-1993
 -------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
