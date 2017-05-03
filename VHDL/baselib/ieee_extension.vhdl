@@ -12,6 +12,10 @@ library ieee;
 library baselib;
   use baselib.ieee_extension_types.all;
 
+--! @brief This package provides additional functions and procedures on top of
+--! IEEE standard functions. Features like rounding, clipping, overflow detection
+--! and others are added.
+
 package ieee_extension is
 
  --! convert boolean into std_logic (false=>'0', true=>'1')
@@ -28,9 +32,9 @@ package ieee_extension is
 
  --! @brief This function calculates ceil(log2(n)).
  --! Optionally, the maximum result can be limited to 'bits' (bits = 2..32)
- --! | n           | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12| 13|
- --! |-------------|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
- --! | log2ceil(n) | 1 | 1 | 2 | 2 | 3 | 3 | 3 | 3 | 4 | 4 | 4 | 4 | 4 |
+ --! | n           | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12| 13| .. |
+ --! |-------------|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:--:|
+ --! | log2ceil(n) | 1 | 1 | 2 | 2 | 3 | 3 | 3 | 3 | 4 | 4 | 4 | 4 | 4 | .. |
  function LOG2CEIL (n:positive; bits:positive:=32) return natural;
 
  ----------------------------------------------------------
