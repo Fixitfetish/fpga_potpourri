@@ -1,4 +1,4 @@
---! @file       mainpage_dsp.vhdl
+--! @file       _readme.vhdl
 --! @author     Fixitfetish
 --! @date       13/Mar/2017
 --! @version    0.10
