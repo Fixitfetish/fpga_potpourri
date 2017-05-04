@@ -102,7 +102,7 @@ architecture rtl of signed_sincos is
 
   constant SINCOS_WIDTH : positive := (OUTPUT_WIDTH-1); -- without sign bit
 
-  function max_amplitude(w:positive; is_shift_right:boolean) return real is
+  function max_amplitude(is_shift_right:boolean) return real is
   begin
     if is_shift_right then
       return real(2**(SINCOS_WIDTH-1)); -- max value is 0.5
@@ -110,7 +110,7 @@ architecture rtl of signed_sincos is
       return real(2**SINCOS_WIDTH) - 0.6; -- max value is 0.9999..
     end if;
   end;
-  constant SINCOS_MAX : real := max_amplitude(SINCOS_WIDTH,OUTPUT_SHIFT_RIGHT);
+  constant SINCOS_MAX : real := max_amplitude(OUTPUT_SHIFT_RIGHT);
 
   constant LUT_WIDTH : positive := 2*SINCOS_WIDTH; -- cosine and sin combined in single LUT
   constant LUT_DEPTH_LD : positive := PHASE_MAJOR_WIDTH-2; -- only first of the four quadrants

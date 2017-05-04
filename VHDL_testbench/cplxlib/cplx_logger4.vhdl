@@ -59,7 +59,7 @@ begin
   p_file: process
     variable v_oline : line;
   begin
-    file_open(ofile,log_file,WRITE_MODE);
+    file_open(ofile,LOG_FILE,WRITE_MODE);
     -- File header
     write_str(v_oline,TITLE1,left,34);
     write_str(v_oline,TITLE2,left,34);
