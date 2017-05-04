@@ -1,4 +1,4 @@
-\brief This file includes the documentation entry page of the DSP Library.
+\brief This file includes the DOXYGEN documentation entry page of the DSP Library.
 
 \page DSP_LIBRARY DSP Library Overview
 \section section_intro Introduction
