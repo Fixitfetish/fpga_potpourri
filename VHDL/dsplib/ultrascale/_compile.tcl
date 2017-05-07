@@ -17,6 +17,7 @@ vmap unisim $XILINX_LIB/unisim
 # create file list
 set filelist [list]
 lappend filelist $SCRIPTPATH/dsp_pkg.ultrascale.vhdl
+lappend filelist $SCRIPTPATH/delay_dsp.ultrascale.vhdl
 lappend filelist $SCRIPTPATH/signed_mult1_accu.ultrascale.vhdl
 lappend filelist $SCRIPTPATH/signed_mult1add1_accu.ultrascale.vhdl
 lappend filelist $SCRIPTPATH/signed_mult1add1_sum.ultrascale.vhdl

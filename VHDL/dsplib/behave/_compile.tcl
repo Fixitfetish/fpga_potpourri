@@ -10,6 +10,7 @@ set LIB "dsplib"
 
 # create file list (with list compilation is faster)
 set filelist [list]
+lappend filelist $SCRIPTPATH/delay_dsp.behave.vhdl
 lappend filelist $SCRIPTPATH/signed_mult1_accu.behave.vhdl
 lappend filelist $SCRIPTPATH/signed_mult2_accu.behave.vhdl
 lappend filelist $SCRIPTPATH/signed_mult2_sum.behave.vhdl

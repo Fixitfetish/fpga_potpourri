@@ -66,6 +66,7 @@ if "%VCOM_EXE%"=="" (
 :: analyze/compile files
 set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 @echo on
+%COMPILE% %SCRIPTPATH%\delay_dsp.behave.vhdl
 %COMPILE% %SCRIPTPATH%\signed_mult1_accu.behave.vhdl
 %COMPILE% %SCRIPTPATH%\signed_mult2_accu.behave.vhdl
 %COMPILE% %SCRIPTPATH%\signed_mult2_sum.behave.vhdl
