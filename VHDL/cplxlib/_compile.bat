@@ -68,6 +68,7 @@ set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 @echo on
 :: General
 %COMPILE% %SCRIPTPATH%\cplx_pkg_%VHDL%.vhdl
+%COMPILE% %SCRIPTPATH%\cplx_pipeline.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_vector_serialization.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_vectorization.vhdl
 :: Multiplier Entities
