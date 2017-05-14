@@ -18,11 +18,13 @@ library dsplib;
 
 --! @brief N complex multiplications and accumulate all (Single Data Rate).
 --!
---! This implementation requires the FPGA device dependent module signed_multN_accu.
---! @image html cplx_mult_accu.sdr.svg "" width=800px
+--! This implementation requires the entity signed_mult_accu.
+--! @image html cplx_mult_accu.sdr.svg "" width=600px
 --!
 --! In general this multiplier can be used when FPGA DSP cells are clocked with
 --! the standard system clock. 
+--! 
+--! The number of overall pipeline stages is typically NUM_INPUT_REG + 1 + NUM_OUTPUT_REG.
 --!
 --! NOTE: The double rate clock 'clk2' is irrelevant and unused here.
 

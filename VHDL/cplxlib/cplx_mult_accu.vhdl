@@ -38,7 +38,7 @@ library cplxlib;
 --! The size of the real and imaginary part of a complex input must be identical.
 --! Without sum and accumulation the maximum result width in the accumulation
 --! register LSBs is
---!   W = x'length + y'length + 1  (complex multiplication requires additional guard bit)
+--!   W = x'length + y'length + 1  (complex multiplication requires additional guard bit).
 --! Dependent on result'length and NUM_SUMMAND a shift right is required to avoid
 --! overflow or clipping.
 --!   OUTPUT_SHIFT_RIGHT = W + ceil(log2(NUM_SUMMAND)) - result'length
