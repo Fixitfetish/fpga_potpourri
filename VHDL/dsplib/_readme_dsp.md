@@ -79,3 +79,7 @@ Reference List
 - Reference 1
 - Reference 2
 - Reference 3
+
+MIT License : Copyright (c) 2017 Fixitfetish
+ - [https://opensource.org/licenses/MIT] (https://opensource.org/licenses/MIT)
+ - [https://en.wikipedia.org/wiki/MIT_License] (https://en.wikipedia.org/wiki/MIT_License)
