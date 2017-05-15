@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_multN_sum.vhdl
+--! @file       signed_mult_sum.vhdl
 --! @author     Fixitfetish
 --! @date       05/Mar/2017
 --! @version    0.10
@@ -7,14 +7,14 @@
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
 library ieee;
- use ieee.std_logic_1164.all;
- use ieee.numeric_std.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
 library baselib;
- use baselib.ieee_extension_types.all;
+  use baselib.ieee_extension_types.all;
 
 --! @brief N signed multiplications and sum of all product results.
 --!
---! @image html signed_multN_sum.svg "" width=600px
+--! @image html signed_mult_sum.svg "" width=600px
 --!
 --! The behavior is as follows
 --! * VLD=0  then  r = r
@@ -53,9 +53,10 @@ library baselib;
 --!
 --! VHDL Instantiation Template:
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
---! I1 : signed_multN_sum
+--! I1 : signed_mult_sum
 --! generic map(
 --!   NUM_MULT           => positive, -- number of parallel multiplications
+--!   HIGH_SPEED_MODE    => boolean,  -- enable high speed mode
 --!   NUM_INPUT_REG      => natural,  -- number of input registers
 --!   NUM_OUTPUT_REG     => natural,  -- number of output registers
 --!   OUTPUT_SHIFT_RIGHT => natural,  -- number of right shifts
@@ -67,7 +68,7 @@ library baselib;
 --!   clk        => in  std_logic, -- clock
 --!   rst        => in  std_logic, -- reset
 --!   vld        => in  std_logic, -- valid
---!   sub        => in  std_logic_vector(0 to NUM_MULT-1), -- add/subtract
+--!   neg        => in  std_logic_vector(0 to NUM_MULT-1), -- negation
 --!   x          => in  signed_vector(0 to NUM_MULT-1), -- first factors
 --!   y          => in  signed_vector(0 to NUM_MULT-1), -- second factors
 --!   result     => out signed, -- product result
@@ -81,12 +82,12 @@ library baselib;
 -- Optimal settings for overflow detection and/or saturation/clipping :
 -- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH
 
-entity signed_multN_sum is
+entity signed_mult_sum is
 generic (
   --! Number of parallel multiplications - mandatory generic!
   NUM_MULT : positive;
-  --! Enable fast mode with more pipelining for higher speed
-  FAST_MODE : boolean := false;
+  --! Enable high speed mode with more pipelining for higher clock rates
+  HIGH_SPEED_MODE : boolean := false;
   --! @brief Number of additional input registers. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
   NUM_INPUT_REG : natural := 1;
@@ -117,8 +118,9 @@ port (
   rst        : in  std_logic := '0';
   --! Valid signal for input factors, high-active
   vld        : in  std_logic;
-  --! Add/subtract for all products n=0..(NUM_MULT-1) , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)). Subtraction is disabled by default.
-  sub        : in  std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
+  --! @brief Negation of all partial products , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)).
+  --! Negation is disabled by default.
+  neg        : in  std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
   --! First signed factor for the NUM_MULT multiplications (all X inputs must have same size)
   x          : in  signed_vector(0 to NUM_MULT-1);
   --! Second signed factor for the NUM_MULT multiplications (all Y inputs must have same size)
@@ -136,7 +138,8 @@ port (
 begin
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
-    report "WARNING signed_multN_sum : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
+    report "WARNING in " & signed_mult_sum'INSTANCE_NAME &
+           " Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 
 end entity;

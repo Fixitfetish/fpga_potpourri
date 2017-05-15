@@ -20,9 +20,9 @@ Currently the focus is on the following device families:
 
 | Design |Entity Name               | Virtex 4  | Stratix V  | Arria 10  | UltraScale | Description
 |:------:|:-------------------------|:---------:|:----------:|:---------:|:----------:|:-----------------
-| yes    |signed_multN              | derived   | derived    | derived   | derived    | N parallel and synchronous signed multiplications
-| yes    |signed_multN_accu         | ---       | chained    | chained   | chained    | N signed multiplications and accumulation of all results
-| yes    |signed_multN_sum          | ---       | chained    | chained   | chained    | N signed multiplications and summation of all results
+| yes    |signed_mult               | derived   | derived    | derived   | derived    | N parallel and synchronous signed multiplications
+| yes    |signed_mult_accu          | ---       | chained    | chained   | chained    | N signed multiplications and accumulation of all results
+| yes    |signed_mult_sum           | ---       | chained    | chained   | chained    | N signed multiplications and summation of all results
 | no     |signed_mult1_accu         | PRIMITIVE | PRIMITIVE  | PRIMITIVE | PRIMITIVE  | one signed multiplication and accumulation of all results
 | no     |signed_mult1add1_accu     | ---       | PRIMITIVE  | PRIMITIVE | PRIMITIVE  | one value +/- signed product and accumulation of all results
 | no     |signed_mult1add1_sum      | ---       | derived    | derived   | PRIMITIVE  | one value +/- signed product

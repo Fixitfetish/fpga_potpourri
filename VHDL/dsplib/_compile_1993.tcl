@@ -27,9 +27,9 @@ lappend filelist $SCRIPTPATH/signed_mult4_sum.vhdl
 lappend filelist $SCRIPTPATH/signed_mult8_accu.vhdl
 lappend filelist $SCRIPTPATH/signed_mult16_accu.vhdl
 lappend filelist $SCRIPTPATH/signed_multn_chain_accu.vhdl
-lappend filelist $SCRIPTPATH/signed_multN.vhdl
-lappend filelist $SCRIPTPATH/signed_multN_accu.vhdl
-lappend filelist $SCRIPTPATH/signed_multN_sum.vhdl
+lappend filelist $SCRIPTPATH/signed_mult.vhdl
+lappend filelist $SCRIPTPATH/signed_mult_accu.vhdl
+lappend filelist $SCRIPTPATH/signed_mult_sum.vhdl
 lappend filelist $SCRIPTPATH/signed_preadd_mult1_accu.vhdl
 
 # compile file list

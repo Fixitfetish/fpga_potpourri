@@ -70,8 +70,8 @@ set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 %COMPILE% %SCRIPTPATH%\signed_mult1_accu.behave.vhdl
 %COMPILE% %SCRIPTPATH%\signed_mult2_accu.behave.vhdl
 %COMPILE% %SCRIPTPATH%\signed_mult2_sum.behave.vhdl
-%COMPILE% %SCRIPTPATH%\signed_multN_accu.behave.vhdl
-%COMPILE% %SCRIPTPATH%\signed_multN_sum.behave.vhdl
+%COMPILE% %SCRIPTPATH%\signed_mult_accu.behave.vhdl
+%COMPILE% %SCRIPTPATH%\signed_mult_sum.behave.vhdl
 
 :END
 @EXIT /B

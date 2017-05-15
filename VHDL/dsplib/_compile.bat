@@ -80,9 +80,9 @@ set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 %COMPILE% %SCRIPTPATH%\signed_mult4_sum.vhdl
 %COMPILE% %SCRIPTPATH%\signed_mult8_accu.vhdl
 %COMPILE% %SCRIPTPATH%\signed_mult16_accu.vhdl
-%COMPILE% %SCRIPTPATH%\signed_multN.vhdl
-%COMPILE% %SCRIPTPATH%\signed_multN_accu.vhdl
-%COMPILE% %SCRIPTPATH%\signed_multN_sum.vhdl
+%COMPILE% %SCRIPTPATH%\signed_mult.vhdl
+%COMPILE% %SCRIPTPATH%\signed_mult_accu.vhdl
+%COMPILE% %SCRIPTPATH%\signed_mult_sum.vhdl
 %COMPILE% %SCRIPTPATH%\signed_preadd_mult1_accu.vhdl
 %COMPILE% %SCRIPTPATH%\signed_multn_chain_accu.vhdl
 

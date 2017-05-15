@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_multN_accu.behave.vhdl
+--! @file       signed_mult_accu.behave.vhdl
 --! @author     Fixitfetish
 --! @date       11/Apr/2017
 --! @version    0.20
@@ -13,7 +13,7 @@ library baselib;
   use baselib.ieee_extension.all;
 
 --! @brief This implementation is a behavioral model of the entity 
---! @link signed_multN_accu signed_multN_accu @endlink for simulation.
+--! @link signed_mult_accu signed_mult_accu @endlink for simulation.
 --! N signed multiplications are performed and the results are accumulated.
 --! 
 --! * Input Data      : Nx2 signed values, each max 18 bits
@@ -24,10 +24,10 @@ library baselib;
 --! * Output Register : optional, after rounding, shift-right and saturation
 --! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG + PIPELINE_REG
 
-architecture behave of signed_multN_accu is
+architecture behave of signed_mult_accu is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := signed_multN_accu'INSTANCE_NAME;
+  constant IMPLEMENTATION : string := signed_mult_accu'INSTANCE_NAME;
 
   -- local auxiliary
   -- determine number of required additional guard bits (MSBs)
@@ -83,7 +83,7 @@ begin
       end if;
       if vld='1' then
         for n in 0 to NUM_MULT-1 loop
-          if sub(n)='1' then
+          if neg(n)='1' then
             v_accu_used := v_accu_used - ( x(n) * y(n) );
           else
             v_accu_used := v_accu_used + ( x(n) * y(n) );

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_multN.stratixv.vhdl
+--! @file       signed_mult.stratixv.vhdl
 --! @author     Fixitfetish
 --! @date       23/Feb/2017
 --! @version    0.30
@@ -13,7 +13,7 @@ library baselib;
   use baselib.ieee_extension.all;
 
 --! @brief This is an implementation of the entity 
---! @link signed_multN signed_multN @endlink
+--! @link signed_mult signed_mult @endlink
 --! for Altera Stratix-V.
 --! N parallel and synchronous signed multiplications are performed.
 --!
@@ -33,10 +33,10 @@ library baselib;
 --! | <=36  | <=18  | <=54    | N           | signed_mult1_accu  | 36x18 Full
 --!
 
-architecture stratixv of signed_multN is
+architecture stratixv of signed_mult is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "signed_multN(stratixv)";
+  constant IMPLEMENTATION : string := signed_mult'INSTANCE_NAME;
 
   -- determine number of multiplications per entity
   function mult_per_entity(lx,ly:integer) return natural is

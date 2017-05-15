@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_multN_accu.vhdl
+--! @file       signed_mult_accu.vhdl
 --! @author     Fixitfetish
 --! @date       23/Feb/2017
 --! @version    0.20
@@ -7,14 +7,14 @@
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
 library ieee;
- use ieee.std_logic_1164.all;
- use ieee.numeric_std.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
 library baselib;
- use baselib.ieee_extension_types.all;
+  use baselib.ieee_extension_types.all;
 
 --! @brief N signed multiplications and accumulate all product results.
 --!
---! @image html signed_multN_accu.svg "" width=600px
+--! @image html signed_mult_accu.svg "" width=600px
 --!
 --! The behavior is as follows
 --! * CLR=1  VLD=0  ->  r = undefined                      # reset accumulator
@@ -58,7 +58,7 @@ library baselib;
 --!
 --! VHDL Instantiation Template:
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
---! I1 : signed_multN_accu
+--! I1 : signed_mult_accu
 --! generic map(
 --!   NUM_MULT           => positive, -- number of parallel multiplications
 --!   NUM_SUMMAND        => natural,  -- overall number of summed products
@@ -75,7 +75,7 @@ library baselib;
 --!   rst        => in  std_logic, -- reset
 --!   clr        => in  std_logic, -- clear accu
 --!   vld        => in  std_logic, -- valid
---!   sub        => in  std_logic_vector(0 to NUM_MULT-1), -- add/subtract
+--!   neg        => in  std_logic_vector(0 to NUM_MULT-1), -- negation
 --!   x          => in  signed_vector(0 to NUM_MULT-1), -- first factors
 --!   y          => in  signed_vector(0 to NUM_MULT-1), -- second factors
 --!   result     => out signed, -- product result
@@ -91,7 +91,7 @@ library baselib;
 -- Optimal settings for overflow detection and/or saturation/clipping :
 -- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH
 
-entity signed_multN_accu is
+entity signed_mult_accu is
 generic (
   --! Number of parallel multiplications - mandatory generic!
   NUM_MULT : positive;
@@ -146,8 +146,9 @@ port (
   clr        : in  std_logic;
   --! Valid signal for input factors, high-active
   vld        : in  std_logic;
-  --! Add/subtract for all products n=0..(NUM_MULT-1) , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)). Subtraction is disabled by default.
-  sub        : in  std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
+  --! @brief Negation of all partial products , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)).
+  --! Negation is disabled by default.
+  neg        : in  std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
   --! First signed factor for the NUM_MULT multiplications (all X inputs must have same size)
   x          : in  signed_vector(0 to NUM_MULT-1);
   --! Second signed factor for the NUM_MULT multiplications (all Y inputs must have same size)
@@ -173,7 +174,8 @@ port (
 begin
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
-    report "WARNING signed_multN_accu : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
+    report "WARNING in " & signed_mult_accu'INSTANCE_NAME &
+           " Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 
 end entity;

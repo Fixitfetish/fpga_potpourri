@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_multN_accu.stratixv.vhdl
+--! @file       signed_mult_accu.stratixv.vhdl
 --! @author     Fixitfetish
 --! @date       23/Feb/2017
 --! @version    0.20
@@ -14,7 +14,7 @@ library baselib;
   use baselib.ieee_extension.all;
 
 --! @brief This is an implementation of the entity 
---! @link signed_multN_accu signed_multN_accu @endlink
+--! @link signed_mult_accu signed_mult_accu @endlink
 --! for Altera Stratix-V.
 --! N signed multiplications are performed and all results are accumulated.
 --!
@@ -35,12 +35,12 @@ library baselib;
 --! * Pipeline stages : NUM_INPUT_REG + floor((N-1)/2) + NUM_OUTPUT_REG
 --!
 --! This implementation can be chained multiple times.
---! @image html signed_multN_accu.stratixv.svg "" width=800px
+--! @image html signed_mult_accu.stratixv.svg "" width=800px
 
-architecture stratixv of signed_multN_accu is
+architecture stratixv of signed_mult_accu is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "signed_multN_accu(stratixv)";
+  constant IMPLEMENTATION : string := signed_mult_accu'INSTANCE_NAME;
 
   -- derived constants
   constant NUM_MULT_PER_ENTITY : natural := 2;
@@ -52,7 +52,7 @@ architecture stratixv of signed_multN_accu is
   type t_y is array(integer range <>) of signed(y(0)'length-1 downto 0);
   signal x_i : t_x(0 to NUM_ENTITY*NUM_MULT_PER_ENTITY-1) := (others=>(others=>'0'));
   signal y_i : t_y(0 to NUM_ENTITY*NUM_MULT_PER_ENTITY-1) := (others=>(others=>'0'));
-  signal sub_i : std_logic_vector(0 to NUM_ENTITY*NUM_MULT_PER_ENTITY-1) := (others=>'0');
+  signal neg_i : std_logic_vector(0 to NUM_ENTITY*NUM_MULT_PER_ENTITY-1) := (others=>'0');
   signal clr_i : std_logic_vector(0 to NUM_ENTITY-1) := (others=>'1');
 
   -- Internal copy of outputs required because some multipliers of an entity might
@@ -110,7 +110,7 @@ begin
   g_in: for n in 0 to (NUM_MULT-1) generate
     x_i(n) <= x(n);
     y_i(n) <= y(n);
-    sub_i(n) <= sub(n);
+    neg_i(n) <= neg(n);
   end generate;
   chainin_i(0) <= chainin;
   clr_i(NUM_ENTITY-1) <= clr; -- accumulator enabled in last instance only!
@@ -132,7 +132,7 @@ begin
       rst        => rst,
       clr        => clr_i(n), -- accumulator enabled in last instance only!
       vld        => vld,
-      sub        => sub_i(2*n to 2*n+1),
+      sub        => neg_i(2*n to 2*n+1),
       x0         => x_i(2*n),
       y0         => y_i(2*n),
       x1         => x_i(2*n+1),

@@ -22,7 +22,7 @@ lappend filelist $SCRIPTPATH/signed_mult1_accu.ultrascale.vhdl
 lappend filelist $SCRIPTPATH/signed_mult1add1_accu.ultrascale.vhdl
 lappend filelist $SCRIPTPATH/signed_mult1add1_sum.ultrascale.vhdl
 lappend filelist $SCRIPTPATH/signed_mult2_accu.ultrascale.vhdl
-lappend filelist $SCRIPTPATH/signed_multN.ultrascale.vhdl
+lappend filelist $SCRIPTPATH/signed_mult.ultrascale.vhdl
 lappend filelist $SCRIPTPATH/signed_preadd_mult1_accu.ultrascale.vhdl
 
 # compile file list

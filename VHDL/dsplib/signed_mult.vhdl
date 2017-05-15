@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_multN.vhdl
+--! @file       signed_mult.vhdl
 --! @author     Fixitfetish
 --! @date       23/Feb/2017
 --! @version    0.30
@@ -7,14 +7,14 @@
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
 library ieee;
- use ieee.std_logic_1164.all;
- use ieee.numeric_std.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
 library baselib;
- use baselib.ieee_extension_types.all;
+  use baselib.ieee_extension_types.all;
 
 --! @brief N parallel and synchronous signed multiplications.
 --!
---! @image html signed_multN.svg "" width=600px
+--! @image html signed_mult.svg "" width=600px
 --!
 --! The behavior is as follows
 --! * vld=0  ->  r(n) = r(n)            # hold previous
@@ -33,7 +33,7 @@ library baselib;
 --!
 --! VHDL Instantiation Template:
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
---! I1 : signed_multN
+--! I1 : signed_mult
 --! generic map(
 --!   NUM_MULT           => positive, -- number of parallel multiplications
 --!   NUM_INPUT_REG      => natural,  -- number of input registers
@@ -57,7 +57,7 @@ library baselib;
 --! );
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-entity signed_multN is
+entity signed_mult is
 generic (
   --! Number of parallel multiplications - mandatory generic!
   NUM_MULT : positive;
@@ -109,7 +109,8 @@ port (
 begin
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
-    report "WARNING signed_multN : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
+    report "WARNING in " & signed_mult'INSTANCE_NAME &
+           " Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 
 end entity;

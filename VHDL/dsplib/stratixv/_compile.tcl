@@ -29,9 +29,9 @@ lappend filelist $SCRIPTPATH/signed_mult2.stratixv_partial.vhdl
 lappend filelist $SCRIPTPATH/signed_mult3.stratixv_compact.vhdl
 lappend filelist $SCRIPTPATH/signed_mult4_sum.stratixv.vhdl
 lappend filelist $SCRIPTPATH/signed_multn_chain_accu.stratixv.vhdl
-lappend filelist $SCRIPTPATH/signed_multN_accu.stratixv.vhdl
-lappend filelist $SCRIPTPATH/signed_multN_sum.stratixv.vhdl
-lappend filelist $SCRIPTPATH/signed_multN.stratixv.vhdl
+lappend filelist $SCRIPTPATH/signed_mult_accu.stratixv.vhdl
+lappend filelist $SCRIPTPATH/signed_mult_sum.stratixv.vhdl
+lappend filelist $SCRIPTPATH/signed_mult.stratixv.vhdl
 lappend filelist $SCRIPTPATH/signed_preadd_mult1_accu.stratixv.vhdl
 
 # compile file list

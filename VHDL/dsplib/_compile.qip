@@ -13,9 +13,9 @@ set_global_assignment -library dsplib -name VHDL_FILE [file join $::quartus(qip_
 set_global_assignment -library dsplib -name VHDL_FILE [file join $::quartus(qip_path) "signed_mult3.vhdl"]
 set_global_assignment -library dsplib -name VHDL_FILE [file join $::quartus(qip_path) "signed_mult4_sum.vhdl"]
 set_global_assignment -library dsplib -name VHDL_FILE [file join $::quartus(qip_path) "signed_multn_chain_accu.vhdl"]
-set_global_assignment -library dsplib -name VHDL_FILE [file join $::quartus(qip_path) "signed_multN.vhdl"]
-set_global_assignment -library dsplib -name VHDL_FILE [file join $::quartus(qip_path) "signed_multN_accu.vhdl"]
-set_global_assignment -library dsplib -name VHDL_FILE [file join $::quartus(qip_path) "signed_multN_sum.vhdl"]
+set_global_assignment -library dsplib -name VHDL_FILE [file join $::quartus(qip_path) "signed_mult.vhdl"]
+set_global_assignment -library dsplib -name VHDL_FILE [file join $::quartus(qip_path) "signed_mult_accu.vhdl"]
+set_global_assignment -library dsplib -name VHDL_FILE [file join $::quartus(qip_path) "signed_mult_sum.vhdl"]
 set_global_assignment -library dsplib -name VHDL_FILE [file join $::quartus(qip_path) "signed_preadd_mult1_accu.vhdl"]
 
 # generic --- TODO
