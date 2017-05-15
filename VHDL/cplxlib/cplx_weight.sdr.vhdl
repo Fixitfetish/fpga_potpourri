@@ -124,7 +124,7 @@ begin
   end generate;
 
   -- weighting
-  i_weight : entity dsplib.signed_multN
+  i_weight : entity dsplib.signed_mult
   generic map(
     NUM_MULT           => 2*NUM_MULT,
     NUM_INPUT_REG      => NUM_INPUT_REG,

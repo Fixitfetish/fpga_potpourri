@@ -124,10 +124,10 @@ begin
   end generate;
 
   -- weighting
-  i_re : entity dsplib.signed_multN_sum
+  i_re : entity dsplib.signed_mult_sum
   generic map(
     NUM_MULT           => NUM_MULT,
-    FAST_MODE          => HIGH_SPEED_MODE,
+    HIGH_SPEED_MODE    => HIGH_SPEED_MODE,
     NUM_INPUT_REG      => NUM_INPUT_REG,
     NUM_OUTPUT_REG     => 1, -- always enable DSP cell output register (= first output register)
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -139,7 +139,7 @@ begin
     clk        => clk,
     rst        => data_reset,
     vld        => vld,
-    sub        => neg_re,
+    neg        => neg_re,
     x          => x_re,
     y          => w_dsp,
     result     => rslt(0).re,
@@ -149,10 +149,10 @@ begin
   );
 
   -- weighting
-  i_im : entity dsplib.signed_multN_sum
+  i_im : entity dsplib.signed_mult_sum
   generic map(
     NUM_MULT           => NUM_MULT,
-    FAST_MODE          => HIGH_SPEED_MODE,
+    HIGH_SPEED_MODE    => HIGH_SPEED_MODE,
     NUM_INPUT_REG      => NUM_INPUT_REG,
     NUM_OUTPUT_REG     => 1, -- always enable DSP cell output register (= first output register)
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -164,7 +164,7 @@ begin
     clk        => clk,
     rst        => data_reset,
     vld        => vld,
-    sub        => neg_im,
+    neg        => neg_im,
     x          => x_im,
     y          => w_dsp,
     result     => rslt(0).im,

@@ -18,7 +18,7 @@ library dsplib;
 
 --! @brief N complex multiplications and sum all (Single Data Rate).
 --!
---! This implementation requires the FPGA device dependent entity signed_multN_sum.
+--! This implementation requires the FPGA device dependent entity signed_mult_sum.
 --! @image html cplx_mult_sum.sdr.svg "" width=800px
 --!
 --! In general this multiplier can be used when FPGA DSP cells are clocked with
@@ -26,7 +26,7 @@ library dsplib;
 --!
 --! | FPGA Type  | Limitation
 --! |:-----------|:-------------------------------------------------------------
---! | Stratix V  | Input factor pairs with even index 0,2,4,6,etc. cannot be subtracted
+--! | Stratix V  | Input factor pairs with even index 0,2,4,6,etc. cannot be negated
 --!
 --! NOTE: The double rate clock 'clk2' is irrelevant and unused here.
 
@@ -140,10 +140,10 @@ begin
   end generate;
 
   -- calculate real component
-  i_re : entity dsplib.signed_multN_sum
+  i_re : entity dsplib.signed_mult_sum
   generic map(
     NUM_MULT           => 2*NUM_MULT, -- two multiplications per complex multiplication
-    FAST_MODE          => HIGH_SPEED_MODE,
+    HIGH_SPEED_MODE    => HIGH_SPEED_MODE,
     NUM_INPUT_REG      => NUM_INPUT_REG,
     NUM_OUTPUT_REG     => 1, -- always enable DSP cell output register (= first output register)
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -155,7 +155,7 @@ begin
     clk        => clk,
     rst        => data_reset,
     vld        => vld,
-    sub        => neg_re,
+    neg        => neg_re,
     x          => x_re,
     y          => y_re,
     result     => rslt(0).re,
@@ -165,10 +165,10 @@ begin
   );
 
   -- calculate imaginary component
-  i_im : entity dsplib.signed_multN_sum
+  i_im : entity dsplib.signed_mult_sum
   generic map(
     NUM_MULT           => 2*NUM_MULT, -- two multiplications per complex multiplication
-    FAST_MODE          => HIGH_SPEED_MODE,
+    HIGH_SPEED_MODE    => HIGH_SPEED_MODE,
     NUM_INPUT_REG      => NUM_INPUT_REG,
     NUM_OUTPUT_REG     => 1, -- always enable DSP cell output register (= first output register)
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -180,7 +180,7 @@ begin
     clk        => clk,
     rst        => data_reset,
     vld        => vld,
-    sub        => neg_im,
+    neg        => neg_im,
     x          => x_im,
     y          => y_im,
     result     => rslt(0).im,

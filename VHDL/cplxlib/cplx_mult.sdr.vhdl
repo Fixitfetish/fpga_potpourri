@@ -43,7 +43,7 @@ architecture sdr of cplx_mult is
 
   signal x_re, x_im : signed_vector(0 to 2*NUM_MULT-1);
   signal y_re, y_im : signed_vector(0 to 2*NUM_MULT-1);
-  signal sub_re, sub_im : std_logic_vector(0 to 2*NUM_MULT-1) := (others=>'0');
+  signal neg_re, neg_im : std_logic_vector(0 to 2*NUM_MULT-1) := (others=>'0');
 
   -- merged input signals and compensate for multiplier pipeline stages
   type t_delay is array(integer range <>) of std_logic_vector(0 to NUM_MULT-1);
@@ -94,13 +94,13 @@ begin
 
   g_in : for n in 0 to NUM_MULT-1 generate
     -- map inputs for calculation of real component
-    sub_re(2*n)   <= neg(n); -- +/-(+x.re*y.re)
-    sub_re(2*n+1) <= not neg(n); -- +/-(-x.im*y.im)
+    neg_re(2*n)   <= neg(n); -- +/-(+x.re*y.re)
+    neg_re(2*n+1) <= not neg(n); -- +/-(-x.im*y.im)
     x_re(2*n)     <= x(n).re;
     x_re(2*n+1)   <= x(n).im;
     -- map inputs for calculation of imaginary component
-    sub_im(2*n)   <= neg(n); -- +/-(+x.re*y.im)
-    sub_im(2*n+1) <= neg(n); -- +/-(+x.im*y.re)
+    neg_im(2*n)   <= neg(n); -- +/-(+x.re*y.im)
+    neg_im(2*n+1) <= neg(n); -- +/-(+x.im*y.re)
     x_im(2*n)     <= x(n).re;
     x_im(2*n+1)   <= x(n).im;
     g1 : if NUM_FACTOR=1 generate
@@ -132,10 +132,10 @@ begin
 
   g_mult : for n in 0 to NUM_MULT-1 generate
     -- calculate real component
-    i_re : entity dsplib.signed_multN_sum
+    i_re : entity dsplib.signed_mult_sum
     generic map(
       NUM_MULT           => 2, -- two multiplications per complex multiplication
-      FAST_MODE          => HIGH_SPEED_MODE,
+      HIGH_SPEED_MODE    => HIGH_SPEED_MODE,
       NUM_INPUT_REG      => NUM_INPUT_REG,
       NUM_OUTPUT_REG     => 1, -- always enable DSP cell output register (= first output register)
       OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -147,7 +147,7 @@ begin
      clk        => clk,
      rst        => data_reset(n),
      vld        => vld(n),
-     sub        => sub_re(2*n to 2*n+1),
+     neg        => neg_re(2*n to 2*n+1),
      x          => x_re(2*n to 2*n+1),
      y          => y_re(2*n to 2*n+1),
      result     => rslt(0)(n).re,
@@ -157,10 +157,10 @@ begin
     );
 
     -- calculate imaginary component
-    i_im : entity dsplib.signed_multN_sum
+    i_im : entity dsplib.signed_mult_sum
     generic map(
       NUM_MULT           => 2, -- two multiplications per complex multiplication
-      FAST_MODE          => HIGH_SPEED_MODE,
+      HIGH_SPEED_MODE    => HIGH_SPEED_MODE,
       NUM_INPUT_REG      => NUM_INPUT_REG,
       NUM_OUTPUT_REG     => 1, -- always enable DSP cell output register (= first output register)
       OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -172,7 +172,7 @@ begin
      clk        => clk,
      rst        => data_reset(n),
      vld        => vld(n),
-     sub        => sub_im(2*n to 2*n+1),
+     neg        => neg_im(2*n to 2*n+1),
      x          => x_im(2*n to 2*n+1),
      y          => y_im(2*n to 2*n+1),
      result     => rslt(0)(n).im,

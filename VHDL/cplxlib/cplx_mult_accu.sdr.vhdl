@@ -138,7 +138,7 @@ begin
   end generate;
 
   -- calculate real component
-  i_re : entity dsplib.signed_multN_accu
+  i_re : entity dsplib.signed_mult_accu
   generic map(
     NUM_MULT           => 2*NUM_MULT, -- two multiplications per complex multiplication
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
@@ -155,7 +155,7 @@ begin
     rst        => data_reset,
     clr        => clr,
     vld        => vld,
-    sub        => neg_re,
+    neg        => neg_re,
     x          => x_re,
     y          => y_re,
     result     => rslt(0).re,
@@ -167,7 +167,7 @@ begin
   );
 
   -- calculate imaginary component
-  i_im : entity dsplib.signed_multN_accu
+  i_im : entity dsplib.signed_mult_accu
   generic map(
     NUM_MULT           => 2*NUM_MULT, -- two multiplications per complex multiplication
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
@@ -184,7 +184,7 @@ begin
     rst        => data_reset,
     clr        => clr,
     vld        => vld,
-    sub        => neg_im,
+    neg        => neg_im,
     x          => x_im,
     y          => y_im,
     result     => rslt(0).im,
