@@ -11,6 +11,7 @@ library ieee;
   use ieee.numeric_std.all;
 library baselib;
   use baselib.ieee_extension.all;
+library dsplib;
 
 --! @brief This is an implementation of the entity 
 --! @link signed_mult signed_mult @endlink
@@ -82,7 +83,7 @@ begin
 
    g_n: for n in 0 to (NUM_ENTITY-1) generate
 
-    mult1 : entity fixitfetish.signed_mult1_accu(ultrascale)
+    mult1 : entity dsplib.signed_mult1_accu(ultrascale)
     generic map(
       NUM_SUMMAND        => 1,
       USE_CHAIN_INPUT    => false,

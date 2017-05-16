@@ -12,6 +12,7 @@ library ieee;
 library baselib;
   use baselib.ieee_extension_types.all;
   use baselib.ieee_extension.all;
+library dsplib;
 
 --! @brief This is an implementation of the entity 
 --! @link signed_mult_accu signed_mult_accu @endlink
@@ -116,7 +117,7 @@ begin
   clr_i(NUM_ENTITY-1) <= clr; -- accumulator enabled in last instance only!
 
   g_n: for n in 0 to (NUM_ENTITY-1) generate
-    mult2 : entity fixitfetish.signed_mult2_accu
+    mult2 : entity dsplib.signed_mult2_accu
     generic map(
       NUM_SUMMAND        => summands(n),
       USE_CHAIN_INPUT    => chain_input(n),

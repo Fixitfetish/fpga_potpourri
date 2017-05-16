@@ -11,6 +11,7 @@ library ieee;
   use ieee.numeric_std.all;
 library baselib;
   use baselib.ieee_extension.all;
+library dsplib;
 
 --! @brief This implementation uses a chain of the two instances signed_mult4_sum and
 --! signed_mult4_accu and requires one pipeline register less than the chaining
@@ -50,7 +51,7 @@ begin
   signed_sink(chainin);
 
   -- first instance performs just sum of four products without accumulation
-  i1 : entity fixitfetish.signed_mult4_sum
+  i1 : entity dsplib.signed_mult4_sum
   generic map(
     NUM_INPUT_REG      => NUM_INPUT_REG,
     NUM_OUTPUT_REG     => 1, -- Enable DSP cell internal output register which is used as pipeline register to drive the chain output
@@ -82,7 +83,7 @@ begin
   signed_sink(dummy);
 
   -- second instance with accumulator
-  i2 : entity fixitfetish.signed_mult4_accu
+  i2 : entity dsplib.signed_mult4_accu
   generic map(
     NUM_SUMMAND        => NUM_SUMMAND,
     USE_CHAIN_INPUT    => true,

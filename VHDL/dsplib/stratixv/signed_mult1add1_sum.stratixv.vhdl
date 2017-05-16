@@ -11,6 +11,7 @@ library ieee;
   use ieee.numeric_std.all;
 library baselib;
   use baselib.ieee_extension.all;
+library dsplib;
 
 library stratixv;
   use stratixv.stratixv_components.all;
@@ -41,7 +42,7 @@ architecture stratixv of signed_mult1add1_sum is
 begin
 
   -- derive from instance with accumulator
-  i_accu : entity fixitfetish.signed_mult1add1_accu
+  i_accu : entity dsplib.signed_mult1add1_accu
   generic map(
     NUM_SUMMAND        => NUM_SUMMAND,
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,

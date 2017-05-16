@@ -11,6 +11,7 @@ library ieee;
   use ieee.numeric_std.all;
 library baselib;
   use baselib.ieee_extension.all;
+library dsplib;
 
 --! @brief This is an implementation of the entity 
 --! @link signed_mult2_accu signed_mult2_accu @endlink
@@ -54,7 +55,7 @@ architecture ultrascale of signed_mult2_accu is
 
 begin
 
-  dsp0 : entity fixitfetish.signed_mult1_accu(ultrascale)
+  dsp0 : entity dsplib.signed_mult1_accu(ultrascale)
   generic map(
     NUM_SUMMAND        => 1, -- irrelevant because chain output is used
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
@@ -83,7 +84,7 @@ begin
 
   signed_sink(dummy);
 
-  dsp1 : entity fixitfetish.signed_mult1_accu(ultrascale)
+  dsp1 : entity dsplib.signed_mult1_accu(ultrascale)
   generic map(
     NUM_SUMMAND        => NUM_SUMMAND,
     USE_CHAIN_INPUT    => true,

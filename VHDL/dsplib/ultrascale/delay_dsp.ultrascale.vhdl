@@ -51,7 +51,7 @@ architecture ultrascale of delay_dsp is
   end function;
 
   -- number of DSPs
-  function ndsp return natural is
+  function ndsp(din:std_logic_vector) return natural is
   begin
     if NUM_PIPELINE_STAGES<=3 then
       return (din'length+47)/48; -- ceil(din'length/48)
@@ -63,7 +63,7 @@ architecture ultrascale of delay_dsp is
   end function;
 
   constant W : natural := wdsp;
-  constant N : natural := ndsp;
+  constant N : natural := ndsp(din);
   constant FLUSH_ENABLE : boolean := (FLUSH_RESET_VALUE'length=din'length);
 
   -- Enable/disable  A2 and B2 register stage
@@ -77,7 +77,7 @@ architecture ultrascale of delay_dsp is
 
   -- map reset value to RND inputs
   function get_rnd(val:std_logic_vector) return t_p48 is
-    variable res : t_p48 := (others=>(other=>'0'));
+    variable res : t_p48 := (others=>(others=>'0'));
     constant F : natural := val'length;
   begin
     if FLUSH_ENABLE then
@@ -110,7 +110,7 @@ begin
   rst_q(0) <= rst when FLUSH_ENABLE else '0';
   grst: if NUM_PIPELINE_STAGES>=3 generate
     rst_q(1 to NUM_PIPELINE_STAGES-2) <= rst_q(0 to NUM_PIPELINE_STAGES-3)
-                                         when (rising_egde(clk) and pclkena='1');
+                                         when (rising_edge(clk) and pclkena='1');
 --  begin
 --    p_rst: process(clk)
 --    begin
@@ -423,7 +423,7 @@ begin
     end generate;
     -- partial DSP output
     g_last : if k=(N-1) generate
-      dout(dout'length-1 downto k*W) <= pout(n)(dout'length-1-k*W downto 0);
+      dout(dout'length-1 downto k*W) <= pout(k)(dout'length-1-k*W downto 0);
     end generate;
   end generate;
 

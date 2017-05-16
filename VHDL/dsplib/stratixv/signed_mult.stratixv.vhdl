@@ -11,6 +11,7 @@ library ieee;
   use ieee.numeric_std.all;
 library baselib;
   use baselib.ieee_extension.all;
+library dsplib;
 
 --! @brief This is an implementation of the entity 
 --! @link signed_mult signed_mult @endlink
@@ -94,7 +95,7 @@ begin
   g_partial : if NUM_MULT_PER_ENTITY=2 generate
    g_n: for n in 0 to (NUM_ENTITY-1) generate
 
-    mult2 : entity fixitfetish.signed_mult2(stratixv_partial)
+    mult2 : entity dsplib.signed_mult2(stratixv_partial)
     generic map(
       NUM_INPUT_REG      => NUM_INPUT_REG,
       NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
@@ -129,7 +130,7 @@ begin
   g_compact : if NUM_MULT_PER_ENTITY=3 generate
    g_n: for n in 0 to (NUM_ENTITY-1) generate
 
-    mult3 : entity fixitfetish.signed_mult3(stratixv_compact)
+    mult3 : entity dsplib.signed_mult3(stratixv_compact)
     generic map(
       NUM_INPUT_REG      => NUM_INPUT_REG,
       NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
@@ -167,7 +168,7 @@ begin
 
    g_n: for n in 0 to (NUM_ENTITY-1) generate
 
-    mult1 : entity fixitfetish.signed_mult1_accu(stratixv)
+    mult1 : entity dsplib.signed_mult1_accu(stratixv)
     generic map(
       NUM_SUMMAND        => 1,
       USE_CHAIN_INPUT    => false,
