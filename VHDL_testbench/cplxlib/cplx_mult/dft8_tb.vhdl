@@ -100,7 +100,7 @@ begin
     data_out => fft1_out
   );
 
-  i_ifft_out_ser : entity cplxlib.cplx_vector_serialization
+  i_fft1_out_ser : entity cplxlib.cplx_vector_serialization
   port map (
     clk      => clk,
     rst      => rst,
@@ -115,7 +115,7 @@ begin
     LOG_DECIMAL => true,
     LOG_INVALID => true,
     LOG_FILE => "result_log.txt",
-    TITLE1 => "FFT1_IN"
+    TITLE1 => "FFT1_OUT"
   )
   port map (
     clk    => clk,
