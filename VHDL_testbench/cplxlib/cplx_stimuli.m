@@ -56,8 +56,8 @@ classdef cplx_stimuli
    end
 
    function ch = get.NumChars(obj)
-     % number of characters per line (3 bits + 2 signed + 10 spaces)
-     ch = 3 + 2*obj.NumDigits + 10;
+     % number of characters per line (3 bits + 2 signed + 12 spaces)
+     ch = 3 + 2*obj.NumDigits + 12;
    end
 
    function obj = appendReset(obj,n)
@@ -138,7 +138,7 @@ classdef cplx_stimuli
    function c = get.CplxChar(obj)
      % cplx output format
      cformat = ['%',num2str(obj.NumDigits),'d'];
-     cformat = ['%3d%4d%4d ',cformat,' ',cformat];
+     cformat = ['%3d%4d%4d ',cformat,' ',cformat,'  '];
      % create character matrix
      c = repmat(' ',obj.Length,obj.NumChars);
      for n=1:obj.Length,
@@ -147,7 +147,8 @@ classdef cplx_stimuli
      end
      % add optional header when title available
      if ~isempty(obj.Title),
-       hformat = ['RST VLD OVF %',num2str(obj.NumDigits),'s %',num2str(obj.NumDigits),'s'];
+       hformat = ['%',num2str(obj.NumDigits),'s'];
+       hformat = ['RST VLD OVF ',hformat,' ',hformat,'  '];
        h = [ sprintf(['%-',num2str(obj.NumChars),'s'],obj.Title) ;
              sprintf(hformat,'REAL','IMAG') ];
        c = [ h ; c ];

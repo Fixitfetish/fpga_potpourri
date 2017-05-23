@@ -23,30 +23,14 @@ architecture sim of dft8_tb is
 
   signal clk : std_logic := '1';
   signal rst : std_logic := '1';
-  signal fft1_start : std_logic := '0';
   signal finish : std_logic := '0';
-  signal fft1_in : cplx_vector(0 to 7) := cplx_vector_reset(18,8,"R");
+
+  signal fft1_in_start : std_logic := '0';
+  signal fft1_in_idx : unsigned(2 downto 0);
   signal fft1_in_ser : cplx;
-  signal fft1_out : cplx;
-  signal fft1_out_idx : unsigned(2 downto 0);
 
-  signal ifft1_start : std_logic := '0';
-  signal ifft1_out : cplx_vector(0 to 7);
-  signal ifft1_out_ser : cplx;
-
-  type integer_vector is array(integer range <>) of integer;
-  type integer_matrix8 is array(integer range <>) of integer_vector(0 to 7);
-
-  constant RE : integer_matrix8(0 to 2) := (
-    (  67272, -53923,  57111,  23748,-44332, -71022,  66992, -81005), -- first input
-    (  54047, -54236,  64216, -59296, 63667, -39001,  60444, -52812), -- second input (1 expected overflow)
-    ( -52268,  -4860, -39079, 104958,-49662,  -6843, -54892, 112924)  -- third input (2 expected overflows)
-  );
-  constant IM : integer_matrix8(0 to 2) := (
-    (  33774, -71192, -21872, -76892, -63453,  68615, -59628, -61097), -- first input
-    ( -49662,  46228, -54892,  59853, -52268,  48211, -39079,  51888), -- second input (1 expected overflow)
-    (  87830, -34948,  -8143, -40008,  97450, -19713, -11914, -33524)  -- third input (2 expected overflows)
-  );
+  signal fft1_out : cplx_vector(0 to 7) := cplx_vector_reset(18,8,"R");
+  signal fft1_out_ser : cplx;
 
   -- FFT Result Reference , Octave: fft(re+1i*im)/sqrt(8)
   --
@@ -75,155 +59,68 @@ begin
     wait; -- stop clock
   end process;
 
-  p_stimuli: process
+  -- release reset
+  rst <= '0' after 2*PERIOD;
+
+  i_stimuli : entity work.cplx_stimuli
+  generic map(
+    SKIP_PRECEDING_LINES => 0,
+    GEN_DECIMAL => true,
+    GEN_INVALID => true,
+    GEN_FILE => "stimuli.txt"
+  )
+  port map (
+    clk    => clk,
+    rst    => rst,
+    dout   => fft1_in_ser,
+    finish => finish
+  );
+
+  p_start : process(clk)
   begin
-    for k in 1 to 5 loop
-      wait until rising_edge(clk);
-    end loop;
-    rst <= '0';
-    wait until rising_edge(clk);
-    wait until rising_edge(clk);
-    for n in 0 to 7 loop
-      fft1_in(n).rst <= '0';
-    end loop;
-    wait until rising_edge(clk);
-
-    -- 1st FFT
-    for n in 0 to 7 loop
-      fft1_in(n).vld <= '1';
-      fft1_in(n).re <= to_signed(RE(0)(n),18);
-      fft1_in(n).im <= to_signed(IM(0)(n),18);
-    end loop;
-    fft1_start <= '1';
-    wait until rising_edge(clk);
-    fft1_start <= '0';
-    -- 8-1 cycles
-    for i in 1 to 7 loop 
-      wait until rising_edge(clk);
-    end loop;
-    for n in 0 to 7 loop
-      fft1_in(n).vld <= '0';
-    end loop;
-    wait until rising_edge(clk);
-    
-    -- 2nd FFT
-    for n in 0 to 7 loop
-      fft1_in(n).vld <= '1';
-      fft1_in(n).re <= to_signed(RE(1)(n),18);
-      fft1_in(n).im <= to_signed(IM(1)(n),18);
-    end loop;
-    fft1_start <= '1';
-    wait until rising_edge(clk);
-    fft1_start <= '0';
-    -- 8-1 cycles
-    for i in 1 to 7 loop 
-      wait until rising_edge(clk);
-    end loop;
-    for n in 0 to 7 loop
-      fft1_in(n).vld <= '0';
-    end loop;
-    wait until rising_edge(clk);
-
-    -- 3rd FFT
-    for n in 0 to 7 loop
-      fft1_in(n).vld <= '1';
-      fft1_in(n).re <= to_signed(RE(2)(n),18);
-      fft1_in(n).im <= to_signed(IM(2)(n),18);
-    end loop;
-    fft1_start <= '1';
-    wait until rising_edge(clk);
-    fft1_start <= '0';
-    -- 8-1 cycles
-    for i in 1 to 7 loop 
-      wait until rising_edge(clk);
-    end loop;
-
-    -- 1st FFT
-    for n in 0 to 7 loop
-      fft1_in(n).vld <= '1';
-      fft1_in(n).re <= to_signed(RE(0)(n),18);
-      fft1_in(n).im <= to_signed(IM(0)(n),18);
-    end loop;
-    fft1_start <= '1';
-    wait until rising_edge(clk);
-    fft1_start <= '0';
-    -- 8-1 cycles
-    for i in 1 to 7 loop 
-      wait until rising_edge(clk);
-    end loop;
-    for n in 0 to 7  loop
-      fft1_in(n).vld <= '0';
-    end loop;
-
-    for k in 1 to 30 loop
-      wait until rising_edge(clk);
-    end loop;
-    finish <= '1';
-    
-    wait; -- end of process
+    if rising_edge(clk) then
+      if rst='1' then
+        fft1_in_idx <= (others=>'0');
+      elsif fft1_in_ser.vld='1' then
+        fft1_in_idx <= fft1_in_idx + 1;
+      end if;
+    end if;
   end process;
 
-  i_fft1 : entity work.dft8_v1
+  fft1_in_start <= fft1_in_ser.vld when fft1_in_idx=0 else '0';
+
+  i_fft1 : entity work.dft8_v2
   port map (
     clk      => clk,
     rst      => rst,
     inverse  => '0',
-    start    => fft1_start,
-    data_in  => fft1_in,
-    idx_out  => fft1_out_idx,
+    start    => fft1_in_start,
+    idx_in   => fft1_in_idx,
+    data_in  => fft1_in_ser,
     data_out => fft1_out
-  );
-
-  ifft1_start <= fft1_out.vld when fft1_out_idx=0 else '0';
-
-  i_ifft1 : entity work.dft8_v2
-  port map (
-    clk      => clk,
-    rst      => rst,
-    inverse  => '1',
-    start    => ifft1_start,
-    idx_in   => fft1_out_idx,
-    data_in  => fft1_out,
-    data_out => ifft1_out
-  );
-
-  i_fft_in_ser : entity cplxlib.cplx_vector_serialization
-  port map (
-    clk      => clk,
-    rst      => rst,
-    start    => fft1_start,
-    vec_in   => fft1_in,
-    idx_out  => open,
-    ser_out  => fft1_in_ser
   );
 
   i_ifft_out_ser : entity cplxlib.cplx_vector_serialization
   port map (
     clk      => clk,
     rst      => rst,
-    start    => ifft1_out(0).vld,
-    vec_in   => ifft1_out,
+    start    => fft1_out(0).vld,
+    vec_in   => fft1_out,
     idx_out  => open,
-    ser_out  => ifft1_out_ser
+    ser_out  => fft1_out_ser
   );
 
-  i_log : entity work.cplx_logger4
+  i_log : entity work.cplx_logger
   generic map(
     LOG_DECIMAL => true,
     LOG_INVALID => true,
     LOG_FILE => "result_log.txt",
-    TITLE1 => "FFT1_IN",
-    TITLE2 => "FFT1 OUT",
-    TITLE3 => "IFFT_OUT",
-    TITLE4 => "UNUSED"
+    TITLE1 => "FFT1_IN"
   )
   port map (
     clk    => clk,
     rst    => rst,
-    din1   => fft1_in_ser,
-    din2   => fft1_out,
-    din3   => ifft1_out_ser,
-    din4   => open,
+    din    => fft1_out_ser,
     finish => finish
   );
 

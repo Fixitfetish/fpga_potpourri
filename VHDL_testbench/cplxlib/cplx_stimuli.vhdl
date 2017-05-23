@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------------------
--- FILE    : cplx_stimuli4.vhdl   
+-- FILE    : cplx_stimuli.vhdl   
 -- AUTHOR  : Fixitfetish
 -- DATE    : 01/May/2017
 -- VERSION : 0.30
@@ -17,7 +17,7 @@ library cplxlib;
 
 use std.textio.all;
 
-entity cplx_stimuli4 is
+entity cplx_stimuli is
 generic(
   SKIP_PRECEDING_LINES : natural := 0;
   GEN_INVALID : boolean := true;
@@ -27,17 +27,14 @@ generic(
 port(
   clk    : in  std_logic;
   rst    : in  std_logic;
-  dout1  : out cplx ;--:= cplx_reset(18,"R");
-  dout2  : out cplx ;--:= cplx_reset(18,"R");
-  dout3  : out cplx ;--:= cplx_reset(18,"R");
-  dout4  : out cplx ;--:= cplx_reset(18,"R");
+  dout   : out cplx ;--:= cplx_reset(18,"R");
   finish : out std_logic := '0'
 );
 end entity;
 
 -------------------------------------------------------------------------------
 
-architecture sim of cplx_stimuli4 is
+architecture sim of cplx_stimuli is
 
   file   ifile : text; -- input file
 
@@ -81,10 +78,7 @@ begin
   p_stimuli: process
     variable in_line  : line;
   begin
-    dout1 <= cplx_reset(18,"R");
-    dout2 <= cplx_reset(18,"R");
-    dout3 <= cplx_reset(18,"R");
-    dout4 <= cplx_reset(18,"R");
+    dout <= cplx_reset(18,"R");
     
     file_open(ifile,GEN_FILE,READ_MODE);
     
@@ -102,20 +96,13 @@ begin
     -- start reading at 4th line
     readline(ifile,in_line);
     while not endfile(ifile) loop
-      -- 1st cplx 
-      cplx_read(GEN_DECIMAL, in_line, dout1);
-      -- 2nd cplx
-      cplx_read(GEN_DECIMAL, in_line, dout2);
-      -- 3rd cplx
-      cplx_read(GEN_DECIMAL, in_line, dout3);
-      -- 4th cplx
-      cplx_read(GEN_DECIMAL, in_line, dout4);
+      cplx_read(GEN_DECIMAL, in_line, dout);
       wait until rising_edge(clk);
       readline(ifile,in_line);
     end loop; -- stimuli loop
     
     file_close(ifile);
-    report "Reading CPLX stimuli file completed." severity note;
+    report "Reading CPLX stimuli file " & GEN_FILE & " completed." severity note;
     finish_i <= '1';
     wait until rising_edge(clk);
 

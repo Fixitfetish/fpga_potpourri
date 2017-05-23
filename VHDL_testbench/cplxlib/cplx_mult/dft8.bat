@@ -43,7 +43,8 @@ if exist %VCD% (
 @echo on
 
 @set LIB=work
-%COMPILE%%LIB% ..\cplx_logger4.vhdl
+%COMPILE%%LIB% ..\cplx_stimuli.vhdl
+%COMPILE%%LIB% ..\cplx_logger.vhdl
 %COMPILE%%LIB% dftmtx8.vhdl
 %COMPILE%%LIB% dft8_v1.vhdl
 %COMPILE%%LIB% dft8_v2.vhdl
