@@ -26,6 +26,10 @@ package file_io_pkg is
   procedure hex_write(l:inout line; val:in unsigned; justified:in side:=right; field:in width:=0);
   procedure hex_write(l:inout line; val:in signed; justified:in side:=right; field:in width:=0);
 
+  -- decimal read
+  procedure dec_read(l:inout line; val:out unsigned);
+  procedure dec_read(l:inout line; val:out signed);
+
 end package;
 
 -------------------------------------------------------------------------------
@@ -102,5 +106,40 @@ package body file_io_pkg is
     hexstr_from_signed(val,str);
     write(l,str,justified,field);
   end procedure;
+
+
+
+  procedure dec_read(l:inout line; val:out unsigned) is
+    variable str : string(1 to 16); -- max 16 characters
+    variable c : integer range 1 to 16 := 1;
+  begin
+    loop -- skip preceding white spaces
+      read(l,str(c));
+      exit when ((str(c)/=' ') and (str(c)/=CR) and (str(c)/=HT));
+    end loop;
+    loop -- read until next white space
+      c := c + 1;
+      read(l,str(c));
+      exit when ((str(c)=' ') or (str(c)=CR) or (str(c)=HT));
+    end loop;
+    decstr_to_unsigned(str(1 to c-1),val);
+  end procedure;
+
+  procedure dec_read(l:inout line; val:out signed) is
+    variable str : string(1 to 16); -- max 16 characters
+    variable c : integer range 1 to 16 := 1;
+  begin
+    loop -- skip preceding white spaces
+      read(l,str(c));
+      exit when ((str(c)/=' ') and (str(c)/=CR) and (str(c)/=HT));
+    end loop;
+    loop -- read until next white space
+      c := c + 1;
+      read(l,str(c));
+      exit when ((str(c)=' ') or (str(c)=LF) or (str(c)=CR) or (str(c)=HT));
+    end loop;
+    decstr_to_signed(str(1 to c-1),val);
+  end procedure;
+
 
  end package body;
