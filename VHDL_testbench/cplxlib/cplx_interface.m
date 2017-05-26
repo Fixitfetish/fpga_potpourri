@@ -1,4 +1,4 @@
-classdef cplx_stimuli
+classdef cplx_interface
 % description of this class
 
  properties (Access=public)
@@ -10,11 +10,12 @@ classdef cplx_stimuli
  end
 
  properties (GetAccess=public, SetAccess=private)
-   Length = 0 % length of data vector
+   Length = 0 % length of data vector (cycles = rows)
+   VecNum = 0 % number of data vectors (colums)
    CplxWidth % width of signed real/imag data in bits
-   CplxRst = logical([])
-   CplxVld = logical([])
-   CplxOvf = logical([])
+   CplxRst = []
+   CplxVld = []
+   CplxOvf = []
    CplxData = complex([])
  % CplxFormat  decimal/hexadecimal/binary in file ...  TODO  
  end
@@ -28,7 +29,7 @@ classdef cplx_stimuli
 
  methods (Access=public)
  
-   function obj = cplx_stimuli(width,format)
+   function obj = cplx_interface(width,format)
    % class constructor
      if (nargin>=1), obj.CplxWidth = width; end
      if (nargin>=2), obj.Format = format; end
@@ -60,36 +61,67 @@ classdef cplx_stimuli
      ch = 3 + 2*obj.NumDigits + 12;
    end
 
-   function obj = appendReset(obj,n)
-     if (n<1 || n~=fix(n)),
-       error('Number of reset cycles must be positive integer.');
+   function obj = appendReset(obj,L,N)
+     if (L<1 || L~=fix(L)),
+       error('Number of reset cycles L must be positive integer.');
      end
-     obj.CplxRst  = [obj.CplxRst ; true(n,1)];
-     obj.CplxVld  = [obj.CplxVld ; false(n,1)];
-     obj.CplxOvf  = [obj.CplxOvf ; false(n,1)];
-     obj.CplxData = [obj.CplxData; complex(zeros(n,1))];
-     obj.Length = obj.Length + n;
+     if nargin<=2,
+       if obj.VecNum==0,
+         error('Number of data vectors N required with first append.');
+       end
+     elseif (N<1 || N~=fix(N)),
+       error('Number of data vectors must be positive integer.');
+     elseif obj.VecNum==0, % first call of an 'append' function
+       obj.VecNum = N;
+     elseif N~=obj.VecNum,
+       % consequent call of an 'append' function 
+       error(['Number of data vectors N has already been defined to be ',...
+              num2str(obj.VecNum)]);
+     end
+     obj.CplxRst  = [obj.CplxRst ; ones(L,obj.VecNum)];
+     obj.CplxVld  = [obj.CplxVld ; zeros(L,obj.VecNum)];
+     obj.CplxOvf  = [obj.CplxOvf ; zeros(L,obj.VecNum)];
+     obj.CplxData = [obj.CplxData; complex(zeros(L,obj.VecNum))];
+     obj.Length = obj.Length + L;
    end
 
-   function obj = appendInvalid(obj,n)
-     if (n<1 || n~=fix(n)),
-       error('Number of invalid cycles must be positive integer.');
+   function obj = appendInvalid(obj,L,N)
+     if (L<1 || L~=fix(L)),
+       error('Number of invalid cycles L must be positive integer.');
      end
-     obj.CplxRst  = [obj.CplxRst ; false(n,1)];
-     obj.CplxVld  = [obj.CplxVld ; false(n,1)];
-     obj.CplxOvf  = [obj.CplxOvf ; false(n,1)];
-     obj.CplxData = [obj.CplxData; complex(zeros(n,1))];
-     obj.Length = obj.Length + n;
+     if nargin<=2,
+       if obj.VecNum==0,
+         error('Number of data vectors N required with first append.');
+       end
+     elseif (N<1 || N~=fix(N)),
+       error('Number of data vectors N must be positive integer.');
+     elseif obj.VecNum==0, % first call of an 'append' function
+       obj.VecNum = N;
+     elseif N~=obj.VecNum,
+       % consequent call of an 'append' function 
+       error(['Number of data vectors N has already been defined to be ',...
+              num2str(obj.VecNum)]);
+     end
+     obj.CplxRst  = [obj.CplxRst ; zeros(L,obj.VecNum)];
+     obj.CplxVld  = [obj.CplxVld ; zeros(L,obj.VecNum)];
+     obj.CplxOvf  = [obj.CplxOvf ; zeros(L,obj.VecNum)];
+     obj.CplxData = [obj.CplxData; complex(zeros(L,obj.VecNum))];
+     obj.Length = obj.Length + L;
    end
 
    function obj = appendData(obj,data,vld)
-     n = length(data);
-     if (isempty(data) || n~=numel(data)),
-       error('Input data must be a complex row or column vector.');
+     [L,N] = size(data);
+     if ( isempty(data) || (L*N)~=numel(data) ),
+       error('Input data must be a complex column or row vector or a 2-dim matrix.');
      end
-     % convert to column vector
-     data = reshape(data,[],1);
-     ovf = false(n,1);
+     if obj.VecNum==0, % first call of an 'append' function
+       obj.VecNum = N;
+     elseif N~=obj.VecNum,
+       % consequent call of an 'append' function 
+       error(['Number of data vectors N has already been defined to be ',...
+              num2str(obj.VecNum)]);
+     end
+     ovf = false(L,N);
      % convert to integer and round
      if strcmp(obj.Format,'frac'),
        re = round(2^(obj.CplxWidth-1) * real(data));
@@ -115,24 +147,31 @@ classdef cplx_stimuli
 
      % valid flags
      if exist('vld','var'),
-       if length(vld)~=n,
-         error('Input valid flags must have same length as input data.');
+       if size(vld)~=[L,N],
+         error('Input valid flags must have same size as input data.');
        end 
-       vld = logical(reshape(vld,[],1)); % convert to column vector
      else
-       vld = true(n,1);
+       vld = ones(L,N); % all true
      end
 
-     obj.CplxRst  = [obj.CplxRst ; false(n,1) ];
+     obj.CplxRst  = [obj.CplxRst ; zeros(L,N) ];
      obj.CplxVld  = [obj.CplxVld ; vld ];
      obj.CplxOvf  = [obj.CplxOvf ; ovf ];
      obj.CplxData = [obj.CplxData; re+i*im ];
-     obj.Length = obj.Length + n;
+     obj.Length = obj.Length + L;
      
    end
 
    function m = get.CplxMat(obj)
-     m = [ obj.CplxRst, obj.CplxVld, obj.CplxOvf, real(obj.CplxData), imag(obj.CplxData) ];
+     if obj.Length>=1,
+       m = zeros(obj.Length, 5, obj.VecNum);
+       for n=1:obj.VecNum,
+         m(:,:,n) = [ obj.CplxRst(:,n), obj.CplxVld(:,n), obj.CplxOvf(:,n), ...
+                      real(obj.CplxData(:,n)), imag(obj.CplxData(:,n)) ];
+       end
+     else
+       m = [];
+     end
    end
 
    function c = get.CplxChar(obj)
@@ -140,21 +179,30 @@ classdef cplx_stimuli
      cformat = ['%',num2str(obj.NumDigits),'d'];
      cformat = ['%3d%4d%4d ',cformat,' ',cformat,'  '];
      % create character matrix
-     c = repmat(' ',obj.Length,obj.NumChars);
-     for n=1:obj.Length,
-       c(n,:) = sprintf(cformat, obj.CplxRst(n), obj.CplxVld(n), obj.CplxOvf(n),...
-                        real(obj.CplxData(n)), imag(obj.CplxData(n)) );
+     c = repmat(' ', obj.Length, obj.VecNum*obj.NumChars);
+     for n=1:(obj.VecNum),
+       crange = (n-1)*obj.NumChars + (1:obj.NumChars);
+       for l=1:obj.Length,
+         c(l,crange) = ...
+           sprintf(cformat, obj.CplxRst(l,n), obj.CplxVld(l,n), obj.CplxOvf(l,n),...
+                   real(obj.CplxData(l,n)), imag(obj.CplxData(l,n)) );
+       end
      end
      % add optional header when title available
      if ~isempty(obj.Title),
        hformat = ['%',num2str(obj.NumDigits),'s'];
        hformat = ['RST VLD OVF ',hformat,' ',hformat,'  '];
-       h = [ sprintf(['%-',num2str(obj.NumChars),'s'],obj.Title) ;
-             sprintf(hformat,'REAL','IMAG') ];
+       h = repmat(' ', 2, obj.VecNum*obj.NumChars);
+       for n=0:(obj.VecNum-1),
+         hrange = n*obj.NumChars + (1:obj.NumChars);
+         h(:,hrange) = ...
+          [ sprintf(['%-',num2str(obj.NumChars),'s'],[obj.Title,' ',num2str(n)]) ;
+            sprintf(hformat,'REAL','IMAG') ];
+       end
        c = [ h ; c ];
      end
    end %get.CplxChar
-  
+
    function writeFile(obj,fname)
      dlmwrite(fname,obj.CplxChar,'');
    end
@@ -168,16 +216,19 @@ classdef cplx_stimuli
        % title = file name
        [folder,t,ext] = fileparts(fname);
      end
-     obj.CplxRst = logical(x(:,1));
-     obj.CplxVld = logical(x(:,2));
-     obj.CplxOvf = logical(x(:,3));
-     re = x(:,4);
-     im = x(:,5);
+     [L,N] = size(x);
+     N = N/5; % 5 columns per cplx
+     obj.CplxRst = x(:,1:5:end);
+     obj.CplxVld = x(:,2:5:end);
+     obj.CplxOvf = x(:,3:5:end);
+     re = x(:,4:5:end);
+     im = x(:,5:5:end);
      obj.CplxData = re + i*im;
      % derived width including sign bit
-     obj.CplxWidth = ceil(log2( max(abs([re;im])) )) + 1; 
+     obj.CplxWidth = ceil(log2( max(max(abs([re;im]))) )) + 1; 
      % set length after width! (avoid unnecessary clipping)
-     obj.Length = size(x,1);
+     obj.Length = L;
+     obj.VecNum = N;
      obj.Title = t;
    end
  

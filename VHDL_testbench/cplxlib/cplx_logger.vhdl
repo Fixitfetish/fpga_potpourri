@@ -19,15 +19,16 @@ use std.textio.all;
 
 entity cplx_logger is
 generic(
+  NUM_CPLX : natural := 1;
   LOG_DECIMAL : boolean := false;
   LOG_INVALID : boolean := false;
   LOG_FILE : string := "log.txt";
-  TITLE1 : string := "FIRST"
+  TITLE : string := ""
 );
 port(
   clk    : in  std_logic;
   rst    : in  std_logic;
-  din    : in  cplx := cplx_reset(18,"R"); -- default when open
+  din    : in  cplx_vector(0 to NUM_CPLX-1) := cplx_vector_reset(18,NUM_CPLX,"R"); -- default when open
   finish : in  std_logic := '0'
 );
 end entity;
@@ -48,6 +49,28 @@ architecture sim of cplx_logger is
     write(l,value,justified,field);
   end procedure;
 
+  procedure cplx_write(
+    constant DEC : in boolean;
+    variable l : inout line;
+    variable din : in cplx
+  ) is
+    variable v_val : integer;
+  begin
+    write(l,hexstr_from_slv(l(0)=>din.rst),right,3);
+    write(l,hexstr_from_slv(l(0)=>din.vld),right,4);
+    write(l,hexstr_from_slv(l(0)=>din.ovf),right,4);
+    if DEC then
+      v_val := to_integer(din.re);
+      write_str(l,integer'image(v_val),right,8);
+      v_val := to_integer(din.im);
+      write_str(l,integer'image(v_val),right,8);
+    else
+      write_str(l,hexstr_from_signed(din.re),right,8);
+      write_str(l,hexstr_from_signed(din.im),right,8);
+    end if;
+    write_str(l," ",right,3); -- trailing spaces
+  end procedure;
+
 begin
 
   p_file: process
@@ -55,12 +78,16 @@ begin
   begin
     file_open(ofile,LOG_FILE,WRITE_MODE);
     -- File header
-    write_str(v_oline,TITLE1,left,34);
-    writeline(ofile,v_oline);
-    write_str(v_oline,"RST VLD OVF    REAL    IMAG",left,34);
-    writeline(ofile,v_oline);
---    write_str(v_oline,"===========================",left,34);
---    writeline(ofile,v_oline);
+    if TITLE/="" then
+      for n in 0 to (NUM_CPLX-1) loop
+        write_str(v_oline,TITLE,left,30);
+      end loop;
+      writeline(ofile,v_oline);
+      for n in 0 to (NUM_CPLX-1) loop
+        write_str(v_oline,"RST VLD OVF    REAL    IMAG",left,30);
+      end loop;
+      writeline(ofile,v_oline);
+    end if;
     loop
       wait until rising_edge(clk);
       exit when (finish='1');
@@ -70,18 +97,16 @@ begin
 	  wait; -- end of process
   end process;
 
-g_hex : if not LOG_DECIMAL generate
   p_log: process(clk)
     variable v_oline : line;
+    variable v_din : cplx;
   begin
     if rising_edge(clk) then
-      if rst='0' and (LOG_INVALID or din.vld='1') then
-        -- 1st cplx
-        write(v_oline,hexstr_from_slv(l(0)=>din.rst),right,3);
-        write(v_oline,hexstr_from_slv(l(0)=>din.vld),right,4);
-        write(v_oline,hexstr_from_slv(l(0)=>din.ovf),right,4);
-        write_str(v_oline,hexstr_from_signed(din.re),right,8);
-        write_str(v_oline,hexstr_from_signed(din.im),right,8);
+      if rst='0' and (LOG_INVALID or din(0).vld='1') then
+        for n in 0 to (NUM_CPLX-1) loop
+          v_din := din(n);
+          cplx_write(LOG_DECIMAL,v_oline,v_din);
+        end loop;
         -- line to file
         if finish='0' then
          writeline(ofile,v_oline);
@@ -89,31 +114,5 @@ g_hex : if not LOG_DECIMAL generate
       end if; -- valid  
     end if; -- clock
   end process;
-end generate;
-
-g_dec : if LOG_DECIMAL generate
-  p_log: process(clk)
-    variable v_oline : line;
-    variable v_val : integer;
-  begin
-    if rising_edge(clk) then
-      if rst='0' and (LOG_INVALID or din.vld='1') then
-        -- 1st cplx
-        write(v_oline,hexstr_from_slv(l(0)=>din.rst),right,3);
-        write(v_oline,hexstr_from_slv(l(0)=>din.vld),right,4);
-        write(v_oline,hexstr_from_slv(l(0)=>din.ovf),right,4);
-        v_val := to_integer(din.re);
-        write_str(v_oline,integer'image(v_val),right,8);
-        v_val := to_integer(din.im);
-        write_str(v_oline,integer'image(v_val),right,8);
-        -- line to file
-        if finish='0' then
-         writeline(ofile,v_oline);
-        end if;
-      end if; -- valid  
-    end if; -- clock
-  end process;
-end generate;
-
 
 end architecture;

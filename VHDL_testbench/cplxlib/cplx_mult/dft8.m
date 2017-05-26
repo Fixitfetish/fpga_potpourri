@@ -16,26 +16,35 @@ data = (re + i*im).';
 
 addpath('../');
 
-sti = cplx_stimuli(18,'int');
-sti = sti.appendReset(3);
-sti = sti.appendData(data(:,1));
+% create CPLX stimuli file
+sti = cplx_interface(18,'int');
+sti = sti.appendReset(3,2);
+sti = sti.appendData(repmat(data(:,1),1,2));
 sti = sti.appendInvalid(1);
-sti = sti.appendData(data(:,2));
+sti = sti.appendData(repmat(data(:,2),1,2));
 sti = sti.appendInvalid(1);
-sti = sti.appendData(data(:,3));
-%sti = sti.appendData(data(:,1));
+sti = sti.appendData(repmat(data(:,3),1,2));
 sti = sti.appendInvalid(30);
-%c.Title = 'LETS GO';
 sti.writeFile(fname_stimuli);
 
+
 disp(['Stimuli file "',fname_stimuli,'" has been generated.'])
-disp('Run VHDL simulation and then press any key to start result evaluation ...');
+disp('Please run VHDL simulation.');
+disp(['Press any key to start evaluation of result file "',fname_result,'".']);
 pause
 
-% result evaluation
-res = cplx_stimuli(18,'int');
+
+% Evaluate CPLX result file
+res = cplx_interface(18,'int');
 res = res.readFile(fname_result);
 
-R = reshape(res.CplxData(res.CplxVld),8,[]);
+% extract valid result values
+R = reshape(res.CplxData(logical(res.CplxVld)),8,[]);
 
-err = R - fft(data)/sqrt(8)
+% DFT version 1
+R1 = R(:,1:3);
+err1 = fix(R1-fft(data)/sqrt(8))
+
+% DFT version 2
+R2 = R(:,4:6);
+err2 = fix(R2-fft(data)/sqrt(8))

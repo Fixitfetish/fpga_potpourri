@@ -19,6 +19,7 @@ use std.textio.all;
 
 entity cplx_stimuli is
 generic(
+  NUM_CPLX : natural := 1;
   SKIP_PRECEDING_LINES : natural := 0;
   GEN_INVALID : boolean := true;
   GEN_DECIMAL : boolean := true;
@@ -27,7 +28,7 @@ generic(
 port(
   clk    : in  std_logic;
   rst    : in  std_logic;
-  dout   : out cplx ;--:= cplx_reset(18,"R");
+  dout   : out cplx_vector(0 to NUM_CPLX-1) ;
   finish : out std_logic := '0'
 );
 end entity;
@@ -48,7 +49,7 @@ architecture sim of cplx_stimuli is
   procedure cplx_read(
     constant DEC : in boolean;
     variable l : inout line;
-    signal dout : out cplx
+    variable dout : out cplx
   ) is
     variable v_rst, v_vld, v_ovf : integer;
     variable v_re : signed(dout.re'length-1 downto 0);
@@ -64,11 +65,11 @@ architecture sim of cplx_stimuli is
       hex_read(l, v_re);
       hex_read(l, v_im);
     end if;
-    dout.rst <= to_01(v_rst);
-    dout.vld <= to_01(v_vld);
-    dout.ovf <= to_01(v_ovf);
-    dout.re <= v_re;
-    dout.im <= v_im;
+    dout.rst := to_01(v_rst);
+    dout.vld := to_01(v_vld);
+    dout.ovf := to_01(v_ovf);
+    dout.re := v_re;
+    dout.im := v_im;
   end procedure;
 
 begin
@@ -77,8 +78,9 @@ begin
   
   p_stimuli: process
     variable in_line  : line;
+    variable v_dout : cplx;
   begin
-    dout <= cplx_reset(18,"R");
+    dout <= cplx_vector_reset(18,NUM_CPLX,"R");
     
     file_open(ifile,GEN_FILE,READ_MODE);
     
@@ -96,7 +98,10 @@ begin
     -- start reading at 4th line
     readline(ifile,in_line);
     while not endfile(ifile) loop
-      cplx_read(GEN_DECIMAL, in_line, dout);
+      for n in 0 to (NUM_CPLX-1) loop
+        cplx_read(GEN_DECIMAL, in_line, v_dout);
+        dout(n) <= v_dout; 
+      end loop;
       wait until rising_edge(clk);
       readline(ifile,in_line);
     end loop; -- stimuli loop
