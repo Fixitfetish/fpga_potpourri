@@ -1,5 +1,5 @@
 
-fname_stimuli = 'stimuli.txt';
+fname_stimuli = 'input_sti.txt';
 fname_result = 'result_log.txt';
 
 % first input

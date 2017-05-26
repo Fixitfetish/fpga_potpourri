@@ -73,7 +73,7 @@ begin
     SKIP_PRECEDING_LINES => 2,
     GEN_DECIMAL => true,
     GEN_INVALID => true,
-    GEN_FILE => "stimuli.txt"
+    GEN_FILE => "input_sti.txt"
   )
   port map (
     clk     => clk,
