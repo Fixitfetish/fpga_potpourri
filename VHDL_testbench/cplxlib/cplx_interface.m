@@ -3,35 +3,35 @@ classdef cplx_interface
 
  properties (Access=public)
    Title = ''
-   % matlab data format 'int' or 'frac' (double)
-   %   'int'  = -2^(CplxWidth-1) .. 2^(CplxWidth-1)-1
+   % matlab data format 'int' or 'frac' (both of class double)
+   %   'int'  = -2^(DataWidth-1) .. 2^(DataWidth-1)-1
    %   'frac' = -1.0000 .. +0.9999 
    Format = 'int'
  end
 
  properties (GetAccess=public, SetAccess=private)
-   Length = 0 % length of data vector (cycles = rows)
-   VecNum = 0 % number of data vectors (colums)
-   CplxWidth % width of signed real/imag data in bits
-   CplxRst = []
-   CplxVld = []
-   CplxOvf = []
-   CplxData = complex([])
- % CplxFormat  decimal/hexadecimal/binary in file ...  TODO  
+   Length = 0 % length of data stream (number of cycles = rows)
+   Streams = 0 % number of data stream = vector width (number of columns)
+   DataWidth % width of signed real/imag data in bits
+   DataFormat = 'dec' % data format in text file ... TODO ... 'dec', 'hex', 'bin'
+   cplx = struct('rst', [],...
+                 'vld', [],...
+                 'ovf', [],...
+                 'data', complex([])); 
  end
 
  properties (Dependent)
    NumDigits % max number of decimal digits of real/imag including sign
    NumChars % number of chars per line in file
-   CplxMat % CPLX flags and data as double matrix
-   CplxChar % CPLX flags and data in character matrix (e.g. for TXT file export)
+   MatrixDouble % CPLX flags and data as double matrix
+   MatrixChar % CPLX flags and data in character matrix (e.g. for TXT file export)
  end
 
  methods (Access=public)
  
    function obj = cplx_interface(width,format)
    % class constructor
-     if (nargin>=1), obj.CplxWidth = width; end
+     if (nargin>=1), obj.DataWidth = width; end
      if (nargin>=2), obj.Format = format; end
    end
 
@@ -53,7 +53,13 @@ classdef cplx_interface
    end
 
    function d = get.NumDigits(obj)
-     d = ceil(log10(2^(obj.CplxWidth-1))) + 1;
+     if strcmp(obj.DataFormat,'dec'),
+       d = ceil(log10(2^(obj.DataWidth-1))) + 1;
+     elseif strcmp(obj.DataFormat,'hex'),
+       d = ceil(obj.DataWidth/4);
+     elseif strcmp(obj.DataFormat,'bin'),
+       d = obj.DataWidth;
+     end
    end
 
    function ch = get.NumChars(obj)
@@ -66,22 +72,22 @@ classdef cplx_interface
        error('Number of reset cycles L must be positive integer.');
      end
      if nargin<=2,
-       if obj.VecNum==0,
-         error('Number of data vectors N required with first append.');
+       if obj.Streams==0,
+         error('Number of data streams N required with first append.');
        end
      elseif (N<1 || N~=fix(N)),
-       error('Number of data vectors must be positive integer.');
-     elseif obj.VecNum==0, % first call of an 'append' function
-       obj.VecNum = N;
-     elseif N~=obj.VecNum,
+       error('Number of data streams N must be positive integer.');
+     elseif obj.Streams==0, % first call of an 'append' function
+       obj.Streams = N;
+     elseif N~=obj.Streams,
        % consequent call of an 'append' function 
-       error(['Number of data vectors N has already been defined to be ',...
-              num2str(obj.VecNum)]);
+       error(['Number of data streams N has already been defined to be ',...
+              num2str(obj.Streams)]);
      end
-     obj.CplxRst  = [obj.CplxRst ; ones(L,obj.VecNum)];
-     obj.CplxVld  = [obj.CplxVld ; zeros(L,obj.VecNum)];
-     obj.CplxOvf  = [obj.CplxOvf ; zeros(L,obj.VecNum)];
-     obj.CplxData = [obj.CplxData; complex(zeros(L,obj.VecNum))];
+     obj.cplx.rst  = [obj.cplx.rst ; ones(L,obj.Streams)];
+     obj.cplx.vld  = [obj.cplx.vld ; zeros(L,obj.Streams)];
+     obj.cplx.ovf  = [obj.cplx.ovf ; zeros(L,obj.Streams)];
+     obj.cplx.data = [obj.cplx.data; complex(zeros(L,obj.Streams))];
      obj.Length = obj.Length + L;
    end
 
@@ -90,22 +96,22 @@ classdef cplx_interface
        error('Number of invalid cycles L must be positive integer.');
      end
      if nargin<=2,
-       if obj.VecNum==0,
-         error('Number of data vectors N required with first append.');
+       if obj.Streams==0,
+         error('Number of data streams N required with first append.');
        end
      elseif (N<1 || N~=fix(N)),
-       error('Number of data vectors N must be positive integer.');
-     elseif obj.VecNum==0, % first call of an 'append' function
-       obj.VecNum = N;
-     elseif N~=obj.VecNum,
+       error('Number of data streams N must be positive integer.');
+     elseif obj.Streams==0, % first call of an 'append' function
+       obj.Streams = N;
+     elseif N~=obj.Streams,
        % consequent call of an 'append' function 
-       error(['Number of data vectors N has already been defined to be ',...
-              num2str(obj.VecNum)]);
+       error(['Number of data streams N has already been defined to be ',...
+              num2str(obj.Streams)]);
      end
-     obj.CplxRst  = [obj.CplxRst ; zeros(L,obj.VecNum)];
-     obj.CplxVld  = [obj.CplxVld ; zeros(L,obj.VecNum)];
-     obj.CplxOvf  = [obj.CplxOvf ; zeros(L,obj.VecNum)];
-     obj.CplxData = [obj.CplxData; complex(zeros(L,obj.VecNum))];
+     obj.cplx.rst  = [obj.cplx.rst ; zeros(L,obj.Streams)];
+     obj.cplx.vld  = [obj.cplx.vld ; zeros(L,obj.Streams)];
+     obj.cplx.ovf  = [obj.cplx.ovf ; zeros(L,obj.Streams)];
+     obj.cplx.data = [obj.cplx.data; complex(zeros(L,obj.Streams))];
      obj.Length = obj.Length + L;
    end
 
@@ -114,35 +120,35 @@ classdef cplx_interface
      if ( isempty(data) || (L*N)~=numel(data) ),
        error('Input data must be a complex column or row vector or a 2-dim matrix.');
      end
-     if obj.VecNum==0, % first call of an 'append' function
-       obj.VecNum = N;
-     elseif N~=obj.VecNum,
+     if obj.Streams==0, % first call of an 'append' function
+       obj.Streams = N;
+     elseif N~=obj.Streams,
        % consequent call of an 'append' function 
-       error(['Number of data vectors N has already been defined to be ',...
-              num2str(obj.VecNum)]);
+       error(['Number of data streams N has already been defined to be ',...
+              num2str(obj.Streams)]);
      end
      ovf = false(L,N);
      % convert to integer and round
      if strcmp(obj.Format,'frac'),
-       re = round(2^(obj.CplxWidth-1) * real(data));
-       im = round(2^(obj.CplxWidth-1) * imag(data));
+       re = round(2^(obj.DataWidth-1) * real(data));
+       im = round(2^(obj.DataWidth-1) * imag(data));
      else
        re = round(real(data));
        im = round(imag(data));
      end
 
      % positive clipping
-     re_clip = re > (2^(obj.CplxWidth-1)-1);
-     im_clip = im > (2^(obj.CplxWidth-1)-1);
-     re(re_clip) = 2^(obj.CplxWidth-1)-1;
-     im(im_clip) = 2^(obj.CplxWidth-1)-1;
+     re_clip = re > (2^(obj.DataWidth-1)-1);
+     im_clip = im > (2^(obj.DataWidth-1)-1);
+     re(re_clip) = 2^(obj.DataWidth-1)-1;
+     im(im_clip) = 2^(obj.DataWidth-1)-1;
      ovf = ovf | re_clip | im_clip;
 
      % negative clipping
-     re_clip = re < -2^(obj.CplxWidth-1);
-     im_clip = im < -2^(obj.CplxWidth-1);
-     re(re_clip) = -2^(obj.CplxWidth-1);
-     im(im_clip) = -2^(obj.CplxWidth-1);
+     re_clip = re < -2^(obj.DataWidth-1);
+     im_clip = im < -2^(obj.DataWidth-1);
+     re(re_clip) = -2^(obj.DataWidth-1);
+     im(im_clip) = -2^(obj.DataWidth-1);
      ovf = ovf | re_clip | im_clip;
 
      % valid flags
@@ -154,46 +160,46 @@ classdef cplx_interface
        vld = ones(L,N); % all true
      end
 
-     obj.CplxRst  = [obj.CplxRst ; zeros(L,N) ];
-     obj.CplxVld  = [obj.CplxVld ; vld ];
-     obj.CplxOvf  = [obj.CplxOvf ; ovf ];
-     obj.CplxData = [obj.CplxData; re+i*im ];
+     obj.cplx.rst  = [obj.cplx.rst ; zeros(L,N) ];
+     obj.cplx.vld  = [obj.cplx.vld ; vld ];
+     obj.cplx.ovf  = [obj.cplx.ovf ; ovf ];
+     obj.cplx.data = [obj.cplx.data; re+i*im ];
      obj.Length = obj.Length + L;
      
    end
 
-   function m = get.CplxMat(obj)
+   function m = get.MatrixDouble(obj)
      if obj.Length>=1,
-       m = zeros(obj.Length, 5, obj.VecNum);
-       for n=1:obj.VecNum,
-         m(:,:,n) = [ obj.CplxRst(:,n), obj.CplxVld(:,n), obj.CplxOvf(:,n), ...
-                      real(obj.CplxData(:,n)), imag(obj.CplxData(:,n)) ];
+       m = zeros(obj.Length, 5, obj.Streams);
+       for n=1:obj.Streams,
+         m(:,:,n) = [ obj.cplx.rst(:,n), obj.cplx.vld(:,n), obj.cplx.ovf(:,n), ...
+                      real(obj.cplx.data(:,n)), imag(obj.cplx.data(:,n)) ];
        end
      else
        m = [];
      end
    end
 
-   function c = get.CplxChar(obj)
+   function c = get.MatrixChar(obj)
      % cplx output format
      cformat = ['%',num2str(obj.NumDigits),'d'];
      cformat = ['%3d%4d%4d ',cformat,' ',cformat,'  '];
      % create character matrix
-     c = repmat(' ', obj.Length, obj.VecNum*obj.NumChars);
-     for n=1:(obj.VecNum),
+     c = repmat(' ', obj.Length, obj.Streams*obj.NumChars);
+     for n=1:(obj.Streams),
        crange = (n-1)*obj.NumChars + (1:obj.NumChars);
        for l=1:obj.Length,
          c(l,crange) = ...
-           sprintf(cformat, obj.CplxRst(l,n), obj.CplxVld(l,n), obj.CplxOvf(l,n),...
-                   real(obj.CplxData(l,n)), imag(obj.CplxData(l,n)) );
+           sprintf(cformat, obj.cplx.rst(l,n), obj.cplx.vld(l,n), obj.cplx.ovf(l,n),...
+                   real(obj.cplx.data(l,n)), imag(obj.cplx.data(l,n)) );
        end
      end
      % add optional header when title available
      if ~isempty(obj.Title),
        hformat = ['%',num2str(obj.NumDigits),'s'];
        hformat = ['RST VLD OVF ',hformat,' ',hformat,'  '];
-       h = repmat(' ', 2, obj.VecNum*obj.NumChars);
-       for n=0:(obj.VecNum-1),
+       h = repmat(' ', 2, obj.Streams*obj.NumChars);
+       for n=0:(obj.Streams-1),
          hrange = n*obj.NumChars + (1:obj.NumChars);
          h(:,hrange) = ...
           [ sprintf(['%-',num2str(obj.NumChars),'s'],[obj.Title,' ',num2str(n)]) ;
@@ -201,10 +207,10 @@ classdef cplx_interface
        end
        c = [ h ; c ];
      end
-   end %get.CplxChar
+   end %get.MatrixChar
 
    function writeFile(obj,fname)
-     dlmwrite(fname,obj.CplxChar,'');
+     dlmwrite(fname,obj.MatrixChar,'');
    end
 
    function obj = readFile(obj,fname)
@@ -218,17 +224,17 @@ classdef cplx_interface
      end
      [L,N] = size(x);
      N = N/5; % 5 columns per cplx
-     obj.CplxRst = x(:,1:5:end);
-     obj.CplxVld = x(:,2:5:end);
-     obj.CplxOvf = x(:,3:5:end);
+     obj.cplx.rst = x(:,1:5:end);
+     obj.cplx.vld = x(:,2:5:end);
+     obj.cplx.ovf = x(:,3:5:end);
      re = x(:,4:5:end);
      im = x(:,5:5:end);
-     obj.CplxData = re + i*im;
+     obj.cplx.data = re + i*im;
      % derived width including sign bit
-     obj.CplxWidth = ceil(log2( max(max(abs([re;im]))) )) + 1; 
+     obj.DataWidth = ceil(log2( max(max(abs([re;im]))) )) + 1; 
      % set length after width! (avoid unnecessary clipping)
      obj.Length = L;
-     obj.VecNum = N;
+     obj.Streams = N;
      obj.Title = t;
    end
  
@@ -236,7 +242,7 @@ classdef cplx_interface
 
  methods (Access=private)
 
-   function obj = set.CplxWidth(obj,width)
+   function obj = set.DataWidth(obj,width)
      if (width<0 || width~=fix(width)),
        error('Width in bits must be positive integer.');
      end
@@ -244,10 +250,10 @@ classdef cplx_interface
        error('Data width of less than 4 bits is not supported.');
      end
      % run clipping when width shrinks
-     if (obj.Length>0) && (width < obj.CplxWidth),
+     if (obj.Length>0) && (width < obj.DataWidth),
        % TODO ... run clipping
      end
-     obj.CplxWidth = width;
+     obj.DataWidth = width;
    end
 
  end %methods

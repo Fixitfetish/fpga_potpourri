@@ -30,7 +30,7 @@ sti.writeFile(fname_stimuli);
 
 disp(['Stimuli file "',fname_stimuli,'" has been generated.'])
 disp('Please run VHDL simulation.');
-disp(['Press any key to start evaluation of result file "',fname_result,'".']);
+disp(['Press any key to start evaluation of simulation result file "',fname_result,'".']);
 pause
 
 
@@ -39,7 +39,7 @@ res = cplx_interface(18,'int');
 res = res.readFile(fname_result);
 
 % extract valid result values
-R = reshape(res.CplxData(logical(res.CplxVld)),8,[]);
+R = reshape(res.cplx.data(logical(res.cplx.vld)),8,[]);
 
 % DFT version 1
 R1 = R(:,1:3);
