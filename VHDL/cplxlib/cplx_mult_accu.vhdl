@@ -17,10 +17,10 @@ library cplxlib;
 --! @image html cplx_mult_accu.svg "" width=600px
 --!
 --! This entity can be used for :
---! * Scalar products of two complex vectors x and y
+--! * scalar product of two complex vectors x and y
 --! * complex matrix multiplication
 --!
---! If just scaling (only real factor) and accumulation is required use the entity
+--! If just weighting (only real factor) and accumulation is required use the entity
 --! @link cplx_weight_accu @endlink
 --! instead because less multiplications and resources are required in this case.
 --!

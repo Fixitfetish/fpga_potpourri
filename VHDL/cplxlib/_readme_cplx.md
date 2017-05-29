@@ -21,6 +21,9 @@ different FPGA device types and vendors with different DSP cell primitives.
 |cplx_mult                 | ---       | ---        | N parallel and synchronous complex multiplications
 |cplx_mult_accu            | ---       | ---        | N complex multiplications and accumulation of all results
 |cplx_mult_sum             | ---       | ---        | N complex multiplications and summation of all results
+|cplx_pipeline             | ---       | ---        | Delay pipeline with N stages
+|cplx_vector_serialization | ---       | ---        | Serialize length N vector into data stream of N consecutive cycles
+|cplx_vectorization        | ---       | ---        | Parallelize data stream of N consecutive cycles into length N vector
 |cplx_weight               | ---       | ---        | N parallel and synchronous complex scaling
 |cplx_weight_sum           | ---       | ---        | N complex scaling and summation of all results
 
@@ -35,7 +38,7 @@ The package is based on the IEEE "numeric_std" package and also needs the "ieee_
 that includes the required additional "signed" arithmetic and comes with this package. The CPLX_PKG
 is available for VHDL-1993 and VHDL-2008. While the VHDL-1993 variant has limitations and might
 need to be extended manually the VHDL-2008 variant has the full flexibility in terms of supported
-bit resolution. Boths variants have been developed to be more or less compatible.
+bit resolution. Both variants have been developed to be more or less compatible.
 
 The main interface base type is the complex record "CPLX" which includes the most common signals
 required for pipelining and streaming of complex data.
@@ -55,7 +58,7 @@ required for pipelining and streaming of complex data.
 An additional complex vector base type supports multiple parallel complex data streams.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
-  -- general unconstrained complex vector type (preferably "to" direction)
+  -- general unconstrained complex vector type ("to" direction assumed)
   type cplx_vector is array(integer range <>) of cplx; -- VHDL-2008
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

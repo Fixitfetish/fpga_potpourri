@@ -16,12 +16,13 @@ library cplxlib;
 --!
 --! @image html cplx_mult.svg "" width=600px
 --!
---! Use this entity for full complex multiplications.
---! If just scaling (only real factor) is required use the entity cplx_weightN
+--! Use this entity for full complex multiplications or scalar multiplications. 
+--!
+--! If just weighting (only real factor) is required use the entity cplx_weight
 --! instead because less multiplications and resources are required in this case.
 --! Two operation modes are supported:
 --! 1. result(n) = +/- x(n) * y(n)  # separate factor y for each element of x
---! 2. result(n) = +/- x(n) * y     # factor y is the same for all elements of x
+--! 2. result(n) = +/- x(n) * y(0)  # factor y is the same for all elements of x
 --!
 --! The length of the input factors is flexible.
 --! The input factors are automatically resized with sign extensions bits to the
@@ -31,7 +32,7 @@ library cplxlib;
 --! The maximum result width is
 --!   W = x.re'length + y.re'length + 1 .
 --! (Note that a complex multiplication requires two signed multiplication, hence
---!  an additional guard bit.)
+--!  an additional guard bit is needed.)
 --!
 --! Dependent on result.re'length a shift right is required to avoid overflow or clipping.
 --!   OUTPUT_SHIFT_RIGHT = W - result.re'length .

@@ -17,16 +17,21 @@ library cplxlib;
 --! @image html cplx_mult_sum.svg "" width=600px
 --!
 --! This entity can be used for :
---! * Scalar products of two complex vectors x and y
+--! * scalar product (dot product) of two complex vectors x and y
 --! * complex matrix multiplication
 --!
---! If just scaling (only real factor) and summation is required use the entity
+--! If just weighting (only real factor) and summation is required use the entity
 --! @link cplx_weight_sum @endlink
 --! instead because less multiplications and resources are required in this case.
 --!
---! The behavior is as follows
+--! The first operation mode is:
 --! * vld = (x0.vld and y0.vld) and (x1.vld and y1.vld) and ...
 --! * VLD=1  ->  r = +/-(x0*y0) +/-(x1*y1) +/-...    # calculate sum
+--! * VLD=0  ->  r = r                               # hold previous result
+--!
+--! The second operation mode is (single y factor):
+--! * vld = (x0.vld and x1.vld and ...) and y0.vld
+--! * VLD=1  ->  r = +/-(x0*y0) +/-(x1*y0) +/-...    # calculate sum
 --! * VLD=0  ->  r = r                               # hold previous result
 --!
 --! Note that for the second mode a more efficient implementation might be possible

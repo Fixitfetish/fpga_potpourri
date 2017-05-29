@@ -9,6 +9,8 @@ The DSP library
 
 The main goal of this library is simplify the process of moving designs between
 different FPGA device types and vendors with different DSP cell primitives.
+This only works for basic operations and features that are supported by all DSP cells.
+Highly optimized solutions will always be device and vendor specific and are not considered here.
 
 ---
 

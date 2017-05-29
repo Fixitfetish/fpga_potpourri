@@ -19,11 +19,11 @@ library cplxlib;
 --!
 --! @image html cplx_weight.svg "" width=600px
 --!
---! For pure scaling use this entity instead of @link cplx_multN @endlink
---! because less multiplications are required than with the entity cplx_multN.
+--! For pure weighting use this entity instead of @link cplx_mult @endlink
+--! because less multiplications are required than with the entity cplx_mult.
 --! Two operation modes are supported:
 --! 1. result(n) = +/-x(n) * w(n)  # separate weighting factor w for each element of x
---! 2. result(n) = +/-x(n) * w     # weighting factor w is the same for all elements of x
+--! 2. result(n) = +/-x(n) * w(0)  # weighting factor w is the same for all elements of x
 --!
 --! The length of the input factors is flexible.
 --! The input factors are automatically resized with sign extensions bits to the

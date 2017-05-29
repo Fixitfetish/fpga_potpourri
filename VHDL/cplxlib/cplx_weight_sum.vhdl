@@ -19,8 +19,8 @@ library cplxlib;
 --!
 --! @image html cplx_weight_sum.svg "" width=600px
 --!
---! For pure scaling use this entity instead of @link cplx_multN_sum @endlink
---! because less multiplications are required than with the entity cplx_multN_sum.
+--! For pure weighting use this entity instead of @link cplx_mult_sum @endlink
+--! because less multiplications are required than with the entity cplx_mult_sum.
 --! Two operation modes are supported:
 --! 1. result = +/-x(0)*w(0) +/-x(1)*w(1) ...     # separate weighting factor w for each element of x
 --! 2. result = ( +/-x(0) +/-x(1) +/- ... ) * w   # weighting factor w is the same for all elements of x
