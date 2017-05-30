@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
---! @file       cplx_weight_sum.vhdl
+--! @file       cplx_weight_accu.vhdl
 --! @author     Fixitfetish
---! @date       01/May/2017
---! @version    0.30
+--! @date       30/May/2017
+--! @version    0.10
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -15,15 +15,26 @@ library cplxlib;
   use cplxlib.cplx_pkg.all;
 
 --! @brief N complex values are weighted (scaled) with one scalar or N scalar
---! values. Finally the weighted results are summed.
+--! values. Finally the weighted results are accumulated.
 --!
---! @image html cplx_weight_sum.svg "" width=600px
+--! @image html cplx_weight_accu.svg "" width=600px
 --!
---! For pure weighting use this entity instead of @link cplx_mult_sum @endlink
---! because less multiplications are required than with the entity cplx_mult_sum.
---! Two operation modes are supported:
---! 1. result = +/-x(0)*w(0) +/-x(1)*w(1) ...     # separate weighting factor w for each element of x
---! 2. result = ( +/-x(0) +/-x(1) +/- ... ) * w   # weighting factor w is the same for all elements of x
+--! For pure weighting use this entity instead of @link cplx_mult_accu @endlink
+--! because less multiplications are required than with the entity cplx_mult_accu.
+--!
+--! First operation mode (separate weighting factor w for each element of x)
+--! * vld = x0.vld and x1.vld and ...
+--! * CLR=1  VLD=0  ->  r = undefined                       # reset accumulator
+--! * CLR=1  VLD=1  ->  r = +/-(x0*w0) +/-(x1*w1) +/-...    # restart accumulation
+--! * CLR=0  VLD=0  ->  r = r                               # hold accumulator
+--! * CLR=0  VLD=1  ->  r = r +/-(x0*w0) +/-(x1*w1) +/-...  # proceed accumulation
+--!
+--! Second operation mode (weighting factor w is the same for all elements of x):
+--! * vld = x0.vld and x1.vld and ...
+--! * CLR=1  VLD=0  ->  r = undefined                       # reset accumulator
+--! * CLR=1  VLD=1  ->  r = +/-(x0*w0) +/-(x1*w0) +/-...    # restart accumulation
+--! * CLR=0  VLD=0  ->  r = r                               # hold accumulator
+--! * CLR=0  VLD=1  ->  r = r +/-(x0*w0) +/-(x1*w0) +/-...  # proceed accumulation
 --!
 --! Note that for the second mode a more efficient implementation might be possible
 --! because only one multiplication after summation is required.
@@ -34,12 +45,16 @@ library cplxlib;
 --! The maximum length of the input factors is device and implementation specific.
 --! The size of the real and imaginary part of a complex input must be identical.
 --! The maximum result width is
---!   WIDTH = x.re'length + w'length + ceil(log2(NUM_MULT)).
+--!   WIDTH = x.re'length + w'length + ceil(log2(NUM_SUMMAND)).
 --! Note that the width increases dependent on the number of summands.
 --!
 --! Dependent on result.re'length a shift right is required to avoid overflow or clipping.
 --!   OUTPUT_SHIFT_RIGHT = WIDTH - result.re'length .
 --! The number right shifts can also be smaller with the risk of overflows/clipping.
+--!
+--! If just multiplication and the sum of products is required but not further
+--! accumulation then set CLR to constant '1' or use the entity cplx_weight_sum
+--! instead.
 --!
 --! The delay depends on the configuration and the underlying hardware.
 --! The number pipeline stages is reported as constant at output port PIPESTAGES.
@@ -58,14 +73,14 @@ library cplxlib;
 --! * cplx_mult_accu
 --! * cplx_mult_sum
 --! * cplx_weight
---! * cplx_weight_accu
+--! * cplx_weight_sum
 --!
 --! VHDL Instantiation Template:
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
---! I1 : cplx_weight_sum
+--! I1 : cplx_weight_accu
 --! generic map(
 --!   NUM_MULT              => positive, -- number of parallel multiplications
---!   HIGH_SPEED_MODE       => boolean,  -- enable high speed mode
+--!   NUM_SUMMAND           => natural,  -- number of overall summands
 --!   NUM_INPUT_REG         => natural,  -- number of input registers
 --!   NUM_OUTPUT_REG        => natural,  -- number of output registers
 --!   INPUT_OVERFLOW_IGNORE => boolean,  -- ignore input overflows
@@ -75,6 +90,7 @@ library cplxlib;
 --! port map(
 --!   clk        => in  std_logic, -- clock
 --!   clk2       => in  std_logic, -- clock x2
+--!   clr        => in  std_logic, -- clear accumulator
 --!   neg        => in  std_logic_vector(0 to NUM_MULT-1), -- negation
 --!   x          => in  cplx_vector(0 to NUM_MULT-1), -- complex values
 --!   w          => in  signed_vector, -- weighting factors
@@ -84,12 +100,23 @@ library cplxlib;
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 --!
 
-entity cplx_weight_sum is
+entity cplx_weight_accu is
 generic (
   --! Number of parallel multiplications - mandatory generic!
   NUM_MULT : positive;
-  --! Enable high speed mode with more pipelining for higher clock rates
-  HIGH_SPEED_MODE : boolean := false;
+  --! @brief The number of summands is important to determine the number of additional
+  --! guard bits (MSBs) that are required for the accumulation process. @link NUM_SUMMAND More...
+  --!
+  --! The setting is relevant to save logic especially when saturation/clipping
+  --! and/or overflow detection is enabled.
+  --! * 0 => maximum possible, not recommended (worst case, hardware dependent)
+  --! * 1 => just one multiplication without accumulation
+  --! * 2 => accumulate up to 2 products
+  --! * 3 => accumulate up to 3 products
+  --! * and so on ...
+  --!
+  --! Note that every single accumulated complex product result counts!
+  NUM_SUMMAND : natural := 0;
   --! @brief Number of additional input registers in system clock domain.
   --! At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
@@ -114,6 +141,9 @@ port (
   clk        : in  std_logic;
   --! Optional double rate clock (only relevant when a DDR implementation is used)
   clk2       : in  std_logic := '0';
+  --! @brief Clear accumulator (mark first valid input factors of accumulation sequence).
+  --! If accumulation is not wanted then set constant '1'.
+  clr        : in  std_logic;
   --! @brief Negation of partial products , '0' -> +(x(n)*w(n)), '1' -> -(x(n)*w(n)).
   --! Negation is disabled by default.
   neg        : in  std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
@@ -129,18 +159,18 @@ port (
 begin
 
   assert ((w'length=1 or w'length=x'length) and (w'left<=w'right))
-    report "ERROR in " & cplx_weight_sum'INSTANCE_NAME & 
+    report "ERROR in " & cplx_weight_accu'INSTANCE_NAME & 
            " Input vector W must have length of 1 or 'TO' range with same length as input X."
     severity failure;
 
   assert (x(x'left).re'length=x(x'left).im'length)
      and (result.re'length=result.im'length)
-    report "ERROR in " & cplx_weight_sum'INSTANCE_NAME & 
+    report "ERROR in " & cplx_weight_accu'INSTANCE_NAME & 
            " Real and imaginary components must have same size."
     severity failure;
 
   assert (MODE/='U' and MODE/='Z' and MODE/='I')
-    report "ERROR in " & cplx_weight_sum'INSTANCE_NAME & 
+    report "ERROR in " & cplx_weight_accu'INSTANCE_NAME & 
            " Rounding options 'U', 'Z' and 'I' are not supported."
     severity failure;
 

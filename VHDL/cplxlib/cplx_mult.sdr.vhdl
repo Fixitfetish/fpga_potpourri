@@ -18,7 +18,7 @@ library dsplib;
 --! @brief Single Data Rate implementation of the entity cplx_mult .
 --! N complex multiplications are performed.
 --!
---! This implementation requires the FPGA device dependent entity signed_multN_sum.
+--! This implementation requires the entity signed_mult_sum.
 --! @image html cplx_mult.sdr.svg "" width=800px
 --!
 --! In general this multiplier can be used when FPGA DSP cells are clocked with

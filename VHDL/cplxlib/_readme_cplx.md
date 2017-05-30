@@ -10,6 +10,8 @@ The CPLX library
 
 The main goal of this library is simplify the process of moving designs between
 different FPGA device types and vendors with different DSP cell primitives.
+For this reason all entities in this library do not directly include any device
+type or vendor specific code but use entities of the DSP library instead.
 
 ---
 
@@ -25,6 +27,7 @@ different FPGA device types and vendors with different DSP cell primitives.
 |cplx_vector_serialization | ---       | ---        | Serialize length N vector into data stream of N consecutive cycles
 |cplx_vectorization        | ---       | ---        | Parallelize data stream of N consecutive cycles into length N vector
 |cplx_weight               | ---       | ---        | N parallel and synchronous complex scaling
+|cplx_weight_accu          | ---       | ---        | N complex scaling and accumulation of all results
 |cplx_weight_sum           | ---       | ---        | N complex scaling and summation of all results
 
 ---

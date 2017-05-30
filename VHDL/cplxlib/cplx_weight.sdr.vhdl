@@ -20,7 +20,7 @@ library dsplib;
 --! N complex values are weighted (scaled) with one scalar or N scalar values.
 --! Can be used for scalar multiplication.
 --!
---! This implementation requires the FPGA device dependent entity signed_multN .
+--! This implementation requires the entity signed_mult .
 --! @image html cplx_weight.sdr.svg "" width=800px
 --!
 --! In general this multiplier can be used when FPGA DSP cells are clocked with

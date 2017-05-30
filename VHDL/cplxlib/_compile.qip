@@ -16,6 +16,7 @@ set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip
 set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult2_accu.vhdl"]
 set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult4_accu.vhdl"]
 set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_weight.vhdl"]
+set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_weight_accu.vhdl"]
 set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_weight_sum.vhdl"]
 
 # Architectures
@@ -26,4 +27,5 @@ set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip
 set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult2_accu.sdr.vhdl"]
 set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult4_accu.sdr.vhdl"]
 set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_weight.sdr.vhdl"]
+set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_weight_accu.sdr.vhdl"]
 set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_weight_sum.sdr.vhdl"]

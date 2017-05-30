@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
---! @file       cplx_weight_sum.sdr.vhdl
+--! @file       cplx_weight_accu.sdr.vhdl
 --! @author     Fixitfetish
---! @date       01/May/2017
---! @version    0.30
+--! @date       30/May/2017
+--! @version    0.10
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -16,18 +16,18 @@ library cplxlib;
   use cplxlib.cplx_pkg.all;
 library dsplib;
 
---! @brief Single Data Rate implementation of the entity cplx_weight_sum .
+--! @brief Single Data Rate implementation of the entity cplx_weight_accu .
 --! N complex values are weighted (scaled) with one scalar or N scalar
---! values. Finally the weighted results are summed.
+--! values. Finally the weighted results are accumulated.
 --!
 --! In general this multiplier can be used when FPGA DSP cells are clocked with
 --! the standard system clock. 
 --!
---! This implementation requires the entity signed_mult_sum .
+--! This implementation requires the entity signed_mult_accu .
 --!
 --! NOTE: The double rate clock 'clk2' is irrelevant and unused here.
 
-architecture sdr of cplx_weight_sum is
+architecture sdr of cplx_weight_accu is
 
   -- The number of pipeline stages is reported as constant at the output port
   -- of the DSP implementation. PIPE_DSP is not a generic and it cannot be used
@@ -124,12 +124,13 @@ begin
   end generate;
 
   -- weighting
-  i_re : entity dsplib.signed_mult_sum
+  i_re : entity dsplib.signed_mult_accu
   generic map(
     NUM_MULT           => NUM_MULT,
-    HIGH_SPEED_MODE    => HIGH_SPEED_MODE,
+    NUM_SUMMAND        => NUM_SUMMAND,
+    USE_CHAIN_INPUT    => false, -- unused here
     NUM_INPUT_REG      => NUM_INPUT_REG,
-    NUM_OUTPUT_REG     => 1, -- always enable DSP cell output register (= first output register)
+    NUM_OUTPUT_REG     => 1, -- always enable accumulator (= first output register)
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     OUTPUT_ROUND       => (MODE='N'),
     OUTPUT_CLIP        => (MODE='S'),
@@ -138,6 +139,7 @@ begin
   port map (
     clk        => clk,
     rst        => data_reset,
+    clr        => clr,
     vld        => vld,
     neg        => neg_re,
     x          => x_re,
@@ -145,16 +147,19 @@ begin
     result     => rslt(0).re,
     result_vld => rslt(0).vld,
     result_ovf => r_ovf_re,
+    chainin    => open, -- unused
+    chainout   => open, -- unused
     PIPESTAGES => PIPE_DSP
   );
 
   -- weighting
-  i_im : entity dsplib.signed_mult_sum
+  i_im : entity dsplib.signed_mult_accu
   generic map(
     NUM_MULT           => NUM_MULT,
-    HIGH_SPEED_MODE    => HIGH_SPEED_MODE,
+    NUM_SUMMAND        => NUM_SUMMAND,
+    USE_CHAIN_INPUT    => false, -- unused here
     NUM_INPUT_REG      => NUM_INPUT_REG,
-    NUM_OUTPUT_REG     => 1, -- always enable DSP cell output register (= first output register)
+    NUM_OUTPUT_REG     => 1, -- always enable accumulator (= first output register)
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     OUTPUT_ROUND       => (MODE='N'),
     OUTPUT_CLIP        => (MODE='S'),
@@ -163,6 +168,7 @@ begin
   port map (
     clk        => clk,
     rst        => data_reset,
+    clr        => clr,
     vld        => vld,
     neg        => neg_im,
     x          => x_im,
@@ -170,6 +176,8 @@ begin
     result     => rslt(0).im,
     result_vld => open, -- same as real component
     result_ovf => r_ovf_im,
+    chainin    => open, -- unused
+    chainout   => open, -- unused
     PIPESTAGES => open  -- same as real component
   );
 
