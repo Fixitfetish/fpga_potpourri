@@ -116,12 +116,13 @@ Example: The mode "ROS" switches on data reset, overflow detection and saturatio
 RESET
 =====
 There are three ways of resetting.
-1.) Disable reset - constantly force cplx.rst='0' in the beginning of the pipeline
-    RST will be not considered and will be optimized out.
-2.) Reset only control signals VLD and OVF - drive cplx.rst='1' as needed. 
-    RST propagates through the pipeline and resets the control signals in each pipeline stage when cplx.rst='1'.
-3.) Reset data and control signals
-    Same as 2.) but additionally use option 'R' to reset real and imaginary data to 0 when cplx.rst='1'.
+1. Disable reset - constantly force cplx.rst='0' in the beginning of the pipeline.
+   RST will be not considered and will be optimized out.
+2. Reset only control signals VLD and OVF - drive cplx.rst='1' as needed. 
+   RST propagates through the pipeline and resets the control signals in each pipeline stage when cplx.rst='1'.
+3. Reset data and control signals -
+   Same as 2.) but additionally use option 'R' to reset real and imaginary data to 0 when cplx.rst='1'.
+
 Furthermore manual resetting is always possible, i.e. not using cplx.rst but resetting the whole CPLX record.
 
 The functions cplx_reset() and cplx_vector_reset() are useful to generate a constant reset value. Examples:
@@ -148,7 +149,7 @@ CONVERSION FUNCTIONS
 ====================
 todo
 
-
+---
 MIT License : Copyright (c) 2017 Fixitfetish
- - [https://opensource.org/licenses/MIT] (https://opensource.org/licenses/MIT)
+ - <https://opensource.org/licenses/MIT>
  - [https://en.wikipedia.org/wiki/MIT_License] (https://en.wikipedia.org/wiki/MIT_License)
