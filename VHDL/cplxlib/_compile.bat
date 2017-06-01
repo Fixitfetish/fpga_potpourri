@@ -75,9 +75,6 @@ set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 %COMPILE% %SCRIPTPATH%\cplx_mult.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_mult_accu.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_mult_sum.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_mult1_accu.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_mult2_accu.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_mult4_accu.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_weight.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_weight_accu.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_weight_sum.vhdl
@@ -85,9 +82,6 @@ set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 %COMPILE% %SCRIPTPATH%\cplx_mult.sdr.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_mult_accu.sdr.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_mult_sum.sdr.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_mult1_accu.sdr.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_mult2_accu.sdr.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_mult4_accu.sdr.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_weight.sdr.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_weight_accu.sdr.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_weight_sum.sdr.vhdl

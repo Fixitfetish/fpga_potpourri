@@ -6,6 +6,8 @@
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
+-- Includes DOXYGEN support.
+-------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
@@ -19,7 +21,7 @@ library dsplib;
 --! N complex multiplications are performed.
 --!
 --! This implementation requires the entity signed_mult_sum.
---! @image html cplx_mult.sdr.svg "" width=800px
+--! @image html cplx_mult.sdr.svg "" width=600px
 --!
 --! In general this multiplier can be used when FPGA DSP cells are clocked with
 --! the standard system clock. 

@@ -6,6 +6,8 @@
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
+-- Includes DOXYGEN support.
+-------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
@@ -21,7 +23,7 @@ library dsplib;
 --! Can be used for scalar multiplication.
 --!
 --! This implementation requires the entity signed_mult .
---! @image html cplx_weight.sdr.svg "" width=800px
+--! @image html cplx_weight.sdr.svg "" width=600px
 --!
 --! In general this multiplier can be used when FPGA DSP cells are clocked with
 --! the standard system clock. 

@@ -108,8 +108,9 @@ begin
 
   g_loop : for n in 0 to 7 generate
   -- multiplier
-  i_mult : entity cplxlib.cplx_mult1_accu
+  i_mult : entity cplxlib.cplx_mult_accu
   generic map(
+    NUM_MULT => 1,
     NUM_SUMMAND => 8,
     NUM_INPUT_REG => 1,
     NUM_OUTPUT_REG => 0,
@@ -121,9 +122,9 @@ begin
     clk        => clk,
     clk2       => open, -- unused
     clr        => fft_start,
-    sub        => '0',
-    x          => fft_in,
-    y          => dftmtx_18bit(n),
+    neg        => "0",
+    x(0)       => fft_in,
+    y(0)       => dftmtx_18bit(n),
     result     => data_out_i(n),
     PIPESTAGES => PIPESTAGES(n)
   );
