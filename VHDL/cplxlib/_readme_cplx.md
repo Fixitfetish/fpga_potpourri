@@ -1,8 +1,11 @@
 \brief This file includes the DOXYGEN documentation entry page of the CPLX Library.
 
 \page CPLX_LIBRARY CPLX Library Overview
-\section section_intro Introduction
-The CPLX library
+
+Introduction
+============
+
+The CPLX library includes
 * basic building blocks for complex arithmetic
 * common complex record type 
 * support of rounding, clipping/saturation and overflow detection
@@ -13,10 +16,9 @@ different FPGA device types and vendors with different DSP cell primitives.
 For this reason all entities in this library do not directly include any device
 type or vendor specific code but use entities of the DSP library instead.
 
----
 
-\section section_contents Contents
-
+Contents
+========
 
 |Entity Name               | Feature 1 | Feature 2  | Description
 |:-------------------------|:---------:|:----------:|:-----------------
@@ -30,8 +32,9 @@ type or vendor specific code but use entities of the DSP library instead.
 |cplx_weight_accu          | ---       | ---        | N complex scaling and accumulation of all results
 |cplx_weight_sum           | ---       | ---        | N complex scaling and summation of all results
 
----
-\section section_pkg CPLX Package
+
+CPLX Package
+============
 
 The complex package "CPLX_PKG" includes basic types, functions and procedures for complex integer
 arithmetic that are used for e.g. digital signal processing. It supports FPGA developers to handle
@@ -152,4 +155,4 @@ todo
 ---
 MIT License : Copyright (c) 2017 Fixitfetish
  - <https://opensource.org/licenses/MIT>
- - [https://en.wikipedia.org/wiki/MIT_License] (https://en.wikipedia.org/wiki/MIT_License)
+ - <https://en.wikipedia.org/wiki/MIT_License>
