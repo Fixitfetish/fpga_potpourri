@@ -459,13 +459,13 @@
       <g class="com.sun.star.drawing.TextShape">
        <g id="id48">
         <rect class="BoundingBox" stroke="none" fill="none" x="4193" y="22200" width="6401" height="301"/>
-        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="700"><tspan class="TextPosition" x="4690" y="22422"><tspan fill="rgb(0,0,0)" stroke="none">r(n).re = r(n).re +/- ( x(n).re * y(n).re – x(n).im * y(n).im )</tspan></tspan></tspan></text>
+        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="700"><tspan class="TextPosition" x="5025" y="22422"><tspan fill="rgb(0,0,0)" stroke="none">r(n).re = +/- ( x(n).re * y(n).re – x(n).im * y(n).im )</tspan></tspan></tspan></text>
        </g>
       </g>
       <g class="com.sun.star.drawing.TextShape">
        <g id="id49">
         <rect class="BoundingBox" stroke="none" fill="none" x="4193" y="25800" width="6401" height="301"/>
-        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="700"><tspan class="TextPosition" x="4642" y="26022"><tspan fill="rgb(0,0,0)" stroke="none">r(n).im = r(n).im +/- ( x(n).re * y(n).im + x(n).im * y(n).re )</tspan></tspan></tspan></text>
+        <text class="TextShape"><tspan class="TextParagraph" font-family="Liberation Sans, sans-serif" font-size="212px" font-weight="700"><tspan class="TextPosition" x="4999" y="26022"><tspan fill="rgb(0,0,0)" stroke="none">r(n).im = +/- ( x(n).re * y(n).im + x(n).im * y(n).re )</tspan></tspan></tspan></text>
        </g>
       </g>
       <g class="com.sun.star.drawing.LineShape">
