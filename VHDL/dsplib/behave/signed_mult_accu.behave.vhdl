@@ -6,6 +6,8 @@
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
+-- Includes DOXYGEN support.
+-------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
@@ -29,6 +31,13 @@ architecture behave of signed_mult_accu is
   -- identifier for reports of warnings and errors
   constant IMPLEMENTATION : string := signed_mult_accu'INSTANCE_NAME;
 
+  -- number of elements of complex factor vector y
+  -- (must be either 1 or the same length as x)
+  constant NUM_FACTOR : positive := y'length;
+
+  -- convert to default range
+  signal y_i : signed_vector(0 to NUM_MULT-1);
+ 
   -- local auxiliary
   -- determine number of required additional guard bits (MSBs)
   function guard_bits(num_summand, dflt:natural) return integer is
@@ -65,12 +74,24 @@ architecture behave of signed_mult_accu is
     ovf : std_logic;
   end record;
   type array_oreg is array(integer range <>) of r_oreg;
-  signal rslt : array_oreg(1 to NUM_DELAY_REG);
+  signal rslt : array_oreg(1 to NUM_DELAY_REG) := (others=>(dat=>(others=>'0'),vld|ovf=>'0'));
 
   signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0) := (others=>'0');
   signal accu_used_shifted : signed(ACCU_USED_SHIFTED_WIDTH-1 downto 0);
 
 begin
+
+  -- same factor y for all vector elements of x
+  gin_1 : if NUM_FACTOR=1 generate
+    g_1 : for n in 0 to NUM_MULT-1 generate
+      y_i(n) <= y(y'left); -- duplication !
+    end generate;
+  end generate;
+
+  -- separate factor y for each vector element of x
+  gin_n : if (NUM_MULT>=2 and NUM_FACTOR=NUM_MULT) generate
+    y_i <= y; -- same length and range conversion !
+  end generate;
 
   p_sum : process(clk)
     variable v_accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
@@ -84,9 +105,9 @@ begin
       if vld='1' then
         for n in 0 to NUM_MULT-1 loop
           if neg(n)='1' then
-            v_accu_used := v_accu_used - ( x(n) * y(n) );
+            v_accu_used := v_accu_used - ( x(n) * y_i(n) );
           else
-            v_accu_used := v_accu_used + ( x(n) * y(n) );
+            v_accu_used := v_accu_used + ( x(n) * y_i(n) );
           end if;
         end loop;
       end if;

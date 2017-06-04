@@ -6,6 +6,8 @@
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
+-- Includes DOXYGEN support.
+-------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
@@ -15,6 +17,10 @@ library baselib;
 --! @brief N signed multiplications and accumulate all product results.
 --!
 --! @image html signed_mult_accu.svg "" width=600px
+--!
+--! This entity can be used for example
+--! * for complex multiplication and accumulation
+--! * to calculate the mean square of a complex number
 --!
 --! The behavior is as follows
 --! * CLR=1  VLD=0  ->  r = undefined                      # reset accumulator
@@ -52,9 +58,9 @@ library baselib;
 --! The delay depends on the configuration and the underlying hardware.
 --! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
 --!
---! This entity can be used for example
---!   * for complex multiplication and accumulation
---!   * to calculate the mean square of a complex number
+--! Also available are the following entities:
+--! * signed_mult
+--! * signed_mult_sum
 --!
 --! VHDL Instantiation Template:
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
@@ -77,7 +83,7 @@ library baselib;
 --!   vld        => in  std_logic, -- valid
 --!   neg        => in  std_logic_vector(0 to NUM_MULT-1), -- negation
 --!   x          => in  signed_vector(0 to NUM_MULT-1), -- first factors
---!   y          => in  signed_vector(0 to NUM_MULT-1), -- second factors
+--!   y          => in  signed_vector, -- second factor(s)
 --!   result     => out signed, -- product result
 --!   result_vld => out std_logic, -- output valid
 --!   result_ovf => out std_logic, -- output overflow
@@ -151,8 +157,8 @@ port (
   neg        : in  std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
   --! First signed factor for the NUM_MULT multiplications (all X inputs must have same size)
   x          : in  signed_vector(0 to NUM_MULT-1);
-  --! Second signed factor for the NUM_MULT multiplications (all Y inputs must have same size)
-  y          : in  signed_vector(0 to NUM_MULT-1);
+  --! Second signed factors of the NUM_MULT multiplications. Requires 'TO' range.
+  y          : in  signed_vector;
   --! @brief Resulting product/accumulator output (optionally rounded and clipped).
   --! The standard result output might be unused when chain output is used instead.
   result     : out signed;
@@ -172,6 +178,11 @@ port (
   PIPESTAGES : out natural := 0
 );
 begin
+
+  assert ((y'length=1 or y'length=x'length) and y'ascending)
+    report "ERROR in " & signed_mult_accu'INSTANCE_NAME & 
+           " Input vector Y must have length of 1 or 'TO' range with same length as input X."
+    severity failure;
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
     report "WARNING in " & signed_mult_accu'INSTANCE_NAME &

@@ -6,6 +6,8 @@
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
+-- Includes DOXYGEN support.
+-------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
@@ -31,6 +33,10 @@ library baselib;
 --! The delay depends on the configuration and the underlying hardware.
 --! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
 --!
+--! Also available are the following entities:
+--! * signed_mult_accu
+--! * signed_mult_sum
+--!
 --! VHDL Instantiation Template:
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
 --! I1 : signed_mult
@@ -49,7 +55,7 @@ library baselib;
 --!   vld        => in  std_logic, -- valid
 --!   neg        => in  std_logic_vector(0 to NUM_MULT-1), -- negation
 --!   x          => in  signed_vector(0 to NUM_MULT-1), -- first factors
---!   y          => in  signed_vector(0 to NUM_MULT-1), -- second factors
+--!   y          => in  signed_vector, -- second factor(s)
 --!   result     => out signed_vector(0 to NUM_MULT-1), -- product results
 --!   result_vld => out std_logic_vector(0 to NUM_MULT-1), -- output valid
 --!   result_ovf => out std_logic_vector(0 to NUM_MULT-1), -- output overflow
@@ -95,8 +101,8 @@ port (
   neg        : in  std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
   --! First signed factor for the NUM_MULT multiplications (all X inputs must have same size)
   x          : in  signed_vector(0 to NUM_MULT-1);
-  --! Second signed factor for the NUM_MULT multiplications (all Y inputs must have same size)
-  y          : in  signed_vector(0 to NUM_MULT-1);
+  --! Second signed factors of the NUM_MULT multiplications. Requires 'TO' range.
+  y          : in  signed_vector;
   --! Resulting product output (optionally rounded and clipped).
   result     : out signed_vector(0 to NUM_MULT-1);
   --! Valid signals for result output, high-active
@@ -107,6 +113,11 @@ port (
   PIPESTAGES : out natural := 0
 );
 begin
+
+  assert ((y'length=1 or y'length=x'length) and y'ascending)
+    report "ERROR in " & signed_mult'INSTANCE_NAME & 
+           " Input vector Y must have length of 1 or 'TO' range with same length as input X."
+    severity failure;
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
     report "WARNING in " & signed_mult'INSTANCE_NAME &

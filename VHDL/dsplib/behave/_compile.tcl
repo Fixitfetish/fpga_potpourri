@@ -14,6 +14,7 @@ lappend filelist $SCRIPTPATH/delay_dsp.behave.vhdl
 lappend filelist $SCRIPTPATH/signed_mult1_accu.behave.vhdl
 lappend filelist $SCRIPTPATH/signed_mult2_accu.behave.vhdl
 lappend filelist $SCRIPTPATH/signed_mult2_sum.behave.vhdl
+lappend filelist $SCRIPTPATH/signed_mult.behave.vhdl
 lappend filelist $SCRIPTPATH/signed_mult_accu.behave.vhdl
 lappend filelist $SCRIPTPATH/signed_mult_sum.behave.vhdl
 

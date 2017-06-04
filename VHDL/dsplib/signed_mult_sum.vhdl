@@ -6,6 +6,8 @@
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
+-- Includes DOXYGEN support.
+-------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
@@ -16,9 +18,20 @@ library baselib;
 --!
 --! @image html signed_mult_sum.svg "" width=600px
 --!
---! The behavior is as follows
+--! This entity can be used for example
+--! * for complex multiplication and scalar products
+--! * to calculate the mean square of a complex number
+--!
+--! The first operation mode is:
 --! * VLD=0  then  r = r
 --! * VLD=1  then  r = +/-(x0*y0) +/-(x1*y1) +/-...
+--!
+--! The second operation mode is (single y factor):
+--! * VLD=0  then  r = r
+--! * VLD=1  then  r = +/-(x0*y0) +/-(x1*y0) +/-...
+--!
+--! Note that for the second mode a more efficient implementation might be possible
+--! because only one multiplication after summation is required.
 --!
 --! The length of the input factors is flexible.
 --! The input factors are automatically resized with sign extensions bits to the
@@ -47,9 +60,9 @@ library baselib;
 --! The delay depends on the configuration and the underlying hardware.
 --! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
 --!
---! This entity can be used for example
---!   * for complex multiplication and scalar products
---!   * to calculate the mean square of a complex number
+--! Also available are the following entities:
+--! * signed_mult
+--! * signed_mult_accu
 --!
 --! VHDL Instantiation Template:
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
@@ -70,7 +83,7 @@ library baselib;
 --!   vld        => in  std_logic, -- valid
 --!   neg        => in  std_logic_vector(0 to NUM_MULT-1), -- negation
 --!   x          => in  signed_vector(0 to NUM_MULT-1), -- first factors
---!   y          => in  signed_vector(0 to NUM_MULT-1), -- second factors
+--!   y          => in  signed_vector, -- second factor(s)
 --!   result     => out signed, -- product result
 --!   result_vld => out std_logic, -- output valid
 --!   result_ovf => out std_logic, -- output overflow
@@ -118,13 +131,13 @@ port (
   rst        : in  std_logic := '0';
   --! Valid signal for input factors, high-active
   vld        : in  std_logic;
-  --! @brief Negation of all partial products , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)).
+  --! @brief Negation of partial products , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)).
   --! Negation is disabled by default.
   neg        : in  std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
   --! First signed factor for the NUM_MULT multiplications (all X inputs must have same size)
   x          : in  signed_vector(0 to NUM_MULT-1);
-  --! Second signed factor for the NUM_MULT multiplications (all Y inputs must have same size)
-  y          : in  signed_vector(0 to NUM_MULT-1);
+  --! Second signed factors of the NUM_MULT multiplications. Requires 'TO' range.
+  y          : in  signed_vector;
   --! @brief Resulting product/accumulator output (optionally rounded and clipped).
   --! The standard result output might be unused when chain output is used instead.
   result     : out signed;
@@ -136,6 +149,11 @@ port (
   PIPESTAGES : out natural := 0
 );
 begin
+
+  assert ((y'length=1 or y'length=x'length) and y'ascending)
+    report "ERROR in " & signed_mult_sum'INSTANCE_NAME & 
+           " Input vector Y must have length of 1 or 'TO' range with same length as input X."
+    severity failure;
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
     report "WARNING in " & signed_mult_sum'INSTANCE_NAME &

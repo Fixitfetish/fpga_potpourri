@@ -6,6 +6,8 @@
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
+-- Includes DOXYGEN support.
+-------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
@@ -49,8 +51,8 @@ architecture stratixv of signed_mult_accu is
 
   -- Internal copy of inputs required because some multipliers of an entity might
   -- be unused and need to be set to zero.
-  type t_x is array(integer range <>) of signed(x(0)'length-1 downto 0);
-  type t_y is array(integer range <>) of signed(y(0)'length-1 downto 0);
+  type t_x is array(integer range <>) of signed(x(x'left)'length-1 downto 0);
+  type t_y is array(integer range <>) of signed(y(y'left)'length-1 downto 0);
   signal x_i : t_x(0 to NUM_ENTITY*NUM_MULT_PER_ENTITY-1) := (others=>(others=>'0'));
   signal y_i : t_y(0 to NUM_ENTITY*NUM_MULT_PER_ENTITY-1) := (others=>(others=>'0'));
   signal neg_i : std_logic_vector(0 to NUM_ENTITY*NUM_MULT_PER_ENTITY-1) := (others=>'0');
@@ -109,10 +111,18 @@ begin
 
   -- Map inputs to internal signals
   g_in: for n in 0 to (NUM_MULT-1) generate
-    x_i(n) <= x(n);
-    y_i(n) <= y(n);
     neg_i(n) <= neg(n);
+    x_i(n) <= x(n);
+    -- same factor y for all vector elements of x
+    g1: if y'length=1 generate
+      y_i(n) <= y(y'left); -- duplication !
+    end generate;
+    -- separate factor y for each vector element of x
+    gin_n: if y'length>=2 generate
+      y_i(n) <= y(y'left+n); -- range conversion !
+    end generate;
   end generate;
+  
   chainin_i(0) <= chainin;
   clr_i(NUM_ENTITY-1) <= clr; -- accumulator enabled in last instance only!
 
