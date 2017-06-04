@@ -32,8 +32,8 @@ Contents
 |cplx_weight_accu          | ---       | ---        | N complex scaling and accumulation of all results
 |cplx_weight_sum           | ---       | ---        | N complex scaling and summation of all results
 
-* cplx_mult = full complex multiplication
-* cplx_weight = multiply complex with real factor
+* MULT = full complex multiplication
+* WEIGHT = multiply complex with real factor
 
 CPLX Package
 ============
