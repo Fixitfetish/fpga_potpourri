@@ -5,8 +5,8 @@ fname_x_stimuli = 'mult_x_sti.txt';
 fname_y_stimuli = 'mult_y_sti.txt';
 fname_result = 'mult_log.txt';
 
-% number of cycles (number of rows)
-cycles = 19;
+% number of valid cycles (number of rows)
+cycles = 219;
 
 % length of complex vector X, i.e. number of columns
 LX = 5;
@@ -35,13 +35,15 @@ y_sti = y_sti.appendData(y_data);
 y_sti = y_sti.appendInvalid(10);
 y_sti.writeFile(fname_y_stimuli);
 
-disp(['Stimuli files "',fname_x_stimuli,'" and "',fname_y_stimuli,'" have been generated.'])
+disp('');
+disp(['Stimuli files "',fname_x_stimuli,'" and "',fname_y_stimuli,'" have been generated.']);
 disp('Please run VHDL simulation.');
 disp(['Press any key to start evaluation of simulation result file "',fname_result,'".']);
 pause
 
 
 % Evaluate CPLX result file
+% (NOTE: result vector includes one additional reference column for delay detection)
 res = cplx_interface(18,'int');
 res = res.readFile(fname_result);
 n_ovf = sum(sum(res.cplx.ovf(:,1:LX)));
@@ -77,3 +79,4 @@ if (max_err_re<1.5) && (max_err_im<1.5),
 else  
   disp('ERROR: Difference too big - check settings.');
 end
+disp('');
