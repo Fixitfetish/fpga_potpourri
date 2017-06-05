@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : dft8_tb.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 26/Apr/2017
--- VERSION : 0.20
+-- DATE    : 06/Jun/2017
+-- VERSION : 0.30
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -30,8 +30,9 @@ architecture sim of dft8_tb is
   
   constant PERIOD : time := 1 ns; -- 1000MHz
 
-  signal clk : std_logic := '1';
   signal rst : std_logic := '1';
+  signal clk : std_logic := '1';
+  signal clkena : std_logic := '0';
   signal finish : std_logic := '0';
 
   signal fft1_in_start : std_logic := '0';
@@ -76,8 +77,9 @@ begin
     GEN_FILE => "input_sti.txt"
   )
   port map (
-    clk     => clk,
     rst     => rst,
+    clk     => clk,
+    clkena  => clkena,
     dout(0) => fft1_in_ser,
     dout(1) => fft2_in_ser,
     finish  => finish
@@ -87,9 +89,11 @@ begin
   begin
     if rising_edge(clk) then
       if rst='1' then
+        clkena <= '0';
         fft1_in_idx <= (others=>'0');
         fft2_in_idx <= (others=>'0');
       else
+        clkena <= not clkena;
         if fft1_in_ser.vld='1' then
           fft1_in_idx <= fft1_in_idx + 1;
         end if;

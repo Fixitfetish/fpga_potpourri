@@ -1,8 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 -- FILE    : cplx_stimuli.vhdl   
 -- AUTHOR  : Fixitfetish
--- DATE    : 26/May/2017
--- VERSION : 0.40
+-- DATE    : 05/Jun/2017
+-- VERSION : 0.50
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -26,8 +26,9 @@ generic(
   GEN_FILE : string
 );
 port(
-  clk    : in  std_logic;
   rst    : in  std_logic;
+  clk    : in  std_logic;
+  clkena : in  std_logic := '1';
   dout   : out cplx_vector(0 to NUM_CPLX-1) ;
   finish : out std_logic := '0'
 );
@@ -90,20 +91,21 @@ begin
       end loop;
     end if;
     
-    wait until rising_edge(clk);
-    wait until rising_edge(clk);
-    wait until rising_edge(clk);
-    wait until rising_edge(clk);
-    
     -- start reading at 4th line
     readline(ifile,in_line);
     while not endfile(ifile) loop
-      for n in 0 to (NUM_CPLX-1) loop
-        cplx_read(GEN_DECIMAL, in_line, v_dout);
-        dout(n) <= v_dout; 
-      end loop;
+      if clkena='1' then
+        for n in 0 to (NUM_CPLX-1) loop
+          cplx_read(GEN_DECIMAL, in_line, v_dout);
+          dout(n) <= v_dout; 
+        end loop;
+        readline(ifile,in_line);
+      else
+        for n in 0 to (NUM_CPLX-1) loop
+          dout(n).vld <= '0'; 
+        end loop;
+      end if;
       wait until rising_edge(clk);
-      readline(ifile,in_line);
     end loop; -- stimuli loop
     
     file_close(ifile);

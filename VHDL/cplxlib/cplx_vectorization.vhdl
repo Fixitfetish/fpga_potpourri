@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_vectorization.vhdl
 --! @author     Fixitfetish
---! @date       01/May/2017
---! @version    0.20
+--! @date       06/Jun/2017
+--! @version    0.30
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -62,12 +62,12 @@ begin
         data_in <= cplx_vector_reset(W,N-1);
         vec_out <= cplx_vector_reset(W,N);
         next_idx <= 0;
-      elsif next_idx=(N-1)then
+      elsif ser_in.vld='1' and next_idx=(N-1) then
         vec_out(vec_out'left to vec_out'right-1) <= data_in;
         vec_out(vec_out'right) <= ser_in;
         next_idx <= 0;
       else
-        if start='1' or next_idx/=0 then
+        if ser_in.vld='1' and (start='1' or next_idx/=0) then
           -- note: work-around with variable that also works with N=2
           v_din(0 to N-2) := data_in;
           v_din(N-1) := ser_in;

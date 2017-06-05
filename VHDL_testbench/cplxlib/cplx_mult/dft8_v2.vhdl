@@ -72,12 +72,14 @@ begin
         run <= '0';
 
       elsif (start='1' or run='1') then
-        if idx=7 then
-          idx <= (others=>'0');
-          run <= '0';
-        else
-          idx <= idx + 1;
-          run <= '1';
+        if data_in.vld='1' then
+          if idx=7 then
+            idx <= (others=>'0');
+            run <= '0';
+          else
+            idx <= idx + 1;
+            run <= '1';
+          end if;
         end if;
       else
         idx <= (others=>'0');
