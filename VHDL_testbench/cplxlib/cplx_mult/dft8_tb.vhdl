@@ -74,7 +74,7 @@ begin
     SKIP_PRECEDING_LINES => 2,
     GEN_DECIMAL => true,
     GEN_INVALID => true,
-    GEN_FILE => "input_sti.txt"
+    GEN_FILE => "dft8_sti.txt"
   )
   port map (
     rst     => rst,
@@ -153,7 +153,7 @@ begin
     NUM_CPLX => 2,
     LOG_DECIMAL => true,
     LOG_INVALID => true,
-    LOG_FILE => "result_log.txt",
+    LOG_FILE => "dft8_log.txt",
     TITLE => "FFT_OUT"
   )
   port map (

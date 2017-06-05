@@ -5,7 +5,7 @@ library cplxlib;
   use cplxlib.cplx_pkg.all;
 library dsplib;
 
--- Version V2
+-- Version V2 - uses cplx_mult_accu
 -- INPUT  = row vector (stream of single input values)
 -- OUTPUT = column vector (all output values parallel in one cycle)
 

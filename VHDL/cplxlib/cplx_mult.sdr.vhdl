@@ -65,9 +65,10 @@ architecture sdr of cplx_mult is
     re : signed(result(result'left).re'length-1 downto 0);
     im : signed(result(result'left).im'length-1 downto 0);
   end record;
+  constant DEFAULT_RESULT : record_result := (rst=>'1',vld|ovf=>'0',re|im=>(others=>'0'));
   type vector_result is array(integer range<>) of record_result;
   type matrix_result is array(integer range<>) of vector_result(0 to NUM_MULT-1);
-  signal rslt : matrix_result(0 to NUM_OUTPUT_REG);
+  signal rslt : matrix_result(0 to NUM_OUTPUT_REG) := (others=>(others=>DEFAULT_RESULT)); 
 
   -- pipeline stages of used DSP cell
   type t_pipe is array(integer range <>) of natural;
@@ -84,14 +85,26 @@ begin
   std_logic_sink(clk2);
 
   g_merge : for n in 0 to NUM_MULT-1 generate
-    -- merge input control signals
-    rst(0)(n) <= (x(n).rst or y_i(n).rst);
-    vld(n) <= (x(n).vld and y_i(n).vld) when rst(0)(n)='0' else '0';
-    -- Consider overflow flags of all inputs.
-    -- If the overflow flag of any input is set then also the result
-    -- will have the overflow flag set.   
-    ovf(0)(n) <= '0' when (INPUT_OVERFLOW_IGNORE or rst(0)(n)='1') else
-                 (x(n).ovf or y_i(n).ovf);
+    g1 : if NUM_FACTOR=1 generate
+      -- merge input control signals
+      rst(0)(n) <= (x(n).rst or y_i(0).rst);
+      vld(n) <= (x(n).vld and y_i(0).vld) when rst(0)(n)='0' else '0';
+      -- Consider overflow flags of all inputs.
+      -- If the overflow flag of any input is set then also the result
+      -- will have the overflow flag set.   
+      ovf(0)(n) <= '0' when (INPUT_OVERFLOW_IGNORE or rst(0)(n)='1') else
+                   (x(n).ovf or y_i(0).ovf);
+    end generate;
+    gn : if NUM_FACTOR=NUM_MULT generate
+      -- merge input control signals
+      rst(0)(n) <= (x(n).rst or y_i(n).rst);
+      vld(n) <= (x(n).vld and y_i(n).vld) when rst(0)(n)='0' else '0';
+      -- Consider overflow flags of all inputs.
+      -- If the overflow flag of any input is set then also the result
+      -- will have the overflow flag set.   
+      ovf(0)(n) <= '0' when (INPUT_OVERFLOW_IGNORE or rst(0)(n)='1') else
+                   (x(n).ovf or y_i(n).ovf);
+    end generate;
   end generate;
 
   g_in : for n in 0 to NUM_MULT-1 generate

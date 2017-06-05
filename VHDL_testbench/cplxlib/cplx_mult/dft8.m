@@ -1,6 +1,9 @@
+% DFT8 example to test the entities
+%  "cplx_mult_accu"
+%  "cplx_mult_sum"
 
-fname_stimuli = 'input_sti.txt';
-fname_result = 'result_log.txt';
+fname_stimuli = 'dft8_sti.txt';
+fname_result = 'dft8_log.txt';
 
 % first input
 re      = [  67272, -53923,  57111,  23748, -44332, -71022,  66992, -81005 ]; 
