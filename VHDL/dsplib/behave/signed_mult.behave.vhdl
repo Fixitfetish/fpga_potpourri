@@ -62,7 +62,7 @@ architecture behave of signed_mult is
   type t_prod is array(integer range <>) of signed(PRODUCT_WIDTH-1 downto 0);
   type t_prod_shifted is array(integer range <>) of signed(PRODUCT_SHIFTED_WIDTH-1 downto 0);
   signal prod : t_prod(0 to NUM_MULT-1);
-  signal prod_shifted : t_prod(0 to NUM_MULT-1);
+  signal prod_shifted : t_prod_shifted(0 to NUM_MULT-1);
 
 begin
 
@@ -97,7 +97,7 @@ begin
     end if;
   end process;
 
-  g_shift : for n in 0 to NUM_MULT-1 generate
+  g_shift : for n in 0 to (NUM_MULT-1) generate
     -- shift right and round
     g_rnd_off : if (not ROUND_ENABLE) generate
       prod_shifted(n) <= RESIZE(SHIFT_RIGHT_ROUND(prod(n), OUTPUT_SHIFT_RIGHT),PRODUCT_SHIFTED_WIDTH);
