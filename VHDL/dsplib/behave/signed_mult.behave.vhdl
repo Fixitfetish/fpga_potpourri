@@ -64,6 +64,8 @@ architecture behave of signed_mult is
   signal prod : t_prod(0 to NUM_MULT-1);
   signal prod_shifted : t_prod_shifted(0 to NUM_MULT-1);
 
+  signal vld_q : std_logic;
+
 begin
 
   -- same factor y for all vector elements of x
@@ -91,9 +93,7 @@ begin
         end loop;
       end if;
       -- valid is the same for all
-      for n in 0 to NUM_MULT-1 loop
-        rslt(1)(n).vld <= vld;
-      end loop;
+      vld_q <= vld;
     end if;
   end process;
 
@@ -106,12 +106,13 @@ begin
       prod_shifted(n) <= RESIZE(SHIFT_RIGHT_ROUND(prod(n), OUTPUT_SHIFT_RIGHT, nearest),PRODUCT_SHIFTED_WIDTH);
     end generate;
     -- resize and clip
-    p_out : process(prod_shifted(n))
+    p_out : process(prod_shifted(n),vld_q)
       variable v_dat : signed(OUTPUT_WIDTH-1 downto 0);
       variable v_ovf : std_logic;
     begin
       RESIZE_CLIP(din=>prod_shifted(n), dout=>v_dat, ovfl=>v_ovf, clip=>OUTPUT_CLIP);
       rslt(1)(n).dat <= v_dat;
+      rslt(1)(n).vld <= vld_q;
       if OUTPUT_OVERFLOW then rslt(1)(n).ovf<=v_ovf; else rslt(1)(n).ovf<='0'; end if;
     end process;
   end generate;

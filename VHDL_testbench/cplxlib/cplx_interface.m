@@ -35,38 +35,6 @@ classdef cplx_interface
      if (nargin>=2), obj.Format = format; end
    end
 
-   function obj = set.Format(obj,f)
-     if ~strcmp(f,'int') && ~strcmp(f,'frac'),
-       error('Input data format must be "int" or "frac".');
-     end
-     obj.Format = f;
-   end
-
-   function obj = set.Title(obj,t)
-     if ~strcmp(class(t),'char'),
-       error('Data title must be a character string.');
-     end
-     if length(t)>10,
-       error('Data title is too long.');
-     end
-     obj.Title = t;
-   end
-
-   function d = get.NumDigits(obj)
-     if strcmp(obj.DataFormat,'dec'),
-       d = ceil(log10(2^(obj.DataWidth-1))) + 1;
-     elseif strcmp(obj.DataFormat,'hex'),
-       d = ceil(obj.DataWidth/4);
-     elseif strcmp(obj.DataFormat,'bin'),
-       d = obj.DataWidth;
-     end
-   end
-
-   function ch = get.NumChars(obj)
-     % number of characters per line (3 bits + 2 signed + 12 spaces)
-     ch = 3 + 2*obj.NumDigits + 12;
-   end
-
    function obj = appendReset(obj,L,N)
      if (L<1 || L~=fix(L)),
        error('Number of reset cycles L must be positive integer.');
@@ -163,10 +131,43 @@ classdef cplx_interface
      obj.cplx.rst  = [obj.cplx.rst ; zeros(L,N) ];
      obj.cplx.vld  = [obj.cplx.vld ; vld ];
      obj.cplx.ovf  = [obj.cplx.ovf ; ovf ];
-     obj.cplx.data = [obj.cplx.data; re+i*im ];
+     obj.cplx.data = [obj.cplx.data; re+1i*im ];
      obj.Length = obj.Length + L;
      
    end
+
+   function writeFile(obj,fname)
+     dlmwrite(fname,obj.MatrixChar,'');
+   end
+
+   function obj = readFile(obj,fname)
+     x = dlmread(fname,'','emptyvalue',NaN);
+     t = ''; % default title
+     % check for header (second row are the column names)
+     if all(isnan(x(2,:))),
+       x = x(3:end,:);
+       % title = file name
+       [folder,t,ext] = fileparts(fname);
+     end
+     [L,N] = size(x);
+     N = N/5; % 5 columns per cplx
+     obj.cplx.rst = x(:,1:5:end);
+     obj.cplx.vld = x(:,2:5:end);
+     obj.cplx.ovf = x(:,3:5:end);
+     re = x(:,4:5:end);
+     im = x(:,5:5:end);
+     obj.cplx.data = re + 1i*im;
+     % derived width including sign bit
+     obj.DataWidth = ceil(log2( max(max(abs([re;im]))) )) + 1; 
+     % set length after width! (avoid unnecessary clipping)
+     obj.Length = L;
+     obj.Streams = N;
+     obj.Title = t;
+   end
+ 
+ end %methods
+
+ methods
 
    function m = get.MatrixDouble(obj)
      if obj.Length>=1,
@@ -209,38 +210,37 @@ classdef cplx_interface
      end
    end %get.MatrixChar
 
-   function writeFile(obj,fname)
-     dlmwrite(fname,obj.MatrixChar,'');
+   function obj = set.Format(obj,f)
+     if ~strcmp(f,'int') && ~strcmp(f,'frac'),
+       error('Input data format must be "int" or "frac".');
+     end
+     obj.Format = f;
    end
 
-   function obj = readFile(obj,fname)
-     x = dlmread(fname,'','emptyvalue',NaN);
-     t = ''; % default title
-     % check for header (second row are the column names)
-     if all(isnan(x(2,:))),
-       x = x(3:end,:);
-       % title = file name
-       [folder,t,ext] = fileparts(fname);
+   function obj = set.Title(obj,t)
+     if ~ischar(t),
+       error('Data title must be a character string.');
      end
-     [L,N] = size(x);
-     N = N/5; % 5 columns per cplx
-     obj.cplx.rst = x(:,1:5:end);
-     obj.cplx.vld = x(:,2:5:end);
-     obj.cplx.ovf = x(:,3:5:end);
-     re = x(:,4:5:end);
-     im = x(:,5:5:end);
-     obj.cplx.data = re + i*im;
-     % derived width including sign bit
-     obj.DataWidth = ceil(log2( max(max(abs([re;im]))) )) + 1; 
-     % set length after width! (avoid unnecessary clipping)
-     obj.Length = L;
-     obj.Streams = N;
+     if length(t)>10,
+       error('Data title is too long.');
+     end
      obj.Title = t;
    end
- 
- end %methods
 
- methods (Access=private)
+   function d = get.NumDigits(obj)
+     if strcmp(obj.DataFormat,'dec'),
+       d = ceil(log10(2^(obj.DataWidth-1))) + 1;
+     elseif strcmp(obj.DataFormat,'hex'),
+       d = ceil(obj.DataWidth/4);
+     elseif strcmp(obj.DataFormat,'bin'),
+       d = obj.DataWidth;
+     end
+   end
+
+   function ch = get.NumChars(obj)
+     % number of characters per line (3 bits + 2 signed + 12 spaces)
+     ch = 3 + 2*obj.NumDigits + 12;
+   end
 
    function obj = set.DataWidth(obj,width)
      if (width<0 || width~=fix(width)),
