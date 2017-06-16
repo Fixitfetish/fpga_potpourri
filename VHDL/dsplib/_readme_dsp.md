@@ -71,23 +71,6 @@ third value is called "signed_preadd_mult1". If the results of this operation ca
 be accumulated over several cycles the postfix "accu" is added. Hence, the complete entity is
 called "signed_preadd_mult1_accu".
 
-That's it.
-
----
-
-\section section_hist History
-
-Date       | Author      | Description
------------|-------------|--------------
-01.01.2017 | Fixitfetish | Initial
-
-\section section_ref References
-
-Reference List
-- Reference 1
-- Reference 2
-- Reference 3
-
 ---
 MIT License : Copyright (c) 2017 Fixitfetish
  - <https://opensource.org/licenses/MIT>
