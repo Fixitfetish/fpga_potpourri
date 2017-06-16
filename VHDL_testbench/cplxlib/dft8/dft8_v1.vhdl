@@ -105,7 +105,6 @@ begin
     HIGH_SPEED_MODE => false,
     NUM_INPUT_REG => 1,
     NUM_OUTPUT_REG => 1,
-    INPUT_OVERFLOW_IGNORE => false,
     OUTPUT_SHIFT_RIGHT => DFTMTX_POWER_LD,
     MODE => "NSO" -- saturation + overflow detection
   )

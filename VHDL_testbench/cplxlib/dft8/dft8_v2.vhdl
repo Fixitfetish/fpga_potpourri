@@ -116,7 +116,6 @@ begin
     NUM_SUMMAND => 8,
     NUM_INPUT_REG => 1,
     NUM_OUTPUT_REG => 0,
-    INPUT_OVERFLOW_IGNORE => false,
     OUTPUT_SHIFT_RIGHT => DFTMTX_POWER_LD,
     MODE => "NSO" -- round + saturation + overflow detection
   )

@@ -102,6 +102,7 @@ Some options are predefined to switch on/off commonly used features.
     'R', -- use reset on RE/IM (set RE=0 and IM=0)
     'S', -- enable saturation/clipping (by default off)
     'U', -- round up towards plus infinity, ceil
+    'X'  -- ignore/discard input overflow flag
     'Z'  -- round towards zero, truncate
   );
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

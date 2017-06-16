@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_mult_accu.vhdl
 --! @author     Fixitfetish
---! @date       01/May/2017
---! @version    0.40
+--! @date       16/Jun/2017
+--! @version    0.50
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -76,7 +76,6 @@ library cplxlib;
 --!   NUM_SUMMAND           => natural,  -- number of overall summands
 --!   NUM_INPUT_REG         => natural,  -- number of input registers
 --!   NUM_OUTPUT_REG        => natural,  -- number of output registers
---!   INPUT_OVERFLOW_IGNORE => boolean,  -- ignore input overflows
 --!   OUTPUT_SHIFT_RIGHT    => natural,  -- number of right shifts
 --!   MODE                  => cplx_mode -- options
 --! )
@@ -118,15 +117,9 @@ generic (
   --! At least one is recommended when logic for rounding and/or clipping is enabled.
   --! Typically all output registers are implemented in logic and are not part of a DSP cell.
   NUM_OUTPUT_REG : natural := 0;
-  --! @brief By default the overflow flags of the inputs are propagated to the
-  --! output to not loose the overflow flags in processing chains.
-  --! If the input overflow flags are ignored then output overflow flags only
-  --! report overflows within this entity. Note that ignoring the input
-  --! overflows can save a little bit of logic.
-  INPUT_OVERFLOW_IGNORE : boolean := false;
   --! Number of bits by which the result output is shifted right
   OUTPUT_SHIFT_RIGHT : natural := 0;
-  --! Supported operation modes 'R','O','N' and 'S'
+  --! Supported operation modes 'R','O','N','S' and 'X'
   MODE : cplx_mode := "-"
 );
 port (
@@ -151,7 +144,7 @@ port (
 );
 begin
 
-  assert ((y'length=1 or y'length=x'length) and (y'left<=y'right))
+  assert ((y'length=1 or y'length=x'length) and y'ascending)
     report "ERROR in " & cplx_mult_accu'INSTANCE_NAME & 
            " Input vector Y must have length of 1 or 'TO' range with same length as input X."
     severity failure;

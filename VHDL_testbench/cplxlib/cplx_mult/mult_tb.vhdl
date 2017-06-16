@@ -106,7 +106,6 @@ begin
     HIGH_SPEED_MODE       => false,  -- enable high speed mode
     NUM_INPUT_REG         => 1,  -- number of input registers
     NUM_OUTPUT_REG        => 1,  -- number of output registers
-    INPUT_OVERFLOW_IGNORE => false,  -- ignore input overflows
     OUTPUT_SHIFT_RIGHT    => 18,  -- number of right shifts
     MODE                  => "NOS" -- options
   )

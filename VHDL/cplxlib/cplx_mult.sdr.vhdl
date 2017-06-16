@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_mult.sdr.vhdl
 --! @author     Fixitfetish
---! @date       01/May/2017
---! @version    0.30
+--! @date       16/Jun/2017
+--! @version    0.40
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -92,7 +92,7 @@ begin
       -- Consider overflow flags of all inputs.
       -- If the overflow flag of any input is set then also the result
       -- will have the overflow flag set.   
-      ovf(0)(n) <= '0' when (INPUT_OVERFLOW_IGNORE or rst(0)(n)='1') else
+      ovf(0)(n) <= '0' when (MODE='X' or rst(0)(n)='1') else
                    (x(n).ovf or y_i(0).ovf);
     end generate;
     gn : if NUM_FACTOR=NUM_MULT generate
@@ -102,7 +102,7 @@ begin
       -- Consider overflow flags of all inputs.
       -- If the overflow flag of any input is set then also the result
       -- will have the overflow flag set.   
-      ovf(0)(n) <= '0' when (INPUT_OVERFLOW_IGNORE or rst(0)(n)='1') else
+      ovf(0)(n) <= '0' when (MODE='X' or rst(0)(n)='1') else
                    (x(n).ovf or y_i(n).ovf);
     end generate;
   end generate;
@@ -198,7 +198,7 @@ begin
 
     -- pipeline delay is the same for all
     rslt(0)(n).rst <= rst(PIPE_DSP(0))(n);
-    rslt(0)(n).ovf <= (r_ovf_re(n) or r_ovf_im(n)) when INPUT_OVERFLOW_IGNORE else
+    rslt(0)(n).ovf <= (r_ovf_re(n) or r_ovf_im(n)) when MODE='X' else
                       (r_ovf_re(n) or r_ovf_im(n) or ovf(PIPE_DSP(0))(n));
   end generate;
 

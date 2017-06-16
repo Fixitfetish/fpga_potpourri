@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_pipeline.vhdl
 --! @author     Fixitfetish
---! @date       08/May/2017
---! @version    0.10
+--! @date       16/Jun/2017
+--! @version    0.20
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ entity cplx_pipeline is
 generic (
   --! The number of pipeline stages >=1 (mandatory!)
   NUM_PIPELINE_STAGES : positive;
-  --! Supported operation modes 'R', i.e. reset data when rst='1'
+  --! Supported operation modes are 'X' and 'R', i.e. reset data when rst='1'
   MODE : cplx_mode := "-"
 );
 port (
@@ -59,7 +59,7 @@ begin
   -- map input ports to pipeline input
   pipe_rst(0) <= din.rst;
   pipe_vld(0) <= din.vld;
-  pipe_ovf(0) <= din.ovf;
+  pipe_ovf(0) <= '0' when MODE='X' else din.ovf;
   pipe_re(0) <= din.re;
   pipe_im(0) <= din.im;
 

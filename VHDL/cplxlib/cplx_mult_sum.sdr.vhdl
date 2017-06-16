@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_mult_sum.sdr.vhdl
 --! @author     Fixitfetish
---! @date       01/May/2017
---! @version    0.40
+--! @date       16/Jun/2017
+--! @version    0.50
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -100,7 +100,7 @@ begin
   -- Consider overflow flags of all inputs that are summed.
   -- If the overflow flag of any input is set then also the result
   -- will have the overflow flag set.   
-  ovf(0) <= '0' when (INPUT_OVERFLOW_IGNORE or rst(0)='1') else
+  ovf(0) <= '0' when (MODE='X' or rst(0)='1') else
             (ANY_ONES(ovf_x) or  ANY_ONES(ovf_y));
 
   g_in : for n in 0 to NUM_MULT-1 generate
@@ -193,7 +193,7 @@ begin
 
   -- pipeline delay is the same for all
   rslt(0).rst <= rst(PIPE_DSP);
-  rslt(0).ovf <= (r_ovf_re or r_ovf_im) when INPUT_OVERFLOW_IGNORE else
+  rslt(0).ovf <= (r_ovf_re or r_ovf_im) when MODE='X' else
                  (r_ovf_re or r_ovf_im or ovf(PIPE_DSP));
 
   -- additional output registers

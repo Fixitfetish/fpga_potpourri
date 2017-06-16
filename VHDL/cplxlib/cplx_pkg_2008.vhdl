@@ -72,14 +72,15 @@ package cplx_pkg is
 
   type cplx_option is (
     '-', -- don't care, use defaults
-    'R', -- use reset on RE/IM (set RE=0 and IM=0)
-    'O', -- enable overflow/underflow detection (by default off)
-    'S', -- enable saturation/clipping (by default off)
     'D', -- round down towards minus infinity, floor (default, just remove LSBs)
+    'I', -- round towards plus/minus infinity, i.e. away from zero
     'N', -- round to nearest (standard rounding, i.e. +0.5 and then remove LSBs)
+    'O', -- enable overflow/underflow detection (by default off)
+    'R', -- use reset on RE/IM (set RE=0 and IM=0)
+    'S', -- enable saturation/clipping (by default off)
     'U', -- round up towards plus infinity, ceil
-    'Z', -- round towards zero, truncate
-    'I'  -- round towards plus/minus infinity, i.e. away from zero
+    'X', -- ignore/discard input overflow flag
+    'Z'  -- round towards zero, truncate
 --  'F'  -- flush, required/needed ?
 --  'C'  -- clear, required/needed ?
 --  'H'  -- hold last valid output data when invalid (toggle rate reduction)
@@ -90,21 +91,31 @@ package cplx_pkg is
   -- Use options carefully and only when really required. Some options can have
   -- a negative influence on logic consumption and timing.
   -- '-' -- don't care, use defaults
-  -- 'R' -- use reset on RE/IM (set RE=0 and IM=0)
-  -- 'O' -- enable overflow/underflow detection (by default off)
-  -- 'S' -- enable saturation/clipping (by default off)
   -- 'D' -- round down towards minus infinity, floor (default, just remove LSBs)
-  -- 'N' -- round to nearest (standard rounding, i.e. +0.5 and then remove LSBs)
-  -- 'U' -- round up towards plus infinity, ceil
-  -- 'Z' -- round towards zero, truncate
   -- 'I' -- round towards plus/minus infinity, i.e. away from zero
+  -- 'N' -- round to nearest (standard rounding, i.e. +0.5 and then remove LSBs)
+  -- 'O' -- enable overflow/underflow detection (by default off)
+  -- 'R' -- use reset on RE/IM (set RE=0 and IM=0)
+  -- 'S' -- enable saturation/clipping (by default off)
+  -- 'U' -- round up towards plus infinity, ceil
+  -- 'X' -- ignore/discard input overflow flag
+  -- 'Z' -- round towards zero, truncate
+  -- 
+  -- Option X : By default the overflow flags of the inputs are propagated
+  -- to the output to not loose the overflow flags in processing chains.
+  -- If the input overflow flags are ignored then output overflow flags only
+  -- report overflows within this entity. Note that ignoring the input
+  -- overflows can save a little bit of logic.
   type cplx_mode is array(integer range <>) of cplx_option;
 
   ------------------------------------------
   -- auxiliary
   ------------------------------------------
 
+  -- check if a certain option is enabled
   function "=" (l:cplx_mode; r:cplx_option) return boolean;
+
+  -- check if a certain option is disabled
   function "/=" (l:cplx_mode; r:cplx_option) return boolean;
 
   ------------------------------------------

@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_weight.sdr.vhdl
 --! @author     Fixitfetish
---! @date       01/May/2017
---! @version    0.30
+--! @date       16/Jun/2017
+--! @version    0.40
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -94,7 +94,7 @@ begin
     -- Consider overflow flags of all inputs.
     -- If the overflow flag of any input is set then also the result
     -- will have the overflow flag set.   
-    ovf(0)(n) <= '0' when (INPUT_OVERFLOW_IGNORE or rst(0)(n)='1') else x(n).ovf;
+    ovf(0)(n) <= '0' when (MODE='X' or rst(0)(n)='1') else x(n).ovf;
   end generate;
   vld_dsp <= ANY_ONES(vld);
 
@@ -151,7 +151,7 @@ begin
 
   g_rslt : for n in 0 to NUM_MULT-1 generate
     rslt(0)(n).rst <= rst(PIPE_DSP)(n);
-    rslt(0)(n).ovf <= (r_ovf(2*n) or r_ovf(2*n+1)) when INPUT_OVERFLOW_IGNORE else
+    rslt(0)(n).ovf <= (r_ovf(2*n) or r_ovf(2*n+1)) when MODE='X' else
                       (r_ovf(2*n) or r_ovf(2*n+1) or ovf(PIPE_DSP)(n));
     rslt(0)(n).vld <= r_vld(2*n) and (not rst(PIPE_DSP)(n)); -- valid signal is the same for all product results
     rslt(0)(n).re <= r(2*n);
