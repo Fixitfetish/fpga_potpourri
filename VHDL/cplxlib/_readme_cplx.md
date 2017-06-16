@@ -123,7 +123,7 @@ RESET
 =====
 There are three ways of resetting.
 1. Disable reset - constantly force cplx.rst='0' in the beginning of the pipeline.
-   RST will be not considered and will be optimized out.
+   RST will not be considered and will be optimized out.
 2. Reset only control signals VLD and OVF - drive cplx.rst='1' as needed. 
    RST propagates through the pipeline and resets the control signals in each pipeline stage when cplx.rst='1'.
 3. Reset data and control signals -

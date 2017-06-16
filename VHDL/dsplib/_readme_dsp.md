@@ -1,7 +1,10 @@
 \brief This file includes the DOXYGEN documentation entry page of the DSP Library.
 
 \page DSP_LIBRARY DSP Library Overview
-\section section_intro Introduction
+
+Introduction
+============
+
 The DSP library
 * collection of types, functions and procedures in addition to the ieee.numeric_std library ... see ieee_extension
 * support of rounding, clipping/saturation and overflow detection
@@ -12,9 +15,9 @@ different FPGA device types and vendors with different DSP cell primitives.
 This only works for basic operations and features that are supported by all DSP cells.
 Highly optimized solutions will always be device and vendor specific and are not considered here.
 
----
+Contents
+========
 
-\section section_contents Contents
 Currently the focus is on the following device families:
 * Altera Stratix V (with primitive \b \e stratixv_mac )
 * Altera Arria 10 (with primitive \b \e twentynm_mac )
@@ -43,8 +46,9 @@ Currently the focus is on the following device families:
 
 More FPGA devices and types might be added later.
 
----
-\section section_naming Composition and Naming Convention
+
+Composition and Naming Convention
+=================================
 
 Todays DSP cells are made up of similar basic components like preadders, multipliers, negation
 and add/subtract/accumulation stages. Furthermore, chaining of multiple DSP cells is supported.
@@ -72,16 +76,19 @@ That's it.
 ---
 
 \section section_hist History
+
 Date       | Author      | Description
 -----------|-------------|--------------
 01.01.2017 | Fixitfetish | Initial
 
 \section section_ref References
+
 Reference List
 - Reference 1
 - Reference 2
 - Reference 3
 
+---
 MIT License : Copyright (c) 2017 Fixitfetish
- - [https://opensource.org/licenses/MIT] (https://opensource.org/licenses/MIT)
- - [https://en.wikipedia.org/wiki/MIT_License] (https://en.wikipedia.org/wiki/MIT_License)
+ - <https://opensource.org/licenses/MIT>
+ - <https://en.wikipedia.org/wiki/MIT_License>
