@@ -24,9 +24,9 @@ architecture sim of mult_tb is
   constant LY : natural := 5;  -- vector length y
   constant LR : natural := LX; -- vector length result
 
-  constant FILENAME_X : string := "mult_x_sti.txt"; -- input x
-  constant FILENAME_Y : string := "mult_y_sti.txt"; -- input y
-  constant FILENAME_R : string := "mult_log.txt"; -- result
+  constant FILENAME_X : string := "x_sti.txt"; -- input x
+  constant FILENAME_Y : string := "y_sti.txt"; -- input y
+  constant FILENAME_R : string := "result_log.txt"; -- result
 
   signal rst : std_logic := '1';
   signal clk : std_logic := '1';

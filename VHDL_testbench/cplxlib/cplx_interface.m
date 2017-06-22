@@ -35,7 +35,7 @@ classdef cplx_interface
      if (nargin>=2), obj.Format = format; end
    end
 
-   function obj = appendReset(obj,L,N)
+   function obj = append_reset(obj,L,N)
      if (L<1 || L~=fix(L)),
        error('Number of reset cycles L must be positive integer.');
      end
@@ -59,7 +59,7 @@ classdef cplx_interface
      obj.Length = obj.Length + L;
    end
 
-   function obj = appendInvalid(obj,L,N)
+   function obj = append_invalid(obj,L,N)
      if (L<1 || L~=fix(L)),
        error('Number of invalid cycles L must be positive integer.');
      end
@@ -83,7 +83,7 @@ classdef cplx_interface
      obj.Length = obj.Length + L;
    end
 
-   function obj = appendData(obj,data,vld)
+   function obj = append_data(obj,data,vld)
      [L,N] = size(data);
      if ( isempty(data) || (L*N)~=numel(data) ),
        error('Input data must be a complex column or row vector or a 2-dim matrix.');
@@ -136,18 +136,15 @@ classdef cplx_interface
      
    end
 
-   function writeFile(obj,fname)
+   function write_file(obj,fname)
      dlmwrite(fname,obj.MatrixChar,'');
    end
 
-   function obj = readFile(obj,fname)
-     x = dlmread(fname,'','emptyvalue',NaN);
-     t = ''; % default title
-     % check for header (second row are the column names)
-     if all(isnan(x(2,:))),
-       x = x(3:end,:);
-       % title = file name
-       [folder,t,ext] = fileparts(fname);
+   function obj = read_file(obj,fname)
+     x = importdata(fname);
+     x = x.data;
+     if any(any(isnan(x))),
+       warning(['Found incorrect values in ',fname]);
      end
      [L,N] = size(x);
      N = N/5; % 5 columns per cplx
@@ -159,13 +156,14 @@ classdef cplx_interface
      obj.cplx.data = re + 1i*im;
      % derived width including sign bit
      obj.DataWidth = ceil(log2( max(max(abs([re;im]))) )) + 1; 
-     % set length after width! (avoid unnecessary clipping)
+     % set length after width! (avoid unnecessary call of clipping routine)
      obj.Length = L;
      obj.Streams = N;
-     obj.Title = t;
+     obj.Title = ''; % default title
    end
  
- end %methods
+   
+ end %methods public
 
  methods
 

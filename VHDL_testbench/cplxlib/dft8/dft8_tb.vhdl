@@ -30,6 +30,9 @@ architecture sim of dft8_tb is
   
   constant PERIOD : time := 1 ns; -- 1000MHz
 
+  constant FILENAME_IN : string := "dft8_sti.txt"; -- input
+  constant FILENAME_R : string := "result_log.txt"; -- result
+
   signal rst : std_logic := '1';
   signal clk : std_logic := '1';
   signal clkena : std_logic := '0';
@@ -74,7 +77,7 @@ begin
     SKIP_PRECEDING_LINES => 2,
     GEN_DECIMAL => true,
     GEN_INVALID => true,
-    GEN_FILE => "dft8_sti.txt"
+    GEN_FILE => FILENAME_IN
   )
   port map (
     rst     => rst,
@@ -153,7 +156,7 @@ begin
     NUM_CPLX => 2,
     LOG_DECIMAL => true,
     LOG_INVALID => true,
-    LOG_FILE => "dft8_log.txt",
+    LOG_FILE => FILENAME_R,
     TITLE => "FFT_OUT"
   )
   port map (

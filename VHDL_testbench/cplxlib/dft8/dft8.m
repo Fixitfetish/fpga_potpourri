@@ -2,8 +2,10 @@
 %  "cplx_mult_accu"
 %  "cplx_mult_sum"
 
+addpath('../');
+
 fname_stimuli = 'dft8_sti.txt';
-fname_result = 'dft8_log.txt';
+fname_result = 'result_log.txt';
 
 % first input
 re      = [  67272, -53923,  57111,  23748, -44332, -71022,  66992, -81005 ]; 
@@ -17,18 +19,16 @@ im(3,:) = [  87830, -34948,  -8143, -40008,  97450, -19713, -11914, -33524 ];
 % merge stimuli
 data = (re + i*im).';
 
-addpath('../');
-
 % create CPLX stimuli file
 sti = cplx_interface(18,'int');
-sti = sti.appendReset(3,2);
-sti = sti.appendData(repmat(data(:,1),1,2));
-sti = sti.appendInvalid(1);
-sti = sti.appendData(repmat(data(:,2),1,2));
-sti = sti.appendInvalid(1);
-sti = sti.appendData(repmat(data(:,3),1,2));
-sti = sti.appendInvalid(30);
-sti.writeFile(fname_stimuli);
+sti = sti.append_reset(3,2);
+sti = sti.append_data(repmat(data(:,1),1,2));
+sti = sti.append_invalid(1);
+sti = sti.append_data(repmat(data(:,2),1,2));
+sti = sti.append_invalid(1);
+sti = sti.append_data(repmat(data(:,3),1,2));
+sti = sti.append_invalid(30);
+sti.write_file(fname_stimuli);
 
 
 disp(['Stimuli file "',fname_stimuli,'" has been generated.'])
@@ -39,10 +39,10 @@ pause
 
 % Evaluate CPLX result file
 res = cplx_interface(18,'int');
-res = res.readFile(fname_result);
+res = res.read_file(fname_result);
 
 % extract valid result values
-R = reshape(res.cplx.data(logical(res.cplx.vld)),8,[]);
+R = reshape(res.cplx.data(res.cplx.vld==1),8,[]);
 
 % DFT version 1
 R1 = R(:,1:3);
