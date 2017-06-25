@@ -61,7 +61,7 @@ architecture behave of signed_mult is
 
   type t_prod is array(integer range <>) of signed(PRODUCT_WIDTH-1 downto 0);
   type t_prod_shifted is array(integer range <>) of signed(PRODUCT_SHIFTED_WIDTH-1 downto 0);
-  signal prod : t_prod(0 to NUM_MULT-1);
+  signal prod : t_prod(0 to NUM_MULT-1) := (others=>(others=>'0'));
   signal prod_shifted : t_prod_shifted(0 to NUM_MULT-1);
 
   signal vld_q : std_logic;
