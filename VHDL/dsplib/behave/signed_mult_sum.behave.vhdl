@@ -1,10 +1,11 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult_sum.behave.vhdl
 --! @author     Fixitfetish
---! @date       11/Apr/2017
---! @version    0.20
---! @copyright  MIT License
+--! @date       02/Jul/2017
+--! @version    0.30
 --! @note       VHDL-1993
+--! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
+--!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
 -- Includes DOXYGEN support.
 -------------------------------------------------------------------------------
@@ -13,6 +14,7 @@ library ieee;
   use ieee.numeric_std.all;
 library baselib;
   use baselib.ieee_extension.all;
+library dsplib;
 
 --! @brief This implementation is a behavioral model of the entity 
 --! @link signed_mult_sum signed_mult_sum @endlink for simulation.
@@ -55,29 +57,17 @@ architecture behave of signed_mult_sum is
   constant ACCU_WIDTH : positive := 64;
 
   -- derived constants
-  constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
   constant PRODUCT_WIDTH : natural := x(x'left)'length + y(y'left)'length;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
   constant GUARD_BITS_EVAL : natural := guard_bits(NUM_MULT,MAX_GUARD_BITS);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
-  constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
   constant OUTPUT_WIDTH : positive := result'length;
 
   -- pipeline registers (plus some dummy ones for non-existent adder tree)
   constant NUM_DELAY_REG : natural := NUM_INPUT_REG + NUM_OUTPUT_REG + GUARD_BITS_EVAL;
 
-  -- output register pipeline
-  type r_oreg is
-  record
-    dat : signed(OUTPUT_WIDTH-1 downto 0);
-    vld : std_logic;
-    ovf : std_logic;
-  end record;
-  type array_oreg is array(integer range <>) of r_oreg;
-  signal rslt : array_oreg(1 to NUM_DELAY_REG) := (others=>(dat=>(others=>'0'),vld|ovf=>'0'));
-
+  signal accu_vld : std_logic := '0';
   signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0) := (others=>'0');
-  signal accu_used_shifted : signed(ACCU_USED_SHIFTED_WIDTH-1 downto 0);
 
 begin
 
@@ -109,38 +99,28 @@ begin
         end loop;
         accu_used <= v_accu_used;
       end if;
-      rslt(1).vld <= vld; -- same for all
+      accu_vld <= vld; -- same for all
     end if;
   end process;
 
-  -- shift right and round
-  g_rnd_off : if (not ROUND_ENABLE) generate
-    accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT),ACCU_USED_SHIFTED_WIDTH);
-  end generate;
-  g_rnd_on : if (ROUND_ENABLE) generate
-    accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT, nearest),ACCU_USED_SHIFTED_WIDTH);
-  end generate;
-
-  p_out : process(accu_used_shifted)
-    variable v_dat : signed(OUTPUT_WIDTH-1 downto 0);
-    variable v_ovf : std_logic;
-  begin
-    RESIZE_CLIP(din=>accu_used_shifted, dout=>v_dat, ovfl=>v_ovf, clip=>OUTPUT_CLIP);
-    rslt(1).dat <= v_dat;
-    if OUTPUT_OVERFLOW then rslt(1).ovf<=v_ovf; else rslt(1).ovf<='0'; end if;
-  end process;
-
-  -- additional output registers always in logic
-  g_oreg : if NUM_DELAY_REG>=2 generate
-    g_loop : for n in 2 to NUM_DELAY_REG generate
-      rslt(n) <= rslt(n-1) when rising_edge(clk);
-    end generate;
-  end generate;
-
-  -- map result to output port
-  result <= rslt(NUM_DELAY_REG).dat;
-  result_vld <= rslt(NUM_DELAY_REG).vld;
-  result_ovf <= rslt(NUM_DELAY_REG).ovf;
+  -- right-shift, rounding and clipping
+  i_out : entity dsplib.dsp_output_logic
+  generic map(
+    PIPELINE_STAGES    => NUM_DELAY_REG-1,
+    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
+    OUTPUT_ROUND       => OUTPUT_ROUND,
+    OUTPUT_CLIP        => OUTPUT_CLIP,
+    OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
+  )
+  port map (
+    clk         => clk,
+    rst         => rst,
+    dsp_out     => accu_used,
+    dsp_out_vld => accu_vld,
+    result      => result,
+    result_vld  => result_vld,
+    result_ovf  => result_ovf
+  );
 
   PIPESTAGES <= NUM_DELAY_REG;
 
