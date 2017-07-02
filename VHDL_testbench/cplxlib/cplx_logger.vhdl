@@ -19,10 +19,11 @@ use std.textio.all;
 
 entity cplx_logger is
 generic(
-  NUM_CPLX : natural := 1;
-  LOG_DECIMAL : boolean := false;
-  LOG_INVALID : boolean := false;
+  NUM_CPLX : natural := 1; -- number of parallel CPLX inputs 
   LOG_FILE : string := "log.txt";
+  LOG_DECIMAL : boolean := false; -- TODO
+  LOG_INVALID : boolean := false;
+  STR_INVALID : string := "nan"; -- string for invalid values
   TITLE : string := ""
 );
 port(
@@ -56,9 +57,9 @@ architecture sim of cplx_logger is
   ) is
     variable v_val : integer;
   begin
-    write(l,hexstr_from_slv(l(0)=>din.rst),right,3);
-    write(l,hexstr_from_slv(l(0)=>din.vld),right,4);
-    write(l,hexstr_from_slv(l(0)=>din.ovf),right,4);
+    write(l,hexstr_validate(hexstr_from_slv(l(0)=>din.rst),STR_INVALID),right,3);
+    write(l,hexstr_validate(hexstr_from_slv(l(0)=>din.vld),STR_INVALID),right,4);
+    write(l,hexstr_validate(hexstr_from_slv(l(0)=>din.ovf),STR_INVALID),right,4);
     if DEC then
       v_val := to_integer(din.re);
       write_str(l,integer'image(v_val),right,8);

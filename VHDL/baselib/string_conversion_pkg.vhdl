@@ -3,8 +3,11 @@
 --! @author     Fixitfetish
 --! @date       03/Jun/2016
 --! @version    0.70
---! @copyright  MIT License
 --! @note       VHDL-1993
+--! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
+--!             <https://opensource.org/licenses/MIT>
+-------------------------------------------------------------------------------
+-- Includes DOXYGEN support.
 -------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
@@ -14,6 +17,7 @@ library ieee;
 --! they are useful for
 --!   * testbenches and simulations
 --!   * conversion of constants and generics
+--!   * numbers with more than 32 bits precision
 --!
 --! Typically two similar implementations, i.e. function and procedure, are 
 --! available to have more flexibility in applying the conversion. The functions
@@ -62,6 +66,8 @@ package string_conversion_pkg is
  function hexstr_from_unsigned(l:unsigned) return string;
  function hexstr_from_signed(l:signed) return string;
  function hexstr_from_integer(l:integer; N:positive:=8) return string;
+
+ function hexstr_validate(s:string; err:string:="nan") return string;
 
 end package;
 
@@ -391,6 +397,22 @@ package body string_conversion_pkg is
    end loop; 
    s := result;
  end procedure;
+
+ function hexstr_validate(s:string; err:string:="nan") return string is
+ begin
+   if err'length>0 then
+     -- only replace invalid values when error string has been provided
+     for i in s'range loop
+       case s(i) is
+         when '0'|'1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|
+              'A'|'B'|'C'|'D'|'E'|'F'|'a'|'b'|'c'|'d'|'e'|'f' => -- do nothing
+         when others => return err;
+       end case;
+     end loop;
+   end if;
+   return s;
+ end function; 
+
 
  -- The standard logic vector is interpreted as unsigned vector.
  function hexstr_from_slv(l:std_logic_vector) return string is
