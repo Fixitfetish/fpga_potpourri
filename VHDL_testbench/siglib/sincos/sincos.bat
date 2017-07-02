@@ -44,7 +44,7 @@ if exist %VCD% (
 %COMPILE%%LIB% %SRC_PATH%\cplxlib\cplx_pkg_1993.vhdl
 
 @set LIB=work
-%COMPILE%%LIB% %TB_PATH%\cplxlib\cplx_logger4.vhdl
+%COMPILE%%LIB% %TB_PATH%\cplxlib\cplx_logger.vhdl
 %COMPILE%%LIB% sincos_tb.vhdl
 
 @echo.

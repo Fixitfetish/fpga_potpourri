@@ -1,10 +1,13 @@
 -------------------------------------------------------------------------------
---! @file       signed_sincos.vhdl
+--! @file       sincos.vhdl
 --! @author     Fixitfetish
 --! @date       02/May/2017
 --! @version    0.21
---! @copyright  MIT License
 --! @note       VHDL-1993
+--! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
+--!             <https://opensource.org/licenses/MIT>
+-------------------------------------------------------------------------------
+-- Includes DOXYGEN support.
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
@@ -56,7 +59,7 @@ library baselib;
 --! * PHASE_MINOR_WIDTH=0   =>  PIPESTAGES=3
 --! * PHASE_MINOR_WIDTH>=1  =>  PIPESTAGES=4+PHASE_MINOR_WIDTH
 
-entity signed_sincos is
+entity sincos is
 generic (
   --! @brief Major phase resolution in bits (MSBs of the phase input).
   --! This resolution influences the depth of generated look-up table ROM.
@@ -95,7 +98,7 @@ end entity;
 
 -------------------------------------------------------------------------------
 
-architecture rtl of signed_sincos is
+architecture rtl of sincos is
 
   -- identifier for reports of warnings and errors
 --  constant IMPLEMENTATION : string := signed_sincos'INSTANCE_NAME;

@@ -10,7 +10,7 @@ set SCRIPTPATH [ file dirname [dict get [ info frame 0 ] file ] ]
 
 # create file list
 set filelist [list]
-lappend filelist $SCRIPTPATH/signed_sincos.vhdl
+lappend filelist $SCRIPTPATH/sincos.vhdl
 
 # compile file list
 set SWITCHES "-93 -explicit -dbg"

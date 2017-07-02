@@ -1,4 +1,4 @@
 # +++ FOR ALTERA QUARTUS SYNTHESIS +++
 # This script compiles the SIGLIB Library.
 
-set_global_assignment -library siglib -name VHDL_FILE [file join $::quartus(qip_path) "signed_sincos.vhdl"]
+set_global_assignment -library siglib -name VHDL_FILE [file join $::quartus(qip_path) "sincos.vhdl"]

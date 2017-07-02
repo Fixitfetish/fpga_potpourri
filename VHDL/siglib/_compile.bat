@@ -64,7 +64,7 @@ if "%VCOM_EXE%"=="" (
 :: analyze/compile files
 set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 @echo on
-%COMPILE% %SCRIPTPATH%\signed_sincos.vhdl
+%COMPILE% %SCRIPTPATH%\sincos.vhdl
 
 :END
 @EXIT /B

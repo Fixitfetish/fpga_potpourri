@@ -1,12 +1,13 @@
 -------------------------------------------------------------------------------
--- FILE    : sincos_tb.vhdl
--- AUTHOR  : Fixitfetish
--- DATE    : 01/May/2017
--- VERSION : 0.20
--- VHDL    : 1993
--- LICENSE : MIT License
+--! @file       sincos_tb.vhdl
+--! @author     Fixitfetish
+--! @date       01/May/2017
+--! @version    0.20
+--! @note       VHDL-1993
+--! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
+--!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
--- Copyright (c) 2017 Fixitfetish
+-- Includes DOXYGEN support.
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
@@ -81,7 +82,7 @@ begin
     wait;
   end process;
 
-  i_sincos : entity siglib.signed_sincos
+  i_sincos : entity siglib.sincos
   generic map (
     PHASE_MAJOR_WIDTH => PHASE_MAJOR_WIDTH,
     PHASE_MINOR_WIDTH => PHASE_MINOR_WIDTH,
@@ -106,23 +107,19 @@ begin
   dout_cplx.re <= dout_cos;
   dout_cplx.im <= dout_sin;
 
-  i_log : entity work.cplx_logger4
+  i_log : entity work.cplx_logger
   generic map(
+    NUM_CPLX => 1,
+    LOG_FILE => "result_log.txt",
     LOG_DECIMAL => true,
     LOG_INVALID => true,
-    LOG_FILE => "result_log.txt",
-    TITLE1 => "SINCOS OUT",
-    TITLE2 => "UNUSED",
-    TITLE3 => "UNUSED",
-    TITLE4 => "UNUSED"
+    STR_INVALID => "nan",
+    TITLE => "SINCOS OUT"
   )
   port map (
     clk    => clk,
     rst    => rst,
-    din1   => dout_cplx,
-    din2   => open,
-    din3   => open,
-    din4   => open,
+    din(0) => dout_cplx,
     finish => finish
   );
 

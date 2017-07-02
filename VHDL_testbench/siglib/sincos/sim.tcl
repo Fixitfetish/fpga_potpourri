@@ -23,7 +23,7 @@ source $LIBSRC/siglib/_compile.tcl
 
 # compile testbench
 vcom -93 -dbg -explicit -work cplxlib $LIBSRC/cplxlib/cplx_pkg_1993.vhdl
-vcom -93 -dbg -explicit -work $TEST_LIB ../../cplxlib/cplx_logger4.vhdl
+vcom -93 -dbg -explicit -work $TEST_LIB ../../cplxlib/cplx_logger.vhdl
 vcom -93 -dbg -explicit -work $TEST_LIB sincos_tb.vhdl
   
 # Initialize simulation
