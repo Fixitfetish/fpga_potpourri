@@ -18,12 +18,12 @@ vmap unisim $XILINX_LIB/unisim
 set filelist [list]
 lappend filelist $SCRIPTPATH/dsp_pkg.ultrascale.vhdl
 lappend filelist $SCRIPTPATH/delay_dsp.ultrascale.vhdl
-lappend filelist $SCRIPTPATH/signed_mult1_accu.ultrascale.vhdl
+lappend filelist $SCRIPTPATH/us_signed_mult1_accu.vhdl
+lappend filelist $SCRIPTPATH/us_signed_preadd_mult1_accu.vhdl
 lappend filelist $SCRIPTPATH/signed_mult1add1_accu.ultrascale.vhdl
 lappend filelist $SCRIPTPATH/signed_mult1add1_sum.ultrascale.vhdl
 lappend filelist $SCRIPTPATH/signed_mult2_accu.ultrascale.vhdl
 lappend filelist $SCRIPTPATH/signed_mult.ultrascale.vhdl
-lappend filelist $SCRIPTPATH/signed_preadd_mult1_accu.ultrascale.vhdl
 
 # compile file list
 set SWITCHES "-93 -explicit -dbg"

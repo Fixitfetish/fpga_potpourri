@@ -1,10 +1,13 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult.ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       23/Feb/2017
---! @version    0.30
---! @copyright  MIT License
+--! @date       01/Jul/2017
+--! @version    0.40
 --! @note       VHDL-1993
+--! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
+--!             <https://opensource.org/licenses/MIT>
+-------------------------------------------------------------------------------
+-- Includes DOXYGEN support.
 -------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
@@ -23,9 +26,9 @@ library dsplib;
 --!
 --! This implementation does not instantiate primitives directly but uses UltraScale specific architectures instead.
 --!
---! | X Len | Y Len | X+Y Len | DSP Slices | Entity Type Used   | Comment
---! |:-----:|:-----:|:-------:|:----------:|--------------------|-----------
---! | <=27  | <=18  | <=45    | N          | signed_mult1_accu  | 27x18 Full
+--! | X Len | Y Len | X+Y Len | DSP Slices | Entity Used           | Comment
+--! |:-----:|:-----:|:-------:|:----------:|-----------------------|-----------
+--! | <=27  | <=18  | <=45    | N          | us_signed_mult1_accu  | 27x18 Full
 --!
 
 architecture ultrascale of signed_mult is
@@ -39,7 +42,8 @@ architecture ultrascale of signed_mult is
     if lx<=27 and ly<=18 then
       return 1; -- 27x18
     else 
-      report "ERROR " & IMPLEMENTATION & ": Data input length not supported. These modes of input length are possible: " &
+      report "ERROR " & IMPLEMENTATION & 
+        " Data input length not supported. These modes of input length are possible: " &
         "1.) 27x18 with LX<=27, LY<=18 and LX+LY<=45"
         severity failure;
       return 0; -- invalid
@@ -83,7 +87,7 @@ begin
 
    g_n: for n in 0 to (NUM_ENTITY-1) generate
 
-    mult1 : entity dsplib.signed_mult1_accu(ultrascale)
+    mult1 : entity dsplib.us_signed_mult1_accu
     generic map(
       NUM_SUMMAND        => 1,
       USE_CHAIN_INPUT    => false,

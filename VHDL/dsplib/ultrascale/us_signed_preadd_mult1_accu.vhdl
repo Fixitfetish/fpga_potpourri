@@ -1,10 +1,13 @@
 -------------------------------------------------------------------------------
---! @file       signed_preadd_mult1_accu.ultrascale.vhdl
+--! @file       us_signed_preadd_mult1_accu.vhdl
 --! @author     Fixitfetish
---! @date       19/Mar/2017
---! @version    0.40
---! @copyright  MIT License
+--! @date       01/Jul/2017
+--! @version    0.50
 --! @note       VHDL-1993
+--! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
+--!             <https://opensource.org/licenses/MIT>
+-------------------------------------------------------------------------------
+-- Includes DOXYGEN support.
 -------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
@@ -17,8 +20,149 @@ library dsplib;
 library unisim;
   use unisim.vcomponents.all;
 
---! @brief This is an implementation of the entity 
---! @link signed_preadd_mult1_accu signed_preadd_mult1_accu @endlink
+--! @brief Multiply a sum of two signed (+/-AX +/-BX) with a signed (Y) and accumulate results.
+--!
+--! @image html signed_preadd_mult1_accu.svg "" width=600px
+--!
+--! The behavior is as follows
+--! * CLR=1  VLD=0  ->  r = undefined             # reset accumulator
+--! * CLR=1  VLD=1  ->  r = (+/-ax +/-bx)*y       # restart accumulation
+--! * CLR=0  VLD=0  ->  r = r                     # hold accumulator
+--! * CLR=0  VLD=1  ->  r = r + (+/-ax +/-bx)*y   # proceed accumulation
+--!
+--! The length of the input factors is flexible.
+--! The input factors are automatically resized with sign extensions bits to the
+--! maximum possible factor length.
+--! The maximum length of the input factors is device and implementation specific.
+--!
+--! @image html accumulator_register.svg "" width=800px
+--!
+--! * NUM_SUMMAND = configurable, @link NUM_SUMMAND more... @endlink
+--! * ACCU WIDTH = accumulator width (device specific)
+--! * PRODUCT WIDTH (ax and bx same length)= ax'length + y'length + 1
+--! * PRODUCT WIDTH (ax and bx not same length)= max(ax'length,bx'length) + y'length
+--! * GUARD BITS = ceil(log2(NUM_SUMMAND))
+--! * ACCU USED WIDTH = PRODUCT WIDTH + GUARD BITS <= ACCU WIDTH
+--! * OUTPUT SHIFT RIGHT = number of LSBs to prune
+--! * OVFL = overflow detection sign bits, all must match the output sign bit otherwise overflow
+--! * R = rounding bit (+0.5 when OUTPUT ROUND is enabled)
+--! * ACCU USED SHIFTED WIDTH = ACCU USED WIDTH - OUTPUT SHIFT RIGHT
+--! * OUTPUT WIDTH = length of result output <= ACCU USED SHIFTED WIDTH
+--!
+--! \b Example: The input lengths are ax'length=18, bx'length=12 and y'length=16,
+--! hence the maximum PRODUCT_WIDTH=34.
+--! With NUM_SUMMAND=30 the number of additional guard bits is GUARD_BITS=5.
+--! If the output length is 22 then the standard shift-right setting (conservative,
+--! without risk of overflow) would be OUTPUT_SHIFT_RIGHT = 34 + 5 - 22 = 17.
+--!
+--! If just the sum of products is required but not any further accumulation
+--! then set CLR to constant '1'.
+--!
+--! The delay depends on the configuration and the underlying hardware.
+--! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
+--!
+
+--
+-- Optimal settings for overflow detection and/or saturation/clipping :
+-- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH
+
+entity us_signed_preadd_mult1_accu is
+generic (
+  --! @brief The number of summands is important to determine the number of additional
+  --! guard bits (MSBs) that are required for the accumulation process. @link NUM_SUMMAND More...
+  --!
+  --! The setting is relevant to save logic especially when saturation/clipping
+  --! and/or overflow detection is enabled.
+  --! * 0 => maximum possible, not recommended (worst case, hardware dependent)
+  --! * 1 => just one multiplication without accumulation
+  --! * 2 => accumulate up to 2 products
+  --! * 3 => accumulate up to 3 products
+  --! * and so on ...
+  --!
+  --! Note that every single accumulated product result counts!
+  --! The two preadder inputs do not need to be considered here but just the products.
+  NUM_SUMMAND : natural := 0;
+  --! Enable chain input from neighbor DSP cell, i.e. enable additional accumulator input
+  USE_CHAIN_INPUT : boolean := false;
+  --! @brief Preadder mode of input AX. Options are ADD, SUBTRACT or DYNAMIC.
+  --! In ADD and SUBTRACT mode sub_ax is ignored. In dynamic mode sub_ax='1' means subtract.
+  --! Note that additional logic might be required dependent on mode and FPGA type.
+  PREADDER_INPUT_AX : string := "ADD";
+  --! @brief Preadder mode of input BX. Options are ADD, SUBTRACT or DYNAMIC.
+  --! In ADD and SUBTRACT mode sub_bx is ignored. In dynamic mode sub_bx='1' means subtract.
+  --! Note that additional logic might be required dependent on mode and FPGA type.
+  PREADDER_INPUT_BX : string := "ADD";
+  --! @brief Number of additional input registers. At least one is strongly recommended.
+  --! If available the input registers within the DSP cell are used.
+  NUM_INPUT_REG : natural := 1;
+  --! @brief Number of result output registers. One is strongly recommended and even required
+  --! when the accumulation feature is needed. The first output register is typically the
+  --! result/accumulation register within the DSP cell. A second output register is recommended
+  --! when logic for rounding, clipping and/or overflow detection is enabled.
+  --! Typically all output registers after the first one are not part of a DSP cell
+  --! and therefore implemented in logic.
+  NUM_OUTPUT_REG : natural := 1;
+  --! Number of bits by which the accumulator result output is shifted right
+  OUTPUT_SHIFT_RIGHT : natural := 0;
+  --! @brief Round 'nearest' (half-up) of result output.
+  --! This flag is only relevant when OUTPUT_SHIFT_RIGHT>0.
+  --! If the device specific DSP cell supports rounding then rounding is done
+  --! within the DSP cell. If rounding in logic is necessary then it is recommended
+  --! to use an additional output register.
+  OUTPUT_ROUND : boolean := true;
+  --! Enable clipping when right shifted result exceeds output range.
+  OUTPUT_CLIP : boolean := true;
+  --! Enable overflow/clipping detection 
+  OUTPUT_OVERFLOW : boolean := true
+);
+port (
+  --! Standard system clock
+  clk        : in  std_logic;
+  --! Reset result output (optional)
+  rst        : in  std_logic := '0';
+  --! @brief Clear accumulator (mark first valid input factors of accumulation sequence).
+  --! If accumulation is not wanted then set constant '1'.
+  clr        : in  std_logic;
+  --! Valid signal for input factors, high-active
+  vld        : in  std_logic;
+  --! @brief Add/subtract product, '0' -> +(ax)*y, '1' -> -(ax)*y . 
+  --! Only relevant in DYNAMIC mode. In DYNAMIC mode subtraction is disabled by default.
+  sub_ax     : in  std_logic := '0';
+  --! @brief Add/subtract product, '0' -> +(bx)*y, '1' -> -(bx)*y . 
+  --! Only relevant in DYNAMIC mode. In DYNAMIC mode subtraction is disabled by default.
+  sub_bx     : in  std_logic := '0';
+  --! first preadder input (1st signed factor)
+  ax         : in  signed;
+  --! second preadder input (1st signed factor)
+  bx         : in  signed;
+  --! 2nd signed factor input
+  y          : in  signed;
+  --! @brief Resulting product/accumulator output (optionally rounded and clipped).
+  --! The standard result output might be unused when chain output is used instead.
+  result     : out signed;
+  --! Valid signal for result output, high-active
+  result_vld : out std_logic;
+  --! Result output overflow/clipping detection
+  result_ovf : out std_logic;
+  --! Input from other chained DSP cell (optional, only used when input enabled and connected).
+  chainin    : in  signed(47 downto 0) := (others=>'0');
+  --! Result output to other chained DSP cell (optional)
+  chainout   : out signed(47 downto 0) := (others=>'0');
+  --! Number of pipeline stages, constant, depends on configuration and device specific implementation
+  PIPESTAGES : out natural := 0
+);
+begin
+
+  assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
+    report "WARNING in " & us_signed_preadd_mult1_accu'INSTANCE_NAME & ": " & 
+           "Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
+    severity warning;
+
+end entity;
+
+-------------------------------------------------------------------------------
+
+--! @brief This is an implementation of the entity us_signed_preadd_mult1_accu
 --! for Xilinx UltraScale.
 --! Multiply a sum of two signed (+/-AX +/-BX) with a signed Y and accumulate results.
 --!
@@ -58,12 +202,12 @@ library unisim;
 --! | DYNAMIC   | DYNAMIC   | +/-AX   |   BX    |   sub_bx   | +/-D +/- A | additional logic required
 --!
 --! This implementation can be chained multiple times.
---! @image html signed_preadd_mult1_accu.ultrascale.svg "" width=1000px
+--! @image html us_signed_preadd_mult1_accu.svg "" width=1000px
 
-architecture ultrascale of signed_preadd_mult1_accu is
+architecture dsp of us_signed_preadd_mult1_accu is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "signed_preadd_mult1_accu(ultrascale)";
+  constant IMPLEMENTATION : string := us_signed_preadd_mult1_accu'INSTANCE_NAME;
 
   -- number input registers within DSP and in LOGIC
   constant NUM_IREG_DSP : natural := NUM_IREG("DSP",NUM_INPUT_REG);
@@ -131,16 +275,6 @@ architecture ultrascale of signed_preadd_mult1_accu is
   type array_dsp_ireg is array(integer range <>) of r_dsp_ireg;
   signal ireg : array_dsp_ireg(NUM_IREG_DSP downto 0);
 
-  -- output register pipeline
-  type r_oreg is
-  record
-    dat : signed(OUTPUT_WIDTH-1 downto 0);
-    vld : std_logic;
-    ovf : std_logic;
-  end record;
-  type array_oreg is array(integer range <>) of r_oreg;
-  signal rslt : array_oreg(0 to NUM_OUTPUT_REG);
-
   -- preadder subtract control - more details in description above
   function preadder_subtract(sub_ax,sub_bx:std_logic; amode,bmode:string) return std_logic is
   begin
@@ -173,25 +307,20 @@ architecture ultrascale of signed_preadd_mult1_accu is
   constant reset : std_logic := '0';
 
   signal clr_q, clr_i : std_logic;
-  signal chainin_i, chainout_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
   signal accu : std_logic_vector(ACCU_WIDTH-1 downto 0);
+  signal accu_vld : std_logic := '0';
   signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
-  signal accu_used_shifted : signed(ACCU_USED_SHIFTED_WIDTH-1 downto 0);
 
 begin
 
-  -- check chain in/out length
-  assert (chainin'length>=ACCU_WIDTH or (not USE_CHAIN_INPUT))
-    report "ERROR " & IMPLEMENTATION & ": " &
-           "Chain input width must be " & integer'image(ACCU_WIDTH) & " bits."
-    severity failure;
-
   -- check input/output length
   assert (ax'length<=LIM_WIDTH_AD and bx'length<=LIM_WIDTH_AD)
-    report "ERROR " & IMPLEMENTATION & ": Preadder input AX and BX width cannot exceed " & integer'image(LIM_WIDTH_AD)
+    report "ERROR " & IMPLEMENTATION & ": " & 
+           "Preadder input AX and BX width cannot exceed " & integer'image(LIM_WIDTH_AD)
     severity failure;
   assert (y'length<=MAX_WIDTH_B)
-    report "ERROR " & IMPLEMENTATION & ": Multiplier input Y width cannot exceed " & integer'image(MAX_WIDTH_B)
+    report "ERROR " & IMPLEMENTATION & ": " & 
+           "Multiplier input Y width cannot exceed " & integer'image(MAX_WIDTH_B)
     severity failure;
 
   assert GUARD_BITS_EVAL<=MAX_GUARD_BITS
@@ -299,9 +428,6 @@ begin
     ireg(0).d <= ireg(1).d;
   end generate;
 
-  -- use only LSBs of chain input
-  chainin_i <= std_logic_vector(chainin(ACCU_WIDTH-1 downto 0));
-
   dsp : DSP48E2
   generic map(
     -- Feature Control Attributes: Data Path Selection
@@ -361,7 +487,7 @@ begin
     BCOUT              => open,
     CARRYCASCOUT       => open,
     MULTSIGNOUT        => open,
-    PCOUT              => chainout_i,
+    PCOUT              => chainout,
     -- Control: 1-bit (each) output: Control Inputs/Status Bits
     OVERFLOW           => open,
     PATTERNBDETECT     => open,
@@ -376,7 +502,7 @@ begin
     BCIN               => (others=>'0'), -- unused
     CARRYCASCIN        => '0', -- unused
     MULTSIGNIN         => '0', -- unused
-    PCIN               => chainin_i,
+    PCIN               => chainin,
     -- Control: 4-bit (each) input: Control Inputs/Status Bits
     ALUMODE            => "0000", -- always P = Z + (W + X + Y + CIN)
     CARRYINSEL         => "000", -- unused
@@ -418,10 +544,12 @@ begin
     RSTP               => reset  -- TODO
   );
 
-  chainout(ACCU_WIDTH-1 downto 0) <= signed(chainout_i);
-  g_chainout : for n in ACCU_WIDTH to (chainout'length-1) generate
-    -- sign extension (for simulation and to avoid warnings)
-    chainout(n) <= chainout_i(ACCU_WIDTH-1);
+  -- pipelined valid signal
+  g_dspreg_on : if NUM_OUTPUT_REG>=1 generate
+    accu_vld <= ireg(0).vld when rising_edge(clk);
+  end generate;
+  g_dspreg_off : if NUM_OUTPUT_REG<=0 generate
+    accu_vld <= ireg(0).vld;
   end generate;
 
   -- cut off unused sign extension bits
@@ -429,47 +557,24 @@ begin
   --  saturation and/or overflow detection is enabled.)
   accu_used <= signed(accu(ACCU_USED_WIDTH-1 downto 0));
 
-  -- just shift right without rounding because rounding bit has been added
-  -- within the DSP cell already.
-  accu_used_shifted <= accu_used(ACCU_USED_WIDTH-1 downto OUTPUT_SHIFT_RIGHT);
-
---  -- shift right and round
---  g_rnd_off : if (not ROUND_ENABLE) generate
---    accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT),ACCU_USED_SHIFTED_WIDTH);
---  end generate;
---  g_rnd_on : if (ROUND_ENABLE) generate
---    accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT, nearest),ACCU_USED_SHIFTED_WIDTH);
---  end generate;
-
-  p_out : process(accu_used_shifted, ireg(0).vld)
-    variable v_dat : signed(OUTPUT_WIDTH-1 downto 0);
-    variable v_ovf : std_logic;
-  begin
-    RESIZE_CLIP(din=>accu_used_shifted, dout=>v_dat, ovfl=>v_ovf, clip=>OUTPUT_CLIP);
-    rslt(0).vld <= ireg(0).vld;
-    rslt(0).dat <= v_dat;
-    if OUTPUT_OVERFLOW then rslt(0).ovf<=v_ovf; else rslt(0).ovf<='0'; end if;
-  end process;
-
-  g_oreg1 : if NUM_OUTPUT_REG>=1 generate
-  begin
-    rslt(1).vld <= rslt(0).vld when rising_edge(clk); -- VLD bypass
-    -- DSP cell result/accumulator register is always used as first output register stage
-    rslt(1).dat <= rslt(0).dat;
-    rslt(1).ovf <= rslt(0).ovf;
-  end generate;
-
-  -- additional output registers always in logic
-  g_oreg2 : if NUM_OUTPUT_REG>=2 generate
-    g_loop : for n in 2 to NUM_OUTPUT_REG generate
-      rslt(n) <= rslt(n-1) when rising_edge(clk);
-    end generate;
-  end generate;
-
-  -- map result to output port
-  result <= rslt(NUM_OUTPUT_REG).dat;
-  result_vld <= rslt(NUM_OUTPUT_REG).vld;
-  result_ovf <= rslt(NUM_OUTPUT_REG).ovf;
+  -- right-shift and clipping
+  i_out : entity dsplib.dsp_output_logic
+  generic map(
+    PIPELINE_STAGES    => NUM_OUTPUT_REG-1,
+    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
+    OUTPUT_ROUND       => false, -- rounding within DSP cell!
+    OUTPUT_CLIP        => OUTPUT_CLIP,
+    OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
+  )
+  port map (
+    clk         => clk,
+    rst         => rst,
+    dsp_out     => accu_used,
+    dsp_out_vld => accu_vld,
+    result      => result,
+    result_vld  => result_vld,
+    result_ovf  => result_ovf
+  );
 
   -- report constant number of pipeline register stages
   PIPESTAGES <= NUM_INPUT_REG + NUM_OUTPUT_REG;
