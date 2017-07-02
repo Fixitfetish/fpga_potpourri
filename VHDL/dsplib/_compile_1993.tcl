@@ -13,6 +13,7 @@ set SCRIPTPATH [ file dirname [dict get [ info frame 0 ] file ] ]
 # create file list
 set filelist [list]
 lappend filelist $SCRIPTPATH/delay_dsp.vhdl
+lappend filelist $SCRIPTPATH/dsp_output_logic.vhdl
 lappend filelist $SCRIPTPATH/signed_accu.vhdl
 lappend filelist $SCRIPTPATH/signed_adder_tree.vhdl
 lappend filelist $SCRIPTPATH/signed_mult1add1_accu.vhdl
