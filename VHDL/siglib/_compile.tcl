@@ -1,7 +1,7 @@
 # +++ FOR VHDL SIMULATION ONLY +++ #
 # This script compiles the SIGLIB Library for VHDL-1993.
 
-# library name
+# Library name into which the entities are compiled
 set LIB "siglib"
 vlib $LIB
 

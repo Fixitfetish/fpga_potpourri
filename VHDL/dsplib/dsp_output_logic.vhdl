@@ -81,14 +81,16 @@ begin
            "Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 
+  assert (OUTPUT_SHIFT_RIGHT<dsp_out'length)
+    report "ERROR in " & dsp_output_logic'INSTANCE_NAME & ": " & 
+           "Number of right shifts shall not exceed data input width."
+    severity failure;
+
 end entity;
 
 -------------------------------------------------------------------------------
 
 architecture rtl of dsp_output_logic is
-
-  -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := dsp_output_logic'INSTANCE_NAME;
 
   -- derived constants
   constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
