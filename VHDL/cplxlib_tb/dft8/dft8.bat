@@ -1,7 +1,6 @@
 @echo off
 
-set SRC_PATH=..\..\..\VHDL
-set TB_PATH=..\..\..\VHDL_testbench
+set LIBROOT=..\..
 
 :: create work directory
 if not exist work\ (
@@ -32,10 +31,10 @@ if exist %VCD% (
 )
 
 :: analyze library files
-@call %SRC_PATH%\baselib\_compile.bat
-@call %SRC_PATH%\dsplib\_compile.bat
-@call %SRC_PATH%\dsplib\behave\_compile.bat
-@call %SRC_PATH%\cplxlib\_compile.bat
+@call %LIBROOT%\baselib\_compile.bat
+@call %LIBROOT%\dsplib\_compile.bat
+@call %LIBROOT%\dsplib\behave\_compile.bat
+@call %LIBROOT%\cplxlib\_compile.bat
 
 :: analyze testbench
 @echo.--------------------------------------------------------------------------
@@ -43,8 +42,8 @@ if exist %VCD% (
 @echo on
 
 @set LIB=work
-%COMPILE%%LIB% ..\cplx_stimuli.vhdl
-%COMPILE%%LIB% ..\cplx_logger.vhdl
+%COMPILE%%LIB% %LIBROOT%\cplxlib_tb\cplx_stimuli.vhdl
+%COMPILE%%LIB% %LIBROOT%\cplxlib_tb\cplx_logger.vhdl
 %COMPILE%%LIB% dftmtx8.vhdl
 %COMPILE%%LIB% dft8_v1.vhdl
 %COMPILE%%LIB% dft8_v2.vhdl

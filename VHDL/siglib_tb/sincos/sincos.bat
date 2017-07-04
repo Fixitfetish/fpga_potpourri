@@ -1,7 +1,6 @@
 @echo off
 
-set SRC_PATH=..\..\..\VHDL
-set TB_PATH=..\..\..\VHDL_testbench
+set LIBROOT=..\..
 
 :: create work directory
 if not exist work\ (
@@ -32,8 +31,8 @@ if exist %VCD% (
 )
 
 :: analyze library files
-@call %SRC_PATH%\baselib\_compile.bat
-@call %SRC_PATH%\siglib\_compile.bat
+@call %LIBROOT%\baselib\_compile.bat
+@call %LIBROOT%\siglib\_compile.bat
 
 :: analyze testbench
 @echo.--------------------------------------------------------------------------
@@ -41,10 +40,10 @@ if exist %VCD% (
 
 @echo on
 @set LIB=cplxlib
-%COMPILE%%LIB% %SRC_PATH%\cplxlib\cplx_pkg_1993.vhdl
+%COMPILE%%LIB% %LIBROOT%\cplxlib\cplx_pkg_1993.vhdl
 
 @set LIB=work
-%COMPILE%%LIB% %TB_PATH%\cplxlib\cplx_logger.vhdl
+%COMPILE%%LIB% %LIBROOT%\cplxlib_tb\cplx_logger.vhdl
 %COMPILE%%LIB% sincos_tb.vhdl
 
 @echo.

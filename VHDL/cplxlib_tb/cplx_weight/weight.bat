@@ -1,6 +1,6 @@
 @echo off
 
-set TB_PATH=..\..\..\VHDL_testbench
+set LIBROOT=..\..
 
 :: GHDL compiler settings
 set VCOM_EXE=%GHDL_PATH%\bin\ghdl.exe
@@ -19,8 +19,8 @@ set SIMULATE=%VSIM_EXE% %VSIM_FLAGS%
 @echo on
 
 @set LIB=work
-%COMPILE%%LIB% ..\cplx_stimuli.vhdl
-%COMPILE%%LIB% ..\cplx_logger.vhdl
+%COMPILE%%LIB% %LIBROOT%\cplxlib_tb\cplx_stimuli.vhdl
+%COMPILE%%LIB% %LIBROOT%\cplxlib_tb\cplx_logger.vhdl
 %COMPILE%%LIB% weight_tb.vhdl
 
 @echo.

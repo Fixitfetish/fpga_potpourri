@@ -1,6 +1,6 @@
 @echo off
 
-set SRC_PATH=..\..\..\VHDL
+set LIBROOT=..\..
 
 :: create work directory
 if not exist work\ (
@@ -17,7 +17,7 @@ set VCOM_FLAGS=-a --std=93 --workdir=work -Pwork --work=
 set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 
 :: analyze library files
-@call %SRC_PATH%\baselib\_compile.bat
-@call %SRC_PATH%\dsplib\_compile.bat
-@call %SRC_PATH%\dsplib\behave\_compile.bat
-@call %SRC_PATH%\cplxlib\_compile.bat
+@call %LIBROOT%\baselib\_compile.bat
+@call %LIBROOT%\dsplib\_compile.bat
+@call %LIBROOT%\dsplib\behave\_compile.bat
+@call %LIBROOT%\cplxlib\_compile.bat

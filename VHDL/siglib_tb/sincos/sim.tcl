@@ -7,8 +7,7 @@ if ![file exists $TOOLPATH] {
 }
 
 # library path
-set LIBROOT ../../..
-set LIBSRC $LIBROOT/VHDL
+set LIBROOT ../..
 
 set TEST_LIB "work"
 vlib $TEST_LIB
@@ -18,12 +17,12 @@ set CPLX_LIB "cplxlib"
 vlib $TEST_LIB
 vlib $CPLX_LIB
 
-source $LIBSRC/baselib/_compile_1993.tcl
-source $LIBSRC/siglib/_compile.tcl
+source $LIBROOT/baselib/_compile_1993.tcl
+source $LIBROOT/siglib/_compile.tcl
 
 # compile testbench
-vcom -93 -dbg -explicit -work cplxlib $LIBSRC/cplxlib/cplx_pkg_1993.vhdl
-vcom -93 -dbg -explicit -work $TEST_LIB ../../cplxlib/cplx_logger.vhdl
+vcom -93 -dbg -explicit -work CPLX_LIB  $LIBROOT/cplxlib/cplx_pkg_1993.vhdl
+vcom -93 -dbg -explicit -work $TEST_LIB $LIBROOT/cplxlib_tb/cplx_logger.vhdl
 vcom -93 -dbg -explicit -work $TEST_LIB sincos_tb.vhdl
   
 # Initialize simulation

@@ -7,8 +7,7 @@ if ![file exists $TOOLPATH] {
 }
 
 # library path
-set LIBROOT ../../..
-set LIBSRC $LIBROOT/VHDL
+set LIBROOT ../..
 
 set TEST_LIB "work"
 vlib $TEST_LIB
@@ -20,15 +19,15 @@ set ALTERA_LIB $TOOLPATH/vlib/altera_14v1
 # XILINX library path
 set XILINX_LIB $TOOLPATH/vlib/xilinx_16v4
 
-source $LIBSRC/baselib/_compile_1993.tcl
-source $LIBSRC/dsplib/_compile_1993.tcl
-# source $LIBSRC/dsplib/stratixv/_compile.tcl
-# source $LIBSRC/dsplib/ultrascale/_compile.tcl
-source $LIBSRC/dsplib/behave/_compile.tcl
-source $LIBSRC/cplxlib/_compile_1993.tcl
+source $LIBROOT/baselib/_compile_1993.tcl
+source $LIBROOT/dsplib/_compile_1993.tcl
+# source $LIBROOT/dsplib/stratixv/_compile.tcl
+# source $LIBROOT/dsplib/ultrascale/_compile.tcl
+source $LIBROOT/dsplib/behave/_compile.tcl
+source $LIBROOT/cplxlib/_compile_1993.tcl
 
-vcom -93 -explicit -dbg -work $TEST_LIB ../cplx_stimuli.vhdl
-vcom -93 -explicit -dbg -work $TEST_LIB ../cplx_logger.vhdl
+vcom -93 -explicit -dbg -work $TEST_LIB $LIBROOT/cplxlib_tb/cplx_stimuli.vhdl
+vcom -93 -explicit -dbg -work $TEST_LIB $LIBROOT/cplxlib_tb/cplx_logger.vhdl
 vcom -93 -explicit -dbg -work $TEST_LIB weight_tb.vhdl
 
 # get read access to all signals
