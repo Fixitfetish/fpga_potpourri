@@ -35,13 +35,13 @@ architecture rtl of dft8_v1 is
 
   signal run : std_logic := '0';
   signal inverse_q,conj : std_logic := '0';
-  signal idx : unsigned(2 downto 0);
+  signal idx : unsigned(2 downto 0) := (others=>'0');
 
   constant MAX_NUM_PIPE_DSP : positive := 10;
   signal PIPESTAGES : natural;
 
   type t_idx is array(integer range <>) of unsigned(2 downto 0);
-  signal idx_q : t_idx(0 to MAX_NUM_PIPE_DSP);
+  signal idx_q : t_idx(0 to MAX_NUM_PIPE_DSP) := (others=>(others=>'0'));
 
 begin
 

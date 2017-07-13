@@ -7,7 +7,7 @@ if ![file exists $TOOLPATH] {
 }
 
 # library path
-set LIBROOT ../..
+set LIBROOT [ file normalize ../.. ]
 
 set TEST_LIB "work"
 vlib $TEST_LIB

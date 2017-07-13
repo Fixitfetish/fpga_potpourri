@@ -39,7 +39,7 @@ architecture sim of dft8_tb is
   signal finish : std_logic := '0';
 
   signal fft1_in_start : std_logic := '0';
-  signal fft1_in_idx : unsigned(2 downto 0);
+  signal fft1_in_idx : unsigned(2 downto 0) := (others=>'0');
   signal fft1_in_ser : cplx;
   signal fft1_in : cplx_vector(0 to 7) := cplx_vector_reset(18,8,"R");
   signal fft1_out_idx : unsigned(2 downto 0);
