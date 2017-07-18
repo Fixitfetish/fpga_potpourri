@@ -57,9 +57,9 @@ architecture sim of cplx_logger is
   ) is
     variable v_val : integer;
   begin
-    write(l,hexstr_validate(hexstr_from_slv(l(0)=>din.rst),STR_INVALID),right,3);
-    write(l,hexstr_validate(hexstr_from_slv(l(0)=>din.vld),STR_INVALID),right,4);
-    write(l,hexstr_validate(hexstr_from_slv(l(0)=>din.ovf),STR_INVALID),right,4);
+    write(l,hexstr_validate(hexstr_from_sl(din.rst),STR_INVALID),right,3);
+    write(l,hexstr_validate(hexstr_from_sl(din.vld),STR_INVALID),right,4);
+    write(l,hexstr_validate(hexstr_from_sl(din.ovf),STR_INVALID),right,4);
     if DEC then
       v_val := to_integer(din.re);
       write_str(l,integer'image(v_val),right,8);

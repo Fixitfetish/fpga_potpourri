@@ -37,6 +37,7 @@ package string_conversion_pkg is
  procedure decstr_to_unsigned(s:in string; l:out unsigned);
  procedure decstr_to_signed(s:in string; l:out signed);
  procedure decstr_to_integer(s:in string; l:out integer);
+
  function decstr_to_slv(s:string; w:integer range 4 to integer'high) return std_logic_vector;
  function decstr_to_unsigned(s:string; w:integer range 4 to integer'high) return unsigned;
  function decstr_to_signed(s:string; w:integer range 4 to integer'high) return signed;
@@ -50,6 +51,7 @@ package string_conversion_pkg is
  procedure hexstr_to_slv(s:in string; l:out std_logic_vector);
  procedure hexstr_to_unsigned(s:in string; l:out unsigned);
  procedure hexstr_to_signed(s:in string; l:out signed);
+
  function hexstr_to_slv(s:string; w:integer range 4 to integer'high) return std_logic_vector;
  function hexstr_to_unsigned(s:string; w:integer range 4 to integer'high) return unsigned;
  function hexstr_to_signed(s:string; w:integer range 4 to integer'high) return signed;
@@ -62,6 +64,8 @@ package string_conversion_pkg is
  procedure hexstr_from_unsigned(l: in unsigned; s: out string);
  procedure hexstr_from_signed(l: in signed; s: out string);
  procedure hexstr_from_integer(l: in integer; s: out string; N:in positive:=8);
+
+ function hexstr_from_sl(l:std_logic) return string;
  function hexstr_from_slv(l:std_logic_vector) return string;
  function hexstr_from_unsigned(l:unsigned) return string;
  function hexstr_from_signed(l:signed) return string;
@@ -413,7 +417,14 @@ package body string_conversion_pkg is
    return s;
  end function; 
 
-
+ function hexstr_from_sl(l:std_logic) return string is
+ begin
+   if    l='0' then return "0";
+   elsif l='1' then return "1";
+   else             return "X";
+   end if; 
+ end function; 
+   
  -- The standard logic vector is interpreted as unsigned vector.
  function hexstr_from_slv(l:std_logic_vector) return string is
    constant N : natural := (l'length-1)/4+1; -- number of nibbles
