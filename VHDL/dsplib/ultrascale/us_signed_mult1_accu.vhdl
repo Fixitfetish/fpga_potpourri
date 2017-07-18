@@ -173,8 +173,8 @@ architecture dsp of us_signed_mult1_accu is
   constant IMPLEMENTATION : string := us_signed_mult1_accu'INSTANCE_NAME;
 
   -- number input registers within DSP and in LOGIC
-  constant NUM_IREG_DSP : natural := NUM_IREG("DSP",NUM_INPUT_REG);
-  constant NUM_IREG_LOGIC : natural := NUM_IREG("LOGIC",NUM_INPUT_REG);
+  constant NUM_IREG_DSP : natural := NUM_IREG(DSP,NUM_INPUT_REG);
+  constant NUM_IREG_LOGIC : natural := NUM_IREG(LOGIC,NUM_INPUT_REG);
 
   -- first data input register is supported, in the first stage only
   function AREG(n:natural) return natural is

@@ -3,8 +3,11 @@
 --! @author     Fixitfetish
 --! @date       19/Mar/2017
 --! @version    0.20
---! @copyright  MIT License
 --! @note       VHDL-1993
+--! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
+--!             <https://opensource.org/licenses/MIT>
+-------------------------------------------------------------------------------
+-- Includes DOXYGEN support.
 -------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
@@ -46,15 +49,15 @@ library unisim;
 architecture ultrascale of signed_mult1add1_accu is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "signed_mult1add1_accu(ultrascale)";
+  constant IMPLEMENTATION : string := signed_mult1add1_accu'INSTANCE_NAME;
 
   -- number input registers within DSP and in LOGIC
-  constant NUM_IREG_DSP : natural := NUM_IREG("DSP",NUM_INPUT_REG_XY);
-  constant NUM_IREG_LOGIC : natural := NUM_IREG("LOGIC",NUM_INPUT_REG_XY);
+  constant NUM_IREG_DSP : natural := NUM_IREG(DSP,NUM_INPUT_REG_XY);
+  constant NUM_IREG_LOGIC : natural := NUM_IREG(LOGIC,NUM_INPUT_REG_XY);
 
   -- number of additional Z input registers in logic (not within DSP cell)
-  constant NUM_IREG_Z_LOGIC : natural := NUM_IREG_C("LOGIC",NUM_INPUT_REG_Z);
-  constant NUM_IREG_Z_DSP : natural := NUM_IREG_C("DSP",NUM_INPUT_REG_Z);
+  constant NUM_IREG_Z_LOGIC : natural := NUM_IREG_C(LOGIC,NUM_INPUT_REG_Z);
+  constant NUM_IREG_Z_DSP : natural := NUM_IREG_C(DSP,NUM_INPUT_REG_Z);
 
   -- first data input register is supported, in the first stage only
   function AREG(n:natural) return natural is
@@ -122,24 +125,14 @@ architecture ultrascale of signed_mult1add1_accu is
   type array_dsp_ireg is array(integer range <>) of r_dsp_ireg;
   signal ireg : array_dsp_ireg(NUM_IREG_DSP downto 0);
 
-  -- output register pipeline
-  type r_oreg is
-  record
-    dat : signed(OUTPUT_WIDTH-1 downto 0);
-    vld : std_logic;
-    ovf : std_logic;
-  end record;
-  type array_oreg is array(integer range <>) of r_oreg;
-  signal rslt : array_oreg(0 to NUM_OUTPUT_REG);
-
   constant clkena : std_logic := '1'; -- clock enable
   constant reset : std_logic := '0';
 
   signal clr_q, clr_i : std_logic;
   signal chainin_i, chainout_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
   signal accu : std_logic_vector(ACCU_WIDTH-1 downto 0);
+  signal accu_vld : std_logic := '0';
   signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
-  signal accu_used_shifted : signed(ACCU_USED_SHIFTED_WIDTH-1 downto 0);
 
 begin
 
@@ -412,52 +405,37 @@ begin
     chainout(n) <= chainout_i(ACCU_WIDTH-1);
   end generate;
 
+  -- pipelined valid signal
+  g_dspreg_on : if NUM_OUTPUT_REG>=1 generate
+    accu_vld <= ireg(0).vld when rising_edge(clk);
+  end generate;
+  g_dspreg_off : if NUM_OUTPUT_REG<=0 generate
+    accu_vld <= ireg(0).vld;
+  end generate;
+
   -- cut off unused sign extension bits
   -- (This reduces the logic consumption in the following steps when rounding,
   --  saturation and/or overflow detection is enabled.)
   accu_used <= signed(accu(ACCU_USED_WIDTH-1 downto 0));
 
-  -- just shift right without rounding because rounding bit has been added
-  -- within the DSP cell already.
-  accu_used_shifted <= accu_used(ACCU_USED_WIDTH-1 downto OUTPUT_SHIFT_RIGHT);
-
---  -- shift right and round
---  g_rnd_off : if (not ROUND_ENABLE) generate
---    accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT),ACCU_USED_SHIFTED_WIDTH);
---  end generate;
---  g_rnd_on : if (ROUND_ENABLE) generate
---    accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT, nearest),ACCU_USED_SHIFTED_WIDTH);
---  end generate;
-
-  p_out : process(accu_used_shifted, ireg(0).vld)
-    variable v_dat : signed(OUTPUT_WIDTH-1 downto 0);
-    variable v_ovf : std_logic;
-  begin
-    RESIZE_CLIP(din=>accu_used_shifted, dout=>v_dat, ovfl=>v_ovf, clip=>OUTPUT_CLIP);
-    rslt(0).vld <= ireg(0).vld;
-    rslt(0).dat <= v_dat;
-    if OUTPUT_OVERFLOW then rslt(0).ovf<=v_ovf; else rslt(0).ovf<='0'; end if;
-  end process;
-
-  g_oreg1 : if NUM_OUTPUT_REG>=1 generate
-  begin
-    rslt(1).vld <= rslt(0).vld when rising_edge(clk); -- VLD bypass
-    -- DSP cell result/accumulator register is always used as first output register stage
-    rslt(1).dat <= rslt(0).dat;
-    rslt(1).ovf <= rslt(0).ovf;
-  end generate;
-
-  -- additional output registers always in logic
-  g_oreg2 : if NUM_OUTPUT_REG>=2 generate
-    g_loop : for n in 2 to NUM_OUTPUT_REG generate
-      rslt(n) <= rslt(n-1) when rising_edge(clk);
-    end generate;
-  end generate;
-
-  -- map result to output port
-  result <= rslt(NUM_OUTPUT_REG).dat;
-  result_vld <= rslt(NUM_OUTPUT_REG).vld;
-  result_ovf <= rslt(NUM_OUTPUT_REG).ovf;
+  -- right-shift and clipping
+  i_out : entity dsplib.dsp_output_logic
+  generic map(
+    PIPELINE_STAGES    => NUM_OUTPUT_REG-1,
+    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
+    OUTPUT_ROUND       => false, -- rounding within DSP cell!
+    OUTPUT_CLIP        => OUTPUT_CLIP,
+    OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
+  )
+  port map (
+    clk         => clk,
+    rst         => rst,
+    dsp_out     => accu_used,
+    dsp_out_vld => accu_vld,
+    result      => result,
+    result_vld  => result_vld,
+    result_ovf  => result_ovf
+  );
 
   -- report constant number of pipeline register stages
   PIPESTAGES <= NUM_INPUT_REG_XY + NUM_OUTPUT_REG;

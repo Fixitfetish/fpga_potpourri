@@ -3,8 +3,11 @@
 --! @author     Fixitfetish
 --! @date       19/Mar/2017
 --! @version    0.10
---! @copyright  MIT License
 --! @note       VHDL-1993
+--! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
+--!             <https://opensource.org/licenses/MIT>
+-------------------------------------------------------------------------------
+-- Includes DOXYGEN support.
 -------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
@@ -21,6 +24,8 @@ package dsp_pkg_ultrascale is
   --! accumulator width in bits
   constant ACCU_WIDTH : positive := 48;
 
+  type t_resource_type_ultrascale is (DSP, LOGIC);
+  
   --! determine number of required additional guard bits (MSBs)
   function accu_guard_bits(
     num_summand : natural; -- number of summands that are accumulated
@@ -36,13 +41,13 @@ package dsp_pkg_ultrascale is
 
   --! determine number of input registers within DSP cell and in LOGIC
   function NUM_IREG(
-    loc : string; -- location either "DSP" or "LOGIC"
+    loc : t_resource_type_ultrascale; -- location either DSP or LOGIC
     n : natural -- overall number of input registers
   ) return integer;
 
   --! determine number of C input registers within DSP cell and in LOGIC
   function NUM_IREG_C(
-    loc : string; -- location either "DSP" or "LOGIC"
+    loc : t_resource_type_ultrascale; -- location either DSP or LOGIC
     n : natural -- overall number of input registers
   ) return integer;
 
@@ -96,19 +101,19 @@ package body dsp_pkg_ultrascale is
 
   --! determine number of input registers within DSP cell and in LOGIC
   function NUM_IREG(
-    loc : string; -- location either "DSP" or "LOGIC"
+    loc : t_resource_type_ultrascale; -- location either DSP or LOGIC
     n : natural -- overall number of input registers
   ) return integer is
     -- maximum number of input registers supported within the DSP cell
     constant NUM_INPUT_REG_DSP : natural := 3;
   begin
-    if loc="DSP" then
+    if loc=DSP then
       return MINIMUM(n,NUM_INPUT_REG_DSP);
-    elsif loc="LOGIC" then
+    elsif loc=LOGIC then
       if n>NUM_INPUT_REG_DSP then return n-NUM_INPUT_REG_DSP;
       else return 0; end if;
     else
-      report "ERROR: Input registers can be either within 'DSP' or in 'LOGIC'."
+      report "ERROR: Input registers can be either within DSP or in LOGIC."
         severity failure;
       return -1;
     end if;
@@ -116,19 +121,19 @@ package body dsp_pkg_ultrascale is
 
   --! determine number of C input registers within DSP cell and in LOGIC
   function NUM_IREG_C(
-    loc : string; -- location either "DSP" or "LOGIC"
+    loc : t_resource_type_ultrascale; -- location either DSP or LOGIC
     n : natural -- overall number of input registers
   ) return integer is
     -- maximum number of input registers supported within the DSP cell
     constant NUM_INPUT_REG_DSP : natural := 1;
   begin
-    if loc="DSP" then
+    if loc=DSP then
       return MINIMUM(n,NUM_INPUT_REG_DSP);
-    elsif loc="LOGIC" then
+    elsif loc=LOGIC then
       if n>NUM_INPUT_REG_DSP then return n-NUM_INPUT_REG_DSP;
       else return 0; end if;
     else
-      report "ERROR: Input registers can be either within 'DSP' or in 'LOGIC'."
+      report "ERROR: Input registers can be either within DSP or in LOGIC."
         severity failure;
       return -1;
     end if;
