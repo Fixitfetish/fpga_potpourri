@@ -3,8 +3,9 @@
 --! @author     Fixitfetish
 --! @date       23/Feb/2017
 --! @version    0.30
---! @copyright  MIT License
 --! @note       VHDL-1993
+--! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
+--!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
 -- Includes DOXYGEN support.
 -------------------------------------------------------------------------------

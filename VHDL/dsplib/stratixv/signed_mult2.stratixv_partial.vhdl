@@ -3,8 +3,11 @@
 --! @author     Fixitfetish
 --! @date       19/Mar/2017
 --! @version    0.40
---! @copyright  MIT License
 --! @note       VHDL-1993
+--! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
+--!             <https://opensource.org/licenses/MIT>
+-------------------------------------------------------------------------------
+-- Includes DOXYGEN support.
 -------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
@@ -42,11 +45,11 @@ library stratixv;
 architecture stratixv_partial of signed_mult2 is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "signed_mult2(stratixv_partial)";
+  constant IMPLEMENTATION : string := signed_mult2'INSTANCE_NAME;
 
   -- number input registers within DSP and in LOGIC
-  constant NUM_IREG_DSP : natural := NUM_IREG("DSP",NUM_INPUT_REG);
-  constant NUM_IREG_LOGIC : natural := NUM_IREG("LOGIC",NUM_INPUT_REG);
+  constant NUM_IREG_DSP : natural := NUM_IREG(DSP,NUM_INPUT_REG);
+  constant NUM_IREG_LOGIC : natural := NUM_IREG(LOGIC,NUM_INPUT_REG);
 
   constant MAX_WIDTH_X : positive := 18;
   constant MAX_WIDTH_Y : positive := 18;
