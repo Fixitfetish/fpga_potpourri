@@ -49,12 +49,6 @@ architecture stratixv of signed_mult_sum is
   -- number of resulting MULT4 instances 
   constant NUM_MULT4 : natural := NUM_MULT2/2; -- floor(NUM_MULT2/2)
 
-  -- number of DSP entity outputs = inputs into first adder stage
-  constant NUM_DSP_OUTPUTS : natural := (NUM_MULT2+1)/2;
-
-  -- number of required adder tree stages - is at least 1 +++ TODO 0!?
-  constant NUM_STAGES : natural := LOG2CEIL(NUM_DSP_OUTPUTS);
-
   -- Internal copy of inputs required because some multipliers of an entity might
   -- be unused and need to be set to zero.
   type t_x is array(integer range <>) of signed(x(x'left)'length-1 downto 0);

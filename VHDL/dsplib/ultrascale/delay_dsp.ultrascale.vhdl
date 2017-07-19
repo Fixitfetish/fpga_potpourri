@@ -3,11 +3,17 @@
 --! @author     Fixitfetish
 --! @date       07/May/2017
 --! @version    0.10
---! @copyright  MIT License
 --! @note       VHDL-1993
+--! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
+--!             <https://opensource.org/licenses/MIT>
+-------------------------------------------------------------------------------
+-- Includes DOXYGEN support.
 -------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
+
+library unisim;
+  use unisim.vcomponents.all;
 
 --! @brief This is an implementation of the entity delay_dsp for Xilinx UltraScale.
 --!
@@ -382,7 +388,7 @@ begin
       CEA1               => pclkena,
       CEA2               => pclkena,
       -- input B
-      B                  => "00_00000000_00000001", -- constant 1
+      B                  => "000000000000000001", -- constant 1
       RSTB               => prst,
       CEB1               => pclkena,
       CEB2               => pclkena,

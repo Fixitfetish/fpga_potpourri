@@ -241,6 +241,7 @@ architecture dsp of us_signed_mult1_accu is
   constant reset : std_logic := '0';
 
   signal clr_q, clr_i : std_logic;
+  signal chainin_i, chainout_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
   signal accu : std_logic_vector(ACCU_WIDTH-1 downto 0);
   signal accu_vld : std_logic := '0';
   signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
@@ -370,6 +371,9 @@ begin
     ireg(0).d <= ireg(1).d;
   end generate;
 
+  -- use only LSBs of chain input
+  chainin_i <= std_logic_vector(chainin(ACCU_WIDTH-1 downto 0));
+
   dsp : DSP48E2
   generic map(
     -- Feature Control Attributes: Data Path Selection
@@ -429,7 +433,7 @@ begin
     BCOUT              => open,
     CARRYCASCOUT       => open,
     MULTSIGNOUT        => open,
-    PCOUT              => chainout,
+    PCOUT              => chainout_i,
     -- Control: 1-bit (each) output: Control Inputs/Status Bits
     OVERFLOW           => open,
     PATTERNBDETECT     => open,
@@ -444,7 +448,7 @@ begin
     BCIN               => (others=>'0'), -- unused
     CARRYCASCIN        => '0', -- unused
     MULTSIGNIN         => '0', -- unused
-    PCIN               => chainin,
+    PCIN               => chainin_i,
     -- Control: 4-bit (each) input: Control Inputs/Status Bits
     ALUMODE            => "0000", -- always P = Z + (W + X + Y + CIN)
     CARRYINSEL         => "000", -- unused
@@ -485,6 +489,8 @@ begin
     RSTM               => reset, -- TODO
     RSTP               => reset  -- TODO
   );
+
+  chainout <= signed(chainout_i);
 
   -- pipelined valid signal
   g_dspreg_on : if NUM_OUTPUT_REG>=1 generate

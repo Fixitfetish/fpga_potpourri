@@ -11,6 +11,7 @@ library ieee;
   use ieee.numeric_std.all;
 library baselib;
   use baselib.ieee_extension.all;
+library dsplib;
 
 --! @brief This implementation chains Stratix-V specific instances to accumulate
 --! several product results in a single cycle. 
@@ -122,7 +123,7 @@ begin
   g_type1 : if DSP_TYPE=1 generate
   begin
     gn : for n in 0 to DSP_NUM-1 generate
-      inst : entity fixitfetish.signed_mult1_accu(stratixv)
+      inst : entity dsplib.signed_mult1_accu(stratixv)
       generic map(
         NUM_SUMMAND        => NUM_SUMMAND,
         USE_CHAIN_INPUT    => enable_chain_input(n+1),
@@ -158,7 +159,7 @@ begin
    g_fast : if IS_HIGH_SPEED generate
     -- only use "sum-of-2" mode
     gn : for n in 0 to DSP_NUM-1 generate
-      inst : entity fixitfetish.signed_mult2_accu(stratixv)
+      inst : entity dsplib.signed_mult2_accu(stratixv)
       generic map(
         NUM_SUMMAND        => NUM_SUMMAND,
         USE_CHAIN_INPUT    => enable_chain_input(n+1),
@@ -197,7 +198,7 @@ begin
              "Chain input not possible with disabled HIGH_SPEED_MODE."
       severity failure;
 
-    i1 : entity fixitfetish.signed_mult4_sum(stratixv)
+    i1 : entity dsplib.signed_mult4_sum(stratixv)
     generic map(
       NUM_INPUT_REG      => NUM_INPUT_REG,
       NUM_OUTPUT_REG     => 1,
@@ -226,7 +227,7 @@ begin
      PIPESTAGES => PIPESTAGES_DSP(1)
     );
     gn : for n in 2 to DSP_NUM-1 generate
-      inst : entity fixitfetish.signed_mult2_accu(stratixv)
+      inst : entity dsplib.signed_mult2_accu(stratixv)
       generic map(
         NUM_SUMMAND        => NUM_SUMMAND,
         USE_CHAIN_INPUT    => true,
