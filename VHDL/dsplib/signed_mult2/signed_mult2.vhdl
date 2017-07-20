@@ -3,8 +3,11 @@
 --! @author     Fixitfetish
 --! @date       14/Feb/2017
 --! @version    0.40
---! @copyright  MIT License
 --! @note       VHDL-1993
+--! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
+--!             <https://opensource.org/licenses/MIT>
+-------------------------------------------------------------------------------
+-- Includes DOXYGEN support.
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
