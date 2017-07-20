@@ -28,7 +28,7 @@ library dsplib;
 --!
 --! | X Len | Y Len | X+Y Len | DSP Slices | Entity Used           | Comment
 --! |:-----:|:-----:|:-------:|:----------:|-----------------------|-----------
---! | <=27  | <=18  | <=45    | N          | us_signed_mult1_accu  | 27x18 Full
+--! | <=27  | <=18  | <=45    | N          | signed_mult1_accu  | 27x18 Full
 --!
 
 architecture ultrascale of signed_mult is
@@ -87,7 +87,7 @@ begin
 
    g_n: for n in 0 to (NUM_ENTITY-1) generate
 
-    mult1 : entity dsplib.us_signed_mult1_accu
+    mult1 : entity dsplib.signed_mult1_accu
     generic map(
       NUM_SUMMAND        => 1,
       USE_CHAIN_INPUT    => false,
