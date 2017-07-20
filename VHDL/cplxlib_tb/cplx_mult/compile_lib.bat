@@ -18,6 +18,5 @@ set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 
 :: analyze library files
 @call %LIBROOT%\baselib\_compile.bat
-@call %LIBROOT%\dsplib\_compile.bat
-@call %LIBROOT%\dsplib\behave\_compile.bat
+@call %LIBROOT%\dsplib\_compile_behave.bat
 @call %LIBROOT%\cplxlib\_compile.bat

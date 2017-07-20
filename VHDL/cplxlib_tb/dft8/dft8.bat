@@ -32,8 +32,7 @@ if exist %VCD% (
 
 :: analyze library files
 @call %LIBROOT%\baselib\_compile.bat
-@call %LIBROOT%\dsplib\_compile.bat
-@call %LIBROOT%\dsplib\behave\_compile.bat
+@call %LIBROOT%\dsplib\_compile_behave.bat
 @call %LIBROOT%\cplxlib\_compile.bat
 
 :: analyze testbench

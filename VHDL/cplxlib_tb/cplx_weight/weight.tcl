@@ -21,9 +21,9 @@ set XILINX_LIB $TOOLPATH/vlib/xilinx_16v4
 
 source $LIBROOT/baselib/_compile_1993.tcl
 source $LIBROOT/dsplib/_compile_1993.tcl
-# source $LIBROOT/dsplib/stratixv/_compile.tcl
-# source $LIBROOT/dsplib/ultrascale/_compile.tcl
-source $LIBROOT/dsplib/behave/_compile.tcl
+source $LIBROOT/dsplib/_compile_behave.tcl
+# source $LIBROOT/dsplib/_compile_stratixv.tcl
+# source $LIBROOT/dsplib/_compile_ultrascale.tcl
 source $LIBROOT/cplxlib/_compile_1993.tcl
 
 vcom -93 -explicit -dbg -work $TEST_LIB $LIBROOT/cplxlib_tb/cplx_stimuli.vhdl
