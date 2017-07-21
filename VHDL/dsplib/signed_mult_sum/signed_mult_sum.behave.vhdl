@@ -30,9 +30,6 @@ library dsplib;
 
 architecture behave of signed_mult_sum is
 
-  -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := signed_mult_sum'INSTANCE_NAME;
-
   -- number of elements of complex factor vector y
   -- (must be either 1 or the same length as x)
   constant NUM_FACTOR : positive := y'length;
@@ -61,7 +58,6 @@ architecture behave of signed_mult_sum is
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
   constant GUARD_BITS_EVAL : natural := guard_bits(NUM_MULT,MAX_GUARD_BITS);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
-  constant OUTPUT_WIDTH : positive := result'length;
 
   -- pipeline registers (plus some dummy ones for non-existent adder tree)
   constant NUM_DELAY_REG : natural := NUM_INPUT_REG + NUM_OUTPUT_REG + GUARD_BITS_EVAL;

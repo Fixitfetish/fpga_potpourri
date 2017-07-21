@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult3.stratixv_compact.vhdl
+--! @file       signed_mult3.stratixv.vhdl
 --! @author     Fixitfetish
 --! @date       19/Mar/2017
 --! @version    0.20
@@ -40,10 +40,10 @@ library stratixv;
 --! Hence, for each product one of the two input factors is negated using additional logic.
 --! WARNING: If both input factors have the maximum size of 18 bits and the
 --! input that is going to be negated is the most negative number then an overflow occurs.
---! @image html signed_mult3.stratixv_compact.svg "" width=800px
+--! @image html signed_mult3.stratixv.svg "" width=800px
 --! This implementation does not support chaining.
 
-architecture stratixv_compact of signed_mult3 is
+architecture stratixv of signed_mult3 is
 
   -- identifier for reports of warnings and errors
   constant IMPLEMENTATION : string := signed_mult3'INSTANCE_NAME;

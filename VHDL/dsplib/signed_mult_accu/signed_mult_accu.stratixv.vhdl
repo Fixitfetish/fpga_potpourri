@@ -43,9 +43,6 @@ library dsplib;
 
 architecture stratixv of signed_mult_accu is
 
-  -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := signed_mult_accu'INSTANCE_NAME;
-
   -- derived constants
   constant NUM_MULT_PER_ENTITY : natural := 2;
   constant NUM_ENTITY : natural := (NUM_MULT+NUM_MULT_PER_ENTITY-1)/NUM_MULT_PER_ENTITY;

@@ -105,7 +105,7 @@ begin
   g_partial : if NUM_MULT_PER_ENTITY=2 generate
    g_n: for n in 0 to (NUM_ENTITY-1) generate
 
-    mult2 : entity dsplib.signed_mult2(stratixv_partial)
+    mult2 : entity dsplib.signed_mult2(stratixv)
     generic map(
       NUM_INPUT_REG      => NUM_INPUT_REG,
       NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
@@ -140,7 +140,7 @@ begin
   g_compact : if NUM_MULT_PER_ENTITY=3 generate
    g_n: for n in 0 to (NUM_ENTITY-1) generate
 
-    mult3 : entity dsplib.signed_mult3(stratixv_compact)
+    mult3 : entity dsplib.signed_mult3(stratixv)
     generic map(
       NUM_INPUT_REG      => NUM_INPUT_REG,
       NUM_OUTPUT_REG     => NUM_OUTPUT_REG,

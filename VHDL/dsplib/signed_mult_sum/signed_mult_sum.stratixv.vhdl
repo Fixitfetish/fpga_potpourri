@@ -40,9 +40,6 @@ library dsplib;
 
 architecture stratixv of signed_mult_sum is
 
-  -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := signed_mult_sum'INSTANCE_NAME;
-
   -- number of required MULT2 blocks 
   constant NUM_MULT2 : natural := (NUM_MULT+1)/2; -- ceil(NUM_MULT/2)
 

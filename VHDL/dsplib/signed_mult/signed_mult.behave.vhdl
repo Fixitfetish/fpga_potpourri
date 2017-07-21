@@ -30,9 +30,6 @@ library dsplib;
 
 architecture behave of signed_mult is
 
-  -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := signed_mult'INSTANCE_NAME;
-
   -- number of elements of complex factor vector y
   -- (must be either 1 or the same length as x)
   constant NUM_FACTOR : positive := y'length;
@@ -42,7 +39,6 @@ architecture behave of signed_mult is
  
   -- derived constants
   constant PRODUCT_WIDTH : natural := x(x'left)'length + y(y'left)'length;
-  constant OUTPUT_WIDTH : positive := result(result'left)'length;
 
   -- pipeline registers (plus some dummy ones for non-existent adder tree)
   constant NUM_DELAY_REG : natural := NUM_INPUT_REG + NUM_OUTPUT_REG;

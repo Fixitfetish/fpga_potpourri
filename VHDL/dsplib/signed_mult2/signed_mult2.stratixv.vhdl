@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult2.stratixv_partial.vhdl
+--! @file       signed_mult2.stratixv.vhdl
 --! @author     Fixitfetish
 --! @date       19/Mar/2017
 --! @version    0.40
@@ -39,10 +39,10 @@ library stratixv;
 --!
 --! Note that negation of the product results within the DSP cell is not supported.
 --! Hence, for each product one of the two input factors is negated using additional logic.
---! @image html signed_mult2.stratixv_partial.svg "" width=800px
+--! @image html signed_mult2.stratixv.svg "" width=800px
 --! This implementation does not support chaining.
 
-architecture stratixv_partial of signed_mult2 is
+architecture stratixv of signed_mult2 is
 
   -- identifier for reports of warnings and errors
   constant IMPLEMENTATION : string := signed_mult2'INSTANCE_NAME;

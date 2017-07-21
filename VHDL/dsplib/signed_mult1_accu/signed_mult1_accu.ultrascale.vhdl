@@ -366,7 +366,11 @@ begin
     RSTP               => reset  -- TODO
   );
 
-  chainout <= signed(chainout_i);
+  chainout(ACCU_WIDTH-1 downto 0) <= signed(chainout_i);
+  g_chainout : for n in ACCU_WIDTH to (chainout'length-1) generate
+    -- sign extension (for simulation and to avoid warnings)
+    chainout(n) <= chainout_i(ACCU_WIDTH-1);
+  end generate;
 
   -- pipelined valid signal
   g_dspreg_on : if NUM_OUTPUT_REG>=1 generate
