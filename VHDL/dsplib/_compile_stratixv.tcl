@@ -21,7 +21,7 @@ vmap stratixv_ver $ALTERA_LIB/verilog_libs/stratixv_ver
 # create file list
 set filelist [list]
 
-lappend filelist $SCRIPTPATH/stratixv/dsp_pkg.stratixv.vhdl
+lappend filelist $SCRIPTPATH/dsp_pkg/dsp_pkg.stratixv.vhdl
 
 lappend filelist $SCRIPTPATH/signed_mult1_accu/signed_mult1_accu.stratixv.vhdl
 lappend filelist $SCRIPTPATH/signed_mult1add1_accu/signed_mult1add1_accu.stratixv.vhdl

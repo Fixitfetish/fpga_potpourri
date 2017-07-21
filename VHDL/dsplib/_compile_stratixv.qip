@@ -2,9 +2,9 @@
 # This script compiles all Stratix V specific architectures of the DSPLIB Library.
 # It is required to compile the generic DSP entities first !
 
-set_global_assignment -library stratixv -name VHDL_FILE [file join $::quartus(qip_path) "stratixv/components.stratixv.vhdl"]
+set_global_assignment -library stratixv -name VHDL_FILE [file join $::quartus(qip_path) "dsp_pkg/components.stratixv.vhdl"]
 
-set_global_assignment -library dsplib -name VHDL_FILE [file join $::quartus(qip_path) "stratixv/dsp_pkg.stratixv.vhdl"]
+set_global_assignment -library dsplib -name VHDL_FILE [file join $::quartus(qip_path) "dsp_pkg/dsp_pkg.stratixv.vhdl"]
 
 set_global_assignment -library dsplib -name VHDL_FILE [file join $::quartus(qip_path) "signed_mult1_accu/signed_mult1_accu.stratixv.vhdl"]
 set_global_assignment -library dsplib -name VHDL_FILE [file join $::quartus(qip_path) "signed_mult1add1_accu/signed_mult1add1_accu.stratixv.vhdl"]
