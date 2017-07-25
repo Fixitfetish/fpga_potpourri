@@ -20,8 +20,7 @@ library dsplib;
 library unisim;
   use unisim.vcomponents.all;
 
---! @brief This is an implementation of the entity 
---! @link signed_mult1add1_sum signed_mult1add1_sum @endlink
+--! @brief This is an implementation of the entity signed_mult1add1_sum
 --! for Xilinx UltraScale.
 --! A product of two signed values is added or subtracted to/from a third signed value.
 --! Optionally the chain input can be added as well.
@@ -64,7 +63,7 @@ architecture ultrascale of signed_mult1add1_sum is
   function guard_bits(use_chainin:boolean) return integer is
   begin
     if use_chainin then return 2; -- 3 summands, X*Y + Z + CHAININ
-    else return 1; end if; -- 2 summands
+    else return 1; end if; -- 2 summands, X*Y + Z
   end function;
 
   -- first data input register is supported, in the first stage only

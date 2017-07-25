@@ -106,11 +106,13 @@ port (
 begin
 
   assert (x0'length+y0'length)=(x1'length+y1'length)
-    report "ERROR signed_mult2_sum : All products must result in same size."
+    report "ERROR in " & signed_mult2_sum'INSTANCE_NAME &
+           " All products must result in same size."
     severity failure;
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
-    report "WARNING signed_mult2_sum : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
+    report "WARNING in " & signed_mult2_sum'INSTANCE_NAME &
+           " Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 
 end entity;

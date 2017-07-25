@@ -1,0 +1,21 @@
+# path/location of this script
+set DSPLIB_PATH [ file dirname [dict get [ info frame 0 ] file ] ]
+
+add_file -vhdl -lib dsplib $DSPLIB_PATH/dsp_output_logic.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_accu.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_adder_tree.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/delay_dsp/delay_dsp.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult1add1_accu/signed_mult1add1_accu.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult1add1_sum/signed_mult1add1_sum.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult1_accu/signed_mult1_accu.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult2/signed_mult2.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult2_accu/signed_mult2_accu.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult2_sum/signed_mult2_sum.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult3/signed_mult3.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult4_sum/signed_mult4_sum.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult/signed_mult.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult_accu/signed_mult_accu.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult_sum/signed_mult_sum.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_preadd_mult1_accu/signed_preadd_mult1_accu.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_multn_chain_accu.vhdl
+

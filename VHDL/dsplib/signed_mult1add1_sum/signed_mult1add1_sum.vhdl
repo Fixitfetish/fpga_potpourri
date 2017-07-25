@@ -29,7 +29,7 @@ library ieee;
 --!
 --! @image html accumulator_register.svg "" width=800px
 --!
---! * NUM_SUMMAND = configurable, @link NUM_SUMMAND more... @endlink
+--! * NUM_SUMMAND = 2 (or 3 when cahain input is enabled)
 --! * ACCU WIDTH = accumulator width (device specific)
 --! * PRODUCT WIDTH = x'length + y'length
 --! * GUARD BITS = ceil(log2(NUM_SUMMAND))
@@ -41,9 +41,9 @@ library ieee;
 --! * OUTPUT WIDTH = length of result output <= ACCU USED SHIFTED WIDTH
 --!
 --! \b Example: The input lengths are x'length=18 and y'length=16, hence PRODUCT_WIDTH=34.
---! With NUM_SUMMAND=30 the number of additional guard bits is GUARD_BITS=5.
+--! With NUM_SUMMAND=3 the number of additional guard bits is GUARD_BITS=2.
 --! If the output length is 22 then the standard shift-right setting (conservative,
---! without risk of overflow) would be OUTPUT_SHIFT_RIGHT = 34 + 5 - 22 = 17.
+--! without risk of overflow) would be OUTPUT_SHIFT_RIGHT = 34 + 2 - 22 = 14.
 --!
 --! The delay depends on the configuration and the underlying hardware.
 --! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
@@ -54,20 +54,6 @@ library ieee;
 
 entity signed_mult1add1_sum is
 generic (
-  --! @brief The number of summands is important to determine the number of additional
-  --! guard bits (MSBs) that are required for the accumulation process. @link NUM_SUMMAND More...
-  --!
-  --! The setting is relevant to save logic especially when saturation/clipping
-  --! and/or overflow detection is enabled.
-  --! * 0 => maximum possible, not recommended (worst case, hardware dependent)
-  --! * 1 => just one multiplication without accumulation
-  --! * 2 => accumulate up to 2 products
-  --! * 3 => accumulate up to 3 products
-  --! * and so on ...
-  --!
-  --! Note that for the sum the product X*Y result, the input Z and the
-  --! chain input counts!
-  NUM_SUMMAND : natural := 0;
   --! Enable chain input from neighbor DSP cell, i.e. enable additional summand input
   USE_CHAIN_INPUT : boolean := false;
   --! @brief Number of additional input registers. At least one is strongly recommended.
@@ -134,7 +120,8 @@ port (
 begin
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
-    report "WARNING signed_mult1add1_sum : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
+    report "WARNING in " & signed_mult1add1_sum'INSTANCE_NAME &
+           " Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 
 end entity;

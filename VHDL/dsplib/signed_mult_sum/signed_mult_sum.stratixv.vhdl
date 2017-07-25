@@ -40,6 +40,8 @@ library dsplib;
 
 architecture stratixv of signed_mult_sum is
 
+  constant NY : integer := y'length; -- number vector elements
+
   -- number of required MULT2 blocks 
   constant NUM_MULT2 : natural := (NUM_MULT+1)/2; -- ceil(NUM_MULT/2)
 
@@ -64,11 +66,11 @@ begin
     neg_i(n) <= neg(n);
     x_i(n) <= x(n);
     -- same factor y for all vector elements of x
-    g1: if y'length=1 generate
+    g1: if NY=1 generate
       y_i(n) <= y(y'left); -- duplication !
     end generate;
     -- separate factor y for each vector element of x
-    gin_n: if y'length>=2 generate
+    gin_n: if NY>=2 generate
       y_i(n) <= y(y'left+n); -- range conversion !
     end generate;
   end generate;

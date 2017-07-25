@@ -54,7 +54,8 @@ library stratixv;
 architecture stratixv of signed_mult4_sum is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := signed_mult4_sum'INSTANCE_NAME;
+  -- (Note: Quartus 14.1 does not support attribute entity'instance_name within architecture)
+  constant IMPLEMENTATION : string := signed_mult4_sum(stratixv);
 
   -- number input registers within DSP and in LOGIC
   constant NUM_IREG_DSP : natural := NUM_IREG(DSP,NUM_INPUT_REG);

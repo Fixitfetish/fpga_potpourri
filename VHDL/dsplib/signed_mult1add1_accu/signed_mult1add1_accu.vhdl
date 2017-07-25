@@ -47,8 +47,8 @@ library ieee;
 --! If the output length is 22 then the standard shift-right setting (conservative,
 --! without risk of overflow) would be OUTPUT_SHIFT_RIGHT = 34 + 5 - 22 = 17.
 --!
---! If just the sum of products is required but not any further accumulation
---! then set CLR to constant '1'.
+--! If just the sum is required but not any further accumulation then set
+--! CLR to constant '1' or use the entity signed_mult1add1_sum .
 --!
 --! The delay depends on the configuration and the underlying hardware.
 --! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
@@ -142,7 +142,8 @@ port (
 begin
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
-    report "WARNING signed_mult1add1_accu : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
+    report "WARNING in " & signed_mult1add1_accu'INSTANCE_NAME &
+           " Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 
 end entity;

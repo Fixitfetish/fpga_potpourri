@@ -44,6 +44,7 @@ library dsplib;
 architecture stratixv of signed_mult_accu is
 
   -- derived constants
+  constant NY : integer := y'length; -- number vector elements
   constant NUM_MULT_PER_ENTITY : natural := 2;
   constant NUM_ENTITY : natural := (NUM_MULT+NUM_MULT_PER_ENTITY-1)/NUM_MULT_PER_ENTITY;
 
@@ -112,11 +113,11 @@ begin
     neg_i(n) <= neg(n);
     x_i(n) <= x(n);
     -- same factor y for all vector elements of x
-    g1: if y'length=1 generate
+    g1: if NY=1 generate
       y_i(n) <= y(y'left); -- duplication !
     end generate;
     -- separate factor y for each vector element of x
-    gin_n: if y'length>=2 generate
+    gin_n: if NY>=2 generate
       y_i(n) <= y(y'left+n); -- range conversion !
     end generate;
   end generate;

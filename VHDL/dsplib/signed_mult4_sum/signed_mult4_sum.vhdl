@@ -116,11 +116,13 @@ begin
   assert (     (x0'length+y0'length)=(x1'length+y1'length)
            and (x0'length+y0'length)=(x2'length+y2'length)
            and (x0'length+y0'length)=(x3'length+y3'length) )
-    report "ERROR signed_mult4_sum : All products must result in same size."
+    report "ERROR in " & signed_mult4_sum'INSTANCE_NAME &
+           " All products must result in same size."
     severity failure;
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
-    report "WARNING signed_mult4_sum : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
+    report "WARNING in " & signed_mult4_sum'INSTANCE_NAME &
+           " Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 
 end entity;

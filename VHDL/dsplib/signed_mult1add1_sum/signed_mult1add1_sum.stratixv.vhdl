@@ -19,14 +19,13 @@ library dsplib;
 library stratixv;
   use stratixv.stratixv_components.all;
 
---! @brief This is an implementation of the entity
---! @link signed_mult1add1_sum signed_mult1add1_sum @endlink
+--! @brief This is an implementation of the entity signed_mult1add1_sum
 --! for Altera Stratix-V.
 --! A product of two signed values is added or subtracted to/from a third signed value.
 --! Optionally the chain input can be added as well.
 --!
 --! Here the DSP primitive is not used. The implementation is derived from the Stratix-V
---! implementation of @link signed_mult1add1_accu signed_mult1add1_accu @endlink .
+--! implementation of signed_mult1add1_accu.
 --!
 --! * Input Data X,Y  : 2 signed values, x<=18 bits, y<=18 bits
 --! * Input Data Z    : 1 signed value, z<=36 bits
@@ -42,12 +41,21 @@ library stratixv;
 --! This implementation can be chained multiple times.
 
 architecture stratixv of signed_mult1add1_sum is
+  
+  -- local auxiliary
+  -- determine number of summands
+  function n_summands(use_chainin:boolean) return natural is
+  begin
+    if use_chainin then return 3; -- 3 summands, X*Y + Z + CHAININ
+    else return 2; end if; -- 2 summands, X*Y + Z
+  end function;
+  
 begin
 
   -- derive from instance with accumulator
   i_accu : entity dsplib.signed_mult1add1_accu
   generic map(
-    NUM_SUMMAND        => NUM_SUMMAND,
+    NUM_SUMMAND        => n_summands(USE_CHAIN_INPUT),
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
     NUM_INPUT_REG_XY   => NUM_INPUT_REG_XY,
     NUM_INPUT_REG_Z    => NUM_INPUT_REG_Z,

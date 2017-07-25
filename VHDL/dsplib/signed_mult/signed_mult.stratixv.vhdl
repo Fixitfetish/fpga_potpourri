@@ -40,7 +40,10 @@ library dsplib;
 architecture stratixv of signed_mult is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := signed_mult'INSTANCE_NAME;
+  -- (Note: Quartus 14.1 does not support attribute entity'instance_name within architecture)
+  constant IMPLEMENTATION : string := signed_mult(stratixv);
+
+  constant NY : integer := y'length; -- number vector elements
 
   -- determine number of multiplications per entity
   function mult_per_entity(lx,ly:integer) return natural is
@@ -90,11 +93,11 @@ begin
     neg_i(n) <= neg(n);
     x_i(n) <= x(n);
     -- same factor y for all vector elements of x
-    g1: if y'length=1 generate
+    g1: if NY=1 generate
       y_i(n) <= y(y'left); -- duplication !
     end generate;
     -- separate factor y for each vector element of x
-    gin_n: if y'length>=2 generate
+    gin_n: if NY>=2 generate
       y_i(n) <= y(y'left+n); -- range conversion !
     end generate;
   end generate;
