@@ -48,7 +48,7 @@ library unisim;
 architecture ultrascale of signed_mult1add1_sum is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := signed_mult1add1_sum'INSTANCE_NAME;
+  constant IMPLEMENTATION : string := "signed_mult1add1_sum(ultrascale)";
 
   -- number input registers within DSP and in LOGIC
   constant NUM_IREG_DSP : natural := NUM_IREG(DSP,NUM_INPUT_REG_XY);
