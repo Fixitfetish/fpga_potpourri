@@ -1,13 +1,13 @@
 # path/location of this script
 set DSPLIB_PATH [ file dirname [dict get [ info frame 0 ] file ] ]
 
-add_file -vhdl -lib dsplib $DSPLIB_PATH/stratixv/dsp_pkg.stratixv.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/dsp_pkg/dsp_pkg.stratixv.vhdl
 add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult1_accu/signed_mult1_accu.stratixv.vhdl
 add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult1add1_accu/signed_mult1add1_accu.stratixv.vhdl
 add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult1add1_sum/signed_mult1add1_sum.stratixv.vhdl
 add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult2_accu/signed_mult2_accu.stratixv.vhdl
-add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult2/signed_mult2.stratixv_partial.vhdl
-add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult3/signed_mult3.stratixv_compact.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult2/signed_mult2.stratixv.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult3/signed_mult3.stratixv.vhdl
 add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult4_sum/signed_mult4_sum.stratixv.vhdl
 add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult_accu/signed_mult_accu.stratixv.vhdl
 add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult_sum/signed_mult_sum.stratixv.vhdl

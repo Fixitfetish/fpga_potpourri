@@ -1,0 +1,10 @@
+# path/location of this script
+set DSPLIB_PATH [ file dirname [dict get [ info frame 0 ] file ] ]
+
+add_file -vhdl -lib dsplib $DSPLIB_PATH/dsp_pkg/dsp_pkg.ultrascale.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult1_accu/signed_mult1_accu.ultrascale.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult1add1_accu/signed_mult1add1_accu.ultrascale.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult1add1_sum/signed_mult1add1_sum.ultrascale.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult2_accu/signed_mult2_accu.ultrascale.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_mult/signed_mult.ultrascale.vhdl
+add_file -vhdl -lib dsplib $DSPLIB_PATH/signed_preadd_mult1_accu/signed_preadd_mult1_accu.ultrascale.vhdl

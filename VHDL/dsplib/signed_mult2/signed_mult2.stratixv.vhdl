@@ -20,9 +20,7 @@ library dsplib;
 library stratixv;
   use stratixv.stratixv_components.all;
 
---! @brief This is an implementation of the entity 
---! @link signed_mult2 signed_mult2 @endlink
---! for Altera Stratix-V.
+--! @brief This is an implementation of the entity signed_mult2 for Altera Stratix-V.
 --! Two parallel and synchronous signed multiplications are performed with limited result width.
 --!
 --! This implementation requires a single Variable Precision DSP Block of mode 'm18x18_partial'.
@@ -45,7 +43,8 @@ library stratixv;
 architecture stratixv of signed_mult2 is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := signed_mult2'INSTANCE_NAME;
+  -- (Note: Quartus 14.1 does not support attribute entity'instance_name within architecture)
+  constant IMPLEMENTATION : string := "signed_mult2(stratixv)";
 
   -- number input registers within DSP and in LOGIC
   constant NUM_IREG_DSP : natural := NUM_IREG(DSP,NUM_INPUT_REG);
@@ -56,10 +55,7 @@ architecture stratixv of signed_mult2 is
   constant MAX_PRODUCT_WIDTH : positive := 32;
 
   -- derived constants
-  constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
   constant PRODUCT_WIDTH : natural := x0'length + y0'length;
-  constant PRODUCT_SHIFTED_WIDTH : natural := PRODUCT_WIDTH - OUTPUT_SHIFT_RIGHT;
-  constant OUTPUT_WIDTH : positive := result0'length;
 
   -- logic input register pipeline
   type r_logic_ireg is
@@ -84,19 +80,10 @@ architecture stratixv of signed_mult2 is
   type array_dsp_ireg is array(integer range <>) of r_dsp_ireg;
   signal ireg : array_dsp_ireg(NUM_IREG_DSP downto 0);
 
-  -- output register pipeline
-  type r_oreg is
-  record
-    dat0, dat1 : signed(OUTPUT_WIDTH-1 downto 0);
-    vld : std_logic;
-    ovf : std_logic_vector(result_ovf'range);
-  end record;
-  type array_oreg is array(integer range <>) of r_oreg;
-  signal rslt : array_oreg(0 to NUM_OUTPUT_REG);
+  type t_prod is array(integer range <>) of std_logic_vector(MAX_PRODUCT_WIDTH-1 downto 0);
+  signal prod : t_prod(0 to 1) := (others=>(others=>'0'));
+  signal prod_vld : std_logic := '0';
 
-  signal prod0, prod1 : std_logic_vector(MAX_PRODUCT_WIDTH-1 downto 0);
-  signal prod0_used, prod1_used : signed(PRODUCT_WIDTH-1 downto 0);
-  signal prod0_used_shifted, prod1_used_shifted : signed(PRODUCT_SHIFTED_WIDTH-1 downto 0);
 
 begin
 
@@ -253,63 +240,63 @@ begin
     ena(2)     => '0', -- clk(2) enable - unused
     loadconst  => '0',
     negate     => '0',
-    resulta    => prod0,
-    resultb    => prod1,
+    resulta    => prod(0),
+    resultb    => prod(1),
     scanin     => open,
     scanout    => open,
     sub        => '0'
   );
 
-  -- cut off unused sign extension bits
-  -- (This reduces the logic consumption in the following steps when rounding,
-  -- saturation and/or overflow detection is enabled.)
-  prod0_used <= signed(prod0(PRODUCT_WIDTH-1 downto 0));
-  prod1_used <= signed(prod1(PRODUCT_WIDTH-1 downto 0));
-
-  -- shift right and round 
-  g_rnd_off : if (not ROUND_ENABLE) generate
-    prod0_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(prod0_used, OUTPUT_SHIFT_RIGHT),PRODUCT_SHIFTED_WIDTH);
-    prod1_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(prod1_used, OUTPUT_SHIFT_RIGHT),PRODUCT_SHIFTED_WIDTH);
+  -- pipelined valid signal
+  g_dspreg_on : if NUM_OUTPUT_REG>=1 generate
+    prod_vld <= ireg(0).vld when rising_edge(clk);
   end generate;
-  g_rnd_on : if (ROUND_ENABLE) generate
-    prod0_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(prod0_used, OUTPUT_SHIFT_RIGHT, nearest),PRODUCT_SHIFTED_WIDTH);
-    prod1_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(prod1_used, OUTPUT_SHIFT_RIGHT, nearest),PRODUCT_SHIFTED_WIDTH);
+  g_dspreg_off : if NUM_OUTPUT_REG<=0 generate
+    prod_vld <= ireg(0).vld;
   end generate;
 
-  p_out : process(prod0_used_shifted, prod1_used_shifted, ireg(0).vld)
-    variable v_dat0, v_dat1 : signed(OUTPUT_WIDTH-1 downto 0);
-    variable v_ovf : std_logic_vector(result_ovf'range);
-  begin
-    RESIZE_CLIP(din=>prod0_used_shifted, dout=>v_dat0, ovfl=>v_ovf(0), clip=>OUTPUT_CLIP);
-    RESIZE_CLIP(din=>prod1_used_shifted, dout=>v_dat1, ovfl=>v_ovf(1), clip=>OUTPUT_CLIP);
-    rslt(0).vld <= ireg(0).vld;
-    rslt(0).dat0 <= v_dat0;
-    rslt(0).dat1 <= v_dat1;
-    if OUTPUT_OVERFLOW then rslt(0).ovf<=v_ovf; else rslt(0).ovf<=(others=>'0'); end if;
-  end process;
+  -- right-shift, rounding and clipping
+  i_out0 : entity dsplib.dsp_output_logic
+  generic map(
+    PIPELINE_STAGES    => NUM_OUTPUT_REG-1,
+    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
+    OUTPUT_ROUND       => OUTPUT_ROUND,
+    OUTPUT_CLIP        => OUTPUT_CLIP,
+    OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
+  )
+  port map (
+    clk         => clk,
+    rst         => rst,
+    -- cut off unused sign extension bits
+    -- (This reduces the logic consumption when rounding,
+    -- saturation and/or overflow detection is enabled.)
+    dsp_out     => signed(prod(0)(PRODUCT_WIDTH-1 downto 0)),
+    dsp_out_vld => prod_vld,
+    result      => result0,
+    result_vld  => result_vld(0),
+    result_ovf  => result_ovf(0)
+  );
 
-  g_oreg1 : if NUM_OUTPUT_REG>=1 generate
-  begin
-    rslt(1).vld <= rslt(0).vld when rising_edge(clk); -- VLD bypass
-    -- DSP cell result/accumulator register is always used as first output register stage
-    rslt(1).dat0 <= rslt(0).dat0;
-    rslt(1).dat1 <= rslt(0).dat1;
-    rslt(1).ovf <= rslt(0).ovf;
-  end generate;
-
-  -- additional output registers always in logic
-  g_oreg2 : if NUM_OUTPUT_REG>=2 generate
-    g_loop : for n in 2 to NUM_OUTPUT_REG generate
-      rslt(n) <= rslt(n-1) when rising_edge(clk);
-    end generate;
-  end generate;
-
-  -- map result to output port
-  result0 <= rslt(NUM_OUTPUT_REG).dat0;
-  result1 <= rslt(NUM_OUTPUT_REG).dat1;
-  result_vld(0) <= rslt(NUM_OUTPUT_REG).vld;
-  result_vld(1) <= rslt(NUM_OUTPUT_REG).vld;
-  result_ovf <= rslt(NUM_OUTPUT_REG).ovf;
+  i_out1 : entity dsplib.dsp_output_logic
+  generic map(
+    PIPELINE_STAGES    => NUM_OUTPUT_REG-1,
+    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
+    OUTPUT_ROUND       => OUTPUT_ROUND,
+    OUTPUT_CLIP        => OUTPUT_CLIP,
+    OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
+  )
+  port map (
+    clk         => clk,
+    rst         => rst,
+    -- cut off unused sign extension bits
+    -- (This reduces the logic consumption when rounding,
+    -- saturation and/or overflow detection is enabled.)
+    dsp_out     => signed(prod(1)(PRODUCT_WIDTH-1 downto 0)),
+    dsp_out_vld => prod_vld,
+    result      => result1,
+    result_vld  => result_vld(1),
+    result_ovf  => result_ovf(1)
+  );
 
   -- report constant number of pipeline register stages
   PIPESTAGES <= NUM_INPUT_REG + NUM_OUTPUT_REG;

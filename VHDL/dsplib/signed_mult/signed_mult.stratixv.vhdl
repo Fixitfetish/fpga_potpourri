@@ -41,7 +41,7 @@ architecture stratixv of signed_mult is
 
   -- identifier for reports of warnings and errors
   -- (Note: Quartus 14.1 does not support attribute entity'instance_name within architecture)
-  constant IMPLEMENTATION : string := signed_mult(stratixv);
+  constant IMPLEMENTATION : string := "signed_mult(stratixv)";
 
   constant NY : integer := y'length; -- number vector elements
 

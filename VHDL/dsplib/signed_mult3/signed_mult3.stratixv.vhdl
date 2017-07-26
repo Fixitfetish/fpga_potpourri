@@ -47,7 +47,7 @@ architecture stratixv of signed_mult3 is
 
   -- identifier for reports of warnings and errors
   -- (Note: Quartus 14.1 does not support attribute entity'instance_name within architecture)
-  constant IMPLEMENTATION : string := signed_mult3(stratixv);
+  constant IMPLEMENTATION : string := "signed_mult3(stratixv)";
 
   -- number input registers within DSP and in LOGIC
   constant NUM_IREG_DSP : natural := NUM_IREG(DSP,NUM_INPUT_REG);

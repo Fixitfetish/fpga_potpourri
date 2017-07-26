@@ -374,7 +374,7 @@ begin
     CECTRL             => clkena, -- for opmode
     CED                => clkena,
     CEINMODE           => clkena,
-    CEM                => clkena,
+    CEM                => CEM(clkena,NUM_INPUT_REG_XY),
     CEP                => ireg(0).vld,
     -- Reset: 1-bit (each) input: Reset
     RSTA               => reset, -- TODO

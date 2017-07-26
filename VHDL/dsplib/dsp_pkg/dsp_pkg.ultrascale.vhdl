@@ -54,6 +54,9 @@ package dsp_pkg_ultrascale is
   --! Register M is used as second input register when NUM_INPUT_REG>=2
   function MREG(n:natural) return natural;
 
+  --! Register M only requires clock enable when register is enabled 
+  function CEM(clkena:std_logic; n:natural) return std_logic;
+
   --! INMODE has only one register stage
   function INMODEREG(n:natural) return natural;
 
@@ -142,6 +145,10 @@ package body dsp_pkg_ultrascale is
   --! Register M is used as second input register when NUM_INPUT_REG>=2
   function MREG(n:natural) return natural is
   begin if n>=2 then return 1; else return 0; end if; end function;
+
+  --! Register M only requires clock enable when register is enabled 
+  function CEM(clkena:std_logic; n:natural) return std_logic is
+  begin if n>=2 then return clkena; else return '0'; end if; end function;
 
   --! INMODE has only one register stage
   function INMODEREG(n:natural) return natural is

@@ -34,7 +34,10 @@ library dsplib;
 architecture ultrascale of signed_mult is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := signed_mult'INSTANCE_NAME;
+  constant IMPLEMENTATION : string := "signed_mult(ultrascale)";
+--  constant IMPLEMENTATION : string := signed_mult'INSTANCE_NAME;
+
+  constant NY : integer := y'length; -- number vector elements
 
   -- determine number of multiplications per entity
   function mult_per_entity(lx,ly:integer) return natural is
@@ -51,13 +54,13 @@ architecture ultrascale of signed_mult is
   end function;
 
   -- derived constants
-  constant NUM_MULT_PER_ENTITY : natural := mult_per_entity(x(0)'length,y(0)'length);
+  constant NUM_MULT_PER_ENTITY : natural := mult_per_entity(x(x'left)'length,y(y'left)'length);
   constant NUM_ENTITY : natural := (NUM_MULT+NUM_MULT_PER_ENTITY-1)/NUM_MULT_PER_ENTITY;
 
   -- Internal copy of inputs required because some multipliers of an entity might
   -- be unused and need to be set to zero.
-  type t_x is array(integer range <>) of signed(x(0)'length-1 downto 0);
-  type t_y is array(integer range <>) of signed(y(0)'length-1 downto 0);
+  type t_x is array(integer range <>) of signed(x(x'left)'length-1 downto 0);
+  type t_y is array(integer range <>) of signed(y(y'left)'length-1 downto 0);
   signal x_i : t_x(0 to NUM_ENTITY*NUM_MULT_PER_ENTITY-1) := (others=>(others=>'0'));
   signal y_i : t_y(0 to NUM_ENTITY*NUM_MULT_PER_ENTITY-1) := (others=>(others=>'0'));
   signal neg_i : std_logic_vector(0 to NUM_ENTITY*NUM_MULT_PER_ENTITY-1) := (others=>'0');
@@ -68,16 +71,23 @@ architecture ultrascale of signed_mult is
   signal r_i : t_r(0 to NUM_ENTITY*NUM_MULT_PER_ENTITY-1);
   signal r_vld_i : std_logic_vector(0 to NUM_ENTITY*NUM_MULT_PER_ENTITY-1);
   signal r_ovf_i : std_logic_vector(0 to NUM_ENTITY*NUM_MULT_PER_ENTITY-1);
-  type integer_vector is array(integer range <>) of integer;
-  signal pipe : integer_vector(0 to NUM_ENTITY-1);
+  type natural_vector is array(integer range <>) of natural;
+  signal pipe : natural_vector(0 to NUM_ENTITY-1);
 
 begin
 
-  -- Map inputs to internal signals.
+  -- Map inputs to internal signals
   g_in: for n in 0 to (NUM_MULT-1) generate
-    x_i(n) <= x(n);
-    y_i(n) <= y(n);
     neg_i(n) <= neg(n);
+    x_i(n) <= x(n);
+    -- same factor y for all vector elements of x
+    g1: if NY=1 generate
+      y_i(n) <= y(y'left); -- duplication !
+    end generate;
+    -- separate factor y for each vector element of x
+    gin_n: if NY>=2 generate
+      y_i(n) <= y(y'left+n); -- range conversion !
+    end generate;
   end generate;
 
   -----------------------------------------------------------------------------

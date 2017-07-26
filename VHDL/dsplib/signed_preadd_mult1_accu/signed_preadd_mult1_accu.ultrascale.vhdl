@@ -65,7 +65,7 @@ library unisim;
 architecture ultrascale of signed_preadd_mult1_accu is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := signed_preadd_mult1_accu'INSTANCE_NAME;
+  constant IMPLEMENTATION : string := "signed_preadd_mult1_accu(ultrascale)";
 
   -- number input registers within DSP and in LOGIC
   constant NUM_IREG_DSP : natural := NUM_IREG(DSP,NUM_INPUT_REG);
@@ -391,7 +391,7 @@ begin
     CECTRL             => clkena, -- for opmode
     CED                => clkena,
     CEINMODE           => clkena,
-    CEM                => clkena,
+    CEM                => CEM(clkena,NUM_INPUT_REG),
     CEP                => ireg(0).vld,
     -- Reset: 1-bit (each) input: Reset
     RSTA               => reset, -- TODO
@@ -430,7 +430,7 @@ begin
   generic map(
     PIPELINE_STAGES    => NUM_OUTPUT_REG-1,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-    OUTPUT_ROUND       => false, -- rounding within DSP cell!
+    OUTPUT_ROUND       => false, -- rounding already done within DSP cell!
     OUTPUT_CLIP        => OUTPUT_CLIP,
     OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
   )
