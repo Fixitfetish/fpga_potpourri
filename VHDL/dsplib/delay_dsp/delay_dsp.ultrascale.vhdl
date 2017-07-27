@@ -215,7 +215,7 @@ begin
       BCIN               => (others=>'0'), -- unused
       CARRYCASCIN        => '0', -- unused
       MULTSIGNIN         => '0', -- unused
-      PCIN               => open,
+      PCIN               => (others=>'0'),
       -- carry input
       ALUMODE            => "0000", -- always P = Z + (W + X + Y + CIN)
       INMODE             => (others=>'0'), -- irrelevant
@@ -360,7 +360,7 @@ begin
       BCIN               => (others=>'0'), -- unused
       CARRYCASCIN        => '0', -- unused
       MULTSIGNIN         => '0', -- unused
-      PCIN               => open,
+      PCIN               => (others=>'0'),
       -- carry input
       ALUMODE            => "0000", -- always P = Z + (W + X + Y + CIN)
       INMODE             => (others=>'0'), -- A->AD->A_MULT and B->B_MULT

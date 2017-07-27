@@ -79,7 +79,7 @@ begin
   -----------------------------------------------------------------------------
   -- when NUM_MULT <= 2  (no adder stage in logic required)
   g2: if NUM_MULT<=2 generate
-    i4 : entity dsplib.signed_mult2_accu
+    i4 : entity dsplib.signed_mult2_accu(stratixv)
     generic map(
       NUM_SUMMAND        => 2,
       USE_CHAIN_INPUT    => false,
@@ -113,7 +113,7 @@ begin
 
   -- when 3 <= NUM_MULT <= 4  (no adder stage in logic required)
   g4: if (NUM_MULT>=3 and NUM_MULT<=4) generate
-    i4 : entity dsplib.signed_mult4_sum
+    i4 : entity dsplib.signed_mult4_sum(stratixv)
     generic map(
       NUM_INPUT_REG      => NUM_INPUT_REG,
       NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
@@ -170,7 +170,7 @@ begin
     -- instantiate as many MULT4 instances as possible
     g4 : for n in 0 to NUM_MULT4-1 generate
     begin
-      i4 : entity dsplib.signed_mult4_sum
+      i4 : entity dsplib.signed_mult4_sum(stratixv)
       generic map(
         NUM_INPUT_REG      => NUM_INPUT_REG,
         NUM_OUTPUT_REG     => 1,
@@ -203,7 +203,7 @@ begin
     -- additional MULT2 instance required if the number of MULT2 blocks is odd
     g2: if NUM_MULT4<NUM_ADDER_INPUTS generate
     begin
-      i2 : entity dsplib.signed_mult2_accu
+      i2 : entity dsplib.signed_mult2_accu(stratixv)
       generic map(
         NUM_SUMMAND        => 2,
         USE_CHAIN_INPUT    => false,

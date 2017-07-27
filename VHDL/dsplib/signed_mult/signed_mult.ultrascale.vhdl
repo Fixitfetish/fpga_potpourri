@@ -97,7 +97,7 @@ begin
 
    g_n: for n in 0 to (NUM_ENTITY-1) generate
 
-    mult1 : entity dsplib.signed_mult1_accu
+    mult1 : entity dsplib.signed_mult1_accu(ultrascale)
     generic map(
       NUM_SUMMAND        => 1,
       USE_CHAIN_INPUT    => false,
