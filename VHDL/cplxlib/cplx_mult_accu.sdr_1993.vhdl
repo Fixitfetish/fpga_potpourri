@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
---! @file       cplx_weight_sum.sdr.vhdl
+--! @file       cplx_mult_accu.sdr_1993.vhdl
 --! @author     Fixitfetish
 --! @date       16/Jun/2017
---! @version    0.40
---! @note       VHDL-2008
+--! @version    0.50
+--! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
@@ -19,18 +19,19 @@ library cplxlib;
   use cplxlib.cplx_pkg.all;
 library dsplib;
 
---! @brief Single Data Rate implementation of the entity cplx_weight_sum .
---! N complex values are weighted (scaled) with one scalar or N scalar
---! values. Finally the weighted results are summed.
+--! @brief N complex multiplications and accumulate all (Single Data Rate).
+--!
+--! This implementation requires the entity signed_mult_accu.
+--! @image html cplx_mult_accu.sdr.svg "" width=600px
 --!
 --! In general this multiplier can be used when FPGA DSP cells are clocked with
 --! the standard system clock. 
---!
---! This implementation requires the entity signed_mult_sum .
+--! 
+--! The number of overall pipeline stages is typically NUM_INPUT_REG + 1 + NUM_OUTPUT_REG.
 --!
 --! NOTE: The double rate clock 'clk2' is irrelevant and unused here.
 
-architecture sdr of cplx_weight_sum is
+architecture sdr_1993 of cplx_mult_accu is
 
   -- The number of pipeline stages is reported as constant at the output port
   -- of the DSP implementation. PIPE_DSP is not a generic and it cannot be used
@@ -39,25 +40,23 @@ architecture sdr of cplx_weight_sum is
   constant MAX_NUM_PIPE_DSP : positive := 16;
 
   -- bit resolution of input and output data
-  constant WIDTH_X : positive := x(x'left).re'length;
-  constant WIDTH_W : positive := w(w'left)'length;
   constant WIDTH_R : positive := result.re'length;
 
-  -- number of elements of weight factor vector w
+  -- number of elements of complex factor vector y
   -- (must be either 1 or the same length as x)
-  constant NUM_FACTOR : positive := w'length;
+  constant NUM_FACTOR : positive := y'length;
 
   -- convert to default range
-  alias w_i : signed_vector(0 to NUM_FACTOR-1)(WIDTH_W-1 downto 0) is w;
+  alias y_i : cplx_vector(0 to NUM_FACTOR-1) is y;
 
-  signal x_re, x_im : signed_vector(0 to NUM_MULT-1)(WIDTH_X-1 downto 0);
-  signal w_dsp : signed_vector(0 to NUM_MULT-1)(WIDTH_W-1 downto 0);
-  signal neg_re, neg_im : std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
+  signal x_re, x_im : signed_vector(0 to 2*NUM_MULT-1);
+  signal y_re, y_im : signed_vector(0 to 2*NUM_MULT-1);
+  signal neg_re, neg_im : std_logic_vector(0 to 2*NUM_MULT-1) := (others=>'0');
 
   -- merged input signals and compensate for multiplier pipeline stages
-  signal rst_x : std_logic_vector(0 to NUM_MULT-1);
-  signal ovf_x : std_logic_vector(0 to NUM_MULT-1);
-  signal vld_x : std_logic_vector(0 to NUM_MULT-1);
+  signal rst_x, rst_y : std_logic_vector(0 to NUM_MULT-1);
+  signal ovf_x, ovf_y : std_logic_vector(0 to NUM_MULT-1);
+  signal vld_x, vld_y : std_logic_vector(0 to NUM_MULT-1);
   signal rst : std_logic_vector(0 to MAX_NUM_PIPE_DSP) := (others=>'1');
   signal ovf : std_logic_vector(0 to MAX_NUM_PIPE_DSP) := (others=>'0');
 
@@ -66,9 +65,17 @@ architecture sdr of cplx_weight_sum is
   signal data_reset : std_logic := '0';
 
   -- output signals
+  -- ! for 1993/2008 compatibility reasons do not use cplx record here !
   signal r_ovf_re, r_ovf_im : std_logic;
-  constant DEFAULT_RESULT : cplx_vector := cplx_vector_reset(NUM_OUTPUT_REG+1,WIDTH_R,"R");
-  signal rslt : cplx_vector(0 to NUM_OUTPUT_REG)(re(WIDTH_R-1 downto 0),im(WIDTH_R-1 downto 0)) := DEFAULT_RESULT;
+  type record_result is
+  record
+    rst, vld, ovf : std_logic;
+    re : signed(WIDTH_R-1 downto 0);
+    im : signed(WIDTH_R-1 downto 0);
+  end record;
+  constant DEFAULT_RESULT : record_result := (rst=>'1',vld|ovf=>'0',re|im=>(others=>'0'));
+  type array_result is array(integer range<>) of record_result;
+  signal rslt : array_result(0 to NUM_OUTPUT_REG) := (others=>DEFAULT_RESULT);
 
   -- pipeline stages of used DSP cell
   signal PIPE_DSP : natural;
@@ -84,34 +91,47 @@ begin
   std_logic_sink(clk2);
 
   g_merge : for n in 0 to NUM_MULT-1 generate
-    rst_x(n) <= x(n).rst;
-    vld_x(n) <= x(n).vld;
-    ovf_x(n) <= x(n).ovf;
+    rst_x(n) <= x(n).rst; rst_y(n) <= y_i(n).rst;
+    vld_x(n) <= x(n).vld; vld_y(n) <= y_i(n).vld;
+    ovf_x(n) <= x(n).ovf; ovf_y(n) <= y_i(n).ovf;
   end generate;
 
   -- merge input control signals
-  rst(0) <= (ANY_ONES(rst_x));
-  vld <= ALL_ONES(vld_x) when rst(0)='0' else '0';
+  rst(0) <= (ANY_ONES(rst_x) or  ANY_ONES(rst_y));
+  vld <= (ALL_ONES(vld_x) and ALL_ONES(vld_y)) when rst(0)='0' else '0';
 
   -- Consider overflow flags of all inputs that are summed.
   -- If the overflow flag of any input is set then also the result
   -- will have the overflow flag set.   
   ovf(0) <= '0' when (MODE='X' or rst(0)='1') else
-            ANY_ONES(ovf_x);
+            (ANY_ONES(ovf_x) or  ANY_ONES(ovf_y));
 
   g_in : for n in 0 to NUM_MULT-1 generate
-    -- mapping of complex inputs
-    neg_re(n) <= neg(n);
-    neg_im(n) <= neg(n);
-    x_re(n) <= x(n).re;
-    x_im(n) <= x(n).im;
-    g_w1 : if NUM_FACTOR=1 generate
-      -- same weighting factor for all complex vector elements
-      w_dsp(n) <= w_i(0);
+    -- map inputs for calculation of real component
+    neg_re(2*n)   <= neg(n); -- +/-(+x.re*y.re)
+    neg_re(2*n+1) <= not neg(n); -- +/-(-x.im*y.im)
+    x_re(2*n)     <= x(n).re;
+    x_re(2*n+1)   <= x(n).im;
+    -- map inputs for calculation of imaginary component
+    neg_im(2*n)   <= neg(n); -- +/-(+x.re*y.im)
+    neg_im(2*n+1) <= neg(n); -- +/-(+x.im*y.re)
+    x_im(2*n)     <= x(n).re;
+    x_im(2*n+1)   <= x(n).im;
+    g_y1 : if NUM_FACTOR=1 generate
+      -- map inputs for calculation of real component
+      y_re(2*n)     <= y_i(0).re;
+      y_re(2*n+1)   <= y_i(0).im;
+      -- map inputs for calculation of imaginary component
+      y_im(2*n)     <= y_i(0).im;
+      y_im(2*n+1)   <= y_i(0).re;
     end generate;
-    g_wn : if NUM_FACTOR=NUM_MULT generate
-      -- separate weighting factor for each complex vector element
-      w_dsp(n) <= w_i(n);
+    g_yn : if NUM_FACTOR=NUM_MULT generate
+      -- map inputs for calculation of real component
+      y_re(2*n)     <= y_i(n).re;
+      y_re(2*n+1)   <= y_i(n).im;
+      -- map inputs for calculation of imaginary component
+      y_im(2*n)     <= y_i(n).im;
+      y_im(2*n+1)   <= y_i(n).re;
     end generate;
   end generate;
 
@@ -124,13 +144,14 @@ begin
     ovf(n) <= ovf(n-1) when rising_edge(clk);
   end generate;
 
-  -- weighting
-  i_re : entity dsplib.signed_mult_sum
+  -- calculate real component
+  i_re : entity dsplib.signed_mult_accu
   generic map(
-    NUM_MULT           => NUM_MULT,
-    HIGH_SPEED_MODE    => HIGH_SPEED_MODE,
+    NUM_MULT           => 2*NUM_MULT, -- two multiplications per complex multiplication
+    NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
+    USE_CHAIN_INPUT    => false, -- unused here
     NUM_INPUT_REG      => NUM_INPUT_REG,
-    NUM_OUTPUT_REG     => 1, -- always enable DSP cell output register (= first output register)
+    NUM_OUTPUT_REG     => 1, -- always enable accumulator (= first output register)
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     OUTPUT_ROUND       => (MODE='N'),
     OUTPUT_CLIP        => (MODE='S'),
@@ -139,23 +160,27 @@ begin
   port map (
     clk        => clk,
     rst        => data_reset,
+    clr        => clr,
     vld        => vld,
     neg        => neg_re,
     x          => x_re,
-    y          => w_dsp,
+    y          => y_re,
     result     => rslt(0).re,
     result_vld => rslt(0).vld,
     result_ovf => r_ovf_re,
+    chainin    => open, -- unused
+    chainout   => open, -- unused
     PIPESTAGES => PIPE_DSP
   );
 
-  -- weighting
-  i_im : entity dsplib.signed_mult_sum
+  -- calculate imaginary component
+  i_im : entity dsplib.signed_mult_accu
   generic map(
-    NUM_MULT           => NUM_MULT,
-    HIGH_SPEED_MODE    => HIGH_SPEED_MODE,
+    NUM_MULT           => 2*NUM_MULT, -- two multiplications per complex multiplication
+    NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
+    USE_CHAIN_INPUT    => false, -- unused here
     NUM_INPUT_REG      => NUM_INPUT_REG,
-    NUM_OUTPUT_REG     => 1, -- always enable DSP cell output register (= first output register)
+    NUM_OUTPUT_REG     => 1, -- always enable accumulator (= first output register)
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     OUTPUT_ROUND       => (MODE='N'),
     OUTPUT_CLIP        => (MODE='S'),
@@ -164,13 +189,16 @@ begin
   port map (
     clk        => clk,
     rst        => data_reset,
+    clr        => clr,
     vld        => vld,
     neg        => neg_im,
     x          => x_im,
-    y          => w_dsp,
+    y          => y_im,
     result     => rslt(0).im,
     result_vld => open, -- same as real component
     result_ovf => r_ovf_im,
+    chainin    => open, -- unused
+    chainout   => open, -- unused
     PIPESTAGES => open  -- same as real component
   );
 
@@ -187,7 +215,11 @@ begin
   end generate;
 
   -- map result to output port
-  result <= rslt(NUM_OUTPUT_REG);
+  result.rst <= rslt(NUM_OUTPUT_REG).rst;
+  result.vld <= rslt(NUM_OUTPUT_REG).vld;
+  result.ovf <= rslt(NUM_OUTPUT_REG).ovf;
+  result.re  <= rslt(NUM_OUTPUT_REG).re;
+  result.im  <= rslt(NUM_OUTPUT_REG).im;
 
   -- report constant number of pipeline register stages (in 'clk' domain)
   PIPESTAGES <= PIPE_DSP + NUM_OUTPUT_REG;

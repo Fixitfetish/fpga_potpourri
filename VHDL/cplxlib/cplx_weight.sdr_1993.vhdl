@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
---! @file       cplx_weight.sdr.vhdl
+--! @file       cplx_weight.sdr_1993.vhdl
 --! @author     Fixitfetish
 --! @date       16/Jun/2017
 --! @version    0.40
---! @note       VHDL-2008
+--! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
@@ -31,7 +31,7 @@ library dsplib;
 --!
 --! NOTE: The double rate clock 'clk2' is irrelevant and unused here.
 
-architecture sdr of cplx_weight is
+architecture sdr_1993 of cplx_weight is
 
   -- The number of pipeline stages is reported as constant at the output port
   -- of the DSP implementation. PIPE_DSP is not a generic and it cannot be used
@@ -40,8 +40,6 @@ architecture sdr of cplx_weight is
   constant MAX_NUM_PIPE_DSP : positive := 16;
 
   -- bit resolution of input and output data
-  constant WIDTH_W : positive := w(w'left)'length;
-  constant WIDTH_X : positive := x(x'left).re'length;
   constant WIDTH_R : positive := result(result'left).re'length;
 
   -- number of elements of factor vector
@@ -49,13 +47,13 @@ architecture sdr of cplx_weight is
   constant NUM_FACTOR : positive := w'length;
 
   -- convert to default range
-  alias w_i : signed_vector(0 to NUM_FACTOR-1)(WIDTH_W-1 downto 0) is w;
+  alias w_i : signed_vector(0 to NUM_FACTOR-1) is w;
 
   -- multiplier input signals
   signal vld_dsp : std_logic := '0';
   signal neg_dsp : std_logic_vector(0 to 2*NUM_MULT-1);
-  signal x_dsp : signed_vector(0 to 2*NUM_MULT-1)(WIDTH_X-1 downto 0);
-  signal w_dsp : signed_vector(0 to 2*NUM_MULT-1)(WIDTH_W-1 downto 0);
+  signal x_dsp : signed_vector(0 to 2*NUM_MULT-1);
+  signal w_dsp : signed_vector(0 to 2*NUM_MULT-1);
 
   -- merged input signals and compensate for multiplier pipeline stages
   type t_delay is array(integer range <>) of std_logic_vector(0 to NUM_MULT-1);
@@ -67,9 +65,17 @@ architecture sdr of cplx_weight is
   signal data_reset : std_logic := '0';
 
   -- output signals
+  -- ! for 1993/2008 compatibility reasons do not use cplx record here !
   signal r_vld, r_ovf : std_logic_vector(0 to 2*NUM_MULT-1);
-  signal r : signed_vector(0 to 2*NUM_MULT-1)(WIDTH_R-1 downto 0);
-  type matrix_result is array(integer range<>) of cplx_vector(0 to NUM_MULT-1)(re(WIDTH_R-1 downto 0),im(WIDTH_R-1 downto 0));
+  signal r : signed_vector(0 to 2*NUM_MULT-1);
+  type record_result is
+  record
+    rst, vld, ovf : std_logic;
+    re : signed(WIDTH_R-1 downto 0);
+    im : signed(WIDTH_R-1 downto 0);
+  end record;
+  type vector_result is array(integer range<>) of record_result;
+  type matrix_result is array(integer range<>) of vector_result(0 to NUM_MULT-1);
   signal rslt : matrix_result(0 to NUM_OUTPUT_REG);
 
   -- pipeline stages of used DSP cell
@@ -164,7 +170,13 @@ begin
   end generate;
 
   -- map result to output port
-  result <= rslt(NUM_OUTPUT_REG);
+  g_out : for k in 0 to NUM_MULT-1 generate
+    result(k).rst <= rslt(NUM_OUTPUT_REG)(k).rst;
+    result(k).vld <= rslt(NUM_OUTPUT_REG)(k).vld;
+    result(k).ovf <= rslt(NUM_OUTPUT_REG)(k).ovf;
+    result(k).re  <= rslt(NUM_OUTPUT_REG)(k).re;
+    result(k).im  <= rslt(NUM_OUTPUT_REG)(k).im;
+  end generate;
 
   -- report constant number of pipeline register stages (in 'clk' domain)
   PIPESTAGES <= PIPE_DSP + NUM_OUTPUT_REG;

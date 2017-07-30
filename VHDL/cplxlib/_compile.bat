@@ -69,16 +69,35 @@ set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 :: General
 %COMPILE% %SCRIPTPATH%\cplx_pkg_%VHDL%.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_pipeline.vhdl
+:: Entities
 %COMPILE% %SCRIPTPATH%\cplx_vector_serialization.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_vectorization.vhdl
-:: Multiplier Entities
 %COMPILE% %SCRIPTPATH%\cplx_mult.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_mult_accu.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_mult_sum.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_weight.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_weight_accu.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_weight_sum.vhdl
+
 :: Architectures
+@if "%VHDL%"=="2008" (
+  goto VHDL-2008
+)
+
+:VHDL-1993
+%COMPILE% %SCRIPTPATH%\cplx_vector_serialization.rtl_1993.vhdl
+%COMPILE% %SCRIPTPATH%\cplx_vectorization.rtl_1993.vhdl
+%COMPILE% %SCRIPTPATH%\cplx_mult.sdr_1993.vhdl
+%COMPILE% %SCRIPTPATH%\cplx_mult_accu.sdr_1993.vhdl
+%COMPILE% %SCRIPTPATH%\cplx_mult_sum.sdr_1993.vhdl
+%COMPILE% %SCRIPTPATH%\cplx_weight.sdr_1993.vhdl
+%COMPILE% %SCRIPTPATH%\cplx_weight_accu.sdr_1993.vhdl
+%COMPILE% %SCRIPTPATH%\cplx_weight_sum.sdr_1993.vhdl
+@goto END
+
+:VHDL-2008
+%COMPILE% %SCRIPTPATH%\cplx_vector_serialization.rtl.vhdl
+%COMPILE% %SCRIPTPATH%\cplx_vectorization.rtl.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_mult.sdr.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_mult_accu.sdr.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_mult_sum.sdr.vhdl

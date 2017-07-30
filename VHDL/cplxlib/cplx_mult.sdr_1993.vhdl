@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
---! @file       cplx_mult.sdr.vhdl
+--! @file       cplx_mult.sdr_1993.vhdl
 --! @author     Fixitfetish
 --! @date       16/Jun/2017
 --! @version    0.40
---! @note       VHDL-2008
+--! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ library dsplib;
 --!
 --! NOTE: The double rate clock 'clk2' is irrelevant and unused here.
 
-architecture sdr of cplx_mult is
+architecture sdr_1993 of cplx_mult is
 
   -- The number of pipeline stages is reported as constant at the output port
   -- of the DSP implementation. PIPE_DSP is not a generic and it cannot be used
@@ -38,8 +38,6 @@ architecture sdr of cplx_mult is
   constant MAX_NUM_PIPE_DSP : positive := 16;
 
   -- bit resolution of input and output data
-  constant WIDTH_X : positive := x(x'left).re'length;
-  constant WIDTH_Y : positive := y(y'left).re'length;
   constant WIDTH_R : positive := result(result'left).re'length;
 
   -- number of elements of factor vector
@@ -47,10 +45,10 @@ architecture sdr of cplx_mult is
   constant NUM_FACTOR : positive := y'length;
 
   -- convert to default range
-  alias y_i : cplx_vector(0 to NUM_FACTOR-1)(re(WIDTH_Y-1 downto 0),im(WIDTH_Y-1 downto 0)) is y;
+  alias y_i : cplx_vector(0 to NUM_FACTOR-1) is y;
 
-  signal x_re, x_im : signed_vector(0 to 2*NUM_MULT-1)(WIDTH_X-1 downto 0);
-  signal y_re, y_im : signed_vector(0 to 2*NUM_MULT-1)(WIDTH_Y-1 downto 0);
+  signal x_re, x_im : signed_vector(0 to 2*NUM_MULT-1);
+  signal y_re, y_im : signed_vector(0 to 2*NUM_MULT-1);
   signal neg_re, neg_im : std_logic_vector(0 to 2*NUM_MULT-1) := (others=>'0');
 
   -- merged input signals and compensate for multiplier pipeline stages
@@ -63,10 +61,18 @@ architecture sdr of cplx_mult is
   signal data_reset : std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
 
   -- output signals
+  -- ! for 1993/2008 compatibility reasons do not use cplx record here !
   signal r_ovf_re, r_ovf_im : std_logic_vector(0 to NUM_MULT-1);
-  type matrix_result is array(integer range<>) of cplx_vector(0 to NUM_MULT-1)(re(WIDTH_R-1 downto 0),im(WIDTH_R-1 downto 0));
-  constant DEFAULT_RESULT : cplx_vector := cplx_vector_reset(NUM_MULT,WIDTH_R,"R");
-  signal rslt : matrix_result(0 to NUM_OUTPUT_REG) := (others=>DEFAULT_RESULT); 
+  type record_result is
+  record
+    rst, vld, ovf : std_logic;
+    re : signed(WIDTH_R-1 downto 0);
+    im : signed(WIDTH_R-1 downto 0);
+  end record;
+  constant DEFAULT_RESULT : record_result := (rst=>'1',vld|ovf=>'0',re|im=>(others=>'0'));
+  type vector_result is array(integer range<>) of record_result;
+  type matrix_result is array(integer range<>) of vector_result(0 to NUM_MULT-1);
+  signal rslt : matrix_result(0 to NUM_OUTPUT_REG) := (others=>(others=>DEFAULT_RESULT)); 
 
   -- pipeline stages of used DSP cell
   type t_pipe is array(integer range <>) of natural;
@@ -208,7 +214,13 @@ begin
   end generate;
 
   -- map result to output port
-  result <= rslt(NUM_OUTPUT_REG);
+  g_out : for k in 0 to NUM_MULT-1 generate
+    result(k).rst <= rslt(NUM_OUTPUT_REG)(k).rst;
+    result(k).vld <= rslt(NUM_OUTPUT_REG)(k).vld;
+    result(k).ovf <= rslt(NUM_OUTPUT_REG)(k).ovf;
+    result(k).re  <= rslt(NUM_OUTPUT_REG)(k).re;
+    result(k).im  <= rslt(NUM_OUTPUT_REG)(k).im;
+  end generate;
 
   -- report constant number of pipeline register stages (in 'clk' domain)
   PIPESTAGES <= PIPE_DSP(0) + NUM_OUTPUT_REG;

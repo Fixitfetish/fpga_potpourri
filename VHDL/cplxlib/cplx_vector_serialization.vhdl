@@ -40,37 +40,3 @@ begin
            " Input vector must have 'TO' range."
     severity failure;
 end entity;
-
--------------------------------------------------------------------------------
-
-architecture rtl of cplx_vector_serialization is
-  
-  constant N : natural := vec_in'length;
-  constant W : natural := vec_in(vec_in'left).re'length;
-  
-  signal vec_in_q : cplx_vector(0 to N-1);
-  signal idx : natural range 0 to N := 0;
-
-begin
-
-  p : process(clk)
-  begin
-    if rising_edge(clk) then
-      if rst='1' then
-        vec_in_q <= cplx_vector_reset(W,N);
-        idx <= N;
-      elsif start='1' then
-        vec_in_q <= vec_in;
-        idx <= 0;
-      else 
-        vec_in_q(0 to N-2) <= vec_in_q(1 to N-1);
-        vec_in_q(N-1).vld <= '0';
-        if idx/=N then idx<=idx+1; end if; 
-      end if;
-    end if;
-  end process;
-
-  idx_out <= idx;
-  ser_out <= vec_in_q(0);
-
-end architecture;

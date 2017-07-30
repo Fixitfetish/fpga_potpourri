@@ -3,7 +3,7 @@
 --! @author     Fixitfetish
 --! @date       16/Jun/2017
 --! @version    0.50
---! @note       VHDL-1993
+--! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
@@ -39,15 +39,20 @@ architecture sdr of cplx_mult_accu is
   -- must be defined here. Increase the value if required.
   constant MAX_NUM_PIPE_DSP : positive := 16;
 
+  -- bit resolution of input and output data
+  constant WIDTH_X : positive := x(x'left).re'length;
+  constant WIDTH_Y : positive := y(y'left).re'length;
+  constant WIDTH_R : positive := result.re'length;
+
   -- number of elements of complex factor vector y
   -- (must be either 1 or the same length as x)
   constant NUM_FACTOR : positive := y'length;
 
   -- convert to default range
-  alias y_i : cplx_vector(0 to NUM_FACTOR-1) is y;
+  alias y_i : cplx_vector(0 to NUM_FACTOR-1)(re(WIDTH_Y-1 downto 0),im(WIDTH_Y-1 downto 0)) is y;
 
-  signal x_re, x_im : signed_vector(0 to 2*NUM_MULT-1);
-  signal y_re, y_im : signed_vector(0 to 2*NUM_MULT-1);
+  signal x_re, x_im : signed_vector(0 to 2*NUM_MULT-1)(WIDTH_X-1 downto 0);
+  signal y_re, y_im : signed_vector(0 to 2*NUM_MULT-1)(WIDTH_Y-1 downto 0);
   signal neg_re, neg_im : std_logic_vector(0 to 2*NUM_MULT-1) := (others=>'0');
 
   -- merged input signals and compensate for multiplier pipeline stages
@@ -62,16 +67,9 @@ architecture sdr of cplx_mult_accu is
   signal data_reset : std_logic := '0';
 
   -- output signals
-  -- ! for 1993/2008 compatibility reasons do not use cplx record here !
   signal r_ovf_re, r_ovf_im : std_logic;
-  type record_result is
-  record
-    rst, vld, ovf : std_logic;
-    re : signed(result.re'length-1 downto 0);
-    im : signed(result.im'length-1 downto 0);
-  end record;
-  type array_result is array(integer range<>) of record_result;
-  signal rslt : array_result(0 to NUM_OUTPUT_REG);
+  constant DEFAULT_RESULT : cplx_vector := cplx_vector_reset(NUM_OUTPUT_REG+1,WIDTH_R,"R");
+  signal rslt : cplx_vector(0 to NUM_OUTPUT_REG)(re(WIDTH_R-1 downto 0),im(WIDTH_R-1 downto 0)) := DEFAULT_RESULT;
 
   -- pipeline stages of used DSP cell
   signal PIPE_DSP : natural;
@@ -211,11 +209,7 @@ begin
   end generate;
 
   -- map result to output port
-  result.rst <= rslt(NUM_OUTPUT_REG).rst;
-  result.vld <= rslt(NUM_OUTPUT_REG).vld;
-  result.ovf <= rslt(NUM_OUTPUT_REG).ovf;
-  result.re  <= rslt(NUM_OUTPUT_REG).re;
-  result.im  <= rslt(NUM_OUTPUT_REG).im;
+  result <= rslt(NUM_OUTPUT_REG);
 
   -- report constant number of pipeline register stages (in 'clk' domain)
   PIPESTAGES <= PIPE_DSP + NUM_OUTPUT_REG;

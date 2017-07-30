@@ -5,10 +5,11 @@
 
 # General
 set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_pkg_1993.vhdl"]
-set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_vector_serialization.vhdl"]
-set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_vectorization.vhdl"]
+set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_pipeline.vhdl"]
 
 # Entities
+set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_vector_serialization.vhdl"]
+set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_vectorization.vhdl"]
 set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult.vhdl"]
 set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult_accu.vhdl"]
 set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult_sum.vhdl"]
@@ -16,10 +17,12 @@ set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip
 set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_weight_accu.vhdl"]
 set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_weight_sum.vhdl"]
 
-# Architectures
-set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult.sdr.vhdl"]
-set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult_accu.sdr.vhdl"]
-set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult_sum.sdr.vhdl"]
-set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_weight.sdr.vhdl"]
-set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_weight_accu.sdr.vhdl"]
-set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_weight_sum.sdr.vhdl"]
+# Architectures (VHDL-1993)
+set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_vector_serialization.rtl_1993.vhdl"]
+set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_vectorization.rtl_1993.vhdl"]
+set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult.sdr_1993.vhdl"]
+set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult_accu.sdr_1993.vhdl"]
+set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_mult_sum.sdr_1993.vhdl"]
+set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_weight.sdr_1993.vhdl"]
+set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_weight_accu.sdr_1993.vhdl"]
+set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_weight_sum.sdr_1993.vhdl"]
