@@ -67,7 +67,7 @@ if "%VCOM_EXE%"=="" (
 set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 @echo on
 :: General
-%COMPILE% %SCRIPTPATH%\cplx_pkg_%VHDL%.vhdl
+%COMPILE% %SCRIPTPATH%\%VHDL%\cplx_pkg_%VHDL%.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_pipeline.vhdl
 :: Entities
 %COMPILE% %SCRIPTPATH%\cplx_vector_serialization.vhdl
@@ -85,25 +85,25 @@ set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 )
 
 :VHDL-1993
-%COMPILE% %SCRIPTPATH%\cplx_vector_serialization.rtl_1993.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_vectorization.rtl_1993.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_mult.sdr_1993.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_mult_accu.sdr_1993.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_mult_sum.sdr_1993.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_weight.sdr_1993.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_weight_accu.sdr_1993.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_weight_sum.sdr_1993.vhdl
+%COMPILE% %SCRIPTPATH%\%VHDL%\cplx_vector_serialization.rtl_1993.vhdl
+%COMPILE% %SCRIPTPATH%\%VHDL%\cplx_vectorization.rtl_1993.vhdl
+%COMPILE% %SCRIPTPATH%\%VHDL%\cplx_mult.sdr_1993.vhdl
+%COMPILE% %SCRIPTPATH%\%VHDL%\cplx_mult_accu.sdr_1993.vhdl
+%COMPILE% %SCRIPTPATH%\%VHDL%\cplx_mult_sum.sdr_1993.vhdl
+%COMPILE% %SCRIPTPATH%\%VHDL%\cplx_weight.sdr_1993.vhdl
+%COMPILE% %SCRIPTPATH%\%VHDL%\cplx_weight_accu.sdr_1993.vhdl
+%COMPILE% %SCRIPTPATH%\%VHDL%\cplx_weight_sum.sdr_1993.vhdl
 @goto END
 
 :VHDL-2008
-%COMPILE% %SCRIPTPATH%\cplx_vector_serialization.rtl.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_vectorization.rtl.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_mult.sdr.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_mult_accu.sdr.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_mult_sum.sdr.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_weight.sdr.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_weight_accu.sdr.vhdl
-%COMPILE% %SCRIPTPATH%\cplx_weight_sum.sdr.vhdl
+%COMPILE% %SCRIPTPATH%\%VHDL%\cplx_vector_serialization.rtl.vhdl
+%COMPILE% %SCRIPTPATH%\%VHDL%\cplx_vectorization.rtl.vhdl
+%COMPILE% %SCRIPTPATH%\%VHDL%\cplx_mult.sdr.vhdl
+%COMPILE% %SCRIPTPATH%\%VHDL%\cplx_mult_accu.sdr.vhdl
+%COMPILE% %SCRIPTPATH%\%VHDL%\cplx_mult_sum.sdr.vhdl
+%COMPILE% %SCRIPTPATH%\%VHDL%\cplx_weight.sdr.vhdl
+%COMPILE% %SCRIPTPATH%\%VHDL%\cplx_weight_accu.sdr.vhdl
+%COMPILE% %SCRIPTPATH%\%VHDL%\cplx_weight_sum.sdr.vhdl
 
 :END
 @EXIT /B
