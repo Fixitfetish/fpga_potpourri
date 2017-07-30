@@ -3,7 +3,7 @@
 --! @author     Fixitfetish
 --! @date       02/Jul/2017
 --! @version    0.30
---! @note       VHDL-1993
+--! @note       VHDL-1993, VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
@@ -30,13 +30,14 @@ library dsplib;
 
 architecture behave of signed_mult_sum is
 
+  -- bit resolution of input data
+  constant WIDTH_X : positive := x(x'left)'length;
+  constant WIDTH_Y : positive := y(y'left)'length;
+
   -- number of elements of complex factor vector y
   -- (must be either 1 or the same length as x)
   constant NUM_FACTOR : positive := y'length;
 
-  -- convert to default range
-  signal y_i : signed_vector(0 to NUM_MULT-1);
- 
   -- local auxiliary
   -- determine number of required additional guard bits (MSBs)
   function guard_bits(num_summand, dflt:natural) return integer is
@@ -54,7 +55,7 @@ architecture behave of signed_mult_sum is
   constant ACCU_WIDTH : positive := 64;
 
   -- derived constants
-  constant PRODUCT_WIDTH : natural := x(x'left)'length + y(y'left)'length;
+  constant PRODUCT_WIDTH : natural := WIDTH_X + WIDTH_Y;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
   constant GUARD_BITS_EVAL : natural := guard_bits(NUM_MULT,MAX_GUARD_BITS);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
@@ -67,37 +68,57 @@ architecture behave of signed_mult_sum is
 
 begin
 
+  -- !Caution!
+  --  - consider VHDL 1993 and 2008 compatibility
+  --  - consider y range NOT starting with 0
+
   -- same factor y for all vector elements of x
   gin_1 : if NUM_FACTOR=1 generate
-    g_1 : for n in 0 to NUM_MULT-1 generate
-      y_i(n) <= y(y'left); -- duplication !
-    end generate;
-  end generate;
-
-  -- separate factor y for each vector element of x
-  gin_n : if (NUM_MULT>=2 and NUM_FACTOR=NUM_MULT) generate
-    y_i <= y; -- same length and range conversion !
-  end generate;
-
-  p_sum : process(clk)
-    variable v_accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
   begin
+   p_sum : process(clk)
+    variable v_accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
+   begin
     if rising_edge(clk) then
       v_accu_used := accu_used;
       if vld='1' then
         v_accu_used := (others=>'0');
         for n in 0 to NUM_MULT-1 loop
           if neg(n)='1' then
-            v_accu_used := v_accu_used - ( x(n) * y_i(n) );
+            v_accu_used := v_accu_used - ( x(n) * y(y'left) ); -- y duplication!
           else
-            v_accu_used := v_accu_used + ( x(n) * y_i(n) );
+            v_accu_used := v_accu_used + ( x(n) * y(y'left) ); -- y duplication!
           end if;
         end loop;
         accu_used <= v_accu_used;
       end if;
       accu_vld <= vld; -- same for all
     end if;
-  end process;
+   end process;
+  end generate;
+
+  -- separate factor y for each vector element of x
+  gin_n : if (NUM_MULT>=2 and NUM_FACTOR=NUM_MULT) generate
+  begin
+   p_sum : process(clk)
+    variable v_accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
+   begin
+    if rising_edge(clk) then
+      v_accu_used := accu_used;
+      if vld='1' then
+        v_accu_used := (others=>'0');
+        for n in 0 to NUM_MULT-1 loop
+          if neg(n)='1' then
+            v_accu_used := v_accu_used - ( x(n) * y(y'left+n) );
+          else
+            v_accu_used := v_accu_used + ( x(n) * y(y'left+n) );
+          end if;
+        end loop;
+        accu_used <= v_accu_used;
+      end if;
+      accu_vld <= vld; -- same for all
+    end if;
+   end process;
+  end generate;
 
   -- right-shift, rounding and clipping
   i_out : entity dsplib.dsp_output_logic

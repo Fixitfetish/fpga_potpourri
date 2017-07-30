@@ -3,7 +3,7 @@
 --! @author     Fixitfetish
 --! @date       02/Jul/2017
 --! @version    0.20
---! @note       VHDL-1993
+--! @note       VHDL-1993, VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
@@ -13,7 +13,6 @@ library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
 library baselib;
-  use baselib.ieee_extension_types.all;
   use baselib.ieee_extension.all;
 library dsplib;
 
@@ -30,15 +29,16 @@ library dsplib;
 
 architecture behave of signed_mult is
 
+  -- bit resolution of input data
+  constant WIDTH_X : positive := x(x'left)'length;
+  constant WIDTH_Y : positive := y(y'left)'length;
+
   -- number of elements of complex factor vector y
   -- (must be either 1 or the same length as x)
   constant NUM_FACTOR : positive := y'length;
 
-  -- convert to default range
-  signal y_i : signed_vector(0 to NUM_MULT-1);
- 
   -- derived constants
-  constant PRODUCT_WIDTH : natural := x(x'left)'length + y(y'left)'length;
+  constant PRODUCT_WIDTH : natural := WIDTH_X + WIDTH_Y;
 
   -- pipeline registers (plus some dummy ones for non-existent adder tree)
   constant NUM_DELAY_REG : natural := NUM_INPUT_REG + NUM_OUTPUT_REG;
@@ -50,34 +50,51 @@ architecture behave of signed_mult is
 
 begin
 
+  -- !Caution!
+  --  - consider VHDL 1993 and 2008 compatibility
+  --  - consider y range NOT starting with 0
+
   -- same factor y for all vector elements of x
   gin_1 : if NUM_FACTOR=1 generate
-    g_1 : for n in 0 to NUM_MULT-1 generate
-      y_i(n) <= y(y'left); -- duplication !
-    end generate;
-  end generate;
-
-  -- separate factor y for each vector element of x
-  gin_n : if (NUM_MULT>=2 and NUM_FACTOR=NUM_MULT) generate
-    y_i <= y; -- same length and range conversion !
-  end generate;
-
-  p_sum : process(clk)
   begin
+   p_sum : process(clk)
+   begin
     if rising_edge(clk) then
       if vld='1' then
         for n in 0 to NUM_MULT-1 loop
           if neg(n)='1' then
-            prod(n) <= -( x(n) * y_i(n) );
+            prod(n) <= -( x(n) * y(y'left) ); -- y duplication!
           else
-            prod(n) <=  ( x(n) * y_i(n) );
+            prod(n) <=  ( x(n) * y(y'left) ); -- y duplication!
           end if;
         end loop;
       end if;
       -- valid is the same for all
       vld_q <= vld;
     end if;
-  end process;
+   end process;
+  end generate;
+
+  -- separate factor y for each vector element of x
+  gin_n : if (NUM_MULT>=2 and NUM_FACTOR=NUM_MULT) generate
+  begin
+   p_sum : process(clk)
+   begin
+    if rising_edge(clk) then
+      if vld='1' then
+        for n in 0 to NUM_MULT-1 loop
+          if neg(n)='1' then
+            prod(n) <= -( x(n) * y(y'left+n) );
+          else
+            prod(n) <=  ( x(n) * y(y'left+n) );
+          end if;
+        end loop;
+      end if;
+      -- valid is the same for all
+      vld_q <= vld;
+    end if;
+   end process;
+  end generate;
 
   g_shift : for n in 0 to (NUM_MULT-1) generate
     -- right-shift, rounding and clipping

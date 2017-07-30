@@ -13,10 +13,11 @@ set filelist [list]
 
 # General
 lappend filelist $SCRIPTPATH/cplx_pkg_1993.vhdl
-lappend filelist $SCRIPTPATH/cplx_vector_serialization.vhdl
-lappend filelist $SCRIPTPATH/cplx_vectorization.vhdl
+lappend filelist $SCRIPTPATH/cplx_pipeline.vhdl
 
 # Entities
+lappend filelist $SCRIPTPATH/cplx_vector_serialization.vhdl
+lappend filelist $SCRIPTPATH/cplx_vectorization.vhdl
 lappend filelist $SCRIPTPATH/cplx_mult.vhdl
 lappend filelist $SCRIPTPATH/cplx_mult_accu.vhdl
 lappend filelist $SCRIPTPATH/cplx_mult_sum.vhdl
@@ -25,12 +26,14 @@ lappend filelist $SCRIPTPATH/cplx_weight_accu.vhdl
 lappend filelist $SCRIPTPATH/cplx_weight_sum.vhdl
 
 # Architectures
-lappend filelist $SCRIPTPATH/cplx_mult.sdr.vhdl
-lappend filelist $SCRIPTPATH/cplx_mult_accu.sdr.vhdl
-lappend filelist $SCRIPTPATH/cplx_mult_sum.sdr.vhdl
-lappend filelist $SCRIPTPATH/cplx_weight.sdr.vhdl
-lappend filelist $SCRIPTPATH/cplx_weight_accu.sdr.vhdl
-lappend filelist $SCRIPTPATH/cplx_weight_sum.sdr.vhdl
+lappend filelist $SCRIPTPATH/cplx_vector_serialization.rtl_1993.vhdl
+lappend filelist $SCRIPTPATH/cplx_vectorization.rtl_1993.vhdl
+lappend filelist $SCRIPTPATH/cplx_mult.sdr_1993.vhdl
+lappend filelist $SCRIPTPATH/cplx_mult_accu.sdr_1993.vhdl
+lappend filelist $SCRIPTPATH/cplx_mult_sum.sdr_1993.vhdl
+lappend filelist $SCRIPTPATH/cplx_weight.sdr_1993.vhdl
+lappend filelist $SCRIPTPATH/cplx_weight_accu.sdr_1993.vhdl
+lappend filelist $SCRIPTPATH/cplx_weight_sum.sdr_1993.vhdl
 
 # compile file list
 set SWITCHES "-93 -explicit -dbg"
