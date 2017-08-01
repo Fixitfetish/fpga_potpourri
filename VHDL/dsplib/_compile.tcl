@@ -6,6 +6,7 @@
 # Library name into which the entities are compiled
 set LIB "dsplib"
 vlib $LIB
+set VHDL 1993
 
 # path/location of this script
 set SCRIPTPATH [ file dirname [dict get [ info frame 0 ] file ] ]
@@ -34,5 +35,10 @@ lappend filelist $SCRIPTPATH/signed_preadd_mult1_accu/signed_preadd_mult1_accu.v
 lappend filelist $SCRIPTPATH/signed_multn_chain_accu.vhdl
 
 # compile file list
-set SWITCHES "-93 -explicit -dbg"
+if {[string equal $VHDL 2008]} {
+  set SWITCHES "-2008 -explicit -dbg"
+} else {
+  set SWITCHES "-93 -explicit -dbg"
+}
+
 vcom $SWITCHES -work $LIB $filelist

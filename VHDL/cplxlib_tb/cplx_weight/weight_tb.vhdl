@@ -37,7 +37,7 @@ architecture sim of weight_tb is
 
   signal x : cplx_vector(0 to LX-1) := cplx_vector_reset(18,LX,"R");
   signal y : cplx_vector(0 to LY-1) := cplx_vector_reset(18,LY,"R"); -- only real used here
-  signal w : signed_vector(0 to LY-1) := (others=>(others=>'0'));
+  signal w : signed18_vector(0 to LY-1) := (others=>(others=>'0'));
   signal r : cplx_vector(0 to LR-1);
 
 begin

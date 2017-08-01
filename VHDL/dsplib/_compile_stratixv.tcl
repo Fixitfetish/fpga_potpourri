@@ -7,6 +7,7 @@ set SCRIPTPATH [ file dirname [dict get [ info frame 0 ] file ] ]
 
 # library name
 set LIB "dsplib"
+set VHDL 1993
 
 if ![file exists $ALTERA_LIB] {
   error "Path to Altera libraries not found - please provide global variable ALTERA_LIB"
@@ -38,5 +39,10 @@ lappend filelist $SCRIPTPATH/signed_preadd_mult1_accu/signed_preadd_mult1_accu.s
 lappend filelist $SCRIPTPATH/stratixv/signed_multn_chain_accu.stratixv.vhdl
 
 # compile file list
-set SWITCHES "-93 -explicit -dbg"
+if {[string equal $VHDL 2008]} {
+  set SWITCHES "-2008 -explicit -dbg"
+} else {
+  set SWITCHES "-93 -explicit -dbg"
+}
+
 vcom $SWITCHES -work $LIB $filelist

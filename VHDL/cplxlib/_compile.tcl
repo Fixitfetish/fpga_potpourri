@@ -37,7 +37,7 @@ if {[string equal $VHDL 2008]} {
   lappend filelist $SCRIPTPATH/${VHDL}/cplx_weight_accu.sdr.vhdl
   lappend filelist $SCRIPTPATH/${VHDL}/cplx_weight_sum.sdr.vhdl
   # compile file list
-  set SWITCHES "-08 -explicit -dbg"
+  set SWITCHES "-2008 -explicit -dbg"
 } else {
   lappend filelist $SCRIPTPATH/${VHDL}/cplx_vector_serialization.rtl_1993.vhdl
   lappend filelist $SCRIPTPATH/${VHDL}/cplx_vectorization.rtl_1993.vhdl

@@ -7,6 +7,7 @@ set SCRIPTPATH [ file dirname [dict get [ info frame 0 ] file ] ]
 
 # library name
 set LIB "dsplib"
+set VHDL 1993
 
 # create file list (with list compilation is faster)
 set filelist [list]
@@ -20,5 +21,10 @@ lappend filelist $SCRIPTPATH/signed_mult_accu/signed_mult_accu.behave.vhdl
 lappend filelist $SCRIPTPATH/signed_mult_sum/signed_mult_sum.behave.vhdl
 
 # compile file list
-set SWITCHES "-93 -explicit -dbg"
+if {[string equal $VHDL 2008]} {
+  set SWITCHES "-2008 -explicit -dbg"
+} else {
+  set SWITCHES "-93 -explicit -dbg"
+}
+
 vcom $SWITCHES -work $LIB $filelist

@@ -7,6 +7,7 @@ set SCRIPTPATH [ file dirname [dict get [ info frame 0 ] file ] ]
 
 # library name
 set LIB "dsplib"
+set VHDL 1993
 
 if ![file exists $XILINX_LIB] {
   error "Path to Xilinx libraries not found - please provide global variable XILINX_LIB"
@@ -28,5 +29,10 @@ lappend filelist $SCRIPTPATH/signed_mult2_accu/signed_mult2_accu.ultrascale.vhdl
 lappend filelist $SCRIPTPATH/signed_mult/signed_mult.ultrascale.vhdl
 
 # compile file list
-set SWITCHES "-93 -explicit -dbg"
+if {[string equal $VHDL 2008]} {
+  set SWITCHES "-2008 -explicit -dbg"
+} else {
+  set SWITCHES "-93 -explicit -dbg"
+}
+
 vcom $SWITCHES -work $LIB $filelist
