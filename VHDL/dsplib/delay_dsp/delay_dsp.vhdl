@@ -31,7 +31,7 @@ library ieee;
 --! * reset values other than 0 can be achieved without additional logic (in most cases)
 --!
 --! Disadvantages
---! * only a few registers stages are reasonable, otherwise this approach is not recommend
+--! * only a few registers stages are reasonable, otherwise this approach is not recommended
 --! * pipeline registers can not be distributed within FPGA (e.g. to solve timing issues)
 --! * higher power consumption because whole DSP cell must be active
 --! * wrapper required to map any signals to generic port of the delay entity 
