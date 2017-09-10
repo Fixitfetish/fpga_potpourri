@@ -21,22 +21,30 @@ Contents
 Currently the focus is on the following device families:
 * Altera Stratix V (with primitive \b \e stratixv_mac )
 * Altera Arria 10 (with primitive \b \e twentynm_mac )
-* Xilinx UltraScale (with primitive \b \e dsp48e2 )
+* Altera Stratix 10 (with primitive \b \e fourteennm_mac )
+* Xilinx UltraScale/UltraScale+ (with primitive \b \e dsp48e2 )
 
-| Design |Entity Name               | Virtex 4  | Stratix V  | Arria 10  | UltraScale | Description
-|:------:|:-------------------------|:---------:|:----------:|:---------:|:----------:|:-----------------
-| yes    |signed_mult               | derived   | derived    | derived   | derived    | N parallel and synchronous signed multiplications
-| yes    |signed_mult_accu          | ---       | chained    | chained   | chained    | N signed multiplications and accumulation of all results
-| yes    |signed_mult_sum           | ---       | chained    | chained   | chained    | N signed multiplications and summation of all results
-| no     |signed_mult1_accu         | PRIMITIVE | PRIMITIVE  | PRIMITIVE | PRIMITIVE  | one signed multiplication and accumulation of all results
-| no     |signed_mult1add1_accu     | ---       | PRIMITIVE  | PRIMITIVE | PRIMITIVE  | one value +/- signed product and accumulation of all results
-| no     |signed_mult1add1_sum      | ---       | derived    | derived   | PRIMITIVE  | one value +/- signed product
-| no     |signed_mult2              | yes       | PRIMITIVE  | PRIMITIVE | ---        | two parallel and synchronous signed multiplications
-| no     |signed_mult2_accu         | yes       | PRIMITIVE  | PRIMITIVE | chained    | two signed multiplications and accumulation of all results
-| no     |signed_mult2_sum          | yes       | derived    | derived   | ---        | two signed multiplications and sum product results
-| no     |signed_mult3              | ---       | PRIMITIVE  | ---       | ---        | three parallel and synchronous signed multiplications
-| no     |signed_mult4_sum          | ---       | PRIMITIVE  | ---       | ---        | four signed multiplications and sum product results
-| no     |signed_preadd_mult1_accu  | ---       | PRIMITIVE  | PRIMITIVE | PRIMITIVE  | multiply sum of two signed with another signed and accumulate results
+It is recommended to only use the following generic entities in the design.
+
+|Entity Name               | Stratix V  | Arria 10  | UltraScale | Stratix 10 | Description
+|:-------------------------|:----------:|:---------:|:----------:|:----------:|:-----------------
+|signed_mult               | derived    | TODO      | derived    | TODO       | N parallel and synchronous signed multiplications
+|signed_mult_accu          | chained    | TODO      | chained    | TODO       | N signed multiplications and accumulation of all results
+|signed_mult_sum           | chained    | TODO      | chained    | TODO       | N signed multiplications and summation of all results
+
+The following entities should not be instantiated in the design. They are used by the more generic entities above.
+
+|Entity Name               | Virtex 4  | Stratix V  | Arria 10  | UltraScale | Description
+|:-------------------------|:---------:|:----------:|:---------:|:----------:|:-----------------
+|signed_mult1_accu         | PRIMITIVE | PRIMITIVE  | PRIMITIVE | PRIMITIVE  | one signed multiplication and accumulation of all results
+|signed_mult1add1_accu     | ---       | PRIMITIVE  | PRIMITIVE | PRIMITIVE  | one value +/- signed product and accumulation of all results
+|signed_mult1add1_sum      | ---       | derived    | derived   | PRIMITIVE  | one value +/- signed product
+|signed_mult2              | yes       | PRIMITIVE  | PRIMITIVE | ---        | two parallel and synchronous signed multiplications
+|signed_mult2_accu         | yes       | PRIMITIVE  | PRIMITIVE | chained    | two signed multiplications and accumulation of all results
+|signed_mult2_sum          | yes       | derived    | derived   | ---        | two signed multiplications and sum product results
+|signed_mult3              | ---       | PRIMITIVE  | ---       | ---        | three parallel and synchronous signed multiplications
+|signed_mult4_sum          | ---       | PRIMITIVE  | ---       | ---        | four signed multiplications and sum product results
+|signed_preadd_mult1_accu  | ---       | PRIMITIVE  | PRIMITIVE | PRIMITIVE  | multiply sum of two signed with another signed and accumulate results
 
 * Design "yes" means that the Entity is recommended for usage in designs.
 * Design "no" means that the Entity shall not be directly used in designs.
