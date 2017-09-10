@@ -43,11 +43,9 @@ The following entities should not be instantiated in the design. They are used b
 |signed_mult2_accu         | yes       | PRIMITIVE  | PRIMITIVE | chained    | two signed multiplications and accumulation of all results
 |signed_mult2_sum          | yes       | derived    | derived   | ---        | two signed multiplications and sum product results
 |signed_mult3              | ---       | PRIMITIVE  | ---       | ---        | three parallel and synchronous signed multiplications
-|signed_mult4_sum          | ---       | PRIMITIVE  | ---       | ---        | four signed multiplications and sum product results
+|signed_mult4_sum          | ---       | PRIMITIVE  | ---       | chained    | four signed multiplications and sum product results
 |signed_preadd_mult1_accu  | ---       | PRIMITIVE  | PRIMITIVE | PRIMITIVE  | multiply sum of two signed with another signed and accumulate results
 
-* Design "yes" means that the Entity is recommended for usage in designs.
-* Design "no" means that the Entity shall not be directly used in designs.
 * PRIMITIVE = this implementation directly instantiates the DSP primitive
 * derived = this implementation is derived from another implementation
 * chained = this implementation uses chaining of other implementations
