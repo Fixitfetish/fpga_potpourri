@@ -31,14 +31,17 @@ library unisim;
 --! * Input Data X,Y  : 2 signed values, x<=27 bits, y<=18 bits
 --! * Input Data Z    : 1 signed value, z<=48 bits, only when chain input is disabled
 --! * Input Register  : optional, at least one is strongly recommended
---! * Input Chain     : optional, 48 bits, only when input Z is unused
+--! * Input Chain     : optional, 48 bits, if enabled then rounding in logic required 
 --! * Result Register : 48 bits, first output register (strongly recommended in most cases)
---! * Rounding        : optional half-up, within DSP cell
+--! * Rounding        : optional half-up, within DSP cell if chain input is disabled
 --! * Output Data     : 1x signed value, max 48 bits
 --! * Output Register : optional, after shift-right and saturation
 --! * Output Chain    : optional, 48 bits
 --! * Pipeline stages : NUM_INPUT_REG_XY + NUM_OUTPUT_REG (main data path through multiplier)
 --!
+--! If rounding is required without chain input then also the entity
+--! signed_mult1add1_accu with DSP internal rounding can be used instead.
+--! 
 --! If NUM_OUTPUT_REG=0 then the accumulator register P is disabled. 
 --! This configuration might be useful when DSP cells are chained.
 --!

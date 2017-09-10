@@ -20,8 +20,7 @@ library dsplib;
 library unisim;
   use unisim.vcomponents.all;
 
---! @brief This is an implementation of the entity 
---! @link signed_mult1add1_accu signed_mult1add1_accu @endlink
+--! @brief This is an implementation of the entity signed_mult1add1_accu
 --! for Xilinx UltraScale.
 --! A product of two signed values is added or subtracted to/from a third signed value.
 --! The results of this operation can be accumulated over several cycles.
@@ -32,7 +31,7 @@ library unisim;
 --! * Input Data X,Y  : 2 signed values, x<=27 bits, y<=18 bits
 --! * Input Data Z    : 1 signed value, z<=48 bits, only when chain input is disabled
 --! * Input Register  : optional, at least one is strongly recommended
---! * Input Chain     : optional, 48 bits, only when input Z is unused
+--! * Input Chain     : not supported
 --! * Accu Register   : 48 bits, first output register (strongly recommended in most cases)
 --! * Rounding        : optional half-up, within DSP cell
 --! * Output Data     : 1x signed value, max 48 bits
@@ -40,10 +39,13 @@ library unisim;
 --! * Output Chain    : optional, 48 bits
 --! * Pipeline stages : NUM_INPUT_REG_XY + NUM_OUTPUT_REG (main data path through multiplier)
 --!
+--! If input chain is required additionally then accumulation is not possible
+--! but only summation. Consider using the entity signed_mult1add1_sum .
+--!  
 --! If NUM_OUTPUT_REG=0 then the accumulator register P is disabled. 
 --! This configuration might be useful when DSP cells are chained.
 --!
---! This implementation can be chained multiple times.
+--! The output can be chained with other DSP implementations.
 --! @image html signed_mult1add1_accu.ultrascale.svg "" width=1000px
 
 architecture ultrascale of signed_mult1add1_accu is
@@ -137,9 +139,9 @@ architecture ultrascale of signed_mult1add1_accu is
 begin
 
   -- check chain in/out length
-  assert (chainin'length>=ACCU_WIDTH or (not USE_CHAIN_INPUT))
+  assert (not USE_CHAIN_INPUT)
     report "ERROR " & IMPLEMENTATION & ": " &
-           "Chain input width must be " & integer'image(ACCU_WIDTH) & " bits."
+           "Chain input is not supported."
     severity failure;
 
   -- check input/output length
@@ -174,9 +176,7 @@ begin
   end generate;
 
   -- Usage of input Z only possible if chain input is disabled
-  gc: if not USE_CHAIN_INPUT generate
-    c <= resize(zreg(0),MAX_WIDTH_C);
-  end generate;
+  c <= resize(zreg(0),MAX_WIDTH_C);
 
   logic_ireg(NUM_IREG_LOGIC).rst <= rst;
   logic_ireg(NUM_IREG_LOGIC).clr <= clr;
@@ -215,7 +215,7 @@ begin
   ireg(NUM_IREG_DSP).inmode(3) <= logic_ireg(0).sub; -- +/- A
   ireg(NUM_IREG_DSP).inmode(4) <= '0'; -- BREG controlled input
   ireg(NUM_IREG_DSP).opmode_xy <= "0101"; -- constant, always multiplier result M
-  ireg(NUM_IREG_DSP).opmode_z <= "001" when USE_CHAIN_INPUT else "011"; -- constant, either chainin or C
+  ireg(NUM_IREG_DSP).opmode_z <= "011"; -- input C
   ireg(NUM_IREG_DSP).opmode_w <= "10" when clr_i='1' else -- add rounding constant with clear signal
                                  "00" when NUM_OUTPUT_REG=0 else -- add zero when P register disabled
                                  "01"; -- feedback P accumulator register output
