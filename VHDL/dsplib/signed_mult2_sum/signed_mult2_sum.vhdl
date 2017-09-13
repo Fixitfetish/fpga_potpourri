@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult2_sum.vhdl
 --! @author     Fixitfetish
---! @date       14/Feb/2017
---! @version    0.80
+--! @date       13/Sep/2017
+--! @version    0.85
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -49,6 +49,8 @@ library ieee;
 
 entity signed_mult2_sum is
 generic (
+  --! Enable chain input from neighbor DSP cell, i.e. enable additional accumulator input
+  USE_CHAIN_INPUT : boolean := false;
   --! @brief Number of additional input registers. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
   NUM_INPUT_REG : natural := 1;
@@ -96,6 +98,10 @@ port (
   result_vld : out std_logic;
   --! Result output overflow/clipping detection
   result_ovf : out std_logic;
+  --! @brief Input from other chained DSP cell (optional, only used when input enabled and connected).
+  --! The chain width is device specific. A maximum width of 80 bits is supported.
+  --! If the device specific chain width is smaller then only the LSBs are used.
+  chainin    : in  signed(79 downto 0) := (others=>'0');
   --! @brief Result output to other chained DSP cell (optional)
   --! The chain width is device specific. A maximum width of 80 bits is supported.
   --! If the device specific chain width is smaller then only the LSBs are used.

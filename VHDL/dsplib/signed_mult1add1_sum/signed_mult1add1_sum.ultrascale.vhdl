@@ -39,8 +39,8 @@ library unisim;
 --! * Output Chain    : optional, 48 bits
 --! * Pipeline stages : NUM_INPUT_REG_XY + NUM_OUTPUT_REG (main data path through multiplier)
 --!
---! If rounding is required without chain input then also the entity
---! signed_mult1add1_accu with DSP internal rounding can be used instead.
+--! If rounding is required without chain input then also signed_mult1add1_accu.ultrascale
+--! with DSP internal rounding can be used instead.
 --! 
 --! If NUM_OUTPUT_REG=0 then the accumulator register P is disabled. 
 --! This configuration might be useful when DSP cells are chained.

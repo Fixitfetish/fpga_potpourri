@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult4_sum.ultrascale.vhdl
+--! @file       signed_mult2_sum.ultrascale.vhdl
 --! @author     Fixitfetish
 --! @date       13/Sep/2017
---! @version    0.20
+--! @version    0.10
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -20,14 +20,14 @@ library dsplib;
 library unisim;
   use unisim.vcomponents.all;
 
---! @brief This is an implementation of the entity signed_mult4_sum
+--! @brief This implementation is a behavioral model of the entity signed_mult2_sum
 --! for Xilinx UltraScale.
---! Four signed multiplications are performed and all results are summed.
+--! Two signed multiplications are performed and the results are summed.
+--! 
+--! This implementation uses the architectures signed_mult1_accu.ultrascale and
+--! signed_mult1add1_sum.ultrascale . Hence, it requires two DSP48E2 Slices.
 --!
---! This implementation uses the architectures signed_mult2_accu.ultrascale and
---! signed_mult2_sum.ultrascale .  Hence, it requires four DSP48E2 Slices.
---!
---! * Input Data      : 4x2 signed values, x<=27 bits, y<=18 bits
+--! * Input Data      : 2x2 signed values, x<=27 bits, y<=18 bits
 --! * Input Register  : optional, at least one is strongly recommended
 --! * Input Chain     : optional, 48 bits
 --! * Rounding        : optional half-up, always in logic
@@ -37,24 +37,19 @@ library unisim;
 --! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG + PIPELINE_REG
 --!
 --! The output can be chained with other DSP implementations.
---! @image html signed_mult4_sum.ultrascale.svg "" width=600px
+--! @image html signed_mult2_sum.ultrascale.svg "" width=600px
 
-architecture ultrascale of signed_mult4_sum is
+architecture ultrascale of signed_mult2_sum is
 
-  signal chainout_dsp1 : signed(79 downto 0);
-
-  -- dummy and sink to avoid warnings
-  signal dummy : signed(17 downto 0);
-  procedure signed_sink(d:in signed) is
-    variable b : boolean := false;
-  begin b := (d(d'right)='1') or b; end procedure;
+  signal result_dsp1 : signed(ACCU_WIDTH-1 downto 0);
 
 begin
 
-  DSP0 : entity dsplib.signed_mult2_sum(ultrascale)
+  DSP0 : entity dsplib.signed_mult1add1_sum(ultrascale)
   generic map(
-    USE_CHAIN_INPUT    => true,
-    NUM_INPUT_REG      => NUM_INPUT_REG,
+    USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
+    NUM_INPUT_REG_XY   => NUM_INPUT_REG+2,
+    NUM_INPUT_REG_Z    => 1,
     NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     OUTPUT_ROUND       => OUTPUT_ROUND,
@@ -65,49 +60,44 @@ begin
     clk        => clk,
     rst        => rst,
     vld        => vld,
-    sub        => sub(0 to 1),
-    x0         => x0,
-    y0         => y0,
-    x1         => x1,
-    y1         => y1,
+    sub        => sub(0),
+    x          => x0,
+    y          => y0,
+    z          => result_dsp1,
     result     => result,
     result_vld => result_vld,
     result_ovf => result_ovf,
-    chainin    => chainout_dsp1,
+    chainin    => chainin,
     chainout   => chainout,
     PIPESTAGES => PIPESTAGES
   );
 
-  DSP1 : entity dsplib.signed_mult2_accu(ultrascale)
+  DSP1 : entity dsplib.signed_mult1_accu(ultrascale)
   generic map(
-    NUM_SUMMAND        => 2,
+    NUM_SUMMAND        => 1,
     USE_CHAIN_INPUT    => false,
     NUM_INPUT_REG      => NUM_INPUT_REG,
-    NUM_OUTPUT_REG     => 1,
-    OUTPUT_SHIFT_RIGHT => 0,     -- irrelevant because chain output is used
-    OUTPUT_ROUND       => false, -- irrelevant because chain output is used
-    OUTPUT_CLIP        => false, -- irrelevant because chain output is used
-    OUTPUT_OVERFLOW    => false  -- irrelevant because chain output is used
+    NUM_OUTPUT_REG     => 1,     -- output connected to Z input of DSP0
+    OUTPUT_SHIFT_RIGHT => 0,     -- irrelevant because full output is used
+    OUTPUT_ROUND       => false, -- irrelevant because full output is used
+    OUTPUT_CLIP        => false, -- irrelevant because full output is used
+    OUTPUT_OVERFLOW    => false  -- irrelevant because full output is used
   )
   port map (
     clk        => clk,
     rst        => rst,
     clr        => '1', -- accumulator always disabled
     vld        => vld,
-    sub        => sub(2 to 3),
-    x0         => x2,
-    y0         => y2,
-    x1         => x3,
-    y1         => y3,
-    result     => dummy, -- irrelevant because chain output is used
-    result_vld => open,  -- irrelevant because chain output is used
-    result_ovf => open,  -- irrelevant because chain output is used
+    sub        => sub(1),
+    x          => x1,
+    y          => y1,
+    result     => result_dsp1,
+    result_vld => open, -- irrelevant because full output is used
+    result_ovf => open, -- irrelevant because full output is used
     chainin    => open,
-    chainout   => chainout_dsp1,
+    chainout   => open,
     PIPESTAGES => open
   );
-  
-  signed_sink(dummy);
-  
+
 end architecture;
-  
+

@@ -35,7 +35,7 @@ library stratixv;
 --! * Accu Register   : just pipeline register, accumulation not supported
 --! * Rounding        : optional half-up, only possible in logic!
 --! * Output Data     : 1x signed value, max 64 bits
---! * Output Register : optional, at least one strongly recommend, another after shift-right and saturation
+--! * Output Register : optional, at least one strongly recommended, another after shift-right and saturation
 --! * Output Chain    : optional, 64 bits
 --! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG
 --!
@@ -110,6 +110,11 @@ architecture stratixv of signed_mult4_sum is
   signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
 
 begin
+
+  assert not USE_CHAIN_INPUT
+    report "ERROR " & IMPLEMENTATION & ": " &
+           "Chain input not supported."
+    severity failure;
 
   assert sub(0)='0'
     report "ERROR " & IMPLEMENTATION & ": " &

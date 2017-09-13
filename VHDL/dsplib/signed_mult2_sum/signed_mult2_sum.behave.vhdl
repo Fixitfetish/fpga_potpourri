@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult2_sum.behave.vhdl
 --! @author     Fixitfetish
---! @date       16/Feb/2017
---! @version    0.60
+--! @date       13/Sep/2017
+--! @version    0.70
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -15,12 +15,13 @@ library ieee;
 library baselib;
   use baselib.ieee_extension.all;
 
---! @brief This implementation is a behavioral model of the entity 
---! @link signed_mult2_sum signed_mult2_sum @endlink for simulation.
+--! @brief This implementation is a behavioral model of the entity signed_mult2_sum
+--! for simulation.
 --! Two signed multiplications are performed and the results are summed.
 --! 
 --! * Input Data      : 2x2 signed values, each max 27 bits
 --! * Input Register  : optional, at least one is strongly recommended
+--! * Input Chain     : TODO +++ optional, 64 bits
 --! * Output Register : 64 bits, first output register (strongly recommended in most cases)
 --! * Rounding        : optional half-up
 --! * Output Data     : 1x signed value, max 64 bits
@@ -93,6 +94,11 @@ architecture behave of signed_mult2_sum is
   constant clkena : std_logic := '1';
 
 begin
+
+  assert not USE_CHAIN_INPUT
+    report "ERROR " & IMPLEMENTATION & ": " &
+           "Chain input not yet supported ... TODO ."
+    severity failure;
 
   assert PRODUCT_WIDTH<=ACCU_WIDTH
     report "ERROR " & IMPLEMENTATION & ": " &

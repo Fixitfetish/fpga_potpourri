@@ -39,9 +39,9 @@ The following entities should not be instantiated in the design. They are used b
 |signed_mult1_accu         | PRIMITIVE | PRIMITIVE  | PRIMITIVE | PRIMITIVE  | one signed multiplication and accumulation of all results
 |signed_mult1add1_accu     | ---       | PRIMITIVE  | PRIMITIVE | PRIMITIVE  | one value +/- signed product and accumulation of all results
 |signed_mult1add1_sum      | ---       | derived    | derived   | PRIMITIVE  | one value +/- signed product
-|signed_mult2              | yes       | PRIMITIVE  | PRIMITIVE | ---        | two parallel and synchronous signed multiplications
-|signed_mult2_accu         | yes       | PRIMITIVE  | PRIMITIVE | chained    | two signed multiplications and accumulation of all results
-|signed_mult2_sum          | yes       | derived    | derived   | ---        | two signed multiplications and sum product results
+|signed_mult2              | ---       | PRIMITIVE  | PRIMITIVE | ---        | two parallel and synchronous signed multiplications
+|signed_mult2_accu         | ---       | PRIMITIVE  | PRIMITIVE | chained    | two signed multiplications and accumulation of all results
+|signed_mult2_sum          | ---       | derived    | derived   | chained    | two signed multiplications and sum product results
 |signed_mult3              | ---       | PRIMITIVE  | ---       | ---        | three parallel and synchronous signed multiplications
 |signed_mult4_sum          | ---       | PRIMITIVE  | ---       | chained    | four signed multiplications and sum product results
 |signed_preadd_mult1_accu  | ---       | PRIMITIVE  | PRIMITIVE | PRIMITIVE  | multiply sum of two signed with another signed and accumulate results

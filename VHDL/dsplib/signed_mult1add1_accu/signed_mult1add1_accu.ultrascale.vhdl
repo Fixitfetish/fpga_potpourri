@@ -40,7 +40,7 @@ library unisim;
 --! * Pipeline stages : NUM_INPUT_REG_XY + NUM_OUTPUT_REG (main data path through multiplier)
 --!
 --! If input chain is required additionally then accumulation is not possible
---! but only summation. Consider using the entity signed_mult1add1_sum .
+--! but only summation. Consider using signed_mult1add1_sum.ultrascale .
 --!  
 --! If NUM_OUTPUT_REG=0 then the accumulator register P is disabled. 
 --! This configuration might be useful when DSP cells are chained.
