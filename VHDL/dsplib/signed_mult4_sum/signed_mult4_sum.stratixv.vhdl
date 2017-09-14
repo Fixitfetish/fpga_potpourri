@@ -20,8 +20,7 @@ library dsplib;
 library stratixv;
   use stratixv.stratixv_components.all;
 
---! @brief This is an implementation of the entity 
---! @link signed_mult4_sum signed_mult4_sum @endlink
+--! @brief This is an implementation of the entity signed_mult4_sum
 --! for Altera Stratix-V.
 --! Four signed multiplications are performed and all results are summed.
 --!
@@ -45,11 +44,11 @@ library stratixv;
 --! NOTE 1: The product of the first input factor pair cannot be subtracted !
 --!
 --! NOTE 2: This implementation requires one pipeline register less than the
---! implementation @link signed_mult4_accu signed_mult4_accu @endlink.
+--! implementation signed_mult4_accu.stratixv .
 --! Therefore, less registers in logic are required. Drawback is a lower maximum frequency.
 --!
---! NOTE 3: The 'chainin' input port is unused here because the chain input cannot
---! be enabled for mode_sub_location 0 in mode 'm18x18_sumof4'.
+--! NOTE 3: The 'chainin' input port cannot be unused here because the chain input
+--! cannot be enabled for mode_sub_location 0 in mode 'm18x18_sumof4'.
 
 architecture stratixv of signed_mult4_sum is
 
@@ -62,7 +61,7 @@ architecture stratixv of signed_mult4_sum is
   constant NUM_IREG_LOGIC : natural := NUM_IREG(LOGIC,NUM_INPUT_REG);
 
   -- number of summands
-  constant NUM_SUMMAND : positive := 4;
+  constant NUM_SUMMAND : positive := NUM_SUMMAND;
 
   constant MAX_WIDTH_X : positive := 18;
   constant MAX_WIDTH_Y : positive := 18;
@@ -109,7 +108,14 @@ architecture stratixv of signed_mult4_sum is
   signal accu_vld : std_logic := '0';
   signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
 
+  -- dummy and sink to avoid warnings
+  procedure signed_sink(d:in signed) is
+    variable b : boolean := false;
+  begin b := (d(d'right)='1') or b; end procedure;
+
 begin
+
+  signed_sink(chainin); -- chain input is unused
 
   assert not USE_CHAIN_INPUT
     report "ERROR " & IMPLEMENTATION & ": " &

@@ -29,12 +29,12 @@ library unisim;
 --!
 --! * Input Data      : 4x2 signed values, x<=27 bits, y<=18 bits
 --! * Input Register  : optional, at least one is strongly recommended
---! * Input Chain     : optional, 48 bits
+--! * Input Chain     : optional, 48 bits, requires injection after NUM_INPUT_REG cycles
 --! * Rounding        : optional half-up, always in logic
 --! * Output Data     : 1x signed value, max 48 bits
 --! * Output Register : optional, at least one strongly recommended, another after shift-right, round and saturation
---! * Output Chain    : optional, 48 bits
---! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG + PIPELINE_REG
+--! * Output Chain    : optional, 48 bits, after NUM_INPUT_REG+3 cycles (assuming NUM_OUTPUT_REG>=1)
+--! * Pipeline stages : NUM_INPUT_REG + 2 + NUM_OUTPUT_REG
 --!
 --! The output can be chained with other DSP implementations.
 --! @image html signed_mult4_sum.ultrascale.svg "" width=600px
@@ -53,6 +53,7 @@ begin
 
   DSP0 : entity dsplib.signed_mult2_sum(ultrascale)
   generic map(
+    NUM_SUMMAND        => NUM_SUMMAND, -- typically 4 + summands contributed through chain input 
     USE_CHAIN_INPUT    => true,
     NUM_INPUT_REG      => NUM_INPUT_REG,
     NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
@@ -74,14 +75,15 @@ begin
     result_vld => result_vld,
     result_ovf => result_ovf,
     chainin    => chainout_dsp1,
-    chainout   => chainout,
+    chainout   => chainout, -- after NUM_INPUT_REG+3 cycles
     PIPESTAGES => PIPESTAGES
   );
 
+  -- adds chain input and 2 of 4 multiplier results
   DSP1 : entity dsplib.signed_mult2_accu(ultrascale)
   generic map(
-    NUM_SUMMAND        => 2,
-    USE_CHAIN_INPUT    => false,
+    NUM_SUMMAND        => NUM_SUMMAND-2, -- irrelevant because only chain output is used
+    USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
     NUM_INPUT_REG      => NUM_INPUT_REG,
     NUM_OUTPUT_REG     => 1,
     OUTPUT_SHIFT_RIGHT => 0,     -- irrelevant because chain output is used
@@ -102,8 +104,8 @@ begin
     result     => dummy, -- irrelevant because chain output is used
     result_vld => open,  -- irrelevant because chain output is used
     result_ovf => open,  -- irrelevant because chain output is used
-    chainin    => open,
-    chainout   => chainout_dsp1,
+    chainin    => chainin, -- after NUM_INPUT_REG cycles
+    chainout   => chainout_dsp1, -- after NUM_INPUT_REG+2 cycles
     PIPESTAGES => open
   );
   

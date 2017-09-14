@@ -42,20 +42,12 @@ library stratixv;
 
 architecture stratixv of signed_mult1add1_sum is
   
-  -- local auxiliary
-  -- determine number of summands
-  function n_summands(use_chainin:boolean) return natural is
-  begin
-    if use_chainin then return 3; -- 3 summands, X*Y + Z + CHAININ
-    else return 2; end if; -- 2 summands, X*Y + Z
-  end function;
-  
 begin
 
   -- derive from instance with accumulator
   i_accu : entity dsplib.signed_mult1add1_accu
   generic map(
-    NUM_SUMMAND        => n_summands(USE_CHAIN_INPUT),
+    NUM_SUMMAND        => NUM_SUMMAND,
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
     NUM_INPUT_REG_XY   => NUM_INPUT_REG_XY,
     NUM_INPUT_REG_Z    => NUM_INPUT_REG_Z,

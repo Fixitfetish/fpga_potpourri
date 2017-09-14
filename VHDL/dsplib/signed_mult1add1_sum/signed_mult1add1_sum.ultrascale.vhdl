@@ -36,7 +36,7 @@ library unisim;
 --! * Rounding        : optional half-up, within DSP cell if chain input is disabled
 --! * Output Data     : 1x signed value, max 48 bits
 --! * Output Register : optional, after shift-right and saturation
---! * Output Chain    : optional, 48 bits
+--! * Output Chain    : optional, 48 bits, after NUM_INPUT_REG_XY+1 cycles (assuming NUM_OUTPUT_REG>=1)
 --! * Pipeline stages : NUM_INPUT_REG_XY + NUM_OUTPUT_REG (main data path through multiplier)
 --!
 --! If rounding is required without chain input then also signed_mult1add1_accu.ultrascale
@@ -60,14 +60,6 @@ architecture ultrascale of signed_mult1add1_sum is
   -- number of additional Z input registers in logic (not within DSP cell)
   constant NUM_IREG_Z_LOGIC : natural := NUM_IREG_C(LOGIC,NUM_INPUT_REG_Z);
   constant NUM_IREG_Z_DSP : natural := NUM_IREG_C(DSP,NUM_INPUT_REG_Z);
-
-  -- local auxiliary
-  -- determine number of required additional guard bits (MSBs)
-  function guard_bits(use_chainin:boolean) return integer is
-  begin
-    if use_chainin then return 2; -- 3 summands, X*Y + Z + CHAININ
-    else return 1; end if; -- 2 summands, X*Y + Z
-  end function;
 
   -- first data input register is supported, in the first stage only
   function AREG(n:natural) return natural is
@@ -100,7 +92,7 @@ architecture ultrascale of signed_mult1add1_sum is
   constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
   constant PRODUCT_WIDTH : natural := x'length + y'length;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
-  constant GUARD_BITS_EVAL : natural := guard_bits(USE_CHAIN_INPUT);
+  constant GUARD_BITS_EVAL : natural := accu_guard_bits(NUM_SUMMAND,MAX_GUARD_BITS,IMPLEMENTATION);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
   constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
   constant OUTPUT_WIDTH : positive := result'length;

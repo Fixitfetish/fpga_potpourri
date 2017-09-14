@@ -54,6 +54,22 @@ library ieee;
 
 entity signed_mult1add1_sum is
 generic (
+  --! @brief The number of summands is important to determine the number of additional
+  --! guard bits (MSBs) that are required for the accumulation process. @link NUM_SUMMAND More...
+  --!
+  --! The setting is relevant to save logic especially when saturation/clipping
+  --! and/or overflow detection is enabled.
+  --! * 0 => maximum possible, not recommended (worst case, hardware dependent)
+  --! * 1 => just one multiplication without accumulation
+  --! * 2 => accumulate up to 2 products
+  --! * 3 => accumulate up to 3 products
+  --! * and so on ...
+  --!
+  --! Note that every single accumulated product result counts!
+  --! This generic is only relevant when the chain input contributes more summands
+  --! in addition to the two summands (x*y and z) of this entity. Set NUM_SUMMAND to 2 when
+  --! chain input is unused.
+  NUM_SUMMAND : natural := 2;
   --! Enable chain input from neighbor DSP cell, i.e. enable additional summand input
   USE_CHAIN_INPUT : boolean := false;
   --! @brief Number of additional input registers. At least one is strongly recommended.

@@ -29,12 +29,12 @@ library unisim;
 --!
 --! * Input Data      : 2x2 signed values, x<=27 bits, y<=18 bits
 --! * Input Register  : optional, at least one is strongly recommended
---! * Input Chain     : optional, 48 bits
+--! * Input Chain     : optional, 48 bits, requires injection after NUM_INPUT_REG+2 cycles
 --! * Rounding        : optional half-up, always in logic
 --! * Output Data     : 1x signed value, max 48 bits
 --! * Output Register : optional, at least one strongly recommended, another after shift-right, round and saturation
---! * Output Chain    : optional, 48 bits
---! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG + PIPELINE_REG
+--! * Output Chain    : optional, 48 bits, after NUM_INPUT_REG+3 cycles (assuming NUM_OUTPUT_REG>=1)
+--! * Pipeline stages : NUM_INPUT_REG + 2 + NUM_OUTPUT_REG
 --!
 --! The output can be chained with other DSP implementations.
 --! @image html signed_mult2_sum.ultrascale.svg "" width=600px
@@ -47,6 +47,7 @@ begin
 
   DSP0 : entity dsplib.signed_mult1add1_sum(ultrascale)
   generic map(
+    NUM_SUMMAND        => NUM_SUMMAND,
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
     NUM_INPUT_REG_XY   => NUM_INPUT_REG+2,
     NUM_INPUT_REG_Z    => 1,
