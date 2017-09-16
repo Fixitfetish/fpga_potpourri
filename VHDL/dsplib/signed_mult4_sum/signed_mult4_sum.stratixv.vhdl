@@ -60,9 +60,6 @@ architecture stratixv of signed_mult4_sum is
   constant NUM_IREG_DSP : natural := NUM_IREG(DSP,NUM_INPUT_REG);
   constant NUM_IREG_LOGIC : natural := NUM_IREG(LOGIC,NUM_INPUT_REG);
 
-  -- number of summands
-  constant NUM_SUMMAND : positive := NUM_SUMMAND;
-
   constant MAX_WIDTH_X : positive := 18;
   constant MAX_WIDTH_Y : positive := 18;
 

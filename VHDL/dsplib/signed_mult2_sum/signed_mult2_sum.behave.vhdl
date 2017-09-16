@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult2_sum.behave.vhdl
 --! @author     Fixitfetish
---! @date       13/Sep/2017
---! @version    0.70
+--! @date       16/Sep/2017
+--! @version    0.80
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -14,6 +14,7 @@ library ieee;
   use ieee.numeric_std.all;
 library baselib;
   use baselib.ieee_extension.all;
+library dsplib;
 
 --! @brief This implementation is a behavioral model of the entity signed_mult2_sum
 --! for simulation.
@@ -21,7 +22,7 @@ library baselib;
 --! 
 --! * Input Data      : 2x2 signed values, each max 27 bits
 --! * Input Register  : optional, at least one is strongly recommended
---! * Input Chain     : TODO +++ optional, 64 bits
+--! * Input Chain     : optional, 64 bits
 --! * Output Register : 64 bits, first output register (strongly recommended in most cases)
 --! * Rounding        : optional half-up
 --! * Output Data     : 1x signed value, max 64 bits
@@ -42,12 +43,15 @@ architecture behave of signed_mult2_sum is
       res := dflt; -- maximum possible (default)
     else
       res := LOG2CEIL(num_summand);
+      if res>dflt then 
+        report "WARNING " & IMPLEMENTATION & ": Too many summands. " & 
+           "Maximum number of " & integer'image(dflt) & " guard bits reached."
+           severity warning;
+        res:=dflt;
+      end if;
     end if;
     return res; 
   end function;
-
-  -- constant number of summands
-  constant NUM_SUMMAND : natural := 2;
 
   constant MAX_WIDTH_X : positive := 27;
   constant MAX_WIDTH_Y : positive := 27;
@@ -85,19 +89,21 @@ architecture behave of signed_mult2_sum is
   type array_oreg is array(integer range <>) of r_oreg;
   signal rslt : array_oreg(0 to NUM_OUTPUT_REG);
 
-  signal p0, p1, sum : signed(PRODUCT_WIDTH downto 0);
+  signal p0, p1 : signed(PRODUCT_WIDTH downto 0);
+  signal sum, chainin_i : signed(ACCU_WIDTH-1 downto 0) := (others=>'0');
   signal accu : signed(ACCU_WIDTH-1 downto 0);
+  signal accu_vld : std_logic := '0';
   signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
-  signal accu_used_shifted : signed(ACCU_USED_SHIFTED_WIDTH-1 downto 0);
 
   -- clock enable +++ TODO
   constant clkena : std_logic := '1';
 
 begin
 
-  assert not USE_CHAIN_INPUT
+  -- check chain in/out length
+  assert (chainin'length>=ACCU_WIDTH or (not USE_CHAIN_INPUT))
     report "ERROR " & IMPLEMENTATION & ": " &
-           "Chain input not yet supported ... TODO ."
+           "Chain input width must have at least " & integer'image(ACCU_WIDTH) & " bits."
     severity failure;
 
   assert PRODUCT_WIDTH<=ACCU_WIDTH
@@ -139,14 +145,19 @@ begin
   p0 <= resize(ireg(0).x0 * ireg(0).y0, PRODUCT_WIDTH+1);
   p1 <= resize(ireg(0).x1 * ireg(0).y1, PRODUCT_WIDTH+1);
 
-  -- temporary sum of multiplier result
-  sum <=  p0+p1 when (ireg(0).sub="00") else
-          p0-p1 when (ireg(0).sub="01") else
-         -p0+p1 when (ireg(0).sub="10") else
-         -p0-p1;
+  -- chain input
+  g_chain : if USE_CHAIN_INPUT generate
+    chainin_i <= chainin(ACCU_WIDTH-1 downto 0);
+  end generate;
+
+  -- temporary sum of multiplier result and chain input
+  sum <= chainin_i+p0+p1 when (ireg(0).sub="00") else
+         chainin_i+p0-p1 when (ireg(0).sub="01") else
+         chainin_i-p0+p1 when (ireg(0).sub="10") else
+         chainin_i-p0-p1;
 
   g_accu_off : if NUM_OUTPUT_REG=0 generate
-    accu <= resize(sum, ACCU_WIDTH);
+    accu <= sum;
   end generate;
   
   g_accu_on : if NUM_OUTPUT_REG>0 generate
@@ -159,7 +170,7 @@ begin
           accu <= (others=>'0');
         else
           if ireg(0).vld='1' then
-            accu <= resize(sum, ACCU_WIDTH);
+            accu <= sum;
           end if;
         end if;
       end if;
@@ -173,47 +184,37 @@ begin
     chainout(n) <= accu(ACCU_WIDTH-1);
   end generate;
 
+  -- pipelined valid signal
+  g_dspreg_on : if NUM_OUTPUT_REG>=1 generate
+    accu_vld <= ireg(0).vld when rising_edge(clk);
+  end generate;
+  g_dspreg_off : if NUM_OUTPUT_REG<=0 generate
+    accu_vld <= ireg(0).vld;
+  end generate;
+
   -- cut off unused sign extension bits
   -- (This reduces the logic consumption in the following steps when rounding,
   --  saturation and/or overflow detection is enabled.)
   accu_used <= accu(ACCU_USED_WIDTH-1 downto 0);
 
-  -- shift right and round
-  g_rnd_off : if (not ROUND_ENABLE) generate
-    accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT),ACCU_USED_SHIFTED_WIDTH);
-  end generate;
-  g_rnd_on : if (ROUND_ENABLE) generate
-    accu_used_shifted <= RESIZE(SHIFT_RIGHT_ROUND(accu_used, OUTPUT_SHIFT_RIGHT, nearest),ACCU_USED_SHIFTED_WIDTH);
-  end generate;
-  
-  p_out : process(accu_used_shifted, ireg(0).vld)
-    variable v_dat : signed(OUTPUT_WIDTH-1 downto 0);
-    variable v_ovf : std_logic;
-  begin
-    RESIZE_CLIP(din=>accu_used_shifted, dout=>v_dat, ovfl=>v_ovf, clip=>OUTPUT_CLIP);
-    rslt(0).vld <= ireg(0).vld;
-    rslt(0).dat <= v_dat;
-    if OUTPUT_OVERFLOW then rslt(0).ovf<=v_ovf; else rslt(0).ovf<='0'; end if;
-  end process;
-
-  g_oreg1 : if NUM_OUTPUT_REG>=1 generate
-  begin
-    rslt(1).vld <= rslt(0).vld when rising_edge(clk); -- VLD bypass
-    -- first output register is the ACCU register
-    rslt(1).dat <= rslt(0).dat;
-    rslt(1).ovf <= rslt(0).ovf;
-  end generate;
-
-  g_oreg2 : if NUM_OUTPUT_REG>=2 generate
-    g_loop : for n in 2 to NUM_OUTPUT_REG generate
-      rslt(n) <= rslt(n-1) when rising_edge(clk);
-    end generate;
-  end generate;
-
-  -- map result to output port
-  result <= rslt(NUM_OUTPUT_REG).dat;
-  result_vld <= rslt(NUM_OUTPUT_REG).vld;
-  result_ovf <= rslt(NUM_OUTPUT_REG).ovf;
+  -- right-shift, round and clipping
+  i_out : entity dsplib.dsp_output_logic
+  generic map(
+    PIPELINE_STAGES    => NUM_OUTPUT_REG-1,
+    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
+    OUTPUT_ROUND       => ROUND_ENABLE,
+    OUTPUT_CLIP        => OUTPUT_CLIP,
+    OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
+  )
+  port map (
+    clk         => clk,
+    rst         => rst,
+    dsp_out     => accu_used,
+    dsp_out_vld => accu_vld,
+    result      => result,
+    result_vld  => result_vld,
+    result_ovf  => result_ovf
+  );
 
   -- report constant number of pipeline register stages
   PIPESTAGES <= NUM_INPUT_REG + NUM_OUTPUT_REG;
