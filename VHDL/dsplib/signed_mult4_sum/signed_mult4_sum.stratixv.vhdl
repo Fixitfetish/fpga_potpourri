@@ -75,7 +75,7 @@ architecture stratixv of signed_mult4_sum is
   type r_logic_ireg is
   record
     rst, clr, vld : std_logic;
-    sub : std_logic_vector(sub'range);
+    sub : std_logic_vector(neg'range);
     x0 : signed(x0'length-1 downto 0);
     y0 : signed(y0'length-1 downto 0);
     x1 : signed(x1'length-1 downto 0);
@@ -119,9 +119,9 @@ begin
            "Chain input not supported."
     severity failure;
 
-  assert sub(0)='0'
+  assert neg(0)='0'
     report "ERROR " & IMPLEMENTATION & ": " &
-           "Subtraction of first product 0 is not supported - only subtraction of products 1, 2 and 3 allowed."
+           "Negation of first product 0 is not supported - only negation of products 1, 2 and 3 allowed."
     severity failure;
 
   -- check input/output length
@@ -145,7 +145,7 @@ begin
 
   logic_ireg(NUM_IREG_LOGIC).rst <= rst;
   logic_ireg(NUM_IREG_LOGIC).vld <= vld;
-  logic_ireg(NUM_IREG_LOGIC).sub <= sub;
+  logic_ireg(NUM_IREG_LOGIC).sub <= neg;
   logic_ireg(NUM_IREG_LOGIC).x0 <= x0;
   logic_ireg(NUM_IREG_LOGIC).y0 <= y0;
   logic_ireg(NUM_IREG_LOGIC).x1 <= x1;

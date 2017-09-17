@@ -97,14 +97,14 @@ begin
   g_din : if not INPUT_REG generate
     vld_i1 <= vld;
     rst_i <= rst;
-    b_sub <= sub(1);
+    b_sub <= neg(1);
     opmode2_zyx_q <= opmode2_zyx;
   end generate;
 
   g_din_reg : if INPUT_REG generate
     vld_i1 <= vld when rising_edge(clk);
     rst_i <= rst when rising_edge(clk);
-    b_sub <= sub(1) when rising_edge(clk);
+    b_sub <= neg(1) when rising_edge(clk);
     opmode2_zyx_q <= opmode2_zyx when rising_edge(clk);
   end generate;
 
@@ -147,7 +147,7 @@ begin
     RSTCTRL                => RESET,
     RSTM                   => RESET,
     RSTP                   => RESET,
-    SUBTRACT               => sub(0),
+    SUBTRACT               => neg(0),
     BCOUT                  => open,
     P(47 downto 0)         => open,
     PCOUT                  => pcout

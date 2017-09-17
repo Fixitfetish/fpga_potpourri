@@ -72,7 +72,7 @@ architecture behave of signed_mult2_sum is
   type r_ireg is
   record
     rst, vld : std_logic;
-    sub : std_logic_vector(sub'range);
+    sub : std_logic_vector(neg'range);
     x0, x1 : signed(MAX_WIDTH_X-1 downto 0);
     y0, y1 : signed(MAX_WIDTH_Y-1 downto 0);
   end record;
@@ -125,7 +125,7 @@ begin
   -- control signal inputs
   ireg(NUM_INPUT_REG).rst <= rst;
   ireg(NUM_INPUT_REG).vld <= vld;
-  ireg(NUM_INPUT_REG).sub <= sub;
+  ireg(NUM_INPUT_REG).sub <= neg;
 
   -- LSB bound data inputs
   ireg(NUM_INPUT_REG).x0 <= resize(x0,MAX_WIDTH_X);

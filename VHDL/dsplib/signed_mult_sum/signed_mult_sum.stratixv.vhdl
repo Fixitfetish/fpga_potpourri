@@ -17,15 +17,12 @@ library baselib;
   use baselib.ieee_extension.all;
 library dsplib;
 
---! @brief This is an implementation of the entity 
---! @link signed_mult_sum signed_mult_sum @endlink
+--! @brief This is an implementation of the entity signed_mult_sum
 --! for Altera Stratix-V.
 --! N signed multiplications are performed and all results are summed.
 --!
---! This implementation uses N4 = floor((N+1)/4) instances of 
---! @link signed_mult4_sum signed_mult4_sum @endlink
---! and N2 = ceil(N/2)-2*N4 instances of
---! @link signed_mult2_accu signed_mult2_accu @endlink .
+--! This implementation uses N4 = floor((N+1)/4) instances of signed_mult4_sum
+--! and N2 = ceil(N/2)-2*N4 instances of signed_mult2_accu
 --! Overall 2*N4 + N2 Altera Stratix-V DSP blocks are required.
 --!
 --! * Input Data      : Nx2 signed values, each max 18 bits
@@ -95,7 +92,7 @@ begin
       rst        => rst,
       clr        => '1', -- accumulator always disabled
       vld        => vld,
-      sub        => neg_i(0 to 1),
+      neg        => neg_i(0 to 1),
       x0         => x_i(0),
       y0         => y_i(0),
       x1         => x_i(1),
@@ -128,7 +125,7 @@ begin
       clk        => clk,
       rst        => rst,
       vld        => vld,
-      sub        => neg_i(0 to 3),
+      neg        => neg_i(0 to 3),
       x0         => x_i(0),
       y0         => y_i(0),
       x1         => x_i(1),
@@ -188,7 +185,7 @@ begin
         clk        => clk,
         rst        => rst,
         vld        => vld,
-        sub        => neg_i(4*n+0 to 4*n+3),
+        neg        => neg_i(4*n+0 to 4*n+3),
         x0         => x_i(4*n+0),
         y0         => y_i(4*n+0),
         x1         => x_i(4*n+1),
@@ -225,7 +222,7 @@ begin
         rst        => rst,
         clr        => '1', -- accumulator always disabled
         vld        => vld,
-        sub        => neg(4*NUM_MULT4 to 4*NUM_MULT4+1),
+        neg        => neg(4*NUM_MULT4 to 4*NUM_MULT4+1),
         x0         => x_i(4*NUM_MULT4),
         y0         => y_i(4*NUM_MULT4),
         x1         => x_i(4*NUM_MULT4+1),

@@ -61,7 +61,7 @@ begin
     clk        => clk,
     rst        => rst,
     vld        => vld,
-    sub        => sub(0),
+    sub        => neg(0),
     x          => x0,
     y          => y0,
     z          => result_dsp1,
@@ -89,7 +89,7 @@ begin
     rst        => rst,
     clr        => '1', -- accumulator always disabled
     vld        => vld,
-    sub        => sub(1),
+    sub        => neg(1),
     x          => x1,
     y          => y1,
     result     => result_dsp1,

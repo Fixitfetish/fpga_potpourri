@@ -16,8 +16,8 @@ library baselib;
   use baselib.ieee_extension.all;
 library dsplib;
 
---! @brief This implementation is a behavioral model of the entity 
---! @link signed_mult_accu signed_mult_accu @endlink for simulation.
+--! @brief This implementation is a behavioral model of the entity signed_mult_accu
+--! for simulation.
 --! N signed multiplications are performed and the results are accumulated.
 --! 
 --! * Input Data      : Nx2 signed values, each max 18 bits

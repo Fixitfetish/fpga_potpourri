@@ -16,13 +16,12 @@ library baselib;
   use baselib.ieee_extension.all;
 library dsplib;
 
---! @brief This is an implementation of the entity 
---! @link signed_mult2_accu signed_mult2_accu @endlink
+--! @brief This is an implementation of the entity signed_mult2_accu
 --! for Xilinx UltraScale.
 --! Two signed multiplications are performed and both results are accumulated.
 --!
---! This implementation uses two parallel instances of
---! @link signed_mult_accu signed_mult_accu @endlink , hence it requires two DSP48E2 Slices.
+--! This implementation uses two parallel instances of signed_mult1_accu
+--! hence it requires two DSP48E2 Slices.
 --! Refer to Xilinx UltraScale Architecture DSP48E2 Slice, UG579 (v1.3) November 24, 2015.
 --!
 --! * Input Data      : 2x2 signed values, x<=27 bits, y<=18 bits
@@ -43,7 +42,7 @@ library dsplib;
 --! Therefore, less input registers are required when this implementation is chained multiple times.
 --! Drawback is a lower maximum frequency. If higher frequencies are required there are two options
 --! * Set NUM_INPUT_REG >= 2 when multiple chaining is not needed. This enables the pipeline register M within the the DSP cell.
---! * Use the implementation @link signed_mult2_accu signed_mult2_accu(chain) @endlink with enabled pipeline register P.
+--! * Use the implementation signed_mult2_accu(chain) with enabled pipeline register P.
 
 architecture ultrascale of signed_mult2_accu is
   
@@ -74,7 +73,7 @@ begin
     rst        => rst,
     clr        => '1', -- disable accumulation
     vld        => vld,
-    sub        => sub(0),
+    sub        => neg(0),
     x          => x0,
     y          => y0,
     result     => dummy, -- irrelevant because chain output is used
@@ -103,7 +102,7 @@ begin
     rst        => rst,
     clr        => clr,
     vld        => vld,
-    sub        => sub(1),
+    sub        => neg(1),
     x          => x1,
     y          => y1,
     result     => result,

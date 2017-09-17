@@ -17,8 +17,7 @@ library baselib;
   use baselib.ieee_extension.all;
 library dsplib;
 
---! @brief This is an implementation of the entity 
---! @link signed_mult_accu signed_mult_accu @endlink
+--! @brief This is an implementation of the entity signed_mult_accu
 --! for Altera Stratix-V.
 --! N signed multiplications are performed and all results are accumulated.
 --!
@@ -142,7 +141,7 @@ begin
       rst        => rst,
       clr        => clr_i(n), -- accumulator enabled in last instance only!
       vld        => vld,
-      sub        => neg_i(2*n to 2*n+1),
+      neg        => neg_i(2*n to 2*n+1),
       x0         => x_i(2*n),
       y0         => y_i(2*n),
       x1         => x_i(2*n+1),

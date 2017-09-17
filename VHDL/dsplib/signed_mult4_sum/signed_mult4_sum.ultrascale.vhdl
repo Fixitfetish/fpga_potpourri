@@ -66,7 +66,7 @@ begin
     clk        => clk,
     rst        => rst,
     vld        => vld,
-    sub        => sub(0 to 1),
+    neg        => neg(0 to 1),
     x0         => x0,
     y0         => y0,
     x1         => x1,
@@ -96,7 +96,7 @@ begin
     rst        => rst,
     clr        => '1', -- accumulator always disabled
     vld        => vld,
-    sub        => sub(2 to 3),
+    neg        => neg(2 to 3),
     x0         => x2,
     y0         => y2,
     x1         => x3,

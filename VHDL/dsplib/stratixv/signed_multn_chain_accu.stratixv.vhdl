@@ -175,7 +175,7 @@ begin
        rst        => rst,
        clr        => clr_dsp(n),
        vld        => vld,
-       sub        => neg_dsp(2*n to 2*n+1),
+       neg        => neg_dsp(2*n to 2*n+1),
        x0         => x_dsp(2*n),
        y0         => y_dsp(2*n),
        x1         => x_dsp(2*n+1),
@@ -200,6 +200,8 @@ begin
 
     i1 : entity dsplib.signed_mult4_sum(stratixv)
     generic map(
+      NUM_SUMMAND        => 4,
+      USE_CHAIN_INPUT    => false,
       NUM_INPUT_REG      => NUM_INPUT_REG,
       NUM_OUTPUT_REG     => 1,
       OUTPUT_SHIFT_RIGHT => 0,
@@ -211,7 +213,7 @@ begin
      clk        => clk,
      rst        => rst,
      vld        => vld,
-     sub        => neg_dsp(0 to 3),
+     neg        => neg_dsp(0 to 3),
      x0         => x_dsp(0),
      y0         => y_dsp(0),
      x1         => x_dsp(1),
@@ -223,6 +225,7 @@ begin
      result     => rslt(1),
      result_vld => rslt_vld(1),
      result_ovf => rslt_ovf(1),
+     chainin    => open,
      chainout   => chainout_i(1),
      PIPESTAGES => PIPESTAGES_DSP(1)
     );
@@ -243,7 +246,7 @@ begin
        rst        => rst,
        clr        => clr_dsp(n),
        vld        => vld,
-       sub        => neg_dsp(2*n to 2*n+1),
+       neg        => neg_dsp(2*n to 2*n+1),
        x0         => x_dsp(2*n),
        y0         => y_dsp(2*n),
        x1         => x_dsp(2*n+1),

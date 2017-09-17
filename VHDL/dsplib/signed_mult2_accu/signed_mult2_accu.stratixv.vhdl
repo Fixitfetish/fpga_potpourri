@@ -20,8 +20,7 @@ library dsplib;
 library stratixv;
   use stratixv.stratixv_components.all;
 
---! @brief This is an implementation of the entity 
---! @link signed_mult2_accu signed_mult2_accu @endlink
+--! @brief This is an implementation of the entity signed_mult2_accu
 --! for Altera Stratix-V.
 --! Two signed multiplications are performed and both results are accumulated.
 --!
@@ -67,7 +66,7 @@ architecture stratixv of signed_mult2_accu is
   type r_logic_ireg is
   record
     rst, clr, vld : std_logic;
-    sub : std_logic_vector(sub'range);
+    sub : std_logic_vector(neg'range);
     x0 : signed(x0'length-1 downto 0);
     y0 : signed(y0'length-1 downto 0);
     x1 : signed(x1'length-1 downto 0);
@@ -124,7 +123,7 @@ begin
   logic_ireg(NUM_IREG_LOGIC).rst <= rst;
   logic_ireg(NUM_IREG_LOGIC).clr <= clr;
   logic_ireg(NUM_IREG_LOGIC).vld <= vld;
-  logic_ireg(NUM_IREG_LOGIC).sub <= sub;
+  logic_ireg(NUM_IREG_LOGIC).sub <= neg;
   logic_ireg(NUM_IREG_LOGIC).x0 <= x0;
   logic_ireg(NUM_IREG_LOGIC).y0 <= y0;
   logic_ireg(NUM_IREG_LOGIC).x1 <= x1;
