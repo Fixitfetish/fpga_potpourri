@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
---! @file       signed_mult_sum.stratixv.vhdl
+--! @file       signed_mult_sum.ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       28/Mar/2017
+--! @date       17/Sep/2017
 --! @version    0.20
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
@@ -17,28 +17,25 @@ library baselib;
   use baselib.ieee_extension.all;
 library dsplib;
 
---! @brief This is an implementation of the entity 
---! @link signed_mult_sum signed_mult_sum @endlink
---! for Altera Stratix-V.
+--! @brief This is an implementation of the entity signed_mult_sum
+--! for Xilinx Ultrascale.
 --! N signed multiplications are performed and all results are summed.
 --!
---! This implementation uses N4 = floor((N+1)/4) instances of 
---! @link signed_mult4_sum signed_mult4_sum @endlink
---! and N2 = ceil(N/2)-2*N4 instances of
---! @link signed_mult2_accu signed_mult2_accu @endlink .
---! Overall 2*N4 + N2 Altera Stratix-V DSP blocks are required.
+--! This implementation uses N4 = floor((N+1)/4) instances of signed_mult4_sum
+--! and N2 = ceil(N/2)-2*N4 instances of signed_mult2_accu
+--! Overall 4*N4 + 2*N2 Xilinx Ultrascale DSP blocks are required.
 --!
---! * Input Data      : Nx2 signed values, each max 18 bits
+--! * Input Data      : Nx2 signed values, x<=27 bits, y<=18 bits
 --! * Input Register  : optional, at least one is strongly recommended
 --! * Accu Register   : just pipeline register, accumulation not supported
 --! * Rounding        : optional half-up, only possible in logic!
---! * Output Data     : 1x signed value, max 64 bits
---! * Output Register : optional, at least one strongly recommend, another after shift-right and saturation
+--! * Output Data     : 1x signed value, max 48 bits
+--! * Output Register : optional, at least one strongly recommend, another after shift-right, round and saturation
 --! * Pipeline stages : NUM_INPUT_REG + NUM_PIPELINE_REG + NUM_OUTPUT_REG
 --!
---! @image html signed_mult_sum.stratixv.svg "" width=1000px
+--! @image html signed_mult_sum.ultrascale.svg "" width=1000px
 
-architecture stratixv of signed_mult_sum is
+architecture ultrascale of signed_mult_sum is
 
   constant NY : integer := y'length; -- number vector elements
 
@@ -79,7 +76,7 @@ begin
   -----------------------------------------------------------------------------
   -- when NUM_MULT <= 2  (no adder stage in logic required)
   g2: if NUM_MULT<=2 generate
-    i4 : entity dsplib.signed_mult2_accu(stratixv)
+    i4 : entity dsplib.signed_mult2_accu(ultrascale)
     generic map(
       NUM_SUMMAND        => 2,
       USE_CHAIN_INPUT    => false,
@@ -113,7 +110,7 @@ begin
 
   -- when 3 <= NUM_MULT <= 4  (no adder stage in logic required)
   g4: if (NUM_MULT>=3 and NUM_MULT<=4) generate
-    i4 : entity dsplib.signed_mult4_sum(stratixv)
+    i4 : entity dsplib.signed_mult4_sum(ultrascale)
     generic map(
       NUM_SUMMAND        => 4,
       USE_CHAIN_INPUT    => false,
@@ -173,7 +170,7 @@ begin
     -- instantiate as many MULT4 instances as possible
     g4 : for n in 0 to NUM_MULT4-1 generate
     begin
-      i4 : entity dsplib.signed_mult4_sum(stratixv)
+      i4 : entity dsplib.signed_mult4_sum(ultrascale)
       generic map(
         NUM_SUMMAND        => 4,
         USE_CHAIN_INPUT    => false,
@@ -209,11 +206,11 @@ begin
     -- additional MULT2 instance required if the number of MULT2 blocks is odd
     g2: if NUM_MULT4<NUM_ADDER_INPUTS generate
     begin
-      i2 : entity dsplib.signed_mult2_accu(stratixv)
+      i2 : entity dsplib.signed_mult2_accu(ultrascale)
       generic map(
         NUM_SUMMAND        => 2,
         USE_CHAIN_INPUT    => false,
-        NUM_INPUT_REG      => NUM_INPUT_REG,
+        NUM_INPUT_REG      => NUM_INPUT_REG+1, -- one more cycle to align with signed_mutl4_sum
         NUM_OUTPUT_REG     => 1,
         OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
         OUTPUT_ROUND       => OUTPUT_ROUND,
