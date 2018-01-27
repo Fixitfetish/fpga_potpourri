@@ -62,7 +62,7 @@ begin
     rst        => rst,
     clr        => '1', -- disable accumulation
     vld        => vld,
-    sub        => sub,
+    neg        => neg,
     x          => x,
     y          => y,
     z          => z,

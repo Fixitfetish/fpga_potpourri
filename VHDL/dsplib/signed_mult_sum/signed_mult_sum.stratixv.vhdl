@@ -178,8 +178,8 @@ begin
         NUM_OUTPUT_REG     => 1,
         OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
         OUTPUT_ROUND       => OUTPUT_ROUND,
-        OUTPUT_CLIP        => false,
-        OUTPUT_OVERFLOW    => false
+        OUTPUT_CLIP        => false, -- clipping and overflow detection after adder tree
+        OUTPUT_OVERFLOW    => false  -- clipping and overflow detection after adder tree
       )
       port map (
         clk        => clk,
@@ -214,8 +214,8 @@ begin
         NUM_OUTPUT_REG     => 1,
         OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
         OUTPUT_ROUND       => OUTPUT_ROUND,
-        OUTPUT_CLIP        => false,
-        OUTPUT_OVERFLOW    => false
+        OUTPUT_CLIP        => false, -- clipping and overflow detection after adder tree
+        OUTPUT_OVERFLOW    => false  -- clipping and overflow detection after adder tree
       )
       port map (
         clk        => clk,
@@ -247,8 +247,8 @@ begin
       NUM_INPUT_REG      => adder_input_reg(ROUND_ENABLE),
       INPUT_WIDTH        => ADDER_INPUT_WIDTH,
       NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
-      OUTPUT_SHIFT_RIGHT => 0,
-      OUTPUT_ROUND       => false,
+      OUTPUT_SHIFT_RIGHT => 0,     -- shift-right and round already before adder tree
+      OUTPUT_ROUND       => false, -- shift-right and round already before adder tree
       OUTPUT_CLIP        => OUTPUT_CLIP,
       OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
     )

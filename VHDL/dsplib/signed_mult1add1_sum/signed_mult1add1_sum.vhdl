@@ -105,8 +105,9 @@ port (
   rst        : in  std_logic := '0';
   --! Valid signal for input factors, high-active
   vld        : in  std_logic;
-  --! Add/subtract product , '0' -> +(x*y), '1' -> -(x*y). Subtraction is disabled by default.
-  sub        : in  std_logic := '0';
+  --! @brief Negation of product , '0' -> +(x*y), '1' -> -(x*y). 
+  --! Negation is disabled by default.
+  neg        : in  std_logic := '0';
   --! 1st signed factor input
   x          : in  signed;
   --! 2nd signed factor input

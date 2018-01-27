@@ -73,7 +73,7 @@ begin
     rst        => rst,
     clr        => '1', -- disable accumulation
     vld        => vld,
-    sub        => neg(0),
+    neg        => neg(0),
     x          => x0,
     y          => y0,
     result     => dummy, -- irrelevant because chain output is used
@@ -102,7 +102,7 @@ begin
     rst        => rst,
     clr        => clr,
     vld        => vld,
-    sub        => neg(1),
+    neg        => neg(1),
     x          => x1,
     y          => y1,
     result     => result,

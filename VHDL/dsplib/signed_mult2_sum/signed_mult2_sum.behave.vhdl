@@ -60,7 +60,6 @@ architecture behave of signed_mult2_sum is
   constant ACCU_WIDTH : positive := 64;
 
   -- derived constants
-  constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
   constant PRODUCT_WIDTH : natural := x0'length + y0'length;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
   constant GUARD_BITS_EVAL : natural := guard_bits(NUM_SUMMAND,MAX_GUARD_BITS);
@@ -202,7 +201,7 @@ begin
   generic map(
     PIPELINE_STAGES    => NUM_OUTPUT_REG-1,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-    OUTPUT_ROUND       => ROUND_ENABLE,
+    OUTPUT_ROUND       => OUTPUT_ROUND,
     OUTPUT_CLIP        => OUTPUT_CLIP,
     OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
   )

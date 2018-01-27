@@ -106,8 +106,9 @@ port (
   clr        : in  std_logic;
   --! Valid signal for input factors, high-active
   vld        : in  std_logic;
-  --! Add/subtract product , '0' -> +(x*y), '1' -> -(x*y). Subtraction is disabled by default.
-  sub        : in  std_logic := '0';
+  --! @brief Negation of product , '0' -> +(x*y), '1' -> -(x*y). 
+  --! Negation is disabled by default.
+  neg        : in  std_logic := '0';
   --! 1st signed factor input
   x          : in  signed;
   --! 2nd signed factor input
@@ -133,7 +134,8 @@ port (
 begin
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
-    report "WARNING signed_mult1_accu : Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
+    report "WARNING in signed_mult1_accu :" &
+           " Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 
 end entity;

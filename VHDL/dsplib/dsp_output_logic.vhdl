@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       dsp_output_logic.vhdl
 --! @author     Fixitfetish
---! @date       02/Jul/2017
---! @version    0.10
+--! @date       27/Jan/2018
+--! @version    0.11
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -122,7 +122,7 @@ begin
     dsp_out_shifted <= RESIZE(SHIFT_RIGHT_ROUND(dsp_out, OUTPUT_SHIFT_RIGHT, nearest),SHIFTED_WIDTH);
   end generate;
 
-  -- clipping
+  -- resize and clipping
   p_out : process(dsp_out_shifted, dsp_out_vld)
     variable v_dat : signed(OUTPUT_WIDTH-1 downto 0);
     variable v_ovf : std_logic;

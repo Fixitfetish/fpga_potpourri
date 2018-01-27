@@ -1,4 +1,4 @@
-/html/**
+html/
 *.lnk
-*.bat
+**/.~lock.*
 doxygen_default

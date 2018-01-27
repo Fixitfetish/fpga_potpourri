@@ -113,7 +113,7 @@ begin
       rst        => rst,
       clr        => '1', -- disable accumulation
       vld        => vld,
-      sub        => neg_i(n),
+      neg        => neg_i(n),
       x          => x_i(n),
       y          => y_i(n),
       result     => r_i(n),

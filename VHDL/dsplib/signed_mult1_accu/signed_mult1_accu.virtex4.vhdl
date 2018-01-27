@@ -19,8 +19,7 @@ library unisim;
 library XilinxCoreLib;
 -- synopsys translate_on
 
---! @brief This is an implementation of the entity 
---! @link signed_mult1_accu signed_mult1_accu @endlink
+--! @brief This is an implementation of the entity signed_mult1_accu
 --! for Xilinx Virtex-4.
 --! One signed multiplication is performed and results are accumulated.
 --!
@@ -40,7 +39,7 @@ library XilinxCoreLib;
 --! If NUM_OUTPUT_REG=0 then the accumulator register P is disabled. 
 --! This configuration might be useful when DSP cells are chained.
 --!
---! +++ TODO +++ his implementation can be chained multiple times.
+--! +++ TODO +++ This implementation can be chained multiple times.
 --! @image html signed_mult1_accu.virtex4" width=800px
 
 architecture virtex4 of signed_mult1_accu is
@@ -174,7 +173,7 @@ begin
   -- control signal inputs
   ireg(NUM_INPUT_REG).rst <= rst;
   ireg(NUM_INPUT_REG).vld <= vld;
-  ireg(NUM_INPUT_REG).sub <= sub;
+  ireg(NUM_INPUT_REG).sub <= neg;
 
   -- 0000 =>  XY = +/- CIN  ... hold current accumulator value
   -- 0101 =>  XY = +/- (AxB+CIN) ... enable product accumulation

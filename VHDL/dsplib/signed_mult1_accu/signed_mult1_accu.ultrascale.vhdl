@@ -148,7 +148,7 @@ begin
   logic_ireg(NUM_IREG_LOGIC).rst <= rst;
   logic_ireg(NUM_IREG_LOGIC).clr <= clr;
   logic_ireg(NUM_IREG_LOGIC).vld <= vld;
-  logic_ireg(NUM_IREG_LOGIC).sub <= sub;
+  logic_ireg(NUM_IREG_LOGIC).sub <= neg;
   logic_ireg(NUM_IREG_LOGIC).x <= x;
   logic_ireg(NUM_IREG_LOGIC).y <= y;
 
@@ -390,7 +390,7 @@ begin
   generic map(
     PIPELINE_STAGES    => NUM_OUTPUT_REG-1,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-    OUTPUT_ROUND       => false, -- rounding already done within DSP cell!
+    OUTPUT_ROUND       => false, -- rounding within DSP cell!
     OUTPUT_CLIP        => OUTPUT_CLIP,
     OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
   )

@@ -97,7 +97,7 @@ architecture stratixv of signed_mult1_accu is
   type array_logic_ireg is array(integer range <>) of r_logic_ireg;
   signal logic_ireg : array_logic_ireg(NUM_IREG_LOGIC downto 0);
 
-  -- input register pipeline
+  -- DSP input register pipeline
   type r_dsp_ireg is
   record
     rst, vld : std_logic;
@@ -145,7 +145,7 @@ begin
   logic_ireg(NUM_IREG_LOGIC).rst <= rst;
   logic_ireg(NUM_IREG_LOGIC).clr <= clr;
   logic_ireg(NUM_IREG_LOGIC).vld <= vld;
-  logic_ireg(NUM_IREG_LOGIC).sub <= sub;
+  logic_ireg(NUM_IREG_LOGIC).sub <= neg;
   logic_ireg(NUM_IREG_LOGIC).x <= x;
   logic_ireg(NUM_IREG_LOGIC).y <= y;
 

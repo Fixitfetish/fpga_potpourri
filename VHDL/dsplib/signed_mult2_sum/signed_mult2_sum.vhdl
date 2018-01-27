@@ -83,7 +83,7 @@ generic (
   --! This flag is only relevant when OUTPUT_SHIFT_RIGHT>0.
   --! If the device specific DSP cell supports rounding then rounding is done
   --! within the DSP cell. If rounding in logic is necessary then it is recommended
-  --! to enable the additional output register.
+  --! to use an additional output register.
   OUTPUT_ROUND : boolean := true;
   --! Enable clipping when right shifted result exceeds output range.
   OUTPUT_CLIP : boolean := true;
