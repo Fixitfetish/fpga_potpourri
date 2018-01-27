@@ -130,7 +130,12 @@ begin
     RESIZE_CLIP(din=>dsp_out_shifted, dout=>v_dat, ovfl=>v_ovf, clip=>OUTPUT_CLIP);
     rslt(0).vld <= dsp_out_vld;
     rslt(0).dat <= v_dat;
-    if OUTPUT_OVERFLOW then rslt(0).ovf<=v_ovf; else rslt(0).ovf<='0'; end if;
+    if OUTPUT_OVERFLOW then
+      -- enable output overflow detection only for valid output data
+      rslt(0).ovf <= v_ovf and dsp_out_vld;
+    else
+      rslt(0).ovf <= '0';
+    end if;
   end process;
 
   -- pipeline registers always in logic
