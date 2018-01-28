@@ -1,0 +1,30 @@
+[*]
+[*] GTKWave Analyzer v3.3.87 (w)1999-2017 BSI
+[*] Sun Jan 28 10:10:21 2018
+[*]
+[dumpfile] "C:\Users\Knut\git\fpga_potpourri\VHDL\baselib_tb\counter\output\counter.vcd"
+[dumpfile_mtime] "Wed Nov 29 22:42:41 2017"
+[dumpfile_size] 6763996
+[savefile] "C:\Users\Knut\git\fpga_potpourri\VHDL\baselib_tb\counter\counter.gtkw"
+[timestart] 0
+[size] 1304 745
+[pos] -1 -1
+*-60.554497 16500000000000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 211
+[signals_width] 190
+[sst_expanded] 1
+[sst_vpaned_height] 205
+@28
+rst
+clk
+finish
+@29
+second_incr
+@28
+second_decr
+@24
+second[5:0]
+minute[5:0]
+hour[4:0]
+[pattern_trace] 1
+[pattern_trace] 0

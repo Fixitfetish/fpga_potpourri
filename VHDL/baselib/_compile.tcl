@@ -15,6 +15,7 @@ lappend filelist $SCRIPTPATH/ieee_extension_types_${VHDL}.vhdl
 lappend filelist $SCRIPTPATH/ieee_extension.vhdl
 lappend filelist $SCRIPTPATH/string_conversion_pkg.vhdl
 lappend filelist $SCRIPTPATH/file_io_pkg.vhdl
+lappend filelist $SCRIPTPATH/counter.vhdl
 
 # compile file list
 if {[string equal $VHDL 2008]} {
