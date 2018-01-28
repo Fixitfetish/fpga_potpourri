@@ -57,6 +57,6 @@ set VCD=output\counter.vcd
 
 :: start waveform viewer
 @if not exist %VCD% goto END
-%VIEW_EXE% %VCD% counter.gtkw
+%VIEW_EXE% %VCD% sim.gtkw
 
 :END
