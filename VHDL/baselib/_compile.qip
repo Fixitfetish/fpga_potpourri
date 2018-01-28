@@ -5,3 +5,4 @@ set_global_assignment -library baselib -name VHDL_FILE [file join $::quartus(qip
 set_global_assignment -library baselib -name VHDL_FILE [file join $::quartus(qip_path) "ieee_extension.vhdl"]
 set_global_assignment -library baselib -name VHDL_FILE [file join $::quartus(qip_path) "string_conversion_pkg.vhdl"]
 set_global_assignment -library baselib -name VHDL_FILE [file join $::quartus(qip_path) "counter.vhdl"]
+set_global_assignment -library baselib -name VHDL_FILE [file join $::quartus(qip_path) "enable_burst_generator.vhdl"]

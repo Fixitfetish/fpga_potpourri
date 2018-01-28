@@ -6,3 +6,4 @@ add_file -vhdl -lib baselib $BASELIB_PATH/ieee_extension_types_1993.vhdl
 add_file -vhdl -lib baselib $BASELIB_PATH/ieee_extension.vhdl
 add_file -vhdl -lib baselib $BASELIB_PATH/string_conversion_pkg.vhdl
 add_file -vhdl -lib baselib $BASELIB_PATH/counter.vhdl
+add_file -vhdl -lib baselib $BASELIB_PATH/enable_burst_generator.vhdl

@@ -69,8 +69,7 @@ set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 %COMPILE% %SCRIPTPATH%\string_conversion_pkg.vhdl
 %COMPILE% %SCRIPTPATH%\file_io_pkg.vhdl
 %COMPILE% %SCRIPTPATH%\counter.vhdl
-:: %COMPILE% %SCRIPTPATH%\pulse_generator.vhdl
-:: %COMPILE% %SCRIPTPATH%\enable_burst_generator.vhdl
+%COMPILE% %SCRIPTPATH%\enable_burst_generator.vhdl
 
 :END
 @EXIT /B

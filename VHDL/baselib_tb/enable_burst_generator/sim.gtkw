@@ -1,0 +1,36 @@
+[*]
+[*] GTKWave Analyzer v3.3.87 (w)1999-2017 BSI
+[*] Sun Jan 28 10:51:58 2018
+[*]
+[dumpfile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\baselib_tb\enable_burst_generator\output\sim.vcd"
+[dumpfile_mtime] "Sun Jan 28 10:51:20 2018"
+[dumpfile_size] 60312
+[savefile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\baselib_tb\enable_burst_generator\sim.gtkw"
+[timestart] 0
+[size] 1858 1053
+[pos] -1 -1
+*-28.468386 65000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 211
+[signals_width] 242
+[sst_expanded] 1
+[sst_vpaned_height] 315
+@28
+rst
+clk
+clkena
+@24
+numerator[15:0]
+denominator[15:0]
+burst_length[23:0]
+@28
+dutycycle_active
+dutycycle_enable
+@24
+dutycycle_count[23:0]
+@28
+equidistant_active
+equidistant_enable
+@24
+equidistant_count[23:0]
+[pattern_trace] 1
+[pattern_trace] 0
