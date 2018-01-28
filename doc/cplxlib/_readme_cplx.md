@@ -156,6 +156,6 @@ CONVERSION FUNCTIONS
 todo
 
 ---
-MIT License : Copyright (c) 2017 Fixitfetish
+MIT License : Copyright (c) 2017-2018 Fixitfetish
  - <https://opensource.org/licenses/MIT>
  - <https://en.wikipedia.org/wiki/MIT_License>

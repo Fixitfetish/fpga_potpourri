@@ -15,3 +15,8 @@ different FPGA device types and vendors with different RAM/FIFO cell primitives.
 
 TODO
 ====
+
+---
+MIT License : Copyright (c) 2017-2018 Fixitfetish
+ - <https://opensource.org/licenses/MIT>
+ - <https://en.wikipedia.org/wiki/MIT_License>

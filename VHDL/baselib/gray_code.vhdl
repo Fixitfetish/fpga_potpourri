@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --! @file       gray_code.vhdl
---! @author     Fixitfetish     
+--! @author     Fixitfetish
 --! @date       02/May/2016
 --! @version    1.0
 --! @note       VHDL-1993

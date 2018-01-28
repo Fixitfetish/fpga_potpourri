@@ -5,15 +5,18 @@
 Introduction
 ============
 
-The DSP library
+The main goal of the DSP library is to simplify the process of moving designs between
+different FPGA device types and vendors with different DSP cell primitives.
+This only works for basic operations and features that are supported by all DSP cells.
+Highly optimized solutions will always be device and vendor specific and are not considered here.
+
 * collection of types, functions and procedures in addition to the ieee.numeric_std library ... see ieee_extension
 * support of rounding, clipping/saturation and overflow detection
 * abstraction layer to hide FPGA device specific DSP primitives
 
-The main goal of this library is to simplify the process of moving designs between
-different FPGA device types and vendors with different DSP cell primitives.
-This only works for basic operations and features that are supported by all DSP cells.
-Highly optimized solutions will always be device and vendor specific and are not considered here.
+Note that standard complex arithmetic is intentionally not addressed in the DSP library though
+some DSP cells offer complex support and optimization. For portability reasons an additional
+complex library is available and can be used on top of the DSP library.
 
 Contents
 ========
@@ -34,22 +37,24 @@ It is recommended to only use the following generic entities in the design.
 
 The following entities should not be instantiated in the design. They are used by the more generic entities above.
 
-|Entity Name               | Virtex 4  | Stratix V  | Arria 10  | UltraScale | Description
-|:-------------------------|:---------:|:----------:|:---------:|:----------:|:-----------------
-|signed_mult1_accu         | PRIMITIVE | PRIMITIVE  | PRIMITIVE | PRIMITIVE  | one signed multiplication and accumulation of all results
-|signed_mult1add1_accu     | ---       | PRIMITIVE  | PRIMITIVE | PRIMITIVE  | one value +/- signed product and accumulation of all results
-|signed_mult1add1_sum      | ---       | derived    | derived   | PRIMITIVE  | one value +/- signed product
-|signed_mult2              | ---       | PRIMITIVE  | PRIMITIVE | ---        | two parallel and synchronous signed multiplications
-|signed_mult2_accu         | ---       | PRIMITIVE  | PRIMITIVE | chained    | two signed multiplications and accumulation of all results
-|signed_mult2_sum          | ---       | derived    | derived   | chained    | two signed multiplications and sum product results
-|signed_mult3              | ---       | PRIMITIVE  | ---       | ---        | three parallel and synchronous signed multiplications
-|signed_mult4_sum          | ---       | PRIMITIVE  | ---       | chained    | four signed multiplications and sum product results
-|signed_preadd_mult1_accu  | ---       | PRIMITIVE  | PRIMITIVE | PRIMITIVE  | multiply sum of two signed with another signed and accumulate results
+|Entity Name               | Stratix V  | Arria 10  | UltraScale | Stratix 10 | Description
+|:-------------------------|:----------:|:---------:|:----------:|:----------:|:-----------------
+|signed_mult1_accu         | PRIMITIVE  | PRIMITIVE | PRIMITIVE  | TODO       | one signed multiplication and accumulation of all results
+|signed_mult1add1_accu     | PRIMITIVE  | PRIMITIVE | PRIMITIVE  | TODO       | one value +/- signed product and accumulation of all results
+|signed_mult1add1_sum      | derived    | derived   | PRIMITIVE  | TODO       | one value +/- signed product
+|signed_mult2              | PRIMITIVE  | PRIMITIVE | ---        | TODO       | two parallel and synchronous signed multiplications
+|signed_mult2_accu         | PRIMITIVE  | PRIMITIVE | chained    | TODO       | two signed multiplications and accumulation of all results
+|signed_mult2_sum          | derived    | derived   | chained    | TODO       | two signed multiplications and sum product results
+|signed_mult3              | PRIMITIVE  | ---       | ---        | TODO       | three parallel and synchronous signed multiplications
+|signed_mult4_sum          | PRIMITIVE  | ---       | chained    | TODO       | four signed multiplications and sum product results
+|signed_preadd_mult1_accu  | PRIMITIVE  | PRIMITIVE | PRIMITIVE  | TODO       | multiply sum of two signed with another signed and accumulate results
 
 * PRIMITIVE = this implementation directly instantiates the DSP primitive
 * derived = this implementation is derived from another implementation
 * chained = this implementation uses chaining of other implementations
 
+The idea is to have as few as possible implementations that require the DSP primitive. Hence, the 
+effort to adjust to another FPGA technology is limited. 
 More FPGA devices and types might be added later.
 
 
@@ -78,6 +83,6 @@ be accumulated over several cycles the postfix "accu" is added. Hence, the compl
 called "signed_preadd_mult1_accu".
 
 ---
-MIT License : Copyright (c) 2017 Fixitfetish
+MIT License : Copyright (c) 2017-2018 Fixitfetish
  - <https://opensource.org/licenses/MIT>
  - <https://en.wikipedia.org/wiki/MIT_License>
