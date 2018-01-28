@@ -70,6 +70,7 @@ set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 %COMPILE% %SCRIPTPATH%\file_io_pkg.vhdl
 %COMPILE% %SCRIPTPATH%\counter.vhdl
 %COMPILE% %SCRIPTPATH%\enable_burst_generator.vhdl
+%COMPILE% %SCRIPTPATH%\gray_code.vhdl
 
 :END
 @EXIT /B

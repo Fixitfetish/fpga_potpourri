@@ -1,0 +1,41 @@
+[*]
+[*] GTKWave Analyzer v3.3.87 (w)1999-2017 BSI
+[*] Sun Jan 28 19:35:11 2018
+[*]
+[dumpfile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\baselib_tb\gray_code\output\gray_code.vcd"
+[dumpfile_mtime] "Sun Jan 28 19:34:36 2018"
+[dumpfile_size] 4171
+[savefile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\baselib_tb\gray_code\sim.gtkw"
+[timestart] 0
+[size] 1273 647
+[pos] -7 22
+*-26.852163 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 211
+[signals_width] 102
+[sst_expanded] 1
+[sst_vpaned_height] 171
+@28
+clk
+rst
+finish
+ena[1:0]
+@800022
+gcnt[3:0]
+@28
+(0)gcnt[3:0]
+(1)gcnt[3:0]
+(2)gcnt[3:0]
+(3)gcnt[3:0]
+@1001200
+-group_end
+@800023
+bcnt[3:0]
+@29
+(0)bcnt[3:0]
+(1)bcnt[3:0]
+(2)bcnt[3:0]
+(3)bcnt[3:0]
+@1001201
+-group_end
+[pattern_trace] 1
+[pattern_trace] 0

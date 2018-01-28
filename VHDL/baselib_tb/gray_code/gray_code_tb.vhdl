@@ -17,8 +17,10 @@ end entity;
 
 architecture rtl of gray_code_tb is
 
-  signal clk : std_logic := '1';
+  constant PERIOD : time := 10 ns; -- 100 MHz
   signal rst : std_logic := '1';
+  signal clk : std_logic := '1';
+  signal finish : std_logic := '0';
   signal ena : unsigned(1 downto 0) := (others=>'0');
 
   constant COUNTER_WIDTH : natural := 4;
@@ -27,8 +29,25 @@ architecture rtl of gray_code_tb is
 
 begin
 
-  clk <= not clk after 5 ns; -- 100 MHz
-  rst <= '0' after 21 ns; -- release reset
+  p_clk : process
+  begin
+    while finish='0' loop
+      wait for PERIOD/2;
+      clk <= not clk;
+    end loop;
+    -- epilog, 5 cycles
+    for n in 1 to 10 loop
+      wait for PERIOD/2;
+      clk <= not clk;
+    end loop;
+    report "INFO: Clock stopped. End of simulation." severity note;
+    wait; -- stop clock
+  end process;
+
+  -- release reset
+  rst <= '0' after 21 ns;
+
+  finish <= '1' after 500 ns;
 
   p : process(clk)
   begin
