@@ -1,0 +1,43 @@
+[*]
+[*] GTKWave Analyzer v3.3.87 (w)1999-2017 BSI
+[*] Sun Jan 28 19:09:11 2018
+[*]
+[dumpfile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\ramlib_tb\fifo_sync\output\fifo_sync.vcd"
+[dumpfile_mtime] "Sun Jan 28 18:04:32 2018"
+[dumpfile_size] 7862
+[savefile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\ramlib_tb\fifo_sync\sim.gtkw"
+[timestart] 0
+[size] 1798 600
+[pos] 1229 -5
+*-26.218256 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 211
+[signals_width] 126
+[sst_expanded] 1
+[sst_vpaned_height] 154
+@28
+clk
+rst
+finish
+@420
+cycle
+@28
+wr_ena
+@22
+wr_din[7:0]
+@28
+wr_alm_full
+wr_full
+wr_overflow
+@420
+level
+@28
+rd_req_ack
+@22
+rd_dout[7:0]
+@28
+rd_alm_empty
+rd_empty
+@29
+rd_underflow
+[pattern_trace] 1
+[pattern_trace] 0
