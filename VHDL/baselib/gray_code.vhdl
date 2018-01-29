@@ -12,18 +12,20 @@
 library ieee;
  use ieee.std_logic_1164.all;
 
+--! @brief Gray code package with conversion functions
+
 package gray_code_pkg is
 
-  -- create gray code from binary
+  --! create gray code from binary
   function gray_from_binary(binary:std_logic_vector) return std_logic_vector;
-  -- convert gray code to binary
+  --! convert gray code to binary
   function gray_to_binary(gray:std_logic_vector) return std_logic_vector;
 
 end package;
 
 package body gray_code_pkg is
 
-  -- create gray code from binary
+  --! create gray code from binary
   function gray_from_binary(binary:std_logic_vector) return std_logic_vector is
     constant L : natural := binary'length;
     alias b : std_logic_vector(L-1 downto 0) is binary; -- default range
@@ -34,7 +36,7 @@ package body gray_code_pkg is
     return g;
   end function;
 
-  -- convert gray code to binary
+  --! convert gray code to binary
   function gray_to_binary(gray:std_logic_vector) return std_logic_vector is
     constant L : natural := gray'length;
     alias g : std_logic_vector(L-1 downto 0) is gray; -- default range
@@ -56,6 +58,8 @@ library ieee;
  use ieee.numeric_std.all;
 library baselib;
  use baselib.gray_code_pkg.all;
+
+--! @brief Gray code counter
 
 entity gray_count is
 port (
