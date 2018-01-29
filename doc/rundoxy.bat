@@ -1,3 +1,3 @@
-C:\FPGA\doxygen\doxygen doxygen_config
+C:\FPGA\doxygen\doxygen doxygen.cfg
 
 pause
