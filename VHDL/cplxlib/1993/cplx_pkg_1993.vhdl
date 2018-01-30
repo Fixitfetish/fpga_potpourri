@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_pkg_1993.vhdl
 --! @author     Fixitfetish
---! @date       14/Mar/2017
---! @version    0.99
+--! @date       30/Jan/2018
+--! @version    1.00
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -20,7 +20,7 @@ library baselib;
 --! 
 --! Please note that multiplications, divisions and so on are not part of this
 --! package since they typically make use of hardware specific DSP cells and
---! require registers in addition. Corresponding entities have been (can be)
+--! require registers in addition. Corresponding entities have been (or can be)
 --! developed based on this package.
 --!
 --! NOTE: a more or less compatible complex package has been developed for VHDL-2008.
@@ -128,9 +128,9 @@ package cplx_pkg is
   --! 
   --! Option X : By default the overflow flags of the inputs are propagated
   --! to the output to not loose the overflow flags in processing chains.
-  --! If the input overflow flags are ignored then output overflow flags only
-  --! report overflows within this entity. Note that ignoring the input
-  --! overflows can save a little bit of logic.
+  --! If the input overflow flag is ignored in a module then output overflow
+  --! flag only reports overflows that occur within the module. Note that
+  --! ignoring the input overflows can save a little bit of logic.
   type cplx_mode is array(integer range <>) of cplx_option;
 
   ------------------------------------------
@@ -221,32 +221,32 @@ package cplx_pkg is
 
   --! @brief Resize from CPLX18 down to CPLX16 with optional saturation/clipping and overflow detection.
   --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=16.
-  --! Supported options: 'R', 'O' and/or 'S'
+  --! Supported options: 'R', 'O', 'X' and/or 'S'
   function resize (din:cplx18; w:positive; m:cplx_mode:="-") return cplx16;
 
   --! @brief Resize from CPLX20 down to CPLX16 with optional saturation/clipping and overflow detection.
   --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=16.
-  --! Supported options: 'R', 'O' and/or 'S'
+  --! Supported options: 'R', 'O', 'X' and/or 'S'
   function resize (din:cplx20; w:positive; m:cplx_mode:="-") return cplx16;
 
   --! @brief Resize from CPLX22 down to CPLX16 with optional saturation/clipping and overflow detection.
   --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=16.
-  --! supported options: 'R', 'O' and/or 'S'
+  --! Supported options: 'R', 'O', 'X' and/or 'S'
   function resize (din:cplx22; w:positive; m:cplx_mode:="-") return cplx16;
 
   --! @brief Resize from CPLX20 down to CPLX18 with optional saturation/clipping and overflow detection.
   --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=18.
-  --! Supported options: 'R', 'O' and/or 'S'
+  --! Supported options: 'R', 'O', 'X' and/or 'S'
   function resize (din:cplx20; w:positive; m:cplx_mode:="-") return cplx18;
 
   --! @brief Resize from CPLX22 down to CPLX18 with optional saturation/clipping and overflow detection.
   --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=18.
-  --! Supported options: 'R', 'O' and/or 'S'
+  --! Supported options: 'R', 'O', 'X' and/or 'S'
   function resize (din:cplx22; w:positive; m:cplx_mode:="-") return cplx18;
 
   --! @brief Resize from CPLX22 down to CPLX20 with optional saturation/clipping and overflow detection.
   --! To be compatible with the VHDL-2008 version of this package the output size is fixed w=20.
-  --! Supported options: 'R', 'O' and/or 'S'
+  --! Supported options: 'R', 'O', 'X' and/or 'S'
   function resize (din:cplx22; w:positive; m:cplx_mode:="-") return cplx20;
 
   ------------------------------------------
@@ -376,28 +376,28 @@ package cplx_pkg is
   --! @brief Complex conjugate.
   --! To be compatible with the VHDL-2008 version of this package the output
   --! bit width w must be equal to the input bit width, i.e. w=0 or w=16.
-  --! Supported options: 'R', 'O' and/or 'S'
+  --! Supported options: 'R', 'O', 'X' and/or 'S'
   function conj (din:cplx16; w:natural:=16; m:cplx_mode:="-") return cplx16;
   function conj (din:cplx16_vector; w:natural:=16; m:cplx_mode:="-") return cplx16_vector;
 
   --! @brief Complex conjugate
   --! To be compatible with the VHDL-2008 version of this package the output
   --! bit width w must be equal to the input bit width, i.e. w=0 or w=18.
-  --! Supported options: 'R', 'O' and/or 'S'
+  --! Supported options: 'R', 'O', 'X' and/or 'S'
   function conj (din:cplx18; w:natural:=18; m:cplx_mode:="-") return cplx18;
   function conj (din:cplx18_vector; w:natural:=18; m:cplx_mode:="-") return cplx18_vector;
 
   --! @brief Complex conjugate
   --! To be compatible with the VHDL-2008 version of this package the output
   --! bit width w must be equal to the input bit width, i.e. w=0 or w=20.
-  --! Supported options: 'R', 'O' and/or 'S'
+  --! Supported options: 'R', 'O', 'X' and/or 'S'
   function conj (din:cplx20; w:natural:=20; m:cplx_mode:="-") return cplx20;
   function conj (din:cplx20_vector; w:natural:=20; m:cplx_mode:="-") return cplx20_vector;
 
   --! @brief Complex conjugate
   --! To be compatible with the VHDL-2008 version of this package the output
   --! bit width w must be equal to the input bit width, i.e. w=0 or w=22.
-  --! Supported options: 'R', 'O' and/or 'S'
+  --! Supported options: 'R', 'O', 'X' and/or 'S'
   function conj (din:cplx22; w:natural:=22; m:cplx_mode:="-") return cplx22;
   function conj (din:cplx22_vector; w:natural:=22; m:cplx_mode:="-") return cplx22_vector;
 
@@ -425,7 +425,7 @@ package cplx_pkg is
   --! Both inputs must have the same bit width.
   --! To be compatible with the VHDL-2008 version of this package the output
   --! bit width w must be equal to the input bit width, i.e. w=0 or w=16.
-  --! Supported options: 'R', 'O' and/or 'S'
+  --! Supported options: 'R', 'O', 'X' and/or 'S'
   function add (l,r: cplx16; w:natural:=16; m:cplx_mode:="-") return cplx16;
   function add (l,r: cplx16_vector; w:natural:=16; m:cplx_mode:="-") return cplx16_vector;
 
@@ -433,7 +433,7 @@ package cplx_pkg is
   --! Both inputs must have the same bit width.
   --! To be compatible with the VHDL-2008 version of this package the output
   --! bit width w must be equal to the input bit width, i.e. w=0 or w=18.
-  --! Supported options: 'R', 'O' and/or 'S'
+  --! Supported options: 'R', 'O', 'X' and/or 'S'
   function add (l,r: cplx18; w:natural:=18; m:cplx_mode:="-") return cplx18;
   function add (l,r: cplx18_vector; w:natural:=18; m:cplx_mode:="-") return cplx18_vector;
 
@@ -441,7 +441,7 @@ package cplx_pkg is
   --! Both inputs must have the same bit width.
   --! To be compatible with the VHDL-2008 version of this package the output
   --! bit width w must be equal to the input bit width, i.e. w=0 or w=20.
-  --! Supported options: 'R', 'O' and/or 'S'
+  --! Supported options: 'R', 'O', 'X' and/or 'S'
   function add (l,r: cplx20; w:natural:=20; m:cplx_mode:="-") return cplx20;
   function add (l,r: cplx20_vector; w:natural:=20; m:cplx_mode:="-") return cplx20_vector;
 
@@ -449,7 +449,7 @@ package cplx_pkg is
   --! Both inputs must have the same bit width.
   --! To be compatible with the VHDL-2008 version of this package the output
   --! bit width w must be equal to the input bit width, i.e. w=0 or w=22.
-  --! Supported options: 'R', 'O' and/or 'S'
+  --! Supported options: 'R', 'O', 'X' and/or 'S'
   function add (l,r: cplx22; w:natural:=22; m:cplx_mode:="-") return cplx22;
   function add (l,r: cplx22_vector; w:natural:=22; m:cplx_mode:="-") return cplx22_vector;
 
@@ -492,7 +492,7 @@ package cplx_pkg is
   --! Both inputs must have the same bit width.
   --! To be compatible with the VHDL-2008 version of this package the output
   --! bit width w must be equal to the input bit width, i.e. w=0 or w=16.
-  --! Supported options: 'R', 'O' and/or 'S'
+  --! Supported options: 'R', 'O', 'X' and/or 'S'
   function sub (l,r: cplx16; w:natural:=16; m:cplx_mode:="-") return cplx16;
   function sub (l,r: cplx16_vector; w:natural:=16; m:cplx_mode:="-") return cplx16_vector;
 
@@ -500,7 +500,7 @@ package cplx_pkg is
   --! Both inputs must have the same bit width.
   --! To be compatible with the VHDL-2008 version of this package the output
   --! bit width w must be equal to the input bit width, i.e. w=0 or w=18.
-  --! Supported options: 'R', 'O' and/or 'S'
+  --! Supported options: 'R', 'O', 'X' and/or 'S'
   function sub (l,r: cplx18; w:natural:=18; m:cplx_mode:="-") return cplx18;
   function sub (l,r: cplx18_vector; w:natural:=18; m:cplx_mode:="-") return cplx18_vector;
 
@@ -508,7 +508,7 @@ package cplx_pkg is
   --! Both inputs must have the same bit width.
   --! To be compatible with the VHDL-2008 version of this package the output
   --! bit width w must be equal to the input bit width, i.e. w=0 or w=20.
-  --! Supported options: 'R', 'O' and/or 'S'
+  --! Supported options: 'R', 'O', 'X' and/or 'S'
   function sub (l,r: cplx20; w:natural:=20; m:cplx_mode:="-") return cplx20;
   function sub (l,r: cplx20_vector; w:natural:=20; m:cplx_mode:="-") return cplx20_vector;
 
@@ -516,7 +516,7 @@ package cplx_pkg is
   --! Both inputs must have the same bit width.
   --! To be compatible with the VHDL-2008 version of this package the output
   --! bit width w must be equal to the input bit width, i.e. w=0 or w=22.
-  --! Supported options: 'R', 'O' and/or 'S'
+  --! Supported options: 'R', 'O', 'X' and/or 'S'
   function sub (l,r: cplx22; w:natural:=22; m:cplx_mode:="-") return cplx22;
   function sub (l,r: cplx22_vector; w:natural:=22; m:cplx_mode:="-") return cplx22_vector;
 
@@ -542,25 +542,25 @@ package cplx_pkg is
 
   --! @brief Complex signed shift left by n bits with optional clipping/saturation and overflow detection.
   --! The output bit width equals the input bit width.
-  --! Supported options: 'R', 'O' and/or 'S'
+  --! Supported options: 'R', 'O', 'X' and/or 'S'
   function shift_left (din:cplx16 ; n:natural; m:cplx_mode:="-") return cplx16;
   function shift_left (din:cplx16_vector ; n:natural; m:cplx_mode:="-") return cplx16_vector;
 
   --! @brief Complex signed shift left by n bits with optional clipping/saturation and overflow detection.
   --! The output bit width equals the input bit width.
-  --! Supported options: 'R', 'O' and/or 'S'
+  --! Supported options: 'R', 'O', 'X' and/or 'S'
   function shift_left (din:cplx18 ; n:natural; m:cplx_mode:="-") return cplx18;
   function shift_left (din:cplx18_vector ; n:natural; m:cplx_mode:="-") return cplx18_vector;
 
   --! @brief Complex signed shift left by n bits with optional clipping/saturation and overflow detection.
   --! The output bit width equals the input bit width.
-  --! Supported options: 'R', 'O' and/or 'S'
+  --! Supported options: 'R', 'O', 'X' and/or 'S'
   function shift_left (din:cplx20 ; n:natural; m:cplx_mode:="-") return cplx20;
   function shift_left (din:cplx20_vector ; n:natural; m:cplx_mode:="-") return cplx20_vector;
 
   --! @brief Complex signed shift left by n bits with optional clipping/saturation and overflow detection.
   --! The output bit width equals the input bit width.
-  --! Supported options: 'R', 'O' and/or 'S'
+  --! Supported options: 'R', 'O', 'X' and/or 'S'
   function shift_left (din:cplx22 ; n:natural; m:cplx_mode:="-") return cplx22;
   function shift_left (din:cplx22_vector ; n:natural; m:cplx_mode:="-") return cplx22_vector;
 
@@ -893,10 +893,12 @@ package body cplx_pkg is
     assert w=16 -- VHDL-2008 compatibility check
       report "ERROR in resize cplx18->cplx16 : Output resolution must be always w=16"
       severity failure;
-    dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf; -- default
+    dout.rst:=din.rst; dout.vld:=din.vld; -- just forward signals
+    if m='X' then dout.ovf:='0'; else dout.ovf:=din.ovf; end if; -- ignore input overflow ?
     RESIZE_CLIP(din=>din.re, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S'));
     RESIZE_CLIP(din=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
-    if m='O' then dout.ovf := dout.ovf or ovf_re or ovf_im; end if;
+    -- If enabled this function reports overflows (only for valid data).
+    if m='O' then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
     dout := reset_on_demand(din=>dout, m=>m);
     return dout;
   end function;
@@ -908,10 +910,12 @@ package body cplx_pkg is
     assert w=16 -- VHDL-2008 compatibility check
       report "ERROR in resize cplx20->cplx16 : Output resolution must be always w=16"
       severity failure;
-    dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf; -- default
+    dout.rst:=din.rst; dout.vld:=din.vld; -- just forward signals
+    if m='X' then dout.ovf:='0'; else dout.ovf:=din.ovf; end if; -- ignore input overflow ?
     RESIZE_CLIP(din=>din.re, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S'));
     RESIZE_CLIP(din=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
-    if m='O' then dout.ovf := dout.ovf or ovf_re or ovf_im; end if;
+    -- If enabled this function reports overflows (only for valid data).
+    if m='O' then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
     dout := reset_on_demand(din=>dout, m=>m);
     return dout;
   end function;
@@ -923,10 +927,12 @@ package body cplx_pkg is
     assert w=16 -- VHDL-2008 compatibility check
       report "ERROR in resize cplx22->cplx16 : Output resolution must be always w=16"
       severity failure;
-    dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf; -- default
+    dout.rst:=din.rst; dout.vld:=din.vld; -- just forward signals
+    if m='X' then dout.ovf:='0'; else dout.ovf:=din.ovf; end if; -- ignore input overflow ?
     RESIZE_CLIP(din=>din.re, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S'));
     RESIZE_CLIP(din=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
-    if m='O' then dout.ovf := dout.ovf or ovf_re or ovf_im; end if;
+    -- If enabled this function reports overflows (only for valid data).
+    if m='O' then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
     dout := reset_on_demand(din=>dout, m=>m);
     return dout;
   end function;
@@ -938,10 +944,12 @@ package body cplx_pkg is
     assert w=18 -- VHDL-2008 compatibility check
       report "ERROR in resize cplx20->cplx18 : Output resolution must be always w=18"
       severity failure;
-    dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf; -- default
+    dout.rst:=din.rst; dout.vld:=din.vld; -- just forward signals
+    if m='X' then dout.ovf:='0'; else dout.ovf:=din.ovf; end if; -- ignore input overflow ?
     RESIZE_CLIP(din=>din.re, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S'));
     RESIZE_CLIP(din=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
-    if m='O' then dout.ovf := dout.ovf or ovf_re or ovf_im; end if;
+    -- If enabled this function reports overflows (only for valid data).
+    if m='O' then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
     dout := reset_on_demand(din=>dout, m=>m);
     return dout;
   end function;
@@ -953,10 +961,12 @@ package body cplx_pkg is
     assert w=18 -- VHDL-2008 compatibility check
       report "ERROR in resize cplx22->cplx18 : Output resolution must be always w=18"
       severity failure;
-    dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf; -- default
+    dout.rst:=din.rst; dout.vld:=din.vld; -- just forward signals
+    if m='X' then dout.ovf:='0'; else dout.ovf:=din.ovf; end if; -- ignore input overflow ?
     RESIZE_CLIP(din=>din.re, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S'));
     RESIZE_CLIP(din=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
-    if m='O' then dout.ovf := dout.ovf or ovf_re or ovf_im; end if;
+    -- If enabled this function reports overflows (only for valid data).
+    if m='O' then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
     dout := reset_on_demand(din=>dout, m=>m);
     return dout;
   end function;
@@ -968,10 +978,12 @@ package body cplx_pkg is
     assert w=20 -- VHDL-2008 compatibility check
       report "ERROR in resize cplx22->cplx20 : Output resolution must be always w=20"
       severity failure;
-    dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf; -- default
+    dout.rst:=din.rst; dout.vld:=din.vld; -- just forward signals
+    if m='X' then dout.ovf:='0'; else dout.ovf:=din.ovf; end if; -- ignore input overflow ?
     RESIZE_CLIP(din=>din.re, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S'));
     RESIZE_CLIP(din=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
-    if m='O' then dout.ovf := dout.ovf or ovf_re or ovf_im; end if;
+    -- If enabled this function reports overflows (only for valid data).
+    if m='O' then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
     dout := reset_on_demand(din=>dout, m=>m);
     return dout;
   end function;
@@ -1176,7 +1188,8 @@ package body cplx_pkg is
     -- wrap only occurs when input is most-negative number
     SUB(l=>to_signed(0,din.re'length), r=>din.re, dout=>dout.re, ovfl=>ovf_re, clip=>false);
     SUB(l=>to_signed(0,din.im'length), r=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>false);
-    dout.ovf := dout.ovf or ovf_re or ovf_im; -- always with overflow detection
+    -- This function always reports overflows but only for valid data.
+    dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im));
     dout := reset_on_demand(din=>dout, m=>"-"); -- never reset data
     return dout;
   end function;
@@ -1198,7 +1211,8 @@ package body cplx_pkg is
     -- wrap only occurs when input is most-negative number
     SUB(l=>to_signed(0,din.re'length), r=>din.re, dout=>dout.re, ovfl=>ovf_re, clip=>false);
     SUB(l=>to_signed(0,din.im'length), r=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>false);
-    dout.ovf := dout.ovf or ovf_re or ovf_im; -- always with overflow detection
+    -- This function always reports overflows but only for valid data.
+    dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im));
     dout := reset_on_demand(din=>dout, m=>"-"); -- never reset data
     return dout;
   end function;
@@ -1220,7 +1234,8 @@ package body cplx_pkg is
     -- wrap only occurs when input is most-negative number
     SUB(l=>to_signed(0,din.re'length), r=>din.re, dout=>dout.re, ovfl=>ovf_re, clip=>false);
     SUB(l=>to_signed(0,din.im'length), r=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>false);
-    dout.ovf := dout.ovf or ovf_re or ovf_im; -- always with overflow detection
+    -- This function always reports overflows but only for valid data.
+    dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im));
     dout := reset_on_demand(din=>dout, m=>"-"); -- never reset data
     return dout;
   end function;
@@ -1242,7 +1257,8 @@ package body cplx_pkg is
     -- wrap only occurs when input is most-negative number
     SUB(l=>to_signed(0,din.re'length), r=>din.re, dout=>dout.re, ovfl=>ovf_re, clip=>false);
     SUB(l=>to_signed(0,din.im'length), r=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>false);
-    dout.ovf := dout.ovf or ovf_re or ovf_im; -- always with overflow detection
+    -- This function always reports overflows but only for valid data.
+    dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im));
     dout := reset_on_demand(din=>dout, m=>"-"); -- never reset data
     return dout;
   end function;
@@ -1262,11 +1278,12 @@ package body cplx_pkg is
     assert (w=0 or w=16) -- VHDL-2008 compatibility check
       report "ERROR in conj cplx16 : Output bit width must be w=0 or w=16"
       severity failure;
-    -- by default copy input control signals
-    dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf; dout.re:=din.re;
+    dout.rst:=din.rst; dout.vld:=din.vld; dout.re:=din.re; -- just forward signals
+    if (m='X') then dout.ovf:='0'; else dout.ovf:=din.ovf; end if; -- ignore input overflow ?
     -- overflow/underflow only possible when IM input is most-negative number
     SUB(l=>to_signed(0,din.im'length), r=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
-    if (m='O') then dout.ovf := dout.ovf or ovf_im; end if;
+    -- This function reports overflows only for valid data.
+    if (m='O') then dout.ovf := dout.ovf or (dout.vld and ovf_im); end if;
     dout := reset_on_demand(din=>dout, m=>m);
     return dout;
   end function;
@@ -1286,11 +1303,12 @@ package body cplx_pkg is
     assert (w=0 or w=18) -- VHDL-2008 compatibility check
       report "ERROR in conj cplx18 : Output bit width must be w=0 or w=18"
       severity failure;
-    -- by default copy input control signals
-    dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf; dout.re:=din.re;
+    dout.rst:=din.rst; dout.vld:=din.vld; dout.re:=din.re; -- just forward signals
+    if (m='X') then dout.ovf:='0'; else dout.ovf:=din.ovf; end if; -- ignore input overflow ?
     -- overflow/underflow only possible when IM input is most-negative number
     SUB(l=>to_signed(0,din.im'length), r=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
-    if (m='O') then dout.ovf := dout.ovf or ovf_im; end if;
+    -- This function reports overflows only for valid data.
+    if (m='O') then dout.ovf := dout.ovf or (dout.vld and ovf_im); end if;
     dout := reset_on_demand(din=>dout, m=>m);
     return dout;
   end function;
@@ -1310,11 +1328,12 @@ package body cplx_pkg is
     assert (w=0 or w=20) -- VHDL-2008 compatibility check
       report "ERROR in conj cplx20 : Output bit width must be w=0 or w=20"
       severity failure;
-    -- by default copy input control signals
-    dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf; dout.re:=din.re;
+    dout.rst:=din.rst; dout.vld:=din.vld; dout.re:=din.re; -- just forward signals
+    if (m='X') then dout.ovf:='0'; else dout.ovf:=din.ovf; end if; -- ignore input overflow ?
     -- overflow/underflow only possible when IM input is most-negative number
     SUB(l=>to_signed(0,din.im'length), r=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
-    if (m='O') then dout.ovf := dout.ovf or ovf_im; end if;
+    -- This function reports overflows only for valid data.
+    if (m='O') then dout.ovf := dout.ovf or (dout.vld and ovf_im); end if;
     dout := reset_on_demand(din=>dout, m=>m);
     return dout;
   end function;
@@ -1334,11 +1353,12 @@ package body cplx_pkg is
     assert (w=0 or w=22) -- VHDL-2008 compatibility check
       report "ERROR in conj cplx22 : Output bit width must be w=0 or w=22"
       severity failure;
-    -- by default copy input control signals
-    dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf; dout.re:=din.re;
+    dout.rst:=din.rst; dout.vld:=din.vld; dout.re:=din.re; -- just forward signals
+    if (m='X') then dout.ovf:='0'; else dout.ovf:=din.ovf; end if; -- ignore input overflow ?
     -- overflow/underflow only possible when IM input is most-negative number
     SUB(l=>to_signed(0,din.im'length), r=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
-    if (m='O') then dout.ovf := dout.ovf or ovf_im; end if;
+    -- This function reports overflows only for valid data.
+    if (m='O') then dout.ovf := dout.ovf or (dout.vld and ovf_im); end if;
     dout := reset_on_demand(din=>dout, m=>m);
     return dout;
   end function;
@@ -1415,10 +1435,11 @@ package body cplx_pkg is
       severity failure;
     dout.rst := l.rst or r.rst; --merge
     dout.vld := l.vld and r.vld; -- merge
-    dout.ovf := l.ovf or r.ovf; -- merge
+    if m='X' then dout.ovf:='0'; else dout.ovf := l.ovf or r.ovf; end if; -- merge
     ADD(l=>l.re, r=>r.re, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S'));
     ADD(l=>l.im, r=>r.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
-    if m='O' then dout.ovf := dout.ovf or ovf_re or ovf_im; end if;
+    -- This function reports overflows only for valid data.
+    if m='O' then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
     dout := reset_on_demand(din=>dout, m=>m);
     return dout;
   end function;
@@ -1432,10 +1453,11 @@ package body cplx_pkg is
       severity failure;
     dout.rst := l.rst or r.rst; --merge
     dout.vld := l.vld and r.vld; -- merge
-    dout.ovf := l.ovf or r.ovf; -- merge
+    if m='X' then dout.ovf:='0'; else dout.ovf := l.ovf or r.ovf; end if; -- merge
     ADD(l=>l.re, r=>r.re, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S'));
     ADD(l=>l.im, r=>r.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
-    if m='O' then dout.ovf := dout.ovf or ovf_re or ovf_im; end if;
+    -- This function reports overflows only for valid data.
+    if m='O' then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
     dout := reset_on_demand(din=>dout, m=>m);
     return dout;
   end function;
@@ -1449,10 +1471,11 @@ package body cplx_pkg is
       severity failure;
     dout.rst := l.rst or r.rst; --merge
     dout.vld := l.vld and r.vld; -- merge
-    dout.ovf := l.ovf or r.ovf; -- merge
+    if m='X' then dout.ovf:='0'; else dout.ovf := l.ovf or r.ovf; end if; -- merge
     ADD(l=>l.re, r=>r.re, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S'));
     ADD(l=>l.im, r=>r.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
-    if m='O' then dout.ovf := dout.ovf or ovf_re or ovf_im; end if;
+    -- This function reports overflows only for valid data.
+    if m='O' then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
     dout := reset_on_demand(din=>dout, m=>m);
     return dout;
   end function;
@@ -1466,10 +1489,11 @@ package body cplx_pkg is
       severity failure;
     dout.rst := l.rst or r.rst; --merge
     dout.vld := l.vld and r.vld; -- merge
-    dout.ovf := l.ovf or r.ovf; -- merge
+    if m='X' then dout.ovf:='0'; else dout.ovf := l.ovf or r.ovf; end if; -- merge
     ADD(l=>l.re, r=>r.re, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S'));
     ADD(l=>l.im, r=>r.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
-    if m='O' then dout.ovf := dout.ovf or ovf_re or ovf_im; end if;
+    -- This function reports overflows only for valid data.
+    if m='O' then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
     dout := reset_on_demand(din=>dout, m=>m);
     return dout;
   end function;
@@ -1663,10 +1687,11 @@ package body cplx_pkg is
       severity failure;
     dout.rst := l.rst or r.rst; --merge
     dout.vld := l.vld and r.vld; -- merge
-    dout.ovf := l.ovf or r.ovf; -- merge
+    if m='X' then dout.ovf:='0'; else dout.ovf := l.ovf or r.ovf; end if; -- merge
     SUB(l=>l.re, r=>r.re, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S'));
     SUB(l=>l.im, r=>r.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
-    if m='O' then dout.ovf := dout.ovf or ovf_re or ovf_im; end if;
+    -- This function reports overflows only for valid data.
+    if m='O' then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
     dout := reset_on_demand(din=>dout, m=>m);
     return dout;
   end function;
@@ -1680,10 +1705,11 @@ package body cplx_pkg is
       severity failure;
     dout.rst := l.rst or r.rst; --merge
     dout.vld := l.vld and r.vld; -- merge
-    dout.ovf := l.ovf or r.ovf; -- merge
+    if m='X' then dout.ovf:='0'; else dout.ovf := l.ovf or r.ovf; end if; -- merge
     SUB(l=>l.re, r=>r.re, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S'));
     SUB(l=>l.im, r=>r.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
-    if m='O' then dout.ovf := dout.ovf or ovf_re or ovf_im; end if;
+    -- This function reports overflows only for valid data.
+    if m='O' then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
     dout := reset_on_demand(din=>dout, m=>m);
     return dout;
   end function;
@@ -1697,10 +1723,11 @@ package body cplx_pkg is
       severity failure;
     dout.rst := l.rst or r.rst; --merge
     dout.vld := l.vld and r.vld; -- merge
-    dout.ovf := l.ovf or r.ovf; -- merge
+    if m='X' then dout.ovf:='0'; else dout.ovf := l.ovf or r.ovf; end if; -- merge
     SUB(l=>l.re, r=>r.re, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S'));
     SUB(l=>l.im, r=>r.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
-    if m='O' then dout.ovf := dout.ovf or ovf_re or ovf_im; end if;
+    -- This function reports overflows only for valid data.
+    if m='O' then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
     dout := reset_on_demand(din=>dout, m=>m);
     return dout;
   end function;
@@ -1714,10 +1741,11 @@ package body cplx_pkg is
       severity failure;
     dout.rst := l.rst or r.rst; --merge
     dout.vld := l.vld and r.vld; -- merge
-    dout.ovf := l.ovf or r.ovf; -- merge
+    if m='X' then dout.ovf:='0'; else dout.ovf := l.ovf or r.ovf; end if; -- merge
     SUB(l=>l.re, r=>r.re, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S'));
     SUB(l=>l.im, r=>r.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
-    if m='O' then dout.ovf := dout.ovf or ovf_re or ovf_im; end if;
+    -- This function reports overflows only for valid data.
+    if m='O' then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
     dout := reset_on_demand(din=>dout, m=>m);
     return dout;
   end function;
@@ -1817,11 +1845,14 @@ package body cplx_pkg is
   -- shift left CPLX16
   function shift_left (din:cplx16 ; n:natural; m:cplx_mode:="-") return cplx16 is
     variable ovf_re, ovf_im : std_logic;
-    variable dout : cplx16 := din; -- default
+    variable dout : cplx16;
   begin
+    dout.rst:=din.rst; dout.vld:=din.vld; -- just forward signals
+    if (m='X') then dout.ovf:='0'; else dout.ovf:=din.ovf; end if; -- ignore input overflow ?
     SHIFT_LEFT_CLIP(din=>din.re, n=>n, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S'));
     SHIFT_LEFT_CLIP(din=>din.im, n=>n, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
-    if m='O' then dout.ovf := dout.ovf or ovf_re or ovf_im; end if;
+    -- This function reports overflows only for valid data.
+    if m='O' then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
     dout := reset_on_demand(din=>dout, m=>m);
     return dout;
   end function;
@@ -1838,11 +1869,14 @@ package body cplx_pkg is
   -- shift left CPLX18
   function shift_left (din:cplx18 ; n:natural; m:cplx_mode:="-") return cplx18 is
     variable ovf_re, ovf_im : std_logic;
-    variable dout : cplx18 := din; -- default
+    variable dout : cplx18;
   begin
+    dout.rst:=din.rst; dout.vld:=din.vld; -- just forward signals
+    if (m='X') then dout.ovf:='0'; else dout.ovf:=din.ovf; end if; -- ignore input overflow ?
     SHIFT_LEFT_CLIP(din=>din.re, n=>n, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S'));
     SHIFT_LEFT_CLIP(din=>din.im, n=>n, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
-    if m='O' then dout.ovf := dout.ovf or ovf_re or ovf_im; end if;
+    -- This function reports overflows only for valid data.
+    if m='O' then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
     dout := reset_on_demand(din=>dout, m=>m);
     return dout;
   end function;
@@ -1859,11 +1893,14 @@ package body cplx_pkg is
   -- shift left CPLX20
   function shift_left (din:cplx20 ; n:natural; m:cplx_mode:="-") return cplx20 is
     variable ovf_re, ovf_im : std_logic;
-    variable dout : cplx20 := din; -- default
+    variable dout : cplx20;
   begin
+    dout.rst:=din.rst; dout.vld:=din.vld; -- just forward signals
+    if (m='X') then dout.ovf:='0'; else dout.ovf:=din.ovf; end if; -- ignore input overflow ?
     SHIFT_LEFT_CLIP(din=>din.re, n=>n, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S'));
     SHIFT_LEFT_CLIP(din=>din.im, n=>n, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
-    if m='O' then dout.ovf := dout.ovf or ovf_re or ovf_im; end if;
+    -- This function reports overflows only for valid data.
+    if m='O' then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
     dout := reset_on_demand(din=>dout, m=>m);
     return dout;
   end function;
@@ -1880,11 +1917,14 @@ package body cplx_pkg is
   -- shift left CPLX22
   function shift_left (din:cplx22 ; n:natural; m:cplx_mode:="-") return cplx22 is
     variable ovf_re, ovf_im : std_logic;
-    variable dout : cplx22 := din; -- default
+    variable dout : cplx22;
   begin
+    dout.rst:=din.rst; dout.vld:=din.vld; -- just forward signals
+    if (m='X') then dout.ovf:='0'; else dout.ovf:=din.ovf; end if; -- ignore input overflow ?
     SHIFT_LEFT_CLIP(din=>din.re, n=>n, dout=>dout.re, ovfl=>ovf_re, clip=>(m='S'));
     SHIFT_LEFT_CLIP(din=>din.im, n=>n, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
-    if m='O' then dout.ovf := dout.ovf or ovf_re or ovf_im; end if;
+    -- This function reports overflows only for valid data.
+    if m='O' then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
     dout := reset_on_demand(din=>dout, m=>m);
     return dout;
   end function;
