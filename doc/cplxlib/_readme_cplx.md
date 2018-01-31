@@ -5,16 +5,17 @@
 Introduction
 ============
 
-The CPLX library includes
-* basic building blocks for complex arithmetic
-* common complex record type 
-* support of rounding, clipping/saturation and overflow detection
-* abstraction layer to hide FPGA device specific DSP primitives
-
-The main goal of this library is simplify the process of moving designs between
+The main goal of the CPLX library is to simplify the process of moving designs between
 different FPGA device types and vendors with different DSP cell primitives.
 For this reason all entities in this library do not directly include any device
 type or vendor specific code but use entities of the DSP library instead.
+
+The CPLX library includes
+* common complex record type 
+* basic building blocks for complex arithmetic
+* support of rounding, clipping/saturation and overflow detection
+* abstraction layer to hide FPGA device specific DSP primitives
+
 
 
 Contents
@@ -39,14 +40,14 @@ CPLX Package
 ============
 
 The complex package "CPLX_PKG" includes basic types, functions and procedures for complex integer
-arithmetic that are used for e.g. digital signal processing. It supports FPGA developers to handle
-complex data streams and pipelines in an easier and quicker way using a common complex data
-interface.
+arithmetic that are used for e.g. digital signal processing. A common complex data interface
+supports FPGA developers to handle complex data streams and pipelines in an easier and quicker way.
 The package is based on the IEEE "numeric_std" package and also needs the "ieee_extension" package
-that includes the required additional "signed" arithmetic and comes with this package. The CPLX_PKG
-is available for VHDL-1993 and VHDL-2008. While the VHDL-1993 variant has limitations and might
-need to be extended manually the VHDL-2008 variant has the full flexibility in terms of supported
-bit resolution. Both variants have been developed to be more or less compatible.
+that includes the required additional "signed" arithmetic features.
+The CPLX_PKG is available for VHDL-1993 and VHDL-2008. 
+While the VHDL-1993 variant has limitations and might need to be extended manually the VHDL-2008
+variant has the full flexibility in terms of supported bit resolution.
+Both variants have been developed to be more or less compatible.
 
 The main interface base type is the complex record "CPLX" which includes the most common signals
 required for pipelining and streaming of complex data.
@@ -75,8 +76,8 @@ predefined. The VHDL-1993 variant can be extended to any wanted data resolution 
 In VHDL-2008 subtypes with constrained data resolution are derived from the base types as follows:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
-  subtype cplx16 is cplx(re(15 downto 0), im(15 downto 0));
-  subtype cplx16_vector is cplx_vector(open)(re(15 downto 0), im(15 downto 0));
+  subtype cplx16 is cplx(re(15 downto 0), im(15 downto 0)); -- VHDL-2008
+  subtype cplx16_vector is cplx_vector(open)(re(15 downto 0), im(15 downto 0)); -- VHDL-2008
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Note that always the base types or subtypes of the base types must be used.
@@ -91,6 +92,7 @@ Signals can be declared as follows:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Some options are predefined to switch on/off commonly used features.
+By default all options are disabled to keep to FPGA resource requirements low.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
   type cplx_option is (
@@ -129,27 +131,122 @@ There are three ways of resetting.
 3. Reset data and control signals -
    Same as 2.) but additionally use option 'R' to reset real and imaginary data to 0 when cplx.rst='1'.
 
+Note that the 'R' option typically increases the reset fanout since all data bit are resets. 
+Hence, it is recommended to use the 'R' option only if really needed.
+   
 Furthermore manual resetting is always possible, i.e. not using cplx.rst but resetting the whole CPLX record.
-
 The functions cplx_reset() and cplx_vector_reset() are useful to generate a constant reset value. Examples:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
-  signal b16 : cplx16 := cplx_reset(16,"R");
-  signal vec_b16 : cplx16_vector(0 to 3) := cplx_vector_reset(16,4,"-");
+  signal b16 : cplx16 := cplx_reset(16,"R"); -- with RE/IM reset
+  signal vec_b16 : cplx16_vector(0 to 3) := cplx_vector_reset(16,4,"-"); -- without RE/IM reset
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Another possibility is to plug a reset block into the data pipeline.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
+  dout <= reset_on_demand(din,"R"); -- with RE/IM reset
+  vec_dout <= reset_on_demand(vec_din); -- without RE/IM reset
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 RESIZE FUNCTIONS
 ================
-todo
+The complex resize operation is similar to the numeric_std resize.
+Sign bits are extended when resizing up. MSBs are discarded when resizing down.
+Resizing down supports saturation/clipping and overflow detection.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
+  -- function
+  r18 <= resize(b16,18,'X'); -- resize up and ignore input overflows 
+  vec_r12 <= resize(vec_b16,12,"SO"); -- resize down with overflow detection and saturation/clipping
+  
+  -- procedure (automatic resize from input to output length)
+  resize(b16,r18,'X'); -- resize up and ignore input overflows 
+  resize(vec_b16,vec_r12,"SO"); -- resize down with overflow detection and saturation/clipping
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 
 
 ARITHMETIC FUNCTIONS
 ====================
-todo
+\b Basic functions
+* Complex negation is supported, i.e. overloading of the minus operator. Note that overflow can occur when real or imaginary input is most-negative number.
+* Complex conjugate function conj() is available. Note that overflow can occur when imaginary input is most-negative number.
+* The function swap() supports swaps real and imaginary component.
+
+\b Addition (using FPGA logic not DSP !)
+* addition of complex numbers of different length is always supported
+* supported for single complex numbers and complex vectors
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
+  -- plus operator overloading
+  r18 <= a18 + b16; -- output length is maximum of both input lengths
+  
+  -- function
+  r15 <= add(a18,b16,15,"SO"); -- variable output length with resize and options
+  r <= add(a18,b16,r.re'length,"SO"); -- variable output length with resize and options
+  
+  -- procedure (automatic resize from input to output length)
+  add(a18,b16,r15,"SO"); -- variable output length with resize and options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+\b Summation of vector elements. This function is critical because many successive logic elements might be required.
+Hence, the function sum() is only recommended for vectors with a few elements and/or smaller bit widths.
+Note that pipeline registers cannot be added as part of the function. An adder tree pipeline could be used instead.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl
+  -- function
+  r20 <= sum(vec_a18,20,"SO"); -- variable output length with resize and options
+  r <= sum(vec_a18,r.re'length,"SO"); -- variable output length with resize and options
+  
+  -- procedure (automatic resize from input to output length)
+  sum(vec_a18,r20,"SO"); -- variable output length with resize and options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+\b Subtraction (using FPGA logic not DSP !)
+* subtraction of complex numbers of different length is always supported
+* supported for single complex numbers and complex vectors
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
+  -- minus operator overloading
+  r18 <= a18 - b16; -- output length is maximum of both input lengths
+  
+  -- function
+  r15 <= sub(a18,b16,15,"SO"); -- variable output length with resize and options
+  r <= sub(a18,b16,r.re'length,"SO"); -- variable output length with resize and options
+  
+  -- procedure (automatic resize from input to output length)
+  sub(a18,b16,r15,"SO"); -- variable output length with resize and options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 SHIFT FUNCTIONS
 ===============
-todo
+Complex signed \b shift-left by n bits with optional clipping/saturation and overflow detection.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
+  -- function
+  r18 <= shift_left(a18,4,"SO"); -- output length equals input length
+
+  -- function (vector)
+  vec_r18 <= shift_left(vec_a18,4,"SO"); -- output length equals input length
+  
+  -- procedure (automatic resize from input to output length)
+  shift_left(a18,r20,4,"SO"); -- variable output length with resize
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Complex signed \b shift-right by n bits with optional rounding.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
+  -- function
+  r18 <= shift_right(a18,4,"N"); -- output length equals input length
+
+  -- function (vector)
+  vec_r18 <= shift_right(vec_a18,4,"N"); -- output lengths equal input length
+  
+  -- procedure (automatic resize from input to output length)
+  shift_right(a18,r12,4,"NOS"); -- variable output length with resize
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 CONVERSION FUNCTIONS
 ====================

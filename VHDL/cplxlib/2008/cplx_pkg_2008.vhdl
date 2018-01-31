@@ -155,14 +155,14 @@ package cplx_pkg is
   ) return cplx_vector;
 
   --! @brief Complex data reset on demand - to be placed into the data path.
-  --! Supported options: 'R'
+  --! Forces VLD and OVF and with 'R' option also RE/IM to '0' when RST='1'.
   function reset_on_demand (
     din : cplx; -- data input
     m   : cplx_mode:="-" -- mode, supported options: 'R'
   ) return cplx;
 
   --! @brief Complex data reset on demand - to be placed into the data path.
-  --! Supported options: 'R'
+  --! Forces VLD and OVF and with 'R' option also RE/IM to '0' when RST='1'.
   function reset_on_demand (
     din : cplx_vector; -- data input
     m   : cplx_mode:="-" -- mode, supported options: 'R'
