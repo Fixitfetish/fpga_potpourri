@@ -73,16 +73,6 @@ architecture behave of signed_mult1_accu is
   type array_ireg is array(integer range <>) of r_ireg;
   signal ireg : array_ireg(NUM_INPUT_REG downto 0);
 
-  -- output register pipeline
-  type r_oreg is
-  record
-    dat : signed(OUTPUT_WIDTH-1 downto 0);
-    vld : std_logic;
-    ovf : std_logic;
-  end record;
-  type array_oreg is array(integer range <>) of r_oreg;
-  signal rslt : array_oreg(0 to NUM_OUTPUT_REG);
-
   signal p : signed(PRODUCT_WIDTH-1 downto 0);
   signal sum, chainin_i : signed(ACCU_WIDTH-1 downto 0) := (others=>'0');
   signal accu : signed(ACCU_WIDTH-1 downto 0);

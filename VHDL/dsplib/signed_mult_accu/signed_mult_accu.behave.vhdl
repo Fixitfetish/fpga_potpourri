@@ -62,7 +62,6 @@ architecture behave of signed_mult_accu is
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
   constant GUARD_BITS_EVAL : natural := guard_bits(NUM_MULT,MAX_GUARD_BITS);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
-  constant OUTPUT_WIDTH : positive := result'length;
 
   -- pipeline registers (plus some dummy ones for non-existent adder tree)
   constant NUM_DELAY_REG : natural := NUM_INPUT_REG + NUM_OUTPUT_REG + GUARD_BITS_EVAL;

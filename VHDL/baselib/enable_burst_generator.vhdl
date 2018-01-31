@@ -139,7 +139,6 @@ architecture rtl of enable_burst_generator is
 begin
 
   p_gen : process(clock)
-    variable v_enable : std_logic;
     variable v_incr : signed(CNT_WIDTH-1 downto 0);
     variable v_cnt_decr : signed(CNT_WIDTH-1 downto 0);
     variable v_cnt_max : signed(CNT_WIDTH-1 downto 0);

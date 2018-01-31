@@ -943,6 +943,7 @@ package body ieee_extension is
    variable dout : unsigned(n-1 downto 0);
  begin
    RESIZE_CLIP(din=>din, dout=>dout, ovfl=>dummy, clip=>clip);
+   dummy := dummy; -- avoid warning "dummy never read"
    return dout;
  end function;
 
@@ -956,6 +957,7 @@ package body ieee_extension is
    variable dout : signed(n-1 downto 0);
  begin
    RESIZE_CLIP(din=>din, dout=>dout, ovfl=>dummy, clip=>clip);
+   dummy := dummy; -- avoid warning "dummy never read"
    return dout;
  end function;
 
@@ -1004,6 +1006,7 @@ package body ieee_extension is
    variable dummy : std_logic;
  begin
    SHIFT_LEFT_CLIP(din=>din, n=>n, dout=>dout, ovfl=>dummy, clip=>clip);
+   dummy := dummy; -- avoid warning "dummy never read"
    return dout;
  end function;
 
@@ -1018,6 +1021,7 @@ package body ieee_extension is
    variable dummy : std_logic;
  begin
    SHIFT_LEFT_CLIP(din=>din, n=>n, dout=>dout, ovfl=>dummy, clip=>clip);
+   dummy := dummy; -- avoid warning "dummy never read"
    return dout;
  end function;
 
@@ -1205,6 +1209,7 @@ package body ieee_extension is
  begin
    -- overflow not possible when LOUT>LIN
    ADD(l=>l, r=>r, dout=>res, ovfl=>dummy, clip=>(LOUT<=LIN and clip));
+   dummy := dummy; -- avoid warning "dummy never read"
    return res;
  end function;
 
@@ -1221,6 +1226,7 @@ package body ieee_extension is
    variable dummy : std_logic;
  begin
    ADD(l=>l, r=>to_unsigned(r,LOUT), dout=>res, ovfl=>dummy, clip=>clip);
+   dummy := dummy; -- avoid warning "dummy never read"
    return res;
  end function;
 
@@ -1237,6 +1243,7 @@ package body ieee_extension is
    variable dummy : std_logic;
  begin
    ADD(l=>to_unsigned(l,LOUT), r=>r, dout=>res, ovfl=>dummy, clip=>clip);
+   dummy := dummy; -- avoid warning "dummy never read"
    return res;
  end function;
 
@@ -1254,6 +1261,7 @@ package body ieee_extension is
  begin
    -- overflow not possible when LOUT>LIN
    ADD(l=>l, r=>r, dout=>res, ovfl=>dummy, clip=>(LOUT<=LIN and clip));
+   dummy := dummy; -- avoid warning "dummy never read"
    return res;
  end function;
 
@@ -1270,6 +1278,7 @@ package body ieee_extension is
    variable dummy : std_logic;
  begin
    ADD(l=>l, r=>to_signed(r,LOUT), dout=>res, ovfl=>dummy, clip=>clip);
+   dummy := dummy; -- avoid warning "dummy never read"
    return res;
  end function;
 
@@ -1286,6 +1295,7 @@ package body ieee_extension is
    variable dummy : std_logic;
  begin
    ADD(l=>to_signed(l,LOUT), r=>r, dout=>res, ovfl=>dummy, clip=>clip);
+   dummy := dummy; -- avoid warning "dummy never read"
    return res;
  end function;
 
@@ -1348,6 +1358,7 @@ package body ieee_extension is
  begin
    -- overflow not possible when LOUT>LIN
    SUB(l=>l, r=>r, dout=>res, ovfl=>dummy, clip=>(LOUT<=LIN and clip));
+   dummy := dummy; -- avoid warning "dummy never read"
    return res;
  end function;
 
@@ -1364,6 +1375,7 @@ package body ieee_extension is
    variable dummy : std_logic;
  begin
    SUB(l=>l, r=>to_unsigned(r,LOUT), dout=>res, ovfl=>dummy, clip=>clip);
+   dummy := dummy; -- avoid warning "dummy never read"
    return res;
  end function;
 
@@ -1380,6 +1392,7 @@ package body ieee_extension is
    variable dummy : std_logic;
  begin
    SUB(l=>to_unsigned(l,LOUT), r=>r, dout=>res, ovfl=>dummy, clip=>clip);
+   dummy := dummy; -- avoid warning "dummy never read"
    return res;
  end function;
 
@@ -1397,6 +1410,7 @@ package body ieee_extension is
  begin
    -- overflow not possible when LOUT>LIN
    SUB(l=>l, r=>r, dout=>res, ovfl=>dummy, clip=>(LOUT<=LIN and clip));
+   dummy := dummy; -- avoid warning "dummy never read"
    return res;
  end function;
 
@@ -1413,6 +1427,7 @@ package body ieee_extension is
    variable dummy : std_logic;
  begin
    SUB(l=>l, r=>to_signed(r,LOUT), dout=>res, ovfl=>dummy, clip=>clip);
+   dummy := dummy; -- avoid warning "dummy never read"
    return res;
  end function;
 
@@ -1429,6 +1444,7 @@ package body ieee_extension is
    variable dummy : std_logic;
  begin
    SUB(l=>to_signed(l,LOUT), r=>r, dout=>res, ovfl=>dummy, clip=>clip);
+   dummy := dummy; -- avoid warning "dummy never read"
    return res;
  end function;
 

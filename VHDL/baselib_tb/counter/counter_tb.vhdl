@@ -26,7 +26,6 @@ architecture sim of counter_tb is
   constant HOUR_WIDTH : positive := 5; -- 0..23
   signal hour : std_logic_vector(HOUR_WIDTH-1 downto 0);
   signal hour_incr, hour_decr : std_logic := '0';
-  signal hour_min, hour_max : std_logic;
 
 begin
 
