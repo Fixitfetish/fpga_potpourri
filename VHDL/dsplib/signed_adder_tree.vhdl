@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_adder_tree.vhdl
 --! @author     Fixitfetish
---! @date       01/May/2017
---! @version    0.30
+--! @date       31/Jan/2018
+--! @version    0.40
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -12,6 +12,7 @@ library ieee;
 library baselib;
  use baselib.ieee_extension_types.all;
  use baselib.ieee_extension.all;
+library dsplib;
 
 --! @brief Signed Adder Tree. Sum of N signed values.
 
@@ -53,8 +54,7 @@ port (
   vld        : in  std_logic;
   --! signed input (for VHDL-1993 width is limited to 48 bits)
   x          : in  signed48_vector;
-  --! @brief Resulting accumulator output (optionally rounded and clipped).
-  --! The standard result output might be unused when chain output is used instead.
+  --! Resulting adder tree output (optionally rounded and clipped).
   result     : out signed;
   --! Valid signal for result output, high-active
   result_vld : out std_logic;
@@ -79,14 +79,10 @@ end entity;
 
 -------------------------------------------------------------------------------
 
---! @brief This is an implementation of the entity 
---! @link signed_adder_tree signed_adder_tree @endlink .
+--! @brief This is an implementation of the entity signed_adder_tree.
 --! N signed values are added using FPGA logic.
 
-architecture behave of signed_adder_tree is
-
-  -- identifier for reports of warnings and errors
---  constant IMPLEMENTATION : string := signed_adder_tree'INSTANCE_NAME;
+architecture rtl of signed_adder_tree is
 
   -- number of required adder tree stages - is at least 1 +++ TODO 0!?
   constant INPUT_LENGTH : natural := x'length;
@@ -94,11 +90,6 @@ architecture behave of signed_adder_tree is
 
   -- data width after last adder stage
   constant FINAL_WIDTH : natural := INPUT_WIDTH + NUM_STAGES;
-  constant FINAL_SHIFTED_WIDTH : natural := FINAL_WIDTH - OUTPUT_SHIFT_RIGHT;
-
-  -- derived constants
-  constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
-  constant OUTPUT_WIDTH : positive := result'length;
 
   -- input register pipeline
   type t_xvec is array(integer range <>) of signed(INPUT_WIDTH-1 downto 0);
@@ -118,18 +109,6 @@ architecture behave of signed_adder_tree is
   constant MAX_NUM_DIN : natural := 2**(NUM_STAGES-1);
   type t_dsum is array(1 to NUM_STAGES, 0 to MAX_NUM_DIN-1) of signed(FINAL_WIDTH-1 downto 0);
   signal dsum : t_dsum := (others=>(others=>(others=>'-')));
-
-  signal final_shifted : signed(FINAL_SHIFTED_WIDTH-1 downto 0);
-
-  -- output register pipeline
-  type r_oreg is
-  record
-    dat : signed(OUTPUT_WIDTH-1 downto 0);
-    vld : std_logic;
-    ovf : std_logic;
-  end record;
-  type array_oreg is array(integer range <>) of r_oreg;
-  signal rslt : array_oreg(1 to NUM_OUTPUT_REG);
 
   -- calculate number of inputs to each stage
   function calc_num_inputs(n:natural) return integer_vector is
@@ -227,40 +206,30 @@ begin
 
   end generate;
 
-  -- shift right and round
-  g_rnd_off : if (not ROUND_ENABLE) generate
-    final_shifted <= RESIZE(SHIFT_RIGHT_ROUND(dout(NUM_STAGES,0), OUTPUT_SHIFT_RIGHT),FINAL_SHIFTED_WIDTH);
-  end generate;
-  g_rnd_on : if (ROUND_ENABLE) generate
-    final_shifted <= RESIZE(SHIFT_RIGHT_ROUND(dout(NUM_STAGES,0), OUTPUT_SHIFT_RIGHT, nearest),FINAL_SHIFTED_WIDTH);
-  end generate;
-  
-  p_out : process(final_shifted)
-    variable v_dat : signed(OUTPUT_WIDTH-1 downto 0);
-    variable v_ovf : std_logic;
-  begin
-    RESIZE_CLIP(din=>final_shifted, dout=>v_dat, ovfl=>v_ovf, clip=>OUTPUT_CLIP);
-    rslt(1).dat <= v_dat;
-    if OUTPUT_OVERFLOW then rslt(1).ovf<=v_ovf; else rslt(1).ovf<='0'; end if;
-  end process;
-
   -- input into VLD pipeline
   vld_q(0) <= ireg(0).vld;
   gvld : for n in 1 to NUM_PIPELINE_REG generate
     vld_q(n) <= vld_q(n-1) when rising_edge(clk);
   end generate;
-  rslt(1).vld <= vld_q(NUM_PIPELINE_REG);
 
-  g_oreg : if NUM_OUTPUT_REG>=2 generate
-    g_loop : for n in 2 to NUM_OUTPUT_REG generate
-      rslt(n) <= rslt(n-1) when rising_edge(clk);
-    end generate;
-  end generate;
-
-  -- map result to output port
-  result <= rslt(NUM_OUTPUT_REG).dat;
-  result_vld <= rslt(NUM_OUTPUT_REG).vld;
-  result_ovf <= rslt(NUM_OUTPUT_REG).ovf;
+  -- right-shift, round and resize, clipping
+  i_out : entity dsplib.dsp_output_logic
+  generic map(
+    PIPELINE_STAGES    => NUM_OUTPUT_REG-1,
+    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
+    OUTPUT_ROUND       => OUTPUT_ROUND,
+    OUTPUT_CLIP        => OUTPUT_CLIP,
+    OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
+  )
+  port map (
+    clk         => clk,
+    rst         => rst,
+    dsp_out     => dout(NUM_STAGES,0),
+    dsp_out_vld => vld_q(NUM_PIPELINE_REG),
+    result      => result,
+    result_vld  => result_vld,
+    result_ovf  => result_ovf
+  );
 
   -- report constant number of pipeline register stages
   -- (note: first output register is last pipeline register)
