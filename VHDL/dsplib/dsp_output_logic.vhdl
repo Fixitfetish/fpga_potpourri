@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       dsp_output_logic.vhdl
 --! @author     Fixitfetish
---! @date       27/Jan/2018
---! @version    0.11
+--! @date       31/Jan/2018
+--! @version    0.12
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -22,7 +22,7 @@ library baselib;
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
 --! I1 : dsp_output_logic
 --! generic map(
---!   PIPELINE_STAGES    => natural,  -- number of pipeline registers
+--!   PIPELINE_STAGES    => integer,  -- number of pipeline registers
 --!   OUTPUT_SHIFT_RIGHT => natural,  -- number of right shifts
 --!   OUTPUT_ROUND       => boolean,  -- enable rounding half-up
 --!   OUTPUT_CLIP        => boolean,  -- enable clipping
@@ -42,10 +42,12 @@ library baselib;
 
 entity dsp_output_logic is
 generic (
-  --! @brief Number of additional logic pipeline registers after DSP cell output register.
-  --! At least one pipeline register is recommended when logic for rounding,
-  --! clipping and/or overflow detection is enabled.
-  PIPELINE_STAGES : natural := 1;
+  --! @brief Number of additional logic pipeline registers after DSP cell output
+  --! register. At least one pipeline register is recommended when logic for 
+  --! rounding, clipping and/or overflow detection is enabled. 
+  --! Negative values are allowed intentionally. For values <=0 just logic
+  --! without any pipeline registers is generated.
+  PIPELINE_STAGES : integer := 1;
   --! Number of bits by which the DSP output is shifted right.
   OUTPUT_SHIFT_RIGHT : natural := 0;
   --! @brief Round 'nearest' (half-up) of result output.
@@ -96,6 +98,7 @@ architecture rtl of dsp_output_logic is
   constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
   constant SHIFTED_WIDTH : natural := dsp_out'length - OUTPUT_SHIFT_RIGHT;
   constant OUTPUT_WIDTH : positive := result'length;
+  constant PIPELINE_REGS : natural := MAXIMUM(0,PIPELINE_STAGES); -- ensure >=0
 
   -- right shifted DSP cell output
   signal dsp_out_shifted : signed(SHIFTED_WIDTH-1 downto 0) := (others=>'0');
@@ -108,7 +111,7 @@ architecture rtl of dsp_output_logic is
     ovf : std_logic;
   end record;
   type array_result is array(integer range <>) of r_result;
-  signal rslt : array_result(0 to PIPELINE_STAGES) := (others=>(dat=>(others=>'0'),vld|ovf=>'0'));
+  signal rslt : array_result(0 to PIPELINE_REGS) := (others=>(dat=>(others=>'0'),vld|ovf=>'0'));
 
 begin
 
@@ -139,8 +142,8 @@ begin
   end process;
 
   -- pipeline registers always in logic
-  g_out : if PIPELINE_STAGES>=1 generate
-    g_loop : for n in 1 to PIPELINE_STAGES generate
+  g_out : if PIPELINE_REGS>=1 generate
+    g_loop : for n in 1 to PIPELINE_REGS generate
       rslt(n).vld <= (rslt(n-1).vld and (not rst)) when rising_edge(clk);
       rslt(n).ovf <= (rslt(n-1).ovf and (not rst)) when rising_edge(clk);
       -- data is not reset to keep reset fan-out low
@@ -149,8 +152,8 @@ begin
   end generate;
 
   -- map result to output port
-  result <= rslt(PIPELINE_STAGES).dat;
-  result_vld <= rslt(PIPELINE_STAGES).vld;
-  result_ovf <= rslt(PIPELINE_STAGES).ovf;
+  result <= rslt(PIPELINE_REGS).dat;
+  result_vld <= rslt(PIPELINE_REGS).vld;
+  result_ovf <= rslt(PIPELINE_REGS).ovf;
 
 end architecture;
