@@ -26,7 +26,7 @@ set LIB=dsplib
 set SCRIPTPATH=%~dp0
 
 echo.--------------------------------------------------------------------------
-echo.INFO: Starting to compile entities and behavioral architectures of the DSPLIB Library ...
+echo.INFO: Starting to compile behavioral architectures of the DSPLIB Library ...
 :: Arguments
 if "%1"=="" (
   :: by default use VHDL-1993
@@ -66,29 +66,14 @@ if not exist %VCOM_EXE% (
 set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 @echo on
 
-:: independent
-%COMPILE% %SCRIPTPATH%\signed_output_logic.vhdl
-%COMPILE% %SCRIPTPATH%\signed_accu.vhdl
-%COMPILE% %SCRIPTPATH%\signed_adder_tree.vhdl
-
-:: Entities
-%COMPILE% %SCRIPTPATH%\delay_dsp\delay_dsp.vhdl
-%COMPILE% %SCRIPTPATH%\signed_mult1_accu\signed_mult1_accu.vhdl
-%COMPILE% %SCRIPTPATH%\signed_mult2_accu\signed_mult2_accu.vhdl
-%COMPILE% %SCRIPTPATH%\signed_mult2_sum\signed_mult2_sum.vhdl
-%COMPILE% %SCRIPTPATH%\signed_mult\signed_mult.vhdl
-%COMPILE% %SCRIPTPATH%\signed_mult_accu\signed_mult_accu.vhdl
-%COMPILE% %SCRIPTPATH%\signed_mult_sum\signed_mult_sum.vhdl
-%COMPILE% %SCRIPTPATH%\signed_preadd_mult1_accu\signed_preadd_mult1_accu.vhdl
-
 :: Architectures
-%COMPILE% %SCRIPTPATH%\delay_dsp\delay_dsp.behave.vhdl
-%COMPILE% %SCRIPTPATH%\signed_mult1_accu\signed_mult1_accu.behave.vhdl
-%COMPILE% %SCRIPTPATH%\signed_mult2_accu\signed_mult2_accu.behave.vhdl
-%COMPILE% %SCRIPTPATH%\signed_mult2_sum\signed_mult2_sum.behave.vhdl
-%COMPILE% %SCRIPTPATH%\signed_mult\signed_mult.behave.vhdl
-%COMPILE% %SCRIPTPATH%\signed_mult_accu\signed_mult_accu.behave.vhdl
-%COMPILE% %SCRIPTPATH%\signed_mult_sum\signed_mult_sum.behave.vhdl
+%COMPILE% %SCRIPTPATH%\delay_dsp.behave.vhdl
+%COMPILE% %SCRIPTPATH%\signed_mult1_accu.behave.vhdl
+%COMPILE% %SCRIPTPATH%\signed_mult2_accu.behave.vhdl
+%COMPILE% %SCRIPTPATH%\signed_mult2_sum.behave.vhdl
+%COMPILE% %SCRIPTPATH%\signed_mult.behave.vhdl
+%COMPILE% %SCRIPTPATH%\signed_mult_accu.behave.vhdl
+%COMPILE% %SCRIPTPATH%\signed_mult_sum.behave.vhdl
 
 :END
 @EXIT /B

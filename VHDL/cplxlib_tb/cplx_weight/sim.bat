@@ -18,7 +18,8 @@ set VSIM_EXE=%GHDL_PATH%\bin\ghdl.exe
 
 :: analyze library files
 @call %LIBROOT%\baselib\_compile.bat %VHDL%
-@call %LIBROOT%\dsplib\_compile_behave.bat %VHDL%
+@call %LIBROOT%\dsplib\_compile.bat %VHDL%
+@call %LIBROOT%\dsplib\behave\_compile.bat %VHDL%
 @call %LIBROOT%\cplxlib\_compile.bat %VHDL%
 
 @echo off

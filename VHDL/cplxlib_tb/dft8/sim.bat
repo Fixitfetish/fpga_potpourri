@@ -29,10 +29,11 @@ set VCD=output\dft8.vcd
 if exist %VCD% (
   del %VCD%
 )
-
+ 
 :: analyze library files
 @call %LIBROOT%\baselib\_compile.bat
-@call %LIBROOT%\dsplib\_compile_behave.bat
+@call %LIBROOT%\dsplib\_compile.bat
+@call %LIBROOT%\dsplib\behave\_compile.bat
 @call %LIBROOT%\cplxlib\_compile.bat
 
 :: analyze testbench

@@ -5,8 +5,10 @@
 # path/location of this script
 set ULTRASCALE_PATH [ file dirname [dict get [ info frame 0 ] file ] ]
 
+# create file list
+set filelist [list]
+
 # get file list
-source $ULTRASCALE_PATH/../common/_filelist.tcl 
 source $ULTRASCALE_PATH/_filelist.tcl 
 
 # add files to Vivado project

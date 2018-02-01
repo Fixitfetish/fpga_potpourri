@@ -9,17 +9,17 @@ set files [list]
 
 # stratixv specific
 lappend files dsp_pkg.stratixv.vhdl
-lappend files ../signed_mult1_accu/signed_mult1_accu.stratixv.vhdl
-lappend files ../signed_mult1add1_accu/signed_mult1add1_accu.stratixv.vhdl
-lappend files ../signed_mult1add1_sum/signed_mult1add1_sum.stratixv.vhdl
-lappend files ../signed_mult2_accu/signed_mult2_accu.stratixv.vhdl
-lappend files ../signed_mult2/signed_mult2.stratixv.vhdl
-lappend files ../signed_mult3/signed_mult3.stratixv.vhdl
-lappend files ../signed_mult4_sum/signed_mult4_sum.stratixv.vhdl
-lappend files ../signed_mult_accu/signed_mult_accu.stratixv.vhdl
-lappend files ../signed_mult_sum/signed_mult_sum.stratixv.vhdl
-lappend files ../signed_mult/signed_mult.stratixv.vhdl
-lappend files ../signed_preadd_mult1_accu/signed_preadd_mult1_accu.stratixv.vhdl
+lappend files signed_mult1_accu.stratixv.vhdl
+lappend files signed_mult1add1_accu.stratixv.vhdl
+lappend files signed_mult1add1_sum.stratixv.vhdl
+lappend files signed_mult2_accu.stratixv.vhdl
+lappend files signed_mult2.stratixv.vhdl
+lappend files signed_mult3.stratixv.vhdl
+lappend files signed_mult4_sum.stratixv.vhdl
+lappend files signed_mult_accu.stratixv.vhdl
+lappend files signed_mult_sum.stratixv.vhdl
+lappend files signed_mult.stratixv.vhdl
+lappend files signed_preadd_mult1_accu.stratixv.vhdl
 
 lappend files signed_multn_chain_accu.stratixv.vhdl
 
