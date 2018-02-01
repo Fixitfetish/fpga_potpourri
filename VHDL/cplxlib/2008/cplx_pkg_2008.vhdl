@@ -156,14 +156,14 @@ package cplx_pkg is
 
   --! @brief Complex data reset on demand - to be placed into the data path.
   --! Forces VLD and OVF and with 'R' option also RE/IM to '0' when RST='1'.
-  function reset_on_demand (
+  function cplx_reset (
     din : cplx; -- data input
     m   : cplx_mode:="-" -- mode, supported options: 'R'
   ) return cplx;
 
   --! @brief Complex data reset on demand - to be placed into the data path.
   --! Forces VLD and OVF and with 'R' option also RE/IM to '0' when RST='1'.
-  function reset_on_demand (
+  function cplx_vector_reset (
     din : cplx_vector; -- data input
     m   : cplx_mode:="-" -- mode, supported options: 'R'
   ) return cplx_vector;
@@ -494,7 +494,7 @@ package body cplx_pkg is
     return dout;
   end function;
 
-  function reset_on_demand (din:cplx; m:cplx_mode:="-") return cplx is
+  function cplx_reset (din:cplx; m:cplx_mode:="-") return cplx is
     variable dout : cplx(re(din.re'range),im(din.im'range));
   begin
     dout := din; -- by default output = input
@@ -506,13 +506,13 @@ package body cplx_pkg is
     return dout;
   end function;
 
-  function reset_on_demand (
+  function cplx_vector_reset (
     din : cplx_vector; -- data input
     m   : cplx_mode:="-" -- mode, supported options: 'R'
   ) return cplx_vector is
     variable dout : cplx_vector(din'range)(re(din(din'left).re'range),im(din(din'left).im'range));
   begin
-    for i in din'range loop dout(i):=reset_on_demand(din=>din(i), m=>m); end loop; 
+    for i in din'range loop dout(i):=cplx_reset(din=>din(i), m=>m); end loop; 
     return dout;
   end function;
 
@@ -534,7 +534,7 @@ package body cplx_pkg is
     RESIZE_CLIP(din=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
     -- If enabled this function reports overflows (only for valid data).
     if m='O' then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
-    dout := reset_on_demand(din=>dout, m=>m);
+    dout := cplx_reset(din=>dout, m=>m);
     return dout;
   end function;
 
@@ -579,7 +579,7 @@ package body cplx_pkg is
     SUB(l=>to_signed(0,din.im'length), r=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>false);
     -- This function always reports overflows but only for valid data.
     dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im));
-    dout := reset_on_demand(din=>dout, m=>"-"); -- never reset data
+    dout := cplx_reset(din=>dout, m=>"-"); -- never reset data
     return dout;
   end function;
 
@@ -613,7 +613,7 @@ package body cplx_pkg is
     SUB(l=>to_signed(0,LIN_IM), r=>din.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
     -- This function reports overflows only for valid data.
     if (m='O') then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
-    dout := reset_on_demand(din=>dout, m=>m);
+    dout := cplx_reset(din=>dout, m=>m);
     return dout;
   end function;
 
@@ -675,7 +675,7 @@ package body cplx_pkg is
     ADD(l=>l.im, r=>r.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
     -- This function reports overflows only for valid data.
     if (m='O') then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
-    dout := reset_on_demand(din=>dout, m=>m);
+    dout := cplx_reset(din=>dout, m=>m);
   end procedure;
 
   function add (
@@ -778,7 +778,7 @@ package body cplx_pkg is
     SUB(l=>l.im, r=>r.im, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
     -- This function reports overflows only for valid data.
     if (m='O') then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
-    dout := reset_on_demand(din=>dout, m=>m);
+    dout := cplx_reset(din=>dout, m=>m);
   end procedure;
 
   -- complex subtraction with optional clipping and overflow detection
@@ -853,7 +853,7 @@ package body cplx_pkg is
     SHIFT_LEFT_CLIP(din=>din.im, n=>n, dout=>dout.im, ovfl=>ovf_im, clip=>(m='S'));
     -- This function reports overflows only for valid data.
     if m='O' then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
-    dout := reset_on_demand(din=>dout, m=>m);
+    dout := cplx_reset(din=>dout, m=>m);
   end procedure;
 
   -- complex signed shift left with optional clipping/saturation and overflow detection
@@ -920,7 +920,7 @@ package body cplx_pkg is
     end if;
     -- This function reports overflows only for valid data.
     if m='O' then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
-    dout := reset_on_demand(din=>dout, m=>m);
+    dout := cplx_reset(din=>dout, m=>m);
   end procedure;
 
   function shift_right (

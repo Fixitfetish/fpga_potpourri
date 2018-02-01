@@ -145,8 +145,8 @@ The functions cplx_reset() and cplx_vector_reset() are useful to generate a cons
 Another possibility is to plug a reset block into the data pipeline.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
-  dout <= reset_on_demand(din,"R"); -- with RE/IM reset
-  vec_dout <= reset_on_demand(vec_din); -- without RE/IM reset
+  dout <= cplx_reset(din,"R"); -- with RE/IM reset
+  vec_dout <= cplx_vector_reset(vec_din); -- without RE/IM reset
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
