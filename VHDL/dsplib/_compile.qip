@@ -3,7 +3,7 @@
 # The device specific architectures are compiled separately.
 # It is required to compile the BASELIB library first !
 
-set_global_assignment -library dsplib -name VHDL_FILE [file join $::quartus(qip_path) "dsp_output_logic.vhdl"]
+set_global_assignment -library dsplib -name VHDL_FILE [file join $::quartus(qip_path) "signed_output_logic.vhdl"]
 set_global_assignment -library dsplib -name VHDL_FILE [file join $::quartus(qip_path) "signed_accu.vhdl"]
 set_global_assignment -library dsplib -name VHDL_FILE [file join $::quartus(qip_path) "signed_adder_tree.vhdl"]
 

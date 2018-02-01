@@ -67,7 +67,7 @@ if "%VCOM_EXE%"=="" (
 set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 @echo on
 %COMPILE% %SCRIPTPATH%\delay_dsp.vhdl
-%COMPILE% %SCRIPTPATH%\dsp_output_logic.vhdl
+%COMPILE% %SCRIPTPATH%\signed_output_logic.vhdl
 %COMPILE% %SCRIPTPATH%\signed_accu.vhdl
 %COMPILE% %SCRIPTPATH%\signed_adder_tree.vhdl
 %COMPILE% %SCRIPTPATH%\signed_mult1add1_accu.vhdl

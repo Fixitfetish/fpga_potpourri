@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       dsp_output_logic.vhdl
+--! @file       signed_output_logic.vhdl
 --! @author     Fixitfetish
 --! @date       31/Jan/2018
 --! @version    0.12
@@ -20,7 +20,7 @@ library baselib;
 --!
 --! VHDL Instantiation Template:
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
---! I1 : dsp_output_logic
+--! I1 : signed_output_logic
 --! generic map(
 --!   PIPELINE_STAGES    => integer,  -- number of pipeline registers
 --!   OUTPUT_SHIFT_RIGHT => natural,  -- number of right shifts
@@ -40,7 +40,7 @@ library baselib;
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 --!
 
-entity dsp_output_logic is
+entity signed_output_logic is
 generic (
   --! @brief Number of additional logic pipeline registers after DSP cell output
   --! register. At least one pipeline register is recommended when logic for 
@@ -79,12 +79,12 @@ port (
 begin
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
-    report "WARNING in " & dsp_output_logic'INSTANCE_NAME & ": " & 
+    report "WARNING in " & signed_output_logic'INSTANCE_NAME & ": " & 
            "Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
 
   assert (OUTPUT_SHIFT_RIGHT<dsp_out'length)
-    report "ERROR in " & dsp_output_logic'INSTANCE_NAME & ": " & 
+    report "ERROR in " & signed_output_logic'INSTANCE_NAME & ": " & 
            "Number of right shifts shall not exceed data input width."
     severity failure;
 
@@ -92,7 +92,7 @@ end entity;
 
 -------------------------------------------------------------------------------
 
-architecture rtl of dsp_output_logic is
+architecture rtl of signed_output_logic is
 
   -- derived constants
   constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);

@@ -67,7 +67,7 @@ set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 @echo on
 
 :: independent
-%COMPILE% %SCRIPTPATH%\dsp_output_logic.vhdl
+%COMPILE% %SCRIPTPATH%\signed_output_logic.vhdl
 %COMPILE% %SCRIPTPATH%\signed_accu.vhdl
 %COMPILE% %SCRIPTPATH%\signed_adder_tree.vhdl
 

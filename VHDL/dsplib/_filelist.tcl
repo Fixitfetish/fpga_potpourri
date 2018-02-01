@@ -7,7 +7,7 @@ set DSPLIB_PATH [ file dirname [dict get [ info frame 0 ] file ] ]
 set files [list]
 
 # entities
-lappend files dsp_output_logic.vhdl
+lappend files signed_output_logic.vhdl
 lappend files signed_adder_tree.vhdl
 
 # generic entities without architecture

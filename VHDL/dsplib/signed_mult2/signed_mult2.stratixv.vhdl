@@ -256,7 +256,7 @@ begin
   end generate;
 
   -- right-shift, rounding and clipping
-  i_out0 : entity dsplib.dsp_output_logic
+  i_out0 : entity dsplib.signed_output_logic
   generic map(
     PIPELINE_STAGES    => NUM_OUTPUT_REG-1,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -277,7 +277,7 @@ begin
     result_ovf  => result_ovf(0)
   );
 
-  i_out1 : entity dsplib.dsp_output_logic
+  i_out1 : entity dsplib.signed_output_logic
   generic map(
     PIPELINE_STAGES    => NUM_OUTPUT_REG-1,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
