@@ -44,7 +44,7 @@ begin
   denominator <= to_unsigned(7,denominator'length);
   burst_length <= to_unsigned(18,burst_length'length);
 
-  finish <= '1' after 1000*PERIOD;
+  finish <= '1' after 200*PERIOD;
 
 
   i_dutycycle : entity baselib.enable_burst_generator(rtl)
