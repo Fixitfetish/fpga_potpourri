@@ -55,7 +55,7 @@ begin
   generic map(
     NUM_SUMMAND        => NUM_SUMMAND, -- typically 4 + summands contributed through chain input 
     USE_CHAIN_INPUT    => true,
-    NUM_INPUT_REG      => NUM_INPUT_REG,
+    NUM_INPUT_REG      => NUM_INPUT_REG+1,
     NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     OUTPUT_ROUND       => OUTPUT_ROUND,
@@ -82,7 +82,7 @@ begin
   -- adds chain input and 2 of 4 multiplier results
   DSP1 : entity dsplib.signed_mult2_accu(ultrascale)
   generic map(
-    NUM_SUMMAND        => NUM_SUMMAND-2, -- irrelevant because only chain output is used
+    NUM_SUMMAND        => 2, -- irrelevant because only chain output is used
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
     NUM_INPUT_REG      => NUM_INPUT_REG,
     NUM_OUTPUT_REG     => 1,
