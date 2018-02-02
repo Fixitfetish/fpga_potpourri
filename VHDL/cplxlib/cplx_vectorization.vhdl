@@ -29,6 +29,9 @@ port (
   vec_out : out cplx_vector --! Data output vector of length N
 );
 begin
+
+  -- synthesis translate_off (Altera Quartus)
+  -- pragma translate_off (Xilinx Vivado , Synopsys)
   assert (vec_out'length>=2)
     report "ERROR in " & cplx_vectorization'INSTANCE_NAME & 
            " Output vector must have at least two elements."
@@ -38,4 +41,7 @@ begin
     report "ERROR in " & cplx_vectorization'INSTANCE_NAME & 
            " Output vector must have 'TO' range."
     severity failure;
+  -- synthesis translate_on (Altera Quartus)
+  -- pragma translate_on (Xilinx Vivado , Synopsys)
+
 end entity;

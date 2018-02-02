@@ -142,10 +142,14 @@ port (
 );
 begin
 
+  -- synthesis translate_off (Altera Quartus)
+  -- pragma translate_off (Xilinx Vivado , Synopsys)
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
     report "WARNING in " & signed_mult1add1_accu'INSTANCE_NAME &
            " Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
+  -- synthesis translate_on (Altera Quartus)
+  -- pragma translate_on (Xilinx Vivado , Synopsys)
 
 end entity;
 

@@ -78,6 +78,8 @@ port (
 );
 begin
 
+  -- synthesis translate_off (Altera Quartus)
+  -- pragma translate_off (Xilinx Vivado , Synopsys)
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
     report "WARNING in " & signed_output_logic'INSTANCE_NAME & ": " & 
            "Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
@@ -87,6 +89,8 @@ begin
     report "ERROR in " & signed_output_logic'INSTANCE_NAME & ": " & 
            "Number of right shifts shall not exceed data input width."
     severity failure;
+  -- synthesis translate_on (Altera Quartus)
+  -- pragma translate_on (Xilinx Vivado , Synopsys)
 
 end entity;
 

@@ -4,7 +4,7 @@
 
 # library name
 set LIB "dsplib"
-set VHDL 1993
+set VHDL 2008
 
 # path/location of this script
 set BEHAVE_PATH [ file dirname [dict get [ info frame 0 ] file ] ]

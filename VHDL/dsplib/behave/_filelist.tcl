@@ -7,7 +7,7 @@ set BEHAVE_PATH [ file dirname [dict get [ info frame 0 ] file ] ]
 # create local file list
 set files [list]
 
-# stratixv specific
+# behavioral models
 lappend files signed_mult1_accu.behave.vhdl
 lappend files signed_mult2_accu.behave.vhdl
 lappend files signed_mult2_sum.behave.vhdl

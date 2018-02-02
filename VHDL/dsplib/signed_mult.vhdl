@@ -115,6 +115,8 @@ port (
 );
 begin
 
+  -- synthesis translate_off (Altera Quartus)
+  -- pragma translate_off (Xilinx Vivado , Synopsys)
   assert ((y'length=1 or y'length=x'length) and y'ascending)
     report "ERROR in " & signed_mult'INSTANCE_NAME & 
            " Input vector Y must have length of 1 or 'TO' range with same length as input X."
@@ -124,6 +126,8 @@ begin
     report "WARNING in " & signed_mult'INSTANCE_NAME &
            " Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
+  -- synthesis translate_on (Altera Quartus)
+  -- pragma translate_on (Xilinx Vivado , Synopsys)
 
 end entity;
 

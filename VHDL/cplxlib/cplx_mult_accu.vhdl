@@ -145,6 +145,8 @@ port (
 );
 begin
 
+  -- synthesis translate_off (Altera Quartus)
+  -- pragma translate_off (Xilinx Vivado , Synopsys)
   assert ((y'length=1 or y'length=x'length) and y'ascending)
     report "ERROR in " & cplx_mult_accu'INSTANCE_NAME & 
            " Input vector Y must have length of 1 or 'TO' range with same length as input X."
@@ -160,5 +162,7 @@ begin
     report "ERROR in " & cplx_mult_accu'INSTANCE_NAME & 
            " Rounding options 'U', 'Z' and 'I' are not supported."
     severity failure;
+  -- synthesis translate_on (Altera Quartus)
+  -- pragma translate_on (Xilinx Vivado , Synopsys)
 
 end entity;

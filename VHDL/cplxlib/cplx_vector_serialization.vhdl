@@ -30,6 +30,9 @@ port (
   ser_out : out cplx --! Serial data output stream
 );
 begin
+
+  -- synthesis translate_off (Altera Quartus)
+  -- pragma translate_off (Xilinx Vivado , Synopsys)
   assert (vec_in'length>=2)
     report "ERROR in " & cplx_vector_serialization'INSTANCE_NAME & 
            " Input vector must have at least two elements."
@@ -39,4 +42,7 @@ begin
     report "ERROR in " & cplx_vector_serialization'INSTANCE_NAME & 
            " Input vector must have 'TO' range."
     severity failure;
+  -- synthesis translate_on (Altera Quartus)
+  -- pragma translate_on (Xilinx Vivado , Synopsys)
+
 end entity;

@@ -67,10 +67,16 @@ port (
   rd_underflow : out std_logic
 );
 begin
+
+  -- synthesis translate_off (Altera Quartus)
+  -- pragma translate_off (Xilinx Vivado , Synopsys)
   ASSERT ALMOST_FULL_THRESHOLD<FIFO_DEPTH
     REPORT "Almost full threshold must be smaller than FIFO depth."
     SEVERITY Error;
   ASSERT ALMOST_EMPTY_THRESHOLD<FIFO_DEPTH
     REPORT "Almost empty threshold must be smaller than FIFO depth."
     SEVERITY Error;
+  -- synthesis translate_on (Altera Quartus)
+  -- pragma translate_on (Xilinx Vivado , Synopsys)
+
 end entity;

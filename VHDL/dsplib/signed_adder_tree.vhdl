@@ -65,6 +65,8 @@ port (
 );
 begin
 
+  -- synthesis translate_off (Altera Quartus)
+  -- pragma translate_off (Xilinx Vivado , Synopsys)
   assert (x'ascending)
     report "ERROR in " & signed_adder_tree'INSTANCE_NAME & 
            " Input vector X must have 'TO' range."
@@ -74,6 +76,8 @@ begin
     report "WARNING in " & signed_adder_tree'INSTANCE_NAME & 
            " Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
+  -- synthesis translate_on (Altera Quartus)
+  -- pragma translate_on (Xilinx Vivado , Synopsys)
 
 end entity;
 

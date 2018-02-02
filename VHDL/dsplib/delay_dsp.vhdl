@@ -65,6 +65,8 @@ port (
 );
 begin
 
+  -- synthesis translate_off (Altera Quartus)
+  -- pragma translate_off (Xilinx Vivado , Synopsys)
   assert (dout'length=din'length)
     report "ERROR in " & delay_dsp'INSTANCE_NAME & 
            " Input and output vector must have same width."
@@ -74,5 +76,7 @@ begin
     report "ERROR in " & delay_dsp'INSTANCE_NAME & 
            " Width of generic FLUSH_RESET_VALUE must be 1 or same as input din."
     severity failure;
-  
+  -- synthesis translate_on (Altera Quartus)
+  -- pragma translate_on (Xilinx Vivado , Synopsys)
+
 end entity;

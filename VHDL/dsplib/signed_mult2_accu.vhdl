@@ -142,6 +142,8 @@ port (
 );
 begin
 
+  -- synthesis translate_off (Altera Quartus)
+  -- pragma translate_off (Xilinx Vivado , Synopsys)
   assert (x0'length+y0'length)=(x1'length+y1'length)
     report "ERROR in " & signed_mult2_accu'INSTANCE_NAME &
            " All products must result in same size."
@@ -151,6 +153,8 @@ begin
     report "WARNING in " & signed_mult2_accu'INSTANCE_NAME &
            " Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
+  -- synthesis translate_on (Altera Quartus)
+  -- pragma translate_on (Xilinx Vivado , Synopsys)
 
 end entity;
 
