@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult1add1_accu.ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       19/Mar/2017
---! @version    0.20
+--! @date       03/Feb/2018
+--! @version    0.30
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -26,10 +26,10 @@ library unisim;
 --! The results of this operation can be accumulated over several cycles.
 --!
 --! This implementation requires a single DSP48E2 Slice.
---! Refer to Xilinx UltraScale Architecture DSP48E2 Slice, UG579 (v1.3) November 24, 2015
+--! Refer to Xilinx UltraScale Architecture DSP48E2 Slice, UG579 (v1.5) October 18, 2017.
 --!
 --! * Input Data X,Y  : 2 signed values, x<=27 bits, y<=18 bits
---! * Input Data Z    : 1 signed value, z<=48 bits, only when chain input is disabled
+--! * Input Data Z    : 1 signed value, z<=48 bits
 --! * Input Register  : optional, at least one is strongly recommended
 --! * Input Chain     : not supported
 --! * Accu Register   : 48 bits, first output register (strongly recommended in most cases)
@@ -42,8 +42,8 @@ library unisim;
 --! If input chain is required additionally then accumulation is not possible
 --! but only summation. Consider using signed_mult1add1_sum.ultrascale .
 --!  
---! If NUM_OUTPUT_REG=0 then the accumulator register P is disabled. 
---! This configuration might be useful when DSP cells are chained.
+--! If NUM_OUTPUT_REG=0 then the accumulator register P is disabled.
+--! Though not recommended, this configuration might be useful when DSP cells are chained.
 --!
 --! The output can be chained with other DSP implementations.
 --! @image html signed_mult1add1_accu.ultrascale.svg "" width=1000px
@@ -175,7 +175,7 @@ begin
     end generate;
   end generate;
 
-  -- Usage of input Z only possible if chain input is disabled
+  -- Resize Z to DSP input C 
   c <= resize(zreg(0),MAX_WIDTH_C);
 
   logic_ireg(NUM_IREG_LOGIC).rst <= rst;

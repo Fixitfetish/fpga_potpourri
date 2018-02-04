@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult1_accu.ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       01/Jul/2017
---! @version    0.90
+--! @date       03/Feb/2018
+--! @version    0.91
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -25,11 +25,11 @@ library unisim;
 --! One signed multiplication is performed and results are accumulated.
 --!
 --! This implementation requires a single DSP48E2 Slice.
---! Refer to Xilinx UltraScale Architecture DSP48E2 Slice, UG579 (v1.3) November 24, 2015
+--! Refer to Xilinx UltraScale Architecture DSP48E2 Slice, UG579 (v1.5) October 18, 2017.
 --!
 --! * Input Data      : 2 signed values, x<=27 bits, y<=18 bits
 --! * Input Register  : optional, at least one is strongly recommended
---! * Input Chain     : optional, 48 bits
+--! * Input Chain     : optional, 48 bits, requires injection after NUM_INPUT_REG cycles
 --! * Accu Register   : 48 bits, first output register (strongly recommended in most cases)
 --! * Rounding        : optional half-up, within DSP cell
 --! * Output Data     : 1x signed value, max 48 bits

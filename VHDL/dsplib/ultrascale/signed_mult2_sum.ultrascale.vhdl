@@ -26,6 +26,7 @@ library unisim;
 --! 
 --! This implementation uses the architectures signed_mult1_accu.ultrascale and
 --! signed_mult1add1_sum.ultrascale . Hence, it requires two DSP48E2 Slices.
+--! Refer to Xilinx UltraScale Architecture DSP48E2 Slice, UG579 (v1.5) October 18, 2017.
 --!
 --! * Input Data      : 2x2 signed values, x<=27 bits, y<=18 bits
 --! * Input Register  : optional, at least one is strongly recommended

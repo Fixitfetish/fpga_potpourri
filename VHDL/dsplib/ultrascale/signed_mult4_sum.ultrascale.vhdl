@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult4_sum.ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       13/Sep/2017
---! @version    0.20
+--! @date       03/Feb/2018
+--! @version    0.30
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -37,7 +37,7 @@ library unisim;
 --! * Pipeline stages : NUM_INPUT_REG + 2 + NUM_OUTPUT_REG
 --!
 --! The output can be chained with other DSP implementations.
---! @image html signed_mult4_sum.ultrascale.svg "" width=600px
+--! @image html signed_mult4_sum.ultrascale.svg "" width=1000px
 
 architecture ultrascale of signed_mult4_sum is
 
@@ -51,12 +51,14 @@ architecture ultrascale of signed_mult4_sum is
 
 begin
 
-  DSP0 : entity dsplib.signed_mult2_sum(ultrascale)
+  -- chain input (from INST1) must be provided after NUM_INPUT_REG cycles
+  -- chain output is available after NUM_INPUT_REG+3 cycles
+  INST0 : entity dsplib.signed_mult2_sum(ultrascale)
   generic map(
     NUM_SUMMAND        => NUM_SUMMAND, -- typically 4 + summands contributed through chain input 
     USE_CHAIN_INPUT    => true,
-    NUM_INPUT_REG      => NUM_INPUT_REG+1,
-    NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
+    NUM_INPUT_REG      => NUM_INPUT_REG,
+    NUM_OUTPUT_REG     => NUM_OUTPUT_REG, -- should be >=1
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     OUTPUT_ROUND       => OUTPUT_ROUND,
     OUTPUT_CLIP        => OUTPUT_CLIP,
@@ -71,19 +73,21 @@ begin
     y0         => y0,
     x1         => x1,
     y1         => y1,
-    result     => result,
+    result     => result, -- after NUM_INPUT_REG + 2 + NUM_OUTPUT_REG cycles
     result_vld => result_vld,
     result_ovf => result_ovf,
-    chainin    => chainout_dsp1,
+    chainin    => chainout_dsp1, -- after NUM_INPUT_REG+2 cycles
     chainout   => chainout, -- after NUM_INPUT_REG+3 cycles
     PIPESTAGES => PIPESTAGES
   );
 
-  -- adds chain input and 2 of 4 multiplier results
-  DSP1 : entity dsplib.signed_mult2_accu(ultrascale)
+  -- chain input must be provided after NUM_INPUT_REG cycles
+  -- chain output (to INST0) is available after NUM_INPUT_REG+2 cycles
+  INST1 : entity dsplib.signed_mult2_accu(ultrascale)
   generic map(
     NUM_SUMMAND        => 2, -- irrelevant because only chain output is used
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
+    HIGH_SPEED_MODE    => true,
     NUM_INPUT_REG      => NUM_INPUT_REG,
     NUM_OUTPUT_REG     => 1,
     OUTPUT_SHIFT_RIGHT => 0,     -- irrelevant because chain output is used

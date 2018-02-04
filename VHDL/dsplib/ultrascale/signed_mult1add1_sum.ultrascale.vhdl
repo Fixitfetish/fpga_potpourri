@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult1add1_sum.ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       19/Mar/2017
---! @version    0.20
+--! @date       03/Feb/2018
+--! @version    0.30
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -26,24 +26,25 @@ library unisim;
 --! Optionally the chain input can be added as well.
 --!
 --! This implementation requires a single DSP48E2 Slice.
---! Refer to Xilinx UltraScale Architecture DSP48E2 Slice, UG579 (v1.3) November 24, 2015
+--! Refer to Xilinx UltraScale Architecture DSP48E2 Slice, UG579 (v1.5) October 18, 2017.
 --!
 --! * Input Data X,Y  : 2 signed values, x<=27 bits, y<=18 bits
---! * Input Data Z    : 1 signed value, z<=48 bits, only when chain input is disabled
+--! * Input Data Z    : 1 signed value, z<=48 bits
 --! * Input Register  : optional, at least one is strongly recommended
---! * Input Chain     : optional, 48 bits, if enabled then rounding in logic required 
+--! * Input Chain     : optional, 48 bits, requires injection after NUM_INPUT_REG cycles 
 --! * Result Register : 48 bits, first output register (strongly recommended in most cases)
---! * Rounding        : optional half-up, within DSP cell if chain input is disabled
+--! * Rounding        : optional half-up, within DSP cell when chain input is disabled
 --! * Output Data     : 1x signed value, max 48 bits
 --! * Output Register : optional, after shift-right and saturation
 --! * Output Chain    : optional, 48 bits, after NUM_INPUT_REG_XY+1 cycles (assuming NUM_OUTPUT_REG>=1)
 --! * Pipeline stages : NUM_INPUT_REG_XY + NUM_OUTPUT_REG (main data path through multiplier)
 --!
---! If rounding is required without chain input then also signed_mult1add1_accu.ultrascale
---! with DSP internal rounding can be used instead.
+--! If the input chain is enabled then DSP cell internal rounding is not possible
+--! and rounding in logic is required. If the chain input is not required then DSP
+--! internal rounding is enabled. In this case also consider using signed_mult1add1_accu.ultrascale .
 --! 
---! If NUM_OUTPUT_REG=0 then the accumulator register P is disabled. 
---! This configuration might be useful when DSP cells are chained.
+--! If NUM_OUTPUT_REG=0 then the accumulator register P is disabled.
+--! Though not recommended, this configuration might be useful when DSP cells are chained.
 --!
 --! This implementation can be chained multiple times.
 --! @image html signed_mult1add1_sum.ultrascale.svg "" width=1000px
@@ -174,10 +175,8 @@ begin
     end generate;
   end generate;
 
-  -- Usage of input Z only possible if chain input is disabled
-  gc: if not USE_CHAIN_INPUT generate
-    c <= resize(zreg(0),MAX_WIDTH_C);
-  end generate;
+  -- Resize Z to DSP input C 
+  c <= resize(zreg(0),MAX_WIDTH_C);
 
   logic_ireg(NUM_IREG_LOGIC).rst <= rst;
   logic_ireg(NUM_IREG_LOGIC).vld <= vld;

@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult2_accu.vhdl
 --! @author     Fixitfetish
---! @date       14/Feb/2017
---! @version    0.91
+--! @date       03/Feb/2018
+--! @version    0.92
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -51,7 +51,7 @@ library ieee;
 --! then set CLR to constant '1'.
 --!
 --! The delay depends on the configuration and the underlying hardware.
---! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
+--! The number pipeline stages is reported as constant at output port PIPESTAGES .
 --!
 --! This entity can be used for example
 --!   * for complex multiplication and accumulation
@@ -78,6 +78,8 @@ generic (
   NUM_SUMMAND : natural := 0;
   --! Enable chain input from neighbor DSP cell, i.e. enable additional accumulator input
   USE_CHAIN_INPUT : boolean := false;
+  --! Enable high speed mode with more pipelining for higher clock rates
+  HIGH_SPEED_MODE : boolean := true;
   --! @brief Number of additional input registers. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
   NUM_INPUT_REG : natural := 1;

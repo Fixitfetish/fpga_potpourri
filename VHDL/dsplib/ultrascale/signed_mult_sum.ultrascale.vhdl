@@ -210,7 +210,7 @@ begin
       generic map(
         NUM_SUMMAND        => 2,
         USE_CHAIN_INPUT    => false,
-        NUM_INPUT_REG      => NUM_INPUT_REG+1, -- one more cycle to align with signed_mutl4_sum
+        NUM_INPUT_REG      => NUM_INPUT_REG+2, -- two mores cycle to align with signed_mutl4_sum
         NUM_OUTPUT_REG     => 1,
         OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
         OUTPUT_ROUND       => OUTPUT_ROUND,
@@ -228,11 +228,11 @@ begin
         x1         => x_i(4*NUM_MULT4+1),
         y1         => y_i(4*NUM_MULT4+1),
         result     => dsp_out(NUM_MULT4),
-        result_vld => open,
+        result_vld => dsp_vld(NUM_MULT4),
         result_ovf => open,
         chainin    => open,
         chainout   => open,
-        PIPESTAGES => open
+        PIPESTAGES => DSP_PIPESTAGES(NUM_MULT4)
       );
     end generate;
 
