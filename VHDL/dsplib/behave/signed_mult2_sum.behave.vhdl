@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult2_sum.behave.vhdl
 --! @author     Fixitfetish
---! @date       16/Sep/2017
---! @version    0.80
+--! @date       05/Feb/2018
+--! @version    0.95
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -15,6 +15,7 @@ library ieee;
 library baselib;
   use baselib.ieee_extension.all;
 library dsplib;
+  use dsplib.dsp_pkg_behave.all;
 
 --! @brief This implementation is a behavioral model of the entity signed_mult2_sum
 --! for simulation.
@@ -34,35 +35,13 @@ architecture behave of signed_mult2_sum is
   -- identifier for reports of warnings and errors
   constant IMPLEMENTATION : string := "signed_mult2_sum(behave)";
 
-  -- local auxiliary
-  -- determine number of required additional guard bits (MSBs)
-  function guard_bits(num_summand, dflt:natural) return integer is
-    variable res : integer;
-  begin
-    if num_summand=0 then
-      res := dflt; -- maximum possible (default)
-    else
-      res := LOG2CEIL(num_summand);
-      if res>dflt then 
-        report "WARNING " & IMPLEMENTATION & ": Too many summands. " & 
-           "Maximum number of " & integer'image(dflt) & " guard bits reached."
-           severity warning;
-        res:=dflt;
-      end if;
-    end if;
-    return res; 
-  end function;
-
   constant MAX_WIDTH_X : positive := 27;
   constant MAX_WIDTH_Y : positive := 27;
-
-  -- accumulator width in bits
-  constant ACCU_WIDTH : positive := 64;
 
   -- derived constants
   constant PRODUCT_WIDTH : natural := x0'length + y0'length;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
-  constant GUARD_BITS_EVAL : natural := guard_bits(NUM_SUMMAND,MAX_GUARD_BITS);
+  constant GUARD_BITS_EVAL : natural := accu_guard_bits(NUM_SUMMAND,MAX_GUARD_BITS,IMPLEMENTATION);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
   constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
   constant OUTPUT_WIDTH : positive := result'length;
@@ -82,7 +61,7 @@ architecture behave of signed_mult2_sum is
   signal sum, chainin_i : signed(ACCU_WIDTH-1 downto 0) := (others=>'0');
   signal accu : signed(ACCU_WIDTH-1 downto 0);
   signal accu_vld : std_logic := '0';
-  signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
+  signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0) := (others=>'0');
 
   -- clock enable +++ TODO
   constant clkena : std_logic := '1';

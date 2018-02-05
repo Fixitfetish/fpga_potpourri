@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult2_accu.behave.vhdl
 --! @author     Fixitfetish
---! @date       16/Sep/2017
---! @version    0.93
+--! @date       05/Feb/2018
+--! @version    0.95
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -15,6 +15,7 @@ library ieee;
 library baselib;
   use baselib.ieee_extension.all;
 library dsplib;
+  use dsplib.dsp_pkg_behave.all;
 
 --! @brief This implementation is a behavioral model of the entity signed_mult2_accu
 --! for simulation.
@@ -27,42 +28,27 @@ library dsplib;
 --! * Rounding        : optional half-up
 --! * Output Data     : 1x signed value, max 64 bits
 --! * Output Register : optional, after rounding, shift-right and saturation
---! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG
+--! * Pipeline stages : NUM_INPUT_REG +  (+1 for HIGH_SPEED_MODE)
 
 architecture behave of signed_mult2_accu is
 
   -- identifier for reports of warnings and errors
   constant IMPLEMENTATION : string := "signed_mult2_accu(behave)";
 
-  -- local auxiliary
-  -- determine number of required additional guard bits (MSBs)
-  function guard_bits(num_summand, dflt:natural) return integer is
-    variable res : integer;
+  -- additional pipeline register for high speed mode
+  function output_reg_logic return integer is
   begin
-    if num_summand=0 then
-      res := dflt; -- maximum possible (default)
-    else
-      res := LOG2CEIL(num_summand);
-      if res>dflt then 
-        report "WARNING " & IMPLEMENTATION & ": Too many summands. " & 
-           "Maximum number of " & integer'image(dflt) & " guard bits reached."
-           severity warning;
-        res:=dflt;
-      end if;
-    end if;
-    return res; 
+    if HIGH_SPEED_MODE then return NUM_OUTPUT_REG+1; else return NUM_OUTPUT_REG; end if;
   end function;
-
+  constant NUM_OUTPUT_REG_FINAL : integer := output_reg_logic;
+  
   constant MAX_WIDTH_X : positive := 27;
   constant MAX_WIDTH_Y : positive := 27;
-
-  -- accumulator width in bits
-  constant ACCU_WIDTH : positive := 64;
 
   -- derived constants
   constant PRODUCT_WIDTH : natural := x0'length + y0'length;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
-  constant GUARD_BITS_EVAL : natural := guard_bits(NUM_SUMMAND,MAX_GUARD_BITS);
+  constant GUARD_BITS_EVAL : natural := accu_guard_bits(NUM_SUMMAND,MAX_GUARD_BITS,IMPLEMENTATION);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
   constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
   constant OUTPUT_WIDTH : positive := result'length;
@@ -147,11 +133,11 @@ begin
          chainin_i-p0+p1 when (ireg(0).sub="10") else
          chainin_i-p0-p1;
 
-  g_accu_off : if NUM_OUTPUT_REG=0 generate
+  g_accu_off : if NUM_OUTPUT_REG_FINAL=0 generate
     accu <= sum;
   end generate;
   
-  g_accu_on : if NUM_OUTPUT_REG>0 generate
+  g_accu_on : if NUM_OUTPUT_REG_FINAL>0 generate
   begin
   p_accu : process(clk)
   begin
@@ -184,10 +170,10 @@ begin
   end generate;
 
   -- pipelined valid signal
-  g_dspreg_on : if NUM_OUTPUT_REG>=1 generate
+  g_dspreg_on : if NUM_OUTPUT_REG_FINAL>=1 generate
     accu_vld <= ireg(0).vld when rising_edge(clk);
   end generate;
-  g_dspreg_off : if NUM_OUTPUT_REG<=0 generate
+  g_dspreg_off : if NUM_OUTPUT_REG_FINAL<=0 generate
     accu_vld <= ireg(0).vld;
   end generate;
 
@@ -199,7 +185,7 @@ begin
   -- right-shift, round and clipping
   i_out : entity dsplib.signed_output_logic
   generic map(
-    PIPELINE_STAGES    => NUM_OUTPUT_REG-1,
+    PIPELINE_STAGES    => NUM_OUTPUT_REG_FINAL-1,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     OUTPUT_ROUND       => OUTPUT_ROUND,
     OUTPUT_CLIP        => OUTPUT_CLIP,
@@ -216,6 +202,7 @@ begin
   );
 
   -- report constant number of pipeline register stages
-  PIPESTAGES <= NUM_INPUT_REG + NUM_OUTPUT_REG;
+  PIPESTAGES <= NUM_INPUT_REG + NUM_OUTPUT_REG_FINAL;
 
 end architecture;
+

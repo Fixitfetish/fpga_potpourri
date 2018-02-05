@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult_sum.behave.vhdl
 --! @author     Fixitfetish
---! @date       02/Jul/2017
---! @version    0.30
---! @note       VHDL-1993, VHDL-2008
+--! @date       05/Feb/2018
+--! @version    0.95
+--! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
@@ -15,9 +15,10 @@ library ieee;
 library baselib;
   use baselib.ieee_extension.all;
 library dsplib;
+  use dsplib.dsp_pkg_behave.all;
 
---! @brief This implementation is a behavioral model of the entity 
---! @link signed_mult_sum signed_mult_sum @endlink for simulation.
+--! @brief This implementation is a behavioral model of the entity signed_mult_sum
+--! for simulation.
 --! N signed multiplications are performed and the results are summed.
 --! 
 --! * Input Data      : Nx2 signed values, each max 18 bits
@@ -30,6 +31,9 @@ library dsplib;
 
 architecture behave of signed_mult_sum is
 
+  -- identifier for reports of warnings and errors
+  constant IMPLEMENTATION : string := signed_mult_sum'INSTANCE_NAME;
+
   -- bit resolution of input data
   constant WIDTH_X : positive := x(x'left)'length;
   constant WIDTH_Y : positive := y(y'left)'length;
@@ -38,30 +42,23 @@ architecture behave of signed_mult_sum is
   -- (must be either 1 or the same length as x)
   constant NUM_FACTOR : positive := y'length;
 
-  -- local auxiliary
-  -- determine number of required additional guard bits (MSBs)
-  function guard_bits(num_summand, dflt:natural) return integer is
-    variable res : integer;
-  begin
-    if num_summand=0 then
-      res := dflt; -- maximum possible (default)
-    else
-      res := LOG2CEIL(num_summand);
-    end if;
-    return res; 
-  end function;
-
-  -- accumulator width in bits
-  constant ACCU_WIDTH : positive := 64;
-
   -- derived constants
   constant PRODUCT_WIDTH : natural := WIDTH_X + WIDTH_Y;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
-  constant GUARD_BITS_EVAL : natural := guard_bits(NUM_MULT,MAX_GUARD_BITS);
+  constant GUARD_BITS_EVAL : natural := accu_guard_bits(NUM_MULT,MAX_GUARD_BITS,IMPLEMENTATION);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
 
-  -- pipeline registers (plus some dummy ones for non-existent adder tree)
-  constant NUM_DELAY_REG : natural := NUM_INPUT_REG + NUM_OUTPUT_REG + GUARD_BITS_EVAL;
+  -- pipeline registers plus some dummy ones for non-existent adder tree
+  -- and one additional pipeline register for high speed mode
+  function get_delay_registers return integer is
+  begin
+    if HIGH_SPEED_MODE then 
+      return NUM_INPUT_REG + NUM_OUTPUT_REG + GUARD_BITS_EVAL + 1;
+    else 
+      return NUM_INPUT_REG + NUM_OUTPUT_REG + GUARD_BITS_EVAL;
+    end if;
+  end function;
+  constant NUM_DELAY_REG : integer := get_delay_registers;
 
   signal accu_vld : std_logic := '0';
   signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0) := (others=>'0');

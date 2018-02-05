@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult_accu.behave.vhdl
 --! @author     Fixitfetish
---! @date       02/Jul/2017
---! @version    0.30
---! @note       VHDL-1993, VHDL-2008
+--! @date       05/Feb/2018
+--! @version    0.95
+--! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
@@ -15,6 +15,7 @@ library ieee;
 library baselib;
   use baselib.ieee_extension.all;
 library dsplib;
+  use dsplib.dsp_pkg_behave.all;
 
 --! @brief This implementation is a behavioral model of the entity signed_mult_accu
 --! for simulation.
@@ -41,26 +42,10 @@ architecture behave of signed_mult_accu is
   -- (must be either 1 or the same length as x)
   constant NUM_FACTOR : positive := y'length;
 
-  -- local auxiliary
-  -- determine number of required additional guard bits (MSBs)
-  function guard_bits(num_summand, dflt:natural) return integer is
-    variable res : integer;
-  begin
-    if num_summand=0 then
-      res := dflt; -- maximum possible (default)
-    else
-      res := LOG2CEIL(num_summand);
-    end if;
-    return res; 
-  end function;
-
-  -- accumulator width in bits
-  constant ACCU_WIDTH : positive := 64;
-
   -- derived constants
   constant PRODUCT_WIDTH : natural := WIDTH_X + WIDTH_Y;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
-  constant GUARD_BITS_EVAL : natural := guard_bits(NUM_MULT,MAX_GUARD_BITS);
+  constant GUARD_BITS_EVAL : natural := accu_guard_bits(NUM_MULT,MAX_GUARD_BITS,IMPLEMENTATION);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
 
   -- pipeline registers (plus some dummy ones for non-existent adder tree)

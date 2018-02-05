@@ -25,36 +25,49 @@ end entity;
 
 architecture rtl of signed_mult_sum_wrapper is
 
-  signal rst : std_logic;
-  signal vld : std_logic;
-  signal neg : std_logic_vector(0 to NUM_MULT-1);
-  signal x : signed_vector(0 to NUM_MULT-1);
-  signal y : signed_vector(0 to 0);
+  signal rst, rst_ioreg : std_logic;
+  signal vld, vld_ioreg : std_logic;
+  signal neg, neg_ioreg : std_logic_vector(0 to NUM_MULT-1);
+  signal x, x_ioreg : signed18_vector(0 to NUM_MULT-1);
+  signal y, y_ioreg : signed18_vector(0 to 0);
   
-  signal result     : signed(21 downto 0); -- product result
-  signal result_vld : std_logic; -- output valid
-  signal result_ovf : std_logic; -- output overflow
+  signal result, result_ioreg : signed(21 downto 0); -- product result
+  signal result_vld, result_vld_ioreg : std_logic; -- output valid
+  signal result_ovf, result_ovf_ioreg : std_logic; -- output overflow
 
 begin
 
- rst <= rst_ipin when rising_edge(clk);
- vld <= vld_ipin when rising_edge(clk);
- neg <= neg_ipin when rising_edge(clk);
- result_opin <= result when rising_edge(clk);
- result_vld_opin <= result_vld when rising_edge(clk);
- result_ovf_opin <= result_ovf when rising_edge(clk);
+ rst_ioreg <= rst_ipin when rising_edge(clk);
+ vld_ioreg <= vld_ipin when rising_edge(clk);
+ neg_ioreg <= neg_ipin when rising_edge(clk);
+ result_opin <= result_ioreg when rising_edge(clk);
+ result_vld_opin <= result_vld_ioreg when rising_edge(clk);
+ result_ovf_opin <= result_ovf_ioreg when rising_edge(clk);
+ 
+ rst <= rst_ioreg when rising_edge(clk);
+ vld <= vld_ioreg when rising_edge(clk);
+ neg <= neg_ioreg when rising_edge(clk);
+ result_ioreg <= result when rising_edge(clk);
+ result_vld_ioreg <= result_vld when rising_edge(clk);
+ result_ovf_ioreg <= result_ovf when rising_edge(clk);
+-- result_vld_opin <= result_vld when rising_edge(clk);
+-- result_ovf_opin <= result_ovf when rising_edge(clk);
  
  gx: for n in 0 to NUM_MULT-1 generate
-   x(n) <= signed(x_ipin(18*(n+1)-1 downto 18*n)) when rising_edge(clk);
+   -- X input pipeline
+   x_ioreg(n) <= signed(x_ipin(18*(n+1)-1 downto 18*n)) when rising_edge(clk);
+   x(n) <= x_ioreg(n) when rising_edge(clk);
  end generate;
- y(0) <= signed(y_ipin) when rising_edge(clk);
+ -- Y input pipeline
+ y_ioreg(0) <= signed(y_ipin) when rising_edge(clk);
+ y(0) <= y_ioreg(0) when rising_edge(clk);
 
  I1 : entity dsplib.signed_mult_sum
  generic map(
    NUM_MULT           => NUM_MULT, -- number of parallel multiplications
+   HIGH_SPEED_MODE    => true,
    NUM_INPUT_REG      => NUM_INPUT_REG,  -- number of input registers
    NUM_OUTPUT_REG     => 1,  -- number of output registers
-   HIGH_SPEED_MODE    => false,
    OUTPUT_SHIFT_RIGHT => 10,  -- number of right shifts
    OUTPUT_ROUND       => true,  -- enable rounding half-up
    OUTPUT_CLIP        => false,  -- enable clipping

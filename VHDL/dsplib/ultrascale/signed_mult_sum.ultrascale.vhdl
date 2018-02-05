@@ -21,8 +21,8 @@ library dsplib;
 --! for Xilinx Ultrascale.
 --! N signed multiplications are performed and all results are summed.
 --!
---! This implementation uses N4 = floor((N+1)/4) instances of signed_mult4_sum
---! and N2 = ceil(N/2)-2*N4 instances of signed_mult2_accu
+--! This implementation uses N4 = floor((N+1)/4) instances of signed_mult4_sum.ultrascale
+--! and N2 = ceil(N/2)-2*N4 instances of signed_mult2_accu.ultrascale
 --! Overall 4*N4 + 2*N2 Xilinx Ultrascale DSP blocks are required.
 --!
 --! * Input Data      : Nx2 signed values, x<=27 bits, y<=18 bits
@@ -76,10 +76,11 @@ begin
   -----------------------------------------------------------------------------
   -- when NUM_MULT <= 2  (no adder stage in logic required)
   g2: if NUM_MULT<=2 generate
-    i4 : entity dsplib.signed_mult2_accu(ultrascale)
+    i2 : entity dsplib.signed_mult2_accu(ultrascale)
     generic map(
       NUM_SUMMAND        => 2,
       USE_CHAIN_INPUT    => false,
+      HIGH_SPEED_MODE    => HIGH_SPEED_MODE,
       NUM_INPUT_REG      => NUM_INPUT_REG,
       NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
       OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -210,7 +211,8 @@ begin
       generic map(
         NUM_SUMMAND        => 2,
         USE_CHAIN_INPUT    => false,
-        NUM_INPUT_REG      => NUM_INPUT_REG+2, -- two mores cycle to align with signed_mutl4_sum
+        HIGH_SPEED_MODE    => true,
+        NUM_INPUT_REG      => NUM_INPUT_REG+1, -- one more cycle to align with signed_mutl4_sum (TODO input or output REG)
         NUM_OUTPUT_REG     => 1,
         OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
         OUTPUT_ROUND       => OUTPUT_ROUND,
