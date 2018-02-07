@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_adder_tree.vhdl
 --! @author     Fixitfetish
---! @date       31/Jan/2018
---! @version    0.40
+--! @date       07/Feb/2018
+--! @version    0.50
 --! @copyright  MIT License
 --! @note       VHDL-1993
 -------------------------------------------------------------------------------
@@ -15,6 +15,31 @@ library baselib;
 library dsplib;
 
 --! @brief Signed Adder Tree. Sum of N signed values.
+--!
+--! VHDL Instantiation Template:
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
+--! I1 : signed_adder_tree
+--! generic map(
+--!   HIGH_SPEED_MODE    => boolean,  -- enable high speed mode
+--!   NUM_INPUT_REG      => natural,  -- number of input registers
+--!   INPUT_WIDTH        => positive, -- bit width of input x
+--!   NUM_OUTPUT_REG     => natural,  -- number of output registers
+--!   OUTPUT_SHIFT_RIGHT => natural,  -- number of right shifts
+--!   OUTPUT_ROUND       => boolean,  -- enable rounding half-up
+--!   OUTPUT_CLIP        => boolean,  -- enable clipping
+--!   OUTPUT_OVERFLOW    => boolean   -- enable overflow detection
+--! )
+--! port map(
+--!   clk        => in  std_logic, -- clock
+--!   rst        => in  std_logic, -- reset
+--!   vld        => in  std_logic, -- valid
+--!   x          => in  signed48_vector, -- input summands
+--!   result     => out signed, -- sum result
+--!   result_vld => out std_logic, -- output valid
+--!   result_ovf => out std_logic, -- output overflow
+--!   PIPESTAGES => out natural -- constant number of pipeline stages
+--! );
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 entity signed_adder_tree is
 generic (
@@ -85,11 +110,41 @@ end entity;
 
 --! @brief This is an implementation of the entity signed_adder_tree.
 --! N signed values are added using FPGA logic.
+--!
+--! The number of inputs is LX = x'length. The number of required adder stages is
+--! S = ceil(log2(LX)).
+--! The bit width W of the input X defines the accuracy of the adder tree.
+--! Every adder stage extends the width by one guard MSB to avoid overflows.
+--! Thus the width after the first output register is W+S.
+--!
+--! After the first output register the result can be trimmed, i.e. LSBs can be
+--! discarded with or without rounding and/or MSB can be discarded with or without
+--! clipping and overflow detection. If trimming is enabled it is recommended to
+--! use a subsequent second output register. See also signed_output_logic .
+--!
+--! If HIGH_SPEED_MODE=false then a pipeline register after every odd adder stage
+--! is inserted when NUM_INPUT_REG=0. For NUM_INPUT_REG>=1 a pipeline register
+--! after every even adder stage is inserted.
+--! If HIGH_SPEED_MODE=true then a pipeline register after every adder stage is inserted.
+--! A pipeline register after the last adder stage is always indentical to the first output register.
+--!
+--! Number of pipeline registers dependent on the number of adder stages:
+--! |Number of Adder Stages (S)              |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 | .. 
+--! |:-----------------------              --|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--
+--! |HIGH_SPEED_MODE=false, NUM_INPUT_REG=0  |  0 |  1 |  1 |  2 |  2 |  3 |  3 |  4 | .. 
+--! |HIGH_SPEED_MODE=false, NUM_INPUT_REG>=1 |  0 |  0 |  1 |  1 |  2 |  2 |  3 |  3 | ..
+--! |HIGH_SPEED_MODE=true, NUM_INPUT_REG>=0  |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 | ..
+--!
+--! The overall number of pipeline stages is NUM_INPUT_REG + NUM_PIPELINE_REG + NUM_OUTPUT_REG .
+--!
+--! @image html signed_adder_tree.svg "" width=1000px
 
 architecture rtl of signed_adder_tree is
 
-  -- number of required adder tree stages - is at least 1 +++ TODO 0!?
+  -- number of inputs into adder tree, should be >=2
   constant INPUT_LENGTH : natural := x'length;
+
+  -- number of required adder tree stages - is at least 1 +++ TODO 0!?
   constant NUM_STAGES : natural := LOG2CEIL(INPUT_LENGTH);
 
   -- data width after last adder stage

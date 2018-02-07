@@ -57,6 +57,12 @@ The idea is to have as few as possible implementations that require the DSP prim
 effort to adjust to another FPGA technology is limited. 
 More FPGA devices and types might be added later.
 
+In addition the following auxiliary entities are available.
+
+|Entity Name               | Description
+|:-------------------------|:---------------------------------------------------
+|signed_adder_tree         | adder tree with multiple inputs and single output
+|signed_output_logic       | additional DSP output logic which supports shift-right, rounding, resize, clipping and overflow detection
 
 Composition and Naming Convention
 =================================
