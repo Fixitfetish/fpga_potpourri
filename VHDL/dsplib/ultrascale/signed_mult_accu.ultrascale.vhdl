@@ -23,7 +23,7 @@ library dsplib;
 --!
 --! +++ TODO +++ 
 --! This implementation must be optimized.
---! Multiple instances of the implementation signed_mult1_accu are
+--! Multiple instances of the implementation signed_mult1_accu.ultrascale are
 --! just chained -> requires too many additional input registers.
 --! This implementation requires N Xilinx Ultrascale DSP blocks.
 --! +++ TODO +++
