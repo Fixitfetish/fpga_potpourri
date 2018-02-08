@@ -18,6 +18,7 @@ lappend files signed_mult2_accu.ultrascale.vhdl
 lappend files signed_mult2_sum.ultrascale.vhdl
 lappend files signed_mult4_sum.ultrascale.vhdl
 lappend files signed_mult.ultrascale.vhdl
+lappend files signed_mult_accu.ultrascale.vhdl
 lappend files signed_mult_sum.ultrascale.vhdl
 
 # append files to existing file list
