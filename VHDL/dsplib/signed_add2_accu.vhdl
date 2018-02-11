@@ -15,7 +15,7 @@ library baselib;
 --! @brief Signed DSP cell accumulator with two input summands and full precision
 --! support.
 --!
---! Input width equals of width of DSP cell output register.
+--! Maximum input width equals the width of DSP cell output register.
 --! The addition and accumulation of all inputs is LSB bound.
 --! Alternatively, one of the two inputs can also be the chain input.
 
@@ -76,7 +76,7 @@ port (
   --! Signed input A
   a          : in  signed;
   --! @brief Signed input Z. Usage depends on DSP cell.
-  --! Typically only considered when chain input is disabled
+  --! Typically Z is only considered when chain input is disabled.
   z          : in  signed;
   --! @brief Resulting accumulator output (optionally rounded and clipped).
   --! The standard result output might be unused when chain output is used instead.
@@ -88,7 +88,7 @@ port (
   --! @brief Input from other chained DSP cell (optional, only used when input enabled and connected).
   --! The chain width is device specific. A maximum width of 80 bits is supported.
   --! If the device specific chain width is smaller then only the LSBs are used.
-  chainin  : in  signed(79 downto 0) := (others=>'0');
+  chainin    : in  signed(79 downto 0) := (others=>'0');
   --! @brief Result output to other chained DSP cell (optional)
   --! The chain width is device specific. A maximum width of 80 bits is supported.
   --! If the device specific chain width is smaller then only the LSBs are used.

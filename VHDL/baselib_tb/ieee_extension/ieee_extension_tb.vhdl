@@ -19,14 +19,14 @@ end entity;
 
 architecture sim of ieee_extension_tb is
 
-  file SLCU : text open WRITE_MODE IS "output/shift_left_clip_unsigned.log";
-  file SLCS : text open WRITE_MODE IS "output/shift_left_clip_signed.log";
-  file SRRU : text open WRITE_MODE IS "output/shift_right_round_unsigned.log";
-  file SRRS : text open WRITE_MODE IS "output/shift_right_round_signed.log";
-  file ADDU : text open WRITE_MODE IS "output/addition_unsigned.log";
-  file ADDS : text open WRITE_MODE IS "output/addition_signed.log";
-  file SUBU : text open WRITE_MODE IS "output/subtraction_unsigned.log";
-  file SUBS : text open WRITE_MODE IS "output/subtraction_signed.log";
+  file SLCU : text open WRITE_MODE IS "work/shift_left_clip_unsigned.log";
+  file SLCS : text open WRITE_MODE IS "work/shift_left_clip_signed.log";
+  file SRRU : text open WRITE_MODE IS "work/shift_right_round_unsigned.log";
+  file SRRS : text open WRITE_MODE IS "work/shift_right_round_signed.log";
+  file ADDU : text open WRITE_MODE IS "work/addition_unsigned.log";
+  file ADDS : text open WRITE_MODE IS "work/addition_signed.log";
+  file SUBU : text open WRITE_MODE IS "work/subtraction_unsigned.log";
+  file SUBS : text open WRITE_MODE IS "work/subtraction_signed.log";
 
   type TL is (t_slcu, t_slcs, t_srru, t_srrs, t_addu, t_adds, t_subu, t_subs);
   
