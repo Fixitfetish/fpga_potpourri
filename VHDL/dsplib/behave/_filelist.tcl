@@ -9,6 +9,7 @@ set files [list]
 
 # behavioral models
 lappend files dsp_pkg.behave.vhdl
+lappend files signed_add2_accu.behave.vhdl
 lappend files signed_mult1_accu.behave.vhdl
 lappend files signed_mult2_accu.behave.vhdl
 lappend files signed_mult2_sum.behave.vhdl

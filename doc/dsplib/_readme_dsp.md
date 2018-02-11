@@ -39,6 +39,8 @@ The following entities should not be instantiated in the design. They are used b
 
 |Entity Name               | Stratix V  | Arria 10  | UltraScale | Stratix 10 | Description
 |:-------------------------|:----------:|:---------:|:----------:|:----------:|:-----------------
+|signed_add2_accu          | ---        | ---       | PRIMITIVE  | TODO       | add logic input and logic (or chain) input with full precision and accumulate
+|signed_add2_sum           | ---        | ---       | PRIMITIVE  | TODO       | add two logic inputs with full precision and sum with chain input
 |signed_mult1_accu         | PRIMITIVE  | PRIMITIVE | PRIMITIVE  | TODO       | one signed multiplication and accumulation of all results
 |signed_mult1add1_accu     | PRIMITIVE  | PRIMITIVE | PRIMITIVE  | TODO       | one value +/- signed product and accumulation of all results
 |signed_mult1add1_sum      | derived    | derived   | PRIMITIVE  | TODO       | one value +/- signed product
@@ -64,6 +66,21 @@ In addition the following auxiliary entities are available.
 |signed_adder_tree         | adder tree with multiple inputs and single output
 |signed_output_logic       | additional DSP output logic which supports shift-right, rounding, resize, clipping and overflow detection
 
+General Conventions
+====================
+
+Most of the entities have a generic to control the number of input registers, i.e. the input pipeline length.
+If available preferably DSP cell internal register are used. If the input pipeline length exceeds the DSP cell
+capacity registers are implemented in logic. 
+All registers before the DSP cell output register (which is typically equivalent to the accumulator register)
+count as input registers, though they might be named differently (like e.g. pipeline register).
+Hence, the reference point is the input to the DSP cell output register.
+Similarly the DSP cell output register counts as the first register of the output register pipeline.
+The length of the output register pipeline is also controlled by the generic.
+Nevertheless, the overall pipeline length of an implementation is not necessarily the sum of input and
+output registers but can also include additional pipeline registers. The number of overall pipeline stages
+for a certain configuration is typically reported at the constant output port PIPESTAGES.  
+
 Composition and Naming Convention
 =================================
 
@@ -86,7 +103,7 @@ device, e.g. "stratixv" or "ultrascale".
 \b Example: A signed DSP operation which adds two values and then multiplies the result with a
 third value is called "signed_preadd_mult1". If the results of this operation can additionally
 be accumulated over several cycles the postfix "accu" is added. Hence, the complete entity is
-called "signed_preadd_mult1_accu".
+called signed_preadd_mult1_accu .
 
 ---
 MIT License : Copyright (c) 2017-2018 Fixitfetish

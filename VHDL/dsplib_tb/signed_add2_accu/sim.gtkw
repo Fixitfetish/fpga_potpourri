@@ -1,0 +1,33 @@
+[*]
+[*] GTKWave Analyzer v3.3.87 (w)1999-2017 BSI
+[*] Sat Feb 10 23:40:46 2018
+[*]
+[dumpfile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\dsplib_tb\signed_add2_accu\output\sim.vcd"
+[dumpfile_mtime] "Sat Feb 10 23:37:53 2018"
+[dumpfile_size] 101424
+[savefile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\dsplib_tb\signed_add2_accu\sim.gtkw"
+[timestart] 0
+[size] 1304 745
+[pos] -1 -1
+*-26.824545 403000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] i_dut.
+[sst_width] 211
+[signals_width] 126
+[sst_expanded] 1
+[sst_vpaned_height] 205
+@420
+pipestages
+@28
+clk
+rst
+clr
+vld
+@420
+a[15:0]
+z[7:0]
+i_dut.result[31:0]
+@28
+i_dut.result_vld
+i_dut.result_ovf
+[pattern_trace] 1
+[pattern_trace] 0

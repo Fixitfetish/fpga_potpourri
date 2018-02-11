@@ -69,6 +69,7 @@ set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 :: Architectures
 %COMPILE% %SCRIPTPATH%\dsp_pkg.behave.vhdl
 %COMPILE% %SCRIPTPATH%\delay_dsp.behave.vhdl
+%COMPILE% %SCRIPTPATH%\signed_add2_accu.behave.vhdl
 %COMPILE% %SCRIPTPATH%\signed_mult1_accu.behave.vhdl
 %COMPILE% %SCRIPTPATH%\signed_mult2_accu.behave.vhdl
 %COMPILE% %SCRIPTPATH%\signed_mult2_sum.behave.vhdl

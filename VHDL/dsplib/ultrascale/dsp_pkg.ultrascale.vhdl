@@ -24,6 +24,12 @@ package dsp_pkg_ultrascale is
   --! accumulator width in bits
   constant ACCU_WIDTH : positive := 48;
 
+  constant MAX_WIDTH_A  : positive := 30;
+  constant MAX_WIDTH_B  : positive := 18;
+  constant MAX_WIDTH_D  : positive := 27;
+  constant MAX_WIDTH_C  : positive := ACCU_WIDTH;
+  constant MAX_WIDTH_AB : positive := ACCU_WIDTH;
+
   type t_resource_type_ultrascale is (DSP, LOGIC);
   
   --! determine number of required additional guard bits (MSBs)
@@ -41,6 +47,12 @@ package dsp_pkg_ultrascale is
 
   --! determine number of input registers within DSP cell and in LOGIC
   function NUM_IREG(
+    loc : t_resource_type_ultrascale; -- location either DSP or LOGIC
+    n : natural -- overall number of input registers
+  ) return integer;
+
+  --! determine number of A/B input registers within DSP cell and in LOGIC
+  function NUM_IREG_AB(
     loc : t_resource_type_ultrascale; -- location either DSP or LOGIC
     n : natural -- overall number of input registers
   ) return integer;
@@ -109,6 +121,26 @@ package body dsp_pkg_ultrascale is
   ) return integer is
     -- maximum number of input registers supported within the DSP cell
     constant NUM_INPUT_REG_DSP : natural := 3;
+  begin
+    if loc=DSP then
+      return MINIMUM(n,NUM_INPUT_REG_DSP);
+    elsif loc=LOGIC then
+      if n>NUM_INPUT_REG_DSP then return n-NUM_INPUT_REG_DSP;
+      else return 0; end if;
+    else
+      report "ERROR: Input registers can be either within DSP or in LOGIC."
+        severity failure;
+      return -1;
+    end if;
+  end function;
+
+  --! determine number of A/B input registers within DSP cell and in LOGIC
+  function NUM_IREG_AB(
+    loc : t_resource_type_ultrascale; -- location either DSP or LOGIC
+    n : natural -- overall number of input registers
+  ) return integer is
+    -- maximum number of input registers supported within the DSP cell
+    constant NUM_INPUT_REG_DSP : natural := 2;
   begin
     if loc=DSP then
       return MINIMUM(n,NUM_INPUT_REG_DSP);

@@ -70,6 +70,7 @@ set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 %COMPILE% %SCRIPTPATH%\signed_output_logic.vhdl
 %COMPILE% %SCRIPTPATH%\signed_accu.vhdl
 %COMPILE% %SCRIPTPATH%\signed_adder_tree.vhdl
+%COMPILE% %SCRIPTPATH%\signed_add2_accu.vhdl
 %COMPILE% %SCRIPTPATH%\signed_mult1add1_accu.vhdl
 %COMPILE% %SCRIPTPATH%\signed_mult1add1_sum.vhdl
 %COMPILE% %SCRIPTPATH%\signed_mult1_accu.vhdl
