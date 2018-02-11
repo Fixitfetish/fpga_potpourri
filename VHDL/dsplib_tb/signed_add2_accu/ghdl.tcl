@@ -13,9 +13,16 @@ source ../../baselib/_filelist.tcl
 compile $LIB $filelist
 
 puts "--------------------------------------------------------------------------"
+puts "INFO: DSPLIB"
+source ../../dsplib/_filelist.tcl
+compile $LIB $filelist
+source ../../dsplib/behave/_filelist.tcl
+compile $LIB $filelist
+
+puts "--------------------------------------------------------------------------"
 puts "INFO: Testbench"
 
-set top counter_tb
+set top signed_add2_accu_tb
 
 set files [list]
 lappend files [ file normalize ${top}.vhdl ]

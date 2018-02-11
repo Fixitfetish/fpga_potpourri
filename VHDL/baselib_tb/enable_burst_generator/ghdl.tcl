@@ -10,7 +10,7 @@ if {![file exists $WORK]} then [file mkdir $WORK]
 puts "--------------------------------------------------------------------------"
 puts "INFO: BASELIB"
 source ../../baselib/_filelist.tcl
-compile $LIB $files
+compile $LIB $filelist
 
 puts "--------------------------------------------------------------------------"
 puts "INFO: Testbench"

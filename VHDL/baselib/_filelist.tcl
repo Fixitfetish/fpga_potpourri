@@ -9,10 +9,16 @@ set BASELIB_PATH [ file dirname [dict get [ info frame 0 ] file ] ]
 set files [list]
 
 # entities
-lappend files [ file normalize ${BASELIB_PATH}/ieee_extension_types_1993.vhdl ]
-lappend files [ file normalize ${BASELIB_PATH}/ieee_extension.vhdl ]
-lappend files [ file normalize ${BASELIB_PATH}/counter.vhdl ]
-lappend files [ file normalize ${BASELIB_PATH}/enable_burst_generator.vhdl ]
-lappend files [ file normalize ${BASELIB_PATH}/gray_code.vhdl ]
-lappend files [ file normalize ${BASELIB_PATH}/string_conversion_pkg.vhdl ]
-lappend files [ file normalize ${BASELIB_PATH}/file_io_pkg.vhdl ]
+lappend files ieee_extension_types_1993.vhdl
+lappend files ieee_extension.vhdl
+lappend files counter.vhdl
+lappend files enable_burst_generator.vhdl
+lappend files gray_code.vhdl
+lappend files string_conversion_pkg.vhdl
+lappend files file_io_pkg.vhdl
+
+# create final file list with absolute path
+set filelist [list]
+foreach f $files {
+  lappend filelist [file normalize "${BASELIB_PATH}/$f"]
+}
