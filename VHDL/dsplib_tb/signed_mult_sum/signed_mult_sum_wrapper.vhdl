@@ -66,6 +66,7 @@ begin
  generic map(
    NUM_MULT           => NUM_MULT, -- number of parallel multiplications
    HIGH_SPEED_MODE    => true,
+   USE_NEGATION       => true,
    NUM_INPUT_REG      => NUM_INPUT_REG,  -- number of input registers
    NUM_OUTPUT_REG     => 1,  -- number of output registers
    OUTPUT_SHIFT_RIGHT => 10,  -- number of right shifts

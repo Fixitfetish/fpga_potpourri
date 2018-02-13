@@ -80,7 +80,7 @@ begin
       if vld='1' then
         v_accu_used := (others=>'0');
         for n in 0 to NUM_MULT-1 loop
-          if neg(n)='1' then
+          if neg(n)='1' and USE_NEGATION then
             v_accu_used := v_accu_used - ( x(n) * y(y'left) ); -- y duplication!
           else
             v_accu_used := v_accu_used + ( x(n) * y(y'left) ); -- y duplication!
@@ -104,7 +104,7 @@ begin
       if vld='1' then
         v_accu_used := (others=>'0');
         for n in 0 to NUM_MULT-1 loop
-          if neg(n)='1' then
+          if neg(n)='1' and USE_NEGATION then
             v_accu_used := v_accu_used - ( x(n) * y(y'left+n) );
           else
             v_accu_used := v_accu_used + ( x(n) * y(y'left+n) );

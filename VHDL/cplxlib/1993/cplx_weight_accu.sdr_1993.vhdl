@@ -126,12 +126,13 @@ begin
     ovf(n) <= ovf(n-1) when rising_edge(clk);
   end generate;
 
-  -- weighting
+  -- REAL weighting
   i_re : entity dsplib.signed_mult_accu
   generic map(
     NUM_MULT           => NUM_MULT,
     NUM_SUMMAND        => NUM_SUMMAND,
     USE_CHAIN_INPUT    => false, -- unused here
+    USE_NEGATION       => true,
     NUM_INPUT_REG      => NUM_INPUT_REG,
     NUM_OUTPUT_REG     => 1, -- always enable accumulator (= first output register)
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -155,12 +156,13 @@ begin
     PIPESTAGES => PIPE_DSP
   );
 
-  -- weighting
+  -- IMAG weighting
   i_im : entity dsplib.signed_mult_accu
   generic map(
     NUM_MULT           => NUM_MULT,
     NUM_SUMMAND        => NUM_SUMMAND,
     USE_CHAIN_INPUT    => false, -- unused here
+    USE_NEGATION       => true,
     NUM_INPUT_REG      => NUM_INPUT_REG,
     NUM_OUTPUT_REG     => 1, -- always enable accumulator (= first output register)
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,

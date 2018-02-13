@@ -57,6 +57,7 @@ begin
    NUM_MULT           => NUM_MULT, -- number of parallel multiplications
    NUM_SUMMAND        => 4,  -- overall number of summed products
    USE_CHAIN_INPUT    => false,  -- enable chain input
+   USE_NEGATION       => true, -- enable negation port
    NUM_INPUT_REG      => NUM_INPUT_REG,  -- number of input registers
    NUM_OUTPUT_REG     => 1,  -- number of output registers
    OUTPUT_SHIFT_RIGHT => 10,  -- number of right shifts

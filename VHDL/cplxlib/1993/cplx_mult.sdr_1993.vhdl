@@ -155,6 +155,7 @@ begin
     generic map(
       NUM_MULT           => 2, -- two multiplications per complex multiplication
       HIGH_SPEED_MODE    => HIGH_SPEED_MODE,
+      USE_NEGATION       => true,
       NUM_INPUT_REG      => NUM_INPUT_REG,
       NUM_OUTPUT_REG     => 1, -- always enable DSP cell output register (= first output register)
       OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -180,6 +181,7 @@ begin
     generic map(
       NUM_MULT           => 2, -- two multiplications per complex multiplication
       HIGH_SPEED_MODE    => HIGH_SPEED_MODE,
+      USE_NEGATION       => true,
       NUM_INPUT_REG      => NUM_INPUT_REG,
       NUM_OUTPUT_REG     => 1, -- always enable DSP cell output register (= first output register)
       OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,

@@ -5,10 +5,10 @@ library baselib;
  use baselib.ieee_extension_types.all;
 library dsplib;
 
-entity signed_mult_sum_tb is
+entity signed_mult_accu_tb is
   generic (
     NUM_MULT           : positive := 2; -- number of parallel multiplications
-    HIGH_SPEED_MODE    : boolean := false; 
+    NUM_SUMMAND        : natural := 0;  -- overall number of summed products
     USE_NEGATION       : boolean := false; 
     NUM_INPUT_REG      : natural := 1; -- number of input registers
     NUM_OUTPUT_REG     : natural := 1; -- number of output registers
@@ -20,7 +20,7 @@ entity signed_mult_sum_tb is
   );
 end entity;
 
-architecture rtl of signed_mult_sum_tb is
+architecture rtl of signed_mult_accu_tb is
 
   -- clock
   constant PERIOD : time := 10 ns; -- 100 MHz
@@ -28,6 +28,7 @@ architecture rtl of signed_mult_sum_tb is
   signal rst : std_logic := '1';
   signal finish : std_logic := '0';
 
+  signal clr : std_logic := '0';
   signal vld : std_logic := '0';
   signal neg : std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
   signal x : signed18_vector(0 to NUM_MULT-1) := (others=>(others=>'0'));
@@ -98,10 +99,10 @@ begin
     wait; -- end of process
   end process;
 
-  behave : entity dsplib.signed_mult_sum(behave)
+  behave : entity dsplib.signed_mult_accu(behave)
   generic map(
     NUM_MULT           => NUM_MULT, -- number of parallel multiplications
-    HIGH_SPEED_MODE    => HIGH_SPEED_MODE,
+    NUM_SUMMAND        => NUM_SUMMAND,  -- overall number of summed products
     USE_NEGATION       => USE_NEGATION,
     NUM_INPUT_REG      => NUM_INPUT_REG,  -- number of input registers
     NUM_OUTPUT_REG     => NUM_OUTPUT_REG,  -- number of output registers
@@ -113,6 +114,7 @@ begin
   port map(
     clk        => clk, -- clock
     rst        => rst, -- reset
+    clr        => clr, -- clear accu
     vld        => vld, -- valid
     neg        => neg, -- negation
     x          => x, -- first factors
@@ -123,10 +125,10 @@ begin
     PIPESTAGES => pipestages -- constant number of pipeline stages
   );
  
---  us : entity dsplib.signed_mult_sum(ultrascale)
+--  us : entity dsplib.signed_mult_accu(ultrascale)
 --  generic map(
 --    NUM_MULT           => NUM_MULT, -- number of parallel multiplications
---    HIGH_SPEED_MODE    => HIGH_SPEED_MODE,
+--    NUM_SUMMAND        => NUM_SUMMAND,  -- overall number of summed products
 --    USE_NEGATION       => USE_NEGATION,
 --    NUM_INPUT_REG      => NUM_INPUT_REG,  -- number of input registers
 --    NUM_OUTPUT_REG     => NUM_OUTPUT_REG,  -- number of output registers
@@ -138,6 +140,7 @@ begin
 --  port map(
 --    clk        => clk, -- clock
 --    rst        => rst, -- reset
+--    clr        => clr, -- clear accu
 --    vld        => vld, -- valid
 --    neg        => neg, -- negation
 --    x          => x, -- first factors

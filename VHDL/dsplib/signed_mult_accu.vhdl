@@ -54,7 +54,7 @@ library baselib;
 --! without risk of overflow) would be OUTPUT_SHIFT_RIGHT = 34 + 5 - 22 = 17.
 --!
 --! If just the sum of products is required but not any further accumulation
---! then set CLR to constant '1'.
+--! then set CLR to constant '1' or consider using signed_mult_sum .
 --!
 --! The delay depends on the configuration and the underlying hardware.
 --! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
@@ -70,6 +70,7 @@ library baselib;
 --!   NUM_MULT           => positive, -- number of parallel multiplications
 --!   NUM_SUMMAND        => natural,  -- overall number of summed products
 --!   USE_CHAIN_INPUT    => boolean,  -- enable chain input
+--!   USE_NEGATION       => boolean,  -- enable negation port
 --!   NUM_INPUT_REG      => natural,  -- number of input registers
 --!   NUM_OUTPUT_REG     => natural,  -- number of output registers
 --!   OUTPUT_SHIFT_RIGHT => natural,  -- number of right shifts
@@ -120,6 +121,12 @@ generic (
   NUM_SUMMAND : natural := 0;
   --! Enable chain input from neighbor DSP cell, i.e. enable additional accumulator input
   USE_CHAIN_INPUT : boolean := false;
+  --! @brief Enable negation port. If enabled then dynamic negation of partial
+  --! products is implemented (preferably within the DSP cells otherwise in logic). 
+  --! Enabling the negation might have negative side effects on pipeline stages,
+  --! input width limitations and timing.
+  --! Disable negation if not needed and the negation port input is ignored.
+  USE_NEGATION : boolean := false;
   --! @brief Number of additional input registers. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
   NUM_INPUT_REG : natural := 1;

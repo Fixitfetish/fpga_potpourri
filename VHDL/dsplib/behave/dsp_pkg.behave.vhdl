@@ -17,7 +17,7 @@ library baselib;
 
 --! @brief This package includes a collection of common parameters and functions
 --! for DSP behavioral models. It helps to minimize code duplication in the
---! different DSP implementations.
+--! different behavioral implementations.
 
 package dsp_pkg_behave is
 
@@ -48,7 +48,11 @@ package body dsp_pkg_behave is
     if num_summand=0 then
       res := dflt; -- maximum possible (default)
     else
-      res := LOG2CEIL(num_summand);
+      if num_summand=1 then
+        res := 0;
+      else
+        res := LOG2CEIL(num_summand);
+      end if;
       if res>dflt then 
         report "WARNING " & impl & ": Too many summands. " & 
            "Maximum number of " & integer'image(dflt) & " guard bits reached."
