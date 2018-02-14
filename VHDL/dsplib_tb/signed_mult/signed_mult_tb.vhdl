@@ -5,7 +5,7 @@ library baselib;
  use baselib.ieee_extension_types.all;
 library dsplib;
 
-entity signed_mult_accu_tb is
+entity signed_mult_tb is
   generic (
     NUM_MULT           : positive := 2; -- number of parallel multiplications
     USE_NEGATION       : boolean := false; 
@@ -19,34 +19,29 @@ entity signed_mult_accu_tb is
   );
 end entity;
 
-architecture rtl of signed_mult_accu_tb is
+architecture rtl of signed_mult_tb is
 
   -- clock
   constant PERIOD : time := 10 ns; -- 100 MHz
   signal clk : std_logic := '1';
-
-  constant ACCU_CYCLES : positive := 10; -- max accumulation cycles
-  constant NUM_SUMMAND : natural := NUM_MULT * ACCU_CYCLES;
-
   signal rst : std_logic := '1';
   signal finish : std_logic := '0';
 
-  signal clr : std_logic := '0';
   signal vld : std_logic := '0';
   signal neg : std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
   signal x : signed18_vector(0 to NUM_MULT-1) := (others=>(others=>'0'));
   signal y : signed18_vector(0 to NUM_MULT-1) := (others=>(others=>'0'));
   
   -- behave
-  signal result     : signed(OUTPUT_WIDTH-1 downto 0); -- product result
-  signal result_vld : std_logic; -- output valid
-  signal result_ovf : std_logic; -- output overflow
+  signal result     : signed_vector(0 to NUM_MULT-1)(OUTPUT_WIDTH-1 downto 0); -- product results
+  signal result_vld : std_logic_vector(0 to NUM_MULT-1); -- output valid
+  signal result_ovf : std_logic_vector(0 to NUM_MULT-1); -- output overflow
   signal pipestages : natural;
 
   -- Ultrascale
-  signal us_result     : signed(OUTPUT_WIDTH-1 downto 0); -- product result
-  signal us_result_vld : std_logic; -- output valid
-  signal us_result_ovf : std_logic; -- output overflow
+  signal us_result     : signed_vector(0 to NUM_MULT-1)(OUTPUT_WIDTH-1 downto 0); -- product results
+  signal us_result_vld : std_logic_vector(0 to NUM_MULT-1); -- output valid
+  signal us_result_ovf : std_logic_vector(0 to NUM_MULT-1); -- output overflow
   signal us_pipestages : natural;
 
   procedure run_clk_cycles(signal clk:in std_logic; n:in integer) is
@@ -83,9 +78,6 @@ begin
     
     run_clk_cycles(clk,4);
     for i in 1 to 20 loop
-      if i=1 or i=11 then
-        clr <= '1'; -- clear accu
-      end if;
       vld <= '1';
       for n in 0 to NUM_MULT-1 loop
 --        -- simple test
@@ -96,20 +88,18 @@ begin
       end loop;
       wait until rising_edge(clk);
       vld <= '0';
-      clr <= '0';
       wait until rising_edge(clk);
     end loop;
     vld <= '0';
-    run_clk_cycles(clk,20);
+    run_clk_cycles(clk,10);
     finish <= '1';
     wait until rising_edge(clk);
     wait; -- end of process
   end process;
 
-  behave : entity dsplib.signed_mult_accu(behave)
+  behave : entity dsplib.signed_mult(behave)
   generic map(
     NUM_MULT           => NUM_MULT, -- number of parallel multiplications
-    NUM_SUMMAND        => NUM_SUMMAND,  -- overall number of summed products
     USE_NEGATION       => USE_NEGATION,
     NUM_INPUT_REG      => NUM_INPUT_REG,  -- number of input registers
     NUM_OUTPUT_REG     => NUM_OUTPUT_REG,  -- number of output registers
@@ -121,7 +111,6 @@ begin
   port map(
     clk        => clk, -- clock
     rst        => rst, -- reset
-    clr        => clr, -- clear accu
     vld        => vld, -- valid
     neg        => neg, -- negation
     x          => x, -- first factors
@@ -132,10 +121,9 @@ begin
     PIPESTAGES => pipestages -- constant number of pipeline stages
   );
  
---  us : entity dsplib.signed_mult_accu(ultrascale)
+--  us : entity dsplib.signed_mult(ultrascale)
 --  generic map(
 --    NUM_MULT           => NUM_MULT, -- number of parallel multiplications
---    NUM_SUMMAND        => NUM_SUMMAND,  -- overall number of summed products
 --    USE_NEGATION       => USE_NEGATION,
 --    NUM_INPUT_REG      => NUM_INPUT_REG,  -- number of input registers
 --    NUM_OUTPUT_REG     => NUM_OUTPUT_REG,  -- number of output registers
@@ -147,7 +135,6 @@ begin
 --  port map(
 --    clk        => clk, -- clock
 --    rst        => rst, -- reset
---    clr        => clr, -- clear accu
 --    vld        => vld, -- valid
 --    neg        => neg, -- negation
 --    x          => x, -- first factors

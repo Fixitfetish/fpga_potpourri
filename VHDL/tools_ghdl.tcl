@@ -9,8 +9,8 @@ puts "..... COMPILER = $COMPILER"
 
 # Last flag must be the work library without the library name yet. 
 # This string is appended with the actual library name later.
-set COMPILER_FLAGS "-a --std=93 --workdir=work -Pwork --work="
-# set COMPILER_FLAGS "-a --std=08 --workdir=work -Pwork --work="
+set COMPILER_FLAGS "-a --std=08 --workdir=work -Pwork --work="
+# set COMPILER_FLAGS "-a --std=93 --workdir=work -Pwork --work="
 
 puts "..... COMPILER_FLAGS = $COMPILER_FLAGS"
 
@@ -31,7 +31,7 @@ if [expr {$tcl_version<8.5}] then {error "ERROR: TCL >= 8.5 required !"}
 
 # start compiler
 proc compile {lib files} {
-  puts "INFO: Compiling files ..."
+  puts "INFO: Compiling files into library $lib ..."
   foreach f $files { puts "..... $f" }
   set FAIL [catch {{*}[concat exec ${::COMPILER} ${::COMPILER_FLAGS}${lib} $files]} result]
   if [string length $result] then { puts $result }

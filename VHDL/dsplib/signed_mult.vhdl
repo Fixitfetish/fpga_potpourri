@@ -43,6 +43,7 @@ library baselib;
 --! I1 : signed_mult
 --! generic map(
 --!   NUM_MULT           => positive, -- number of parallel multiplications
+--!   USE_NEGATION       => boolean,  -- enable negation port
 --!   NUM_INPUT_REG      => natural,  -- number of input registers
 --!   NUM_OUTPUT_REG     => natural,  -- number of output registers
 --!   OUTPUT_SHIFT_RIGHT => natural,  -- number of right shifts
@@ -68,6 +69,12 @@ entity signed_mult is
 generic (
   --! Number of parallel multiplications - mandatory generic!
   NUM_MULT : positive;
+  --! @brief Enable negation port. If enabled then dynamic negation of partial
+  --! products is implemented (preferably within the DSP cells otherwise in logic). 
+  --! Enabling the negation might have negative side effects on pipeline stages,
+  --! input width limitations and timing.
+  --! Disable negation if not needed and the negation port input is ignored.
+  USE_NEGATION : boolean := false;
   --! @brief Number of additional input registers. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
   NUM_INPUT_REG : natural := 1;

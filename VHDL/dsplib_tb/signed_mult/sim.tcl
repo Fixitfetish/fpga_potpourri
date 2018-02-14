@@ -17,7 +17,7 @@ set ALTERA_LIB ${aldec}/vlib/altera_14v1
 set XILINX_LIB ${aldec}/vlib/VIVADO/2017.2
 
 # top-level entity
-set top signed_mult_sum_tb
+set top signed_mult_tb
 
 # set testbench generic values
 set generics [list]

@@ -138,11 +138,19 @@ begin
 
   -- synthesis translate_off (Altera Quartus)
   -- pragma translate_off (Xilinx Vivado , Synopsys)
-  assert (     (x0'length+y0'length)=(x1'length+y1'length)
-           and (x0'length+y0'length)=(x2'length+y2'length)
-           and (x0'length+y0'length)=(x3'length+y3'length) )
+  assert (x0'length+y0'length)=(x1'length+y1'length) 
     report "ERROR in " & signed_mult4_sum'INSTANCE_NAME &
-           " All products must result in same size."
+           " Product 1 must result in same size as product 0."
+    severity failure;
+
+  assert (x0'length+y0'length)=(x2'length+y2'length) 
+    report "ERROR in " & signed_mult4_sum'INSTANCE_NAME &
+           " Product 2 must result in same size as product 0."
+    severity failure;
+
+  assert (x0'length+y0'length)=(x3'length+y3'length) 
+    report "ERROR in " & signed_mult4_sum'INSTANCE_NAME &
+           " Product 3 must result in same size as product 0."
     severity failure;
 
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)

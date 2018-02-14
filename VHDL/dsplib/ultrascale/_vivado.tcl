@@ -5,7 +5,7 @@
 # path/location of this script
 set ULTRASCALE_PATH [ file dirname [dict get [ info frame 0 ] file ] ]
 
-# create file list
+# create empty file list
 set filelist [list]
 
 # get file list

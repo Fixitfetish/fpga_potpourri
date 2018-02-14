@@ -9,7 +9,7 @@ set BASELIB_PATH [ file dirname [dict get [ info frame 0 ] file ] ]
 set files [list]
 
 # entities
-lappend files ieee_extension_types_1993.vhdl
+lappend files ieee_extension_types_2008.vhdl
 lappend files ieee_extension.vhdl
 lappend files counter.vhdl
 lappend files enable_burst_generator.vhdl

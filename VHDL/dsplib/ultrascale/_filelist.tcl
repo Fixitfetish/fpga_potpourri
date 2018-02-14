@@ -1,5 +1,7 @@
-# Append the generic DSPLIB Library file list with the UltraScale specific architectures.
-# It is required to create the file list of all the generic DSP entities first !
+# Create file list with the UltraScale specific architectures.
+# It is required to compile the file list of all the generic DSP entities first !
+
+set LIB dsplib
 
 # path/location of this script
 set ULTRASCALE_PATH [ file dirname [dict get [ info frame 0 ] file ] ]
@@ -21,7 +23,8 @@ lappend files signed_mult.ultrascale.vhdl
 lappend files signed_mult_accu.ultrascale.vhdl
 lappend files signed_mult_sum.ultrascale.vhdl
 
-# append files to existing file list
+# create final file list with absolute path
+set filelist [list]
 foreach f $files {
   lappend filelist [file normalize "${ULTRASCALE_PATH}/$f"]
 }
