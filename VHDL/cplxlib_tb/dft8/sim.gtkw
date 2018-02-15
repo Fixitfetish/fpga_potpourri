@@ -1,0 +1,31 @@
+[*]
+[*] GTKWave Analyzer v3.3.87 (w)1999-2017 BSI
+[*] Thu Feb 15 22:38:34 2018
+[*]
+[dumpfile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\cplxlib_tb\dft8\work\sim.vcd"
+[dumpfile_mtime] "Thu Feb 15 22:34:58 2018"
+[dumpfile_size] 247262
+[savefile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\cplxlib_tb\dft8\sim.gtkw"
+[timestart] 0
+[size] 1304 745
+[pos] -35 -35
+*-23.703152 0 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 211
+[signals_width] 166
+[sst_expanded] 1
+[sst_vpaned_height] 205
+@28
+rst
+finish
+clk
+clkena
+fft1_in_start
+@24
+fft1_in_idx[2:0]
+fft1_out_idx[2:0]
+@28
+fft2_in_start
+@25
+fft2_in_idx[2:0]
+[pattern_trace] 1
+[pattern_trace] 0

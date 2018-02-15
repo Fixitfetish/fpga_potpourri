@@ -33,16 +33,16 @@ architecture rtl of signed_mult_tb is
   signal y : signed18_vector(0 to NUM_MULT-1) := (others=>(others=>'0'));
   
   -- behave
-  signal result     : signed_vector(0 to NUM_MULT-1)(OUTPUT_WIDTH-1 downto 0); -- product results
+  signal result     : signed18_vector(0 to NUM_MULT-1); -- product results
   signal result_vld : std_logic_vector(0 to NUM_MULT-1); -- output valid
   signal result_ovf : std_logic_vector(0 to NUM_MULT-1); -- output overflow
   signal pipestages : natural;
 
-  -- Ultrascale
-  signal us_result     : signed_vector(0 to NUM_MULT-1)(OUTPUT_WIDTH-1 downto 0); -- product results
-  signal us_result_vld : std_logic_vector(0 to NUM_MULT-1); -- output valid
-  signal us_result_ovf : std_logic_vector(0 to NUM_MULT-1); -- output overflow
-  signal us_pipestages : natural;
+--  -- Ultrascale
+--  signal us_result     : signed_vector(0 to NUM_MULT-1)(OUTPUT_WIDTH-1 downto 0); -- product results
+--  signal us_result_vld : std_logic_vector(0 to NUM_MULT-1); -- output valid
+--  signal us_result_ovf : std_logic_vector(0 to NUM_MULT-1); -- output overflow
+--  signal us_pipestages : natural;
 
   procedure run_clk_cycles(signal clk:in std_logic; n:in integer) is
   begin
