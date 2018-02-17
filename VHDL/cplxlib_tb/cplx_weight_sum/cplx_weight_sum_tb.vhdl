@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- FILE    : mult_tb.vhdl
+-- FILE    : cplx_weight_sum_tb.vhdl
 -- AUTHOR  : Fixitfetish
 -- DATE    : 06/Jun/2017
 -- VERSION : 0.30
@@ -9,20 +9,22 @@
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
+library baselib;
+  use baselib.ieee_extension_types.all;
 library cplxlib;
   use cplxlib.cplx_pkg.all;
 
 use std.textio.all;
 
-entity mult_tb is
+entity cplx_weight_sum_tb is
 end entity;
 
-architecture sim of mult_tb is
+architecture sim of cplx_weight_sum_tb is
   
-  constant PERIOD : time := 1 ns; -- 1000MHz
-  constant LX : natural := 5;  -- vector length x
-  constant LY : natural := 5;  -- vector length y
-  constant LR : natural := LX; -- vector length result
+  constant PERIOD : time := 5 ns; -- 200MHz
+  constant LX : natural := 6;  -- vector length x
+  constant LY : natural := 6;  -- vector length w
+  constant LR : natural := 1; -- vector length result
 
   constant FILENAME_X : string := "x_sti.txt"; -- input x
   constant FILENAME_Y : string := "y_sti.txt"; -- input y
@@ -34,7 +36,8 @@ architecture sim of mult_tb is
   signal finish : std_logic := '0';
 
   signal x : cplx_vector(0 to LX-1) := cplx_vector_reset(18,LX,"R");
-  signal y : cplx_vector(0 to LY-1) := cplx_vector_reset(18,LY,"R");
+  signal y : cplx_vector(0 to LY-1) := cplx_vector_reset(18,LY,"R"); -- only real used here
+  signal w : signed18_vector(0 to LY-1) := (others=>(others=>'0'));
   signal r : cplx_vector(0 to LR-1);
 
 begin
@@ -100,13 +103,18 @@ begin
     finish  => finish
   );
 
-  I1 : entity cplxlib.cplx_mult
+  -- weight factor is the real part of the input y
+  gw: for n in 0 to LY-1 generate
+    w(n) <= y(n).re;
+  end generate;
+
+  I1 : entity cplxlib.cplx_weight_sum
   generic map(
     NUM_MULT              => LX, -- number of parallel multiplications
     HIGH_SPEED_MODE       => false,  -- enable high speed mode
     NUM_INPUT_REG         => 1,  -- number of input registers
     NUM_OUTPUT_REG        => 1,  -- number of output registers
-    OUTPUT_SHIFT_RIGHT    => 18,  -- number of right shifts
+    OUTPUT_SHIFT_RIGHT    => 19,  -- number of right shifts
     MODE                  => "NOS" -- options
   )
   port map(
@@ -114,8 +122,8 @@ begin
     clk2       => open  , -- clock x2
     neg        => (others=>'0'), -- negation per input x
     x          => x, -- first factors
-    y          => y  , -- second factors
-    result     => r, -- product results
+    w          => w, -- second factors
+    result     => r(0), -- result sum of products
     PIPESTAGES => open  -- constant number of pipeline stages
   );
 
@@ -125,7 +133,7 @@ begin
     LOG_DECIMAL => true,
     LOG_INVALID => true,
     LOG_FILE => FILENAME_R,
-    TITLE => "MULT_OUT"
+    TITLE => "OUTPUT"
   )
   port map (
     clk     => clk,
