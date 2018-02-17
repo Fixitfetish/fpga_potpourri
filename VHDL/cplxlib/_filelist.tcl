@@ -13,6 +13,7 @@ set files [list]
 # General
 lappend files ${VHDL}/cplx_pkg_${VHDL}.vhdl
 lappend files cplx_pipeline.vhdl
+lappend files cplx_vector_pipeline.vhdl
 
 # Entities
 lappend files cplx_vector_serialization.vhdl
