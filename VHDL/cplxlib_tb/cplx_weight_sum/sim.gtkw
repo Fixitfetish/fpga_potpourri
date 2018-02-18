@@ -1,0 +1,25 @@
+[*]
+[*] GTKWave Analyzer v3.3.87 (w)1999-2017 BSI
+[*] Sat Feb 17 15:43:03 2018
+[*]
+[dumpfile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\cplxlib_tb\cplx_weight_sum\work\sim.vcd"
+[dumpfile_mtime] "Sat Feb 17 15:42:15 2018"
+[dumpfile_size] 151928
+[savefile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\cplxlib_tb\cplx_weight_sum\sim.gtkw"
+[timestart] 0
+[size] 1000 600
+[pos] -1 -1
+*-25.395855 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 211
+[signals_width] 110
+[sst_expanded] 1
+[sst_vpaned_height] 154
+@28
+rst
+finish
+clk
+clkena
+@421
+pipestages
+[pattern_trace] 1
+[pattern_trace] 0

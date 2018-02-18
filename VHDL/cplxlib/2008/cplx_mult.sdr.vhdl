@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_mult.sdr.vhdl
 --! @author     Fixitfetish
---! @date       16/Jun/2017
---! @version    0.40
+--! @date       17/Feb/2018
+--! @version    0.50
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -62,11 +62,9 @@ architecture sdr of cplx_mult is
   signal vld : std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
   signal data_reset : std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
 
-  -- output signals
+  -- DSP output signals
   signal r_ovf_re, r_ovf_im : std_logic_vector(0 to NUM_MULT-1);
-  type matrix_result is array(integer range<>) of cplx_vector(0 to NUM_MULT-1)(re(WIDTH_R-1 downto 0),im(WIDTH_R-1 downto 0));
-  constant DEFAULT_RESULT : cplx_vector := cplx_vector_reset(NUM_MULT,WIDTH_R,"R");
-  signal rslt : matrix_result(0 to NUM_OUTPUT_REG) := (others=>DEFAULT_RESULT); 
+  signal rslt : cplx_vector(0 to NUM_MULT-1)(re(WIDTH_R-1 downto 0),im(WIDTH_R-1 downto 0));
 
   -- pipeline stages of used DSP cell
   type t_pipe is array(integer range <>) of natural;
@@ -164,8 +162,8 @@ begin
      neg        => neg_re(2*n to 2*n+1),
      x          => x_re(2*n to 2*n+1),
      y          => y_re(2*n to 2*n+1),
-     result     => rslt(0)(n).re,
-     result_vld => rslt(0)(n).vld,
+     result     => rslt(n).re,
+     result_vld => rslt(n).vld,
      result_ovf => r_ovf_re(n),
      PIPESTAGES => PIPE_DSP(n)
     );
@@ -190,27 +188,30 @@ begin
      neg        => neg_im(2*n to 2*n+1),
      x          => x_im(2*n to 2*n+1),
      y          => y_im(2*n to 2*n+1),
-     result     => rslt(0)(n).im,
+     result     => rslt(n).im,
      result_vld => open, -- same as real component
      result_ovf => r_ovf_im(n),
      PIPESTAGES => open  -- same as real component
     );
 
     -- pipeline delay is the same for all
-    rslt(0)(n).rst <= rst(PIPE_DSP(0))(n);
-    rslt(0)(n).ovf <= (r_ovf_re(n) or r_ovf_im(n)) when MODE='X' else
-                      (r_ovf_re(n) or r_ovf_im(n) or ovf(PIPE_DSP(0))(n));
+    rslt(n).rst <= rst(PIPE_DSP(0))(n);
+    rslt(n).ovf <= (r_ovf_re(n) or r_ovf_im(n)) when MODE='X' else
+                   (r_ovf_re(n) or r_ovf_im(n) or ovf(PIPE_DSP(0))(n));
   end generate;
 
-  -- additional output registers
-  g_out_reg : if NUM_OUTPUT_REG>=1 generate
-    g_loop : for n in 1 to NUM_OUTPUT_REG generate
-      rslt(n) <= rslt(n-1) when rising_edge(clk);
-    end generate;
-  end generate;
-
-  -- map result to output port
-  result <= rslt(NUM_OUTPUT_REG);
+  -- result output pipeline
+  i_out : entity cplxlib.cplx_vector_pipeline
+  generic map(
+    NUM_PIPELINE_STAGES => NUM_OUTPUT_REG,
+    MODE                => MODE
+  )
+  port map(
+    clk        => clk,
+    rst        => open, -- TODO
+    din        => rslt,
+    dout       => result
+  );
 
   -- report constant number of pipeline register stages (in 'clk' domain)
   PIPESTAGES <= PIPE_DSP(0) + NUM_OUTPUT_REG;

@@ -17,13 +17,11 @@ library baselib;
 library cplxlib;
   use cplxlib.cplx_pkg.all;
 
---! @brief N complex values are weighted (scaled) with one scalar or N scalar values.
---! Can be used for scalar multiplication.
+--! @brief N complex values are weighted (signed scaling) with one scalar or
+--! N scalar values. Can be used for scalar multiplication.
 --!
---! @image html cplx_weight.svg "" width=600px
---!
---! For pure weighting use this entity instead of @link cplx_mult @endlink
---! because less multiplications are required than with the entity cplx_mult.
+--! For pure weighting use this entity instead of cplx_mult because
+--! less multiplications are required than with the entity cplx_mult.
 --! Two operation modes are supported:
 --! 1. result(n) = +/-x(n) * w(n)  # separate weighting factor w for each element of x
 --! 2. result(n) = +/-x(n) * w(0)  # weighting factor w is the same for all elements of x
@@ -40,7 +38,7 @@ library cplxlib;
 --!   OUTPUT_SHIFT_RIGHT = WIDTH - result.re'length .
 --! The number right shifts can also be smaller with the risk of overflows/clipping.
 --!
---! The delay depends on the configuration and the underlying hardware.
+--! The number of delay cycles depend on the configuration and the underlying hardware.
 --! The number pipeline stages is reported as constant at output port PIPESTAGES.
 --! Note that the number of input register stages should be chosen carefully
 --! because dependent on the number of inputs the number resulting registers
@@ -51,6 +49,8 @@ library cplxlib;
 --! implementation of this module is used.
 --! Note that the double rate clock 'clk2' must have double the frequency of
 --! system clock 'clk' and must be synchronous and related to 'clk'.
+--!
+--! @image html cplx_weight.svg "" width=600px
 --!
 --! Also available are the following entities:
 --! * cplx_mult

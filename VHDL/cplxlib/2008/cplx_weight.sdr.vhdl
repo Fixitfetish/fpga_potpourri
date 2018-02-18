@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_weight.sdr.vhdl
 --! @author     Fixitfetish
---! @date       16/Jun/2017
---! @version    0.40
+--! @date       17/Feb/2018
+--! @version    0.50
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -20,7 +20,7 @@ library cplxlib;
 library dsplib;
 
 --! @brief Single Data Rate implementation of the entity cplx_weight .
---! N complex values are weighted (scaled) with one scalar or N scalar values.
+--! N complex values are weighted (signed scaling) with one scalar or N scalar values.
 --! Can be used for scalar multiplication.
 --!
 --! This implementation requires the entity signed_mult .
@@ -40,8 +40,8 @@ architecture sdr of cplx_weight is
   constant MAX_NUM_PIPE_DSP : positive := 16;
 
   -- bit resolution of input and output data
-  constant WIDTH_W : positive := w(w'left)'length;
   constant WIDTH_X : positive := x(x'left).re'length;
+  constant WIDTH_W : positive := w(w'left)'length;
   constant WIDTH_R : positive := result(result'left).re'length;
 
   -- number of elements of factor vector
@@ -66,14 +66,11 @@ architecture sdr of cplx_weight is
   signal vld : std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
   signal data_reset : std_logic := '0';
 
-  -- output signals
+  -- DSP output signals
   signal r_vld, r_ovf : std_logic_vector(0 to 2*NUM_MULT-1);
   signal r : signed_vector(0 to 2*NUM_MULT-1)(WIDTH_R-1 downto 0);
-  type matrix_result is array(integer range<>) of cplx_vector(0 to NUM_MULT-1)(re(WIDTH_R-1 downto 0),im(WIDTH_R-1 downto 0));
-  signal rslt : matrix_result(0 to NUM_OUTPUT_REG);
-
-  -- pipeline stages of used DSP cell
-  signal PIPE_DSP : natural;
+  signal rslt : cplx_vector(0 to NUM_MULT-1)(re(WIDTH_R-1 downto 0),im(WIDTH_R-1 downto 0));
+  signal PIPE_DSP : natural; -- pipeline stages of used DSP cell
 
   -- dummy sink to avoid warnings
   procedure std_logic_sink(x:in std_logic) is
@@ -148,23 +145,26 @@ begin
   );
 
   g_rslt : for n in 0 to NUM_MULT-1 generate
-    rslt(0)(n).rst <= rst(PIPE_DSP)(n);
-    rslt(0)(n).ovf <= (r_ovf(2*n) or r_ovf(2*n+1)) when MODE='X' else
-                      (r_ovf(2*n) or r_ovf(2*n+1) or ovf(PIPE_DSP)(n));
-    rslt(0)(n).vld <= r_vld(2*n) and (not rst(PIPE_DSP)(n)); -- valid signal is the same for all product results
-    rslt(0)(n).re <= r(2*n);
-    rslt(0)(n).im <= r(2*n+1);
+    rslt(n).rst <= rst(PIPE_DSP)(n);
+    rslt(n).ovf <= (r_ovf(2*n) or r_ovf(2*n+1)) when MODE='X' else
+                   (r_ovf(2*n) or r_ovf(2*n+1) or ovf(PIPE_DSP)(n));
+    rslt(n).vld <= r_vld(2*n) and (not rst(PIPE_DSP)(n)); -- valid signal is the same for all product results
+    rslt(n).re <= r(2*n);
+    rslt(n).im <= r(2*n+1);
   end generate;
 
-  -- additional output registers
-  g_out_reg : if NUM_OUTPUT_REG>=1 generate
-    g_loop : for n in 1 to NUM_OUTPUT_REG generate
-      rslt(n) <= rslt(n-1) when rising_edge(clk);
-    end generate;
-  end generate;
-
-  -- map result to output port
-  result <= rslt(NUM_OUTPUT_REG);
+  -- result output pipeline
+  i_out : entity cplxlib.cplx_vector_pipeline
+  generic map(
+    NUM_PIPELINE_STAGES => NUM_OUTPUT_REG,
+    MODE                => MODE
+  )
+  port map(
+    clk        => clk,
+    rst        => open, -- TODO
+    din        => rslt,
+    dout       => result
+  );
 
   -- report constant number of pipeline register stages (in 'clk' domain)
   PIPESTAGES <= PIPE_DSP + NUM_OUTPUT_REG;

@@ -17,24 +17,22 @@ library baselib;
 library cplxlib;
   use cplxlib.cplx_pkg.all;
 
---! @brief N complex values are weighted (scaled) with one scalar or N scalar
---! values. Finally the weighted results are accumulated.
+--! @brief N complex values are weighted (signed scaling) with one scalar or
+--! N scalar values. Finally the weighted results are accumulated.
 --!
---! @image html cplx_weight_accu.svg "" width=600px
---!
---! For pure weighting use this entity instead of @link cplx_mult_accu @endlink
---! because less multiplications are required than with the entity cplx_mult_accu.
+--! For pure weighting use this entity instead of cplx_mult_accu because
+--! less multiplications are required than with the entity cplx_mult_accu.
 --!
 --! First operation mode (separate weighting factor w for each element of x)
 --! * vld = x0.vld and x1.vld and ...
---! * CLR=1  VLD=0  ->  r = undefined                       # reset accumulator
+--! * CLR=1  VLD=0  ->  r = undefined                       # clear/reset accumulator
 --! * CLR=1  VLD=1  ->  r = +/-(x0*w0) +/-(x1*w1) +/-...    # restart accumulation
 --! * CLR=0  VLD=0  ->  r = r                               # hold accumulator
 --! * CLR=0  VLD=1  ->  r = r +/-(x0*w0) +/-(x1*w1) +/-...  # proceed accumulation
 --!
 --! Second operation mode (weighting factor w is the same for all elements of x):
 --! * vld = x0.vld and x1.vld and ...
---! * CLR=1  VLD=0  ->  r = undefined                       # reset accumulator
+--! * CLR=1  VLD=0  ->  r = undefined                       # clear/reset accumulator
 --! * CLR=1  VLD=1  ->  r = +/-(x0*w0) +/-(x1*w0) +/-...    # restart accumulation
 --! * CLR=0  VLD=0  ->  r = r                               # hold accumulator
 --! * CLR=0  VLD=1  ->  r = r +/-(x0*w0) +/-(x1*w0) +/-...  # proceed accumulation
@@ -49,17 +47,17 @@ library cplxlib;
 --! The size of the real and imaginary part of a complex input must be identical.
 --! The maximum result width is
 --!   WIDTH = x.re'length + w'length + ceil(log2(NUM_SUMMAND)).
---! Note that the width increases dependent on the number of summands.
+--! Note that the width increases dependent on the number of accumulated summands.
 --!
 --! Dependent on result.re'length a shift right is required to avoid overflow or clipping.
 --!   OUTPUT_SHIFT_RIGHT = WIDTH - result.re'length .
 --! The number right shifts can also be smaller with the risk of overflows/clipping.
 --!
---! If just multiplication and the sum of products is required but not further
---! accumulation then set CLR to constant '1' or use the entity cplx_weight_sum
---! instead.
+--! If just multiplication and the sum of products is required but not any further
+--! accumulation then set CLR to constant '1' or consider using the entity
+--! cplx_weight_sum instead.
 --!
---! The delay depends on the configuration and the underlying hardware.
+--! The number of delay cycles depend on the configuration and the underlying hardware.
 --! The number pipeline stages is reported as constant at output port PIPESTAGES.
 --! Note that the number of input register stages should be chosen carefully
 --! because dependent on the number of inputs the number resulting registers
@@ -70,6 +68,8 @@ library cplxlib;
 --! implementation of this module is used.
 --! Note that the double rate clock 'clk2' must have double the frequency of
 --! system clock 'clk' and must be synchronous and related to 'clk'.
+--!
+--! @image html cplx_weight_accu.svg "" width=600px
 --!
 --! Also available are the following entities:
 --! * cplx_mult

@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_weight_accu.sdr.vhdl
 --! @author     Fixitfetish
---! @date       16/Jun/2017
---! @version    0.20
+--! @date       17/Feb/2018
+--! @version    0.40
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -20,7 +20,7 @@ library cplxlib;
 library dsplib;
 
 --! @brief Single Data Rate implementation of the entity cplx_weight_accu .
---! N complex values are weighted (scaled) with one scalar or N scalar
+--! N complex values are weighted (signed scaling) with one scalar or N scalar
 --! values. Finally the weighted results are accumulated.
 --!
 --! In general this multiplier can be used when FPGA DSP cells are clocked with
@@ -39,8 +39,8 @@ architecture sdr of cplx_weight_accu is
   constant MAX_NUM_PIPE_DSP : positive := 16;
 
   -- bit resolution of input and output data
-  constant WIDTH_W : positive := w(w'left)'length;
   constant WIDTH_X : positive := x(x'left).re'length;
+  constant WIDTH_W : positive := w(w'left)'length;
   constant WIDTH_R : positive := result.re'length;
 
   -- number of elements of weight factor vector w
@@ -65,13 +65,10 @@ architecture sdr of cplx_weight_accu is
   signal vld : std_logic;
   signal data_reset : std_logic := '0';
 
-  -- output signals
+  -- DSP output signals
   signal r_ovf_re, r_ovf_im : std_logic;
-  constant DEFAULT_RESULT : cplx_vector := cplx_vector_reset(NUM_OUTPUT_REG+1,WIDTH_R,"R");
-  signal rslt : cplx_vector(0 to NUM_OUTPUT_REG)(re(WIDTH_R-1 downto 0),im(WIDTH_R-1 downto 0)) := DEFAULT_RESULT;
-
-  -- pipeline stages of used DSP cell
-  signal PIPE_DSP : natural;
+  signal rslt : cplx(re(WIDTH_R-1 downto 0),im(WIDTH_R-1 downto 0));
+  signal PIPE_DSP : natural; -- pipeline stages of used DSP cell
 
   -- dummy sink to avoid warnings
   procedure std_logic_sink(x:in std_logic) is
@@ -146,8 +143,8 @@ begin
     neg        => neg_re,
     x          => x_re,
     y          => w_dsp,
-    result     => rslt(0).re,
-    result_vld => rslt(0).vld,
+    result     => rslt.re,
+    result_vld => rslt.vld,
     result_ovf => r_ovf_re,
     chainin    => open, -- unused
     chainout   => open, -- unused
@@ -176,7 +173,7 @@ begin
     neg        => neg_im,
     x          => x_im,
     y          => w_dsp,
-    result     => rslt(0).im,
+    result     => rslt.im,
     result_vld => open, -- same as real component
     result_ovf => r_ovf_im,
     chainin    => open, -- unused
@@ -184,20 +181,23 @@ begin
     PIPESTAGES => open  -- same as real component
   );
 
-  -- pipeline delay is the same for all
-  rslt(0).rst <= rst(PIPE_DSP);
-  rslt(0).ovf <= (r_ovf_re or r_ovf_im) when MODE='X' else
-                 (r_ovf_re or r_ovf_im or ovf(PIPE_DSP));
+  -- Complete DSP output  
+  rslt.rst <= rst(PIPE_DSP);
+  rslt.ovf <= (r_ovf_re or r_ovf_im) when MODE='X' else
+              (r_ovf_re or r_ovf_im or ovf(PIPE_DSP));
 
-  -- additional output registers
-  g_out_reg : if NUM_OUTPUT_REG>=1 generate
-    g_loop : for n in 1 to NUM_OUTPUT_REG generate
-      rslt(n) <= rslt(n-1) when rising_edge(clk);
-    end generate;
-  end generate;
-
-  -- map result to output port
-  result <= rslt(NUM_OUTPUT_REG);
+  -- result output pipeline
+  i_out : entity cplxlib.cplx_pipeline
+  generic map(
+    NUM_PIPELINE_STAGES => NUM_OUTPUT_REG,
+    MODE                => MODE
+  )
+  port map(
+    clk        => clk,
+    rst        => open, -- TODO
+    din        => rslt,
+    dout       => result
+  );
 
   -- report constant number of pipeline register stages (in 'clk' domain)
   PIPESTAGES <= PIPE_DSP + NUM_OUTPUT_REG;

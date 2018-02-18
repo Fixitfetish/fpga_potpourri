@@ -54,7 +54,7 @@ n_nan = isnan(res.cplx.rst(:,1:LX)) ...
       + isnan(real(res.cplx.data(:,1:LX))) ...
       + isnan(imag(res.cplx.data(:,1:LX)));
 n_nan = sum(sum(n_nan));
-disp(['Number of incorrect values detected: ',num2str(n_nan)]);
+disp(['Number of NaN values detected in log: ',num2str(n_nan)]);
 
 % extract valid result values
 R = reshape(res.cplx.data(res.cplx.vld==1),8,[]);

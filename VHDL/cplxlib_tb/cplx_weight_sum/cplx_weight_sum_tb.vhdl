@@ -40,6 +40,8 @@ architecture sim of cplx_weight_sum_tb is
   signal w : signed18_vector(0 to LY-1) := (others=>(others=>'0'));
   signal r : cplx_vector(0 to LR-1);
 
+  signal PIPESTAGES : natural;
+
 begin
 
   p_clk : process
@@ -58,7 +60,7 @@ begin
   end process;
 
   -- release reset
-  rst <= '0' after 2*PERIOD;
+  rst <= '0' after 10*PERIOD;
 
   p_start : process(clk)
   begin
@@ -113,7 +115,7 @@ begin
     NUM_MULT              => LX, -- number of parallel multiplications
     HIGH_SPEED_MODE       => false,  -- enable high speed mode
     NUM_INPUT_REG         => 1,  -- number of input registers
-    NUM_OUTPUT_REG        => 1,  -- number of output registers
+    NUM_OUTPUT_REG        => 3,  -- number of output registers
     OUTPUT_SHIFT_RIGHT    => 19,  -- number of right shifts
     MODE                  => "NOS" -- options
   )
@@ -124,7 +126,7 @@ begin
     x          => x, -- first factors
     w          => w, -- second factors
     result     => r(0), -- result sum of products
-    PIPESTAGES => open  -- constant number of pipeline stages
+    PIPESTAGES => PIPESTAGES  -- constant number of pipeline stages
   );
 
   i_log : entity work.cplx_logger

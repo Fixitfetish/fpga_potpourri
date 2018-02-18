@@ -3,7 +3,7 @@
 --! @author     Fixitfetish
 --! @date       01/May/2017
 --! @version    0.20
---! @note       VHDL-1993
+--! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
