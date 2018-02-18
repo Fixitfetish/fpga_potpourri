@@ -17,15 +17,13 @@ library cplxlib;
 
 --! @brief N complex multiplications and sum all product results.
 --!
---! @image html cplx_mult_sum.svg "" width=600px
---!
 --! This entity can be used for :
 --! * scalar product (dot product) of two complex vectors x and y
 --! * complex matrix multiplication
 --!
---! If just weighting (only real factor) and summation is required use the entity
---! @link cplx_weight_sum @endlink
---! instead because less multiplications and resources are required in this case.
+--! If just weighting (only real factor) and summation is required then use the
+--! entity cplx_weight_sum instead because less multiplications and resources are
+--! needed in this case.
 --!
 --! The first operation mode is:
 --! * vld = (x0.vld and y0.vld) and (x1.vld and y1.vld) and ...
@@ -54,7 +52,7 @@ library cplxlib;
 --!   OUTPUT_SHIFT_RIGHT = W - result'length .
 --! The number right shifts can also be smaller with the risk of overflows/clipping.
 --!
---! The delay depends on the configuration and the underlying hardware.
+--! The number of delay cycles depend on the configuration and the underlying hardware.
 --! The number pipeline stages is reported as constant at output port PIPESTAGES.
 --! Note that the number of input register stages should be chosen carefully
 --! because dependent on the number of inputs the number resulting registers
@@ -65,6 +63,8 @@ library cplxlib;
 --! implementation of this module is used.
 --! Note that the double rate clock 'clk2' must have double the frequency of
 --! system clock 'clk' and must be synchronous and related to 'clk'.
+--!
+--! @image html cplx_mult_sum.svg "" width=600px
 --!
 --! Also available are the following entities:
 --! * cplx_mult

@@ -27,6 +27,7 @@ Contents
 |cplx_mult_accu            | ---       | ---        | N complex multiplications and accumulation of all results
 |cplx_mult_sum             | ---       | ---        | N complex multiplications and summation of all results
 |cplx_pipeline             | ---       | ---        | Delay pipeline with N stages
+|cplx_vector_pipeline      | ---       | ---        | Delay vector pipeline with N stages
 |cplx_vector_serialization | ---       | ---        | Serialize length N vector into data stream of N consecutive cycles
 |cplx_vectorization        | ---       | ---        | Parallelize data stream of N consecutive cycles into length N vector
 |cplx_weight               | ---       | ---        | N parallel and synchronous complex scaling
