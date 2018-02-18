@@ -1,0 +1,16 @@
+- complete review of reset concept ... and remove variable initialization if possible
+
+cplx_vectorization
+- possibility to restart/abort the assembling phase without valid output  
+- detect rising edge of start ? (to support start pulse OR frame signals)
+
+cplx_pkg
+- function for neagtive complex conjugate to avoid double negation ?
+
+Ultrascale:
+- _vivado.tcl file list
+- testbenches and vivado projects 
+- signed_mult4_sum => DSP1
+  * NUM_SUMMAND=> 1, -- irrelevant because only chain output is used
+  * check implementation
+- always use MREG for timing !?

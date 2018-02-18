@@ -18,7 +18,29 @@ library cplxlib;
 --! @brief Parallelize a complex data stream of N consecutive cycles into a complex
 --! vector of length N.
 --!
+--! Assembling of vector elements begins with start='1'.
+--! With start='1' also the first input can be marked.   
+--! Note that only valid input data is taken into account.
+--! Once N valid inputs have been captured the assembled vector is output.
+--! During the assembling phase the output is invalid.
+--! For normal operation the start pulse period should be at least N cycles long.
+--! Ensure that N valid inputs are provided within the start pulse period.  
+--!  
+--! @image html cplx_vectorization.svg "" width=600px
+--!
 --! See also : cplx_vector_serialization
+--!
+--! VHDL Instantiation Template:
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
+--! I1 : cplx_vectorization
+--! port map(
+--!   clk        => in  std_logic, -- clock
+--!   rst        => in  std_logic, -- reset
+--!   start      => in  std_logic, -- start pulse
+--!   ser_in     => in  cplx, -- complex input
+--!   vec_out    => out cplx_vector -- complex vector output
+--! );
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 entity cplx_vectorization is
 port (

@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_vectorization.rtl.vhdl
 --! @author     Fixitfetish
---! @date       06/Jun/2017
---! @version    0.30
+--! @date       17/Feb/2018
+--! @version    0.40
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -40,9 +40,10 @@ begin
         vec_out <= cplx_vector_reset(W,N);
         next_idx <= 0;
       elsif ser_in.vld='1' and next_idx=(N-1) then
+        -- Output vector when last vector element has been provided.
         vec_out(vec_out'left to vec_out'right-1) <= data_in;
         vec_out(vec_out'right) <= ser_in;
-        next_idx <= 0;
+        next_idx <= 0; -- prepare for new vector
       else
         if ser_in.vld='1' and (start='1' or next_idx/=0) then
           -- note: work-around with variable that also works with N=2
@@ -51,7 +52,11 @@ begin
           data_in <= v_din(1 to N-1);
           next_idx <= next_idx + 1;
         end if;
-        for n in vec_out'range loop vec_out(n).vld<='0'; end loop;
+        -- set output vector invalid while assembling input data
+        for n in vec_out'range loop
+          vec_out(n).vld<='0';
+          vec_out(n).ovf<='0';
+        end loop;
       end if;
     end if;
   end process;

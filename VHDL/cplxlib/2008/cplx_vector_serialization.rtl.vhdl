@@ -39,8 +39,9 @@ begin
         idx <= 0;
       else 
         vec_in_q(0 to N-2) <= vec_in_q(1 to N-1);
-        vec_in_q(N-1).vld <= '0';
-        if idx/=N then idx<=idx+1; end if; 
+        vec_in_q(N-1).vld <= '0'; -- clear valid after serialization
+        vec_in_q(N-1).ovf <= '0'; -- clear overflow after serialization
+        if idx/=N then idx<=idx+1; end if;
       end if;
     end if;
   end process;
