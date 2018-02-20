@@ -62,7 +62,7 @@ begin
     if rising_edge(clk) then
       if vld='1' then
         for n in 0 to NUM_MULT-1 loop
-          if neg(n)='1' then
+          if neg(n)='1' and USE_NEGATION then
             prod(n) <= -( x(n) * y(y'left) ); -- y duplication!
           else
             prod(n) <=  ( x(n) * y(y'left) ); -- y duplication!
@@ -83,7 +83,7 @@ begin
     if rising_edge(clk) then
       if vld='1' then
         for n in 0 to NUM_MULT-1 loop
-          if neg(n)='1' then
+          if neg(n)='1' and USE_NEGATION then
             prod(n) <= -( x(n) * y(y'left+n) );
           else
             prod(n) <=  ( x(n) * y(y'left+n) );

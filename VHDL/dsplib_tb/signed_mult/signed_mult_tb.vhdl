@@ -33,7 +33,8 @@ architecture rtl of signed_mult_tb is
   signal y : signed18_vector(0 to NUM_MULT-1) := (others=>(others=>'0'));
   
   -- behave
-  signal result     : signed18_vector(0 to NUM_MULT-1); -- product results
+  signal result     : signed18_vector(0 to NUM_MULT-1); -- product results, VHDL-1993
+--  signal result     : signed_vector(0 to NUM_MULT-1)(OUTPUT_WIDTH-1 downto 0); -- product results, VHDL-2008
   signal result_vld : std_logic_vector(0 to NUM_MULT-1); -- output valid
   signal result_ovf : std_logic_vector(0 to NUM_MULT-1); -- output overflow
   signal pipestages : natural;

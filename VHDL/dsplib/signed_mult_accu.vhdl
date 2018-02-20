@@ -17,8 +17,6 @@ library baselib;
 
 --! @brief N signed multiplications and accumulate all product results.
 --!
---! @image html signed_mult_accu.svg "" width=600px
---!
 --! This entity can be used for example
 --! * for complex multiplication and accumulation
 --! * to calculate the mean square of a complex number
@@ -58,6 +56,8 @@ library baselib;
 --!
 --! The delay depends on the configuration and the underlying hardware.
 --! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
+--!
+--! @image html signed_mult_accu.svg "" width=600px
 --!
 --! Also available are the following entities:
 --! * signed_mult

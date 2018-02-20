@@ -17,8 +17,6 @@ library baselib;
 
 --! @brief N parallel and synchronous signed multiplications.
 --!
---! @image html signed_mult.svg "" width=600px
---!
 --! The behavior is as follows
 --! * vld=0  ->  r(n) = r(n)            # hold previous
 --! * vld=1  ->  r(n) = +/-(x(n)*y(n))  # multiply
@@ -32,7 +30,9 @@ library baselib;
 --! Note that the negation is not supported by all implementations of this entity.
 --! 
 --! The delay depends on the configuration and the underlying hardware.
---! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
+--! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink.
+--!
+--! @image html signed_mult.svg "" width=600px
 --!
 --! Also available are the following entities:
 --! * signed_mult_accu

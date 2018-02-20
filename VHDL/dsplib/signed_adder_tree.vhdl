@@ -48,7 +48,7 @@ generic (
   --! @brief Number of additional input registers. At least one is strongly
   --! recommended if DSP cells are used for the adder tree.
   NUM_INPUT_REG : natural := 1;
-  --! Defines how many LSBs of each element of input vector X are used. 
+  --! @brief Defines how many LSBs of each element of input vector X are used. 
   --! This generic is required for VHDL-1993. Mandatory!
   INPUT_WIDTH : positive range 4 to 48;
   --! @brief Number of result output registers. 
