@@ -103,13 +103,13 @@ begin
 
   g_in : for n in 0 to NUM_MULT-1 generate
     -- map inputs for calculation of real component
-    neg_re(2*n)   <= neg(n); -- +/-(+x.re*y.re)
-    neg_re(2*n+1) <= not neg(n); -- +/-(-x.im*y.im)
+    neg_re(2*n)   <= neg(n) when USE_NEGATION else '0'; -- +/-(+x.re*y.re)
+    neg_re(2*n+1) <= not neg(n) when USE_NEGATION else '1'; -- +/-(-x.im*y.im)
     x_re(2*n)     <= x(n).re;
     x_re(2*n+1)   <= x(n).im;
     -- map inputs for calculation of imaginary component
-    neg_im(2*n)   <= neg(n); -- +/-(+x.re*y.im)
-    neg_im(2*n+1) <= neg(n); -- +/-(+x.im*y.re)
+    neg_im(2*n)   <= neg(n) when USE_NEGATION else '0'; -- +/-(+x.re*y.im)
+    neg_im(2*n+1) <= neg(n) when USE_NEGATION else '0'; -- +/-(+x.im*y.re)
     x_im(2*n)     <= x(n).re;
     x_im(2*n+1)   <= x(n).im;
     g_y1 : if NUM_FACTOR=1 generate

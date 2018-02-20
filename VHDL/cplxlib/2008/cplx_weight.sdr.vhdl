@@ -95,8 +95,8 @@ begin
 
   g_in : for n in 0 to NUM_MULT-1 generate
     -- mapping of complex inputs
-    neg_dsp(2*n)   <= neg(n);
-    neg_dsp(2*n+1) <= neg(n);
+    neg_dsp(2*n)   <= neg(n) when USE_NEGATION else '0';
+    neg_dsp(2*n+1) <= neg(n) when USE_NEGATION else '0';
     x_dsp(2*n)     <= x(n).re;
     x_dsp(2*n+1)   <= x(n).im;
     g1 : if NUM_FACTOR=1 generate
@@ -124,6 +124,7 @@ begin
   i_weight : entity dsplib.signed_mult
   generic map(
     NUM_MULT           => 2*NUM_MULT,
+    USE_NEGATION       => USE_NEGATION,
     NUM_INPUT_REG      => NUM_INPUT_REG,
     NUM_OUTPUT_REG     => 1, -- always enable DSP internal output register
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,

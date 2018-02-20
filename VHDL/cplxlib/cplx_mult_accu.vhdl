@@ -73,12 +73,13 @@ library cplxlib;
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
 --! I1 : cplx_mult_accu
 --! generic map(
---!   NUM_MULT              => positive, -- number of parallel multiplications
---!   NUM_SUMMAND           => natural,  -- number of overall summands
---!   NUM_INPUT_REG         => natural,  -- number of input registers
---!   NUM_OUTPUT_REG        => natural,  -- number of output registers
---!   OUTPUT_SHIFT_RIGHT    => natural,  -- number of right shifts
---!   MODE                  => cplx_mode -- options
+--!   NUM_MULT           => positive, -- number of parallel multiplications
+--!   NUM_SUMMAND        => natural,  -- number of overall summands
+--!   USE_NEGATION       => boolean,  -- enable negation port
+--!   NUM_INPUT_REG      => natural,  -- number of input registers
+--!   NUM_OUTPUT_REG     => natural,  -- number of output registers
+--!   OUTPUT_SHIFT_RIGHT => natural,  -- number of right shifts
+--!   MODE               => cplx_mode -- options
 --! )
 --! port map(
 --!   clk        => in  std_logic, -- clock
@@ -110,6 +111,12 @@ generic (
   --!
   --! Note that every single accumulated complex product result counts!
   NUM_SUMMAND : natural := 0;
+  --! @brief Enable negation port. If enabled then dynamic negation of partial
+  --! products is implemented (preferably within the DSP cells otherwise in logic). 
+  --! Enabling the negation might have negative side effects on pipeline stages,
+  --! input width limitations and timing.
+  --! Disable negation if not needed and the negation port input is ignored.
+  USE_NEGATION : boolean := false;
   --! @brief Number of additional input registers in system clock domain.
   --! At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.

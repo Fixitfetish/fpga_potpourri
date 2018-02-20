@@ -40,12 +40,12 @@ Contents
 CPLX Package
 ============
 
-The complex package "CPLX_PKG" includes basic types, functions and procedures for complex integer
+The complex package cplx_pkg includes basic types, functions and procedures for complex integer
 arithmetic that are used for e.g. digital signal processing. A common complex data interface
 supports FPGA developers to handle complex data streams and pipelines in an easier and quicker way.
 The package is based on the IEEE "numeric_std" package and also needs the "ieee_extension" package
 that includes the required additional "signed" arithmetic features.
-The CPLX_PKG is available for VHDL-1993 and VHDL-2008. 
+The cplx_pkg is available for VHDL-1993 and VHDL-2008. 
 While the VHDL-1993 variant has limitations and might need to be extended manually the VHDL-2008
 variant has the full flexibility in terms of supported bit resolution.
 Both variants have been developed to be more or less compatible.

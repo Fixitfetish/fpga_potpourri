@@ -98,8 +98,8 @@ begin
 
   g_in : for n in 0 to NUM_MULT-1 generate
     -- mapping of complex inputs
-    neg_re(n) <= neg(n);
-    neg_im(n) <= neg(n);
+    neg_re(n) <= neg(n) when USE_NEGATION else '0';
+    neg_im(n) <= neg(n) when USE_NEGATION else '0';
     x_re(n) <= x(n).re;
     x_im(n) <= x(n).im;
     g_w1 : if NUM_FACTOR=1 generate
@@ -126,7 +126,7 @@ begin
   generic map(
     NUM_MULT           => NUM_MULT,
     HIGH_SPEED_MODE    => HIGH_SPEED_MODE,
-    USE_NEGATION       => true,
+    USE_NEGATION       => USE_NEGATION,
     NUM_INPUT_REG      => NUM_INPUT_REG,
     NUM_OUTPUT_REG     => 1, -- always enable DSP cell output register (= first output register)
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -152,7 +152,7 @@ begin
   generic map(
     NUM_MULT           => NUM_MULT,
     HIGH_SPEED_MODE    => HIGH_SPEED_MODE,
-    USE_NEGATION       => true,
+    USE_NEGATION       => USE_NEGATION,
     NUM_INPUT_REG      => NUM_INPUT_REG,
     NUM_OUTPUT_REG     => 1, -- always enable DSP cell output register (= first output register)
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
