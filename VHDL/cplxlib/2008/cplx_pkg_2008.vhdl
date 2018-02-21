@@ -59,6 +59,15 @@ package cplx_pkg is
   subtype cplx25 is cplx(re(24 downto 0), im(24 downto 0));
   subtype cplx26 is cplx(re(25 downto 0), im(25 downto 0));
   subtype cplx27 is cplx(re(26 downto 0), im(26 downto 0));
+  subtype cplx28 is cplx(re(27 downto 0), im(27 downto 0));
+  subtype cplx29 is cplx(re(28 downto 0), im(28 downto 0));
+  subtype cplx30 is cplx(re(29 downto 0), im(29 downto 0));
+  subtype cplx31 is cplx(re(30 downto 0), im(30 downto 0));
+  subtype cplx32 is cplx(re(31 downto 0), im(31 downto 0));
+  subtype cplx33 is cplx(re(32 downto 0), im(32 downto 0));
+  subtype cplx34 is cplx(re(33 downto 0), im(33 downto 0));
+  subtype cplx35 is cplx(re(34 downto 0), im(34 downto 0));
+  subtype cplx36 is cplx(re(35 downto 0), im(35 downto 0));
 
   --! General unconstrained complex vector type (preferably "to" direction)
   type cplx_vector is array(integer range <>) of cplx;
@@ -83,6 +92,15 @@ package cplx_pkg is
   subtype cplx25_vector is cplx_vector(open)(re(24 downto 0), im(24 downto 0));
   subtype cplx26_vector is cplx_vector(open)(re(25 downto 0), im(25 downto 0));
   subtype cplx27_vector is cplx_vector(open)(re(26 downto 0), im(26 downto 0));
+  subtype cplx28_vector is cplx_vector(open)(re(27 downto 0), im(27 downto 0));
+  subtype cplx29_vector is cplx_vector(open)(re(28 downto 0), im(28 downto 0));
+  subtype cplx30_vector is cplx_vector(open)(re(29 downto 0), im(29 downto 0));
+  subtype cplx31_vector is cplx_vector(open)(re(30 downto 0), im(30 downto 0));
+  subtype cplx32_vector is cplx_vector(open)(re(31 downto 0), im(31 downto 0));
+  subtype cplx33_vector is cplx_vector(open)(re(32 downto 0), im(32 downto 0));
+  subtype cplx34_vector is cplx_vector(open)(re(33 downto 0), im(33 downto 0));
+  subtype cplx35_vector is cplx_vector(open)(re(34 downto 0), im(34 downto 0));
+  subtype cplx36_vector is cplx_vector(open)(re(35 downto 0), im(35 downto 0));
 
   --! Definition of options
   type cplx_option is (
@@ -963,6 +981,7 @@ package body cplx_pkg is
     rst : std_logic := '0'
   ) return cplx is
     constant BITS : positive := slv'length/2;
+    alias x : std_logic_vector(2*BITS-1 downto 0) is slv; -- default range
     variable res : cplx(re(BITS-1 downto 0), im(BITS-1 downto 0));
   begin
     assert ((slv'length mod 2)=0)
@@ -970,8 +989,8 @@ package body cplx_pkg is
       severity failure;
     res.rst := rst;
     res.vld := vld;
-    res.re  := signed(slv(  BITS-1 downto    0));
-    res.im  := signed(slv(2*BITS-1 downto BITS));
+    res.re  := signed(x(  BITS-1 downto    0));
+    res.im  := signed(x(2*BITS-1 downto BITS));
     res.ovf := '0';
     return res;
   end function;

@@ -33,9 +33,11 @@ architecture sim of cplx_mult_tb is
   signal clkena : std_logic := '0';
   signal finish : std_logic := '0';
 
-  signal x : cplx_vector(0 to LX-1) := cplx_vector_reset(18,LX,"R");
-  signal y : cplx_vector(0 to LY-1) := cplx_vector_reset(18,LY,"R");
-  signal r : cplx_vector(0 to LR-1);
+  signal x : cplx18_vector(0 to LX-1) := cplx_vector_reset(18,LX,"R");
+  signal y : cplx18_vector(0 to LY-1) := cplx_vector_reset(18,LY,"R");
+  signal r : cplx18_vector(0 to LR-1);
+  
+  signal PIPESTAGES : natural;
 
 begin
 
@@ -72,8 +74,8 @@ begin
   generic map(
     NUM_CPLX => LX,
     SKIP_PRECEDING_LINES => 2,
-    GEN_DECIMAL => true,
     GEN_INVALID => true,
+    GEN_DECIMAL => true,
     GEN_FILE => FILENAME_X
   )
   port map (
@@ -88,8 +90,8 @@ begin
   generic map(
     NUM_CPLX => LY,
     SKIP_PRECEDING_LINES => 2,
-    GEN_DECIMAL => true,
     GEN_INVALID => true,
+    GEN_DECIMAL => true,
     GEN_FILE => FILENAME_Y
   )
   port map (
@@ -104,6 +106,7 @@ begin
   generic map(
     NUM_MULT              => LX, -- number of parallel multiplications
     HIGH_SPEED_MODE       => false,  -- enable high speed mode
+    USE_NEGATION          => false,
     NUM_INPUT_REG         => 1,  -- number of input registers
     NUM_OUTPUT_REG        => 1,  -- number of output registers
     OUTPUT_SHIFT_RIGHT    => 18,  -- number of right shifts
@@ -116,15 +119,16 @@ begin
     x          => x, -- first factors
     y          => y  , -- second factors
     result     => r, -- product results
-    PIPESTAGES => open  -- constant number of pipeline stages
+    PIPESTAGES => PIPESTAGES  -- constant number of pipeline stages
   );
 
   i_log : entity work.cplx_logger
   generic map(
     NUM_CPLX => LR+1,
+    LOG_FILE => FILENAME_R,
     LOG_DECIMAL => true,
     LOG_INVALID => true,
-    LOG_FILE => FILENAME_R,
+    STR_INVALID => open,
     TITLE => "MULT_OUT"
   )
   port map (

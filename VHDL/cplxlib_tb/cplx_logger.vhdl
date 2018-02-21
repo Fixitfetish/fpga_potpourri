@@ -100,7 +100,7 @@ begin
 
   p_log: process(clk)
     variable v_oline : line;
-    variable v_din : cplx;
+    variable v_din : cplx18;
   begin
     if rising_edge(clk) then
       if rst='0' and (LOG_INVALID or din(0).vld='1') then

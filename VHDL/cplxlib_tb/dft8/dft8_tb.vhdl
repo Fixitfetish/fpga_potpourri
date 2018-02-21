@@ -75,8 +75,8 @@ begin
   generic map(
     NUM_CPLX => 2,
     SKIP_PRECEDING_LINES => 2,
-    GEN_DECIMAL => true,
     GEN_INVALID => true,
+    GEN_DECIMAL => true,
     GEN_FILE => FILENAME_IN
   )
   port map (
@@ -154,9 +154,10 @@ begin
   i_log : entity work.cplx_logger
   generic map(
     NUM_CPLX => 2,
+    LOG_FILE => FILENAME_R,
     LOG_DECIMAL => true,
     LOG_INVALID => true,
-    LOG_FILE => FILENAME_R,
+    STR_INVALID => open,
     TITLE => "FFT_OUT"
   )
   port map (

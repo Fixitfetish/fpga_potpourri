@@ -28,10 +28,10 @@ architecture rtl of dft8_v1 is
   constant DFTMTX_RESOLUTION : positive range 8 to 32 := 18; -- Real/Imag width in bits
   constant DFTMTX_POWER_LD : positive := DFTMTX_RESOLUTION-1;
 
-  signal fft_in : cplx_vector(0 to 7) := cplx_vector_reset(18,8,"R");
+  signal fft_in : cplx18_vector(0 to 7) := cplx_vector_reset(18,8,"R");
 
   signal dftmtx_slv : std_logic_vector(8*2*DFTMTX_RESOLUTION-1 downto 0);
-  signal dftmtx_18bit : cplx_vector(0 to 7);
+  signal dftmtx_18bit : cplx18_vector(0 to 7);
 
   signal run : std_logic := '0';
   signal inverse_q,conj : std_logic := '0';
@@ -103,6 +103,7 @@ begin
   generic map(
     NUM_MULT => fft_in'length,
     HIGH_SPEED_MODE => false,
+    USE_NEGATION => false,
     NUM_INPUT_REG => 1,
     NUM_OUTPUT_REG => 1,
     OUTPUT_SHIFT_RIGHT => DFTMTX_POWER_LD,

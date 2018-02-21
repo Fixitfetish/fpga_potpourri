@@ -29,11 +29,11 @@ architecture rtl of dft8_v2 is
   constant DFTMTX_POWER_LD : positive := DFTMTX_RESOLUTION-1;
 
   signal fft_start : std_logic := '0';
-  signal fft_in : cplx := cplx_reset(18,"R");
+  signal fft_in : cplx18 := cplx_reset(18,"R");
 
   signal dftmtx_slv : std_logic_vector(8*2*DFTMTX_RESOLUTION-1 downto 0);
   signal dftmtx_16bit : cplx16_vector(0 to 7);
-  signal dftmtx_18bit : cplx_vector(0 to 7);
+  signal dftmtx_18bit : cplx18_vector(0 to 7);
 
   signal run : std_logic := '0';
   signal inverse_q,conj : std_logic := '0';
@@ -47,7 +47,7 @@ architecture rtl of dft8_v2 is
   type t_idx is array(integer range <>) of unsigned(2 downto 0);
   signal idx_q : t_idx(0 to MAX_NUM_PIPE_DSP);
 
-  signal data_out_i : cplx_vector(0 to 7);
+  signal data_out_i : cplx18_vector(0 to 7);
 
 begin
 
@@ -114,6 +114,7 @@ begin
   generic map(
     NUM_MULT => 1,
     NUM_SUMMAND => 8,
+    USE_NEGATION => false,
     NUM_INPUT_REG => 1,
     NUM_OUTPUT_REG => 0,
     OUTPUT_SHIFT_RIGHT => DFTMTX_POWER_LD,

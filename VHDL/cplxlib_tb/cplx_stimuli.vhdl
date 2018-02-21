@@ -79,7 +79,7 @@ begin
   
   p_stimuli: process
     variable in_line  : line;
-    variable v_dout : cplx;
+    variable v_dout : cplx18;
   begin
     dout <= cplx_vector_reset(18,NUM_CPLX,"R");
     
