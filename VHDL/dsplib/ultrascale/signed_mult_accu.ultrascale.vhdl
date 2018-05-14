@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult_accu.ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       08/Feb/2018
---! @version    0.10
+--! @date       14/May/2018
+--! @version    0.20
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -55,7 +55,7 @@ architecture ultrascale of signed_mult_accu is
   signal x_i : t_x(0 to NUM_ENTITY*NUM_MULT_PER_ENTITY-1) := (others=>(others=>'0'));
   signal y_i : t_y(0 to NUM_ENTITY*NUM_MULT_PER_ENTITY-1) := (others=>(others=>'0'));
   signal neg_i : std_logic_vector(0 to NUM_ENTITY*NUM_MULT_PER_ENTITY-1) := (others=>'0');
-  signal clr_i : std_logic_vector(0 to NUM_ENTITY-1) := (others=>'1');
+  signal clr_i : std_logic_vector(0 to NUM_ENTITY-1);
 
   -- Internal copy of outputs required because some multipliers of an entity might
   -- be unused and need to be ignored.
@@ -63,8 +63,8 @@ architecture ultrascale of signed_mult_accu is
   signal r_i : t_r(0 to NUM_ENTITY-1);
   signal r_vld_i : std_logic_vector(0 to NUM_ENTITY-1);
   signal r_ovf_i : std_logic_vector(0 to NUM_ENTITY-1);
-  type integer_vector is array(integer range <>) of integer;
-  signal pipe : integer_vector(0 to NUM_ENTITY-1);
+  type natural_vector is array(integer range <>) of natural;
+  signal pipe : natural_vector(0 to NUM_ENTITY-1);
 
   type t_chain_vector is array(integer range <>) of signed(chainout'length-1 downto 0);
   signal chainin_i : t_chain_vector(0 to NUM_ENTITY) := (others=>(others=>'0'));
@@ -123,7 +123,9 @@ begin
   end generate;
   
   chainin_i(0) <= chainin;
-  clr_i(NUM_ENTITY-1) <= clr; -- accumulator enabled in last instance only!
+
+  -- accumulator enabled in last instance only!
+  clr_i <= ((NUM_ENTITY-1)=>clr, others=>'1');
 
   gn: for n in 0 to (NUM_ENTITY-1) generate
     mult1 : entity dsplib.signed_mult1_accu(ultrascale)

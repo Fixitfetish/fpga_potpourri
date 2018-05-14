@@ -56,8 +56,8 @@ begin
   i_fifo : entity ramlib.burst_forming_arbiter
   generic map(
     NUM_PORTS  => NUM_PORTS, -- for now up to 4 supported
-    BURST_SIZE => 8,
-    DATA_WIDTH => DATA_WIDTH
+    DATA_WIDTH => DATA_WIDTH,
+    BURST_SIZE => 8
   )
   port map (
     clk         => clk,
