@@ -1,0 +1,88 @@
+[*]
+[*] GTKWave Analyzer v3.3.87 (w)1999-2017 BSI
+[*] Sun May 13 21:56:10 2018
+[*]
+[dumpfile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\ramlib_tb\burst_forming_arbiter\work\sim.vcd"
+[dumpfile_mtime] "Sun May 13 21:55:48 2018"
+[dumpfile_size] 23950
+[savefile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\ramlib_tb\burst_forming_arbiter\sim.gtkw"
+[timestart] 0
+[size] 1304 745
+[pos] -9 -9
+*-28.102777 610000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 211
+[signals_width] 198
+[sst_expanded] 1
+[sst_vpaned_height] 205
+@28
+i_fifo.rst
+clk
+i_fifo.din_frame[3:0]
+i_fifo.din_frame_q[3:0]
+i_fifo.din_vld[3:0]
+i_fifo.din_ovf[3:0]
+i_fifo.din_pending[3:0]
+i_fifo.wr_ena[3:0]
+@24
+i_fifo.wr_sel[1:0]
+@28
+i_fifo.wr_addr_vld
+@22
+i_fifo.wr_addr[5:0]
+[color] 2
+i_fifo.ptr0[3:0]
+[color] 2
+i_fifo.ptr1[3:0]
+[color] 2
+i_fifo.ptr2[3:0]
+[color] 2
+i_fifo.ptr3[3:0]
+@28
+[color] 2
+i_fifo.fifo_empty[3:0]
+[color] 2
+i_fifo.fifo_filled[3:0]
+[color] 2
+i_fifo.fifo_flush[3:0]
+[color] 2
+i_fifo.fifo_ovf[3:0]
+@22
+[color] 3
+i_fifo.level0[3:0]
+[color] 3
+i_fifo.level1[3:0]
+[color] 3
+i_fifo.level2[3:0]
+[color] 3
+i_fifo.level3[3:0]
+@24
+i_fifo.burst_cnt[3:0]
+@28
+[color] 6
+i_fifo.rd_ena[3:0]
+@24
+[color] 6
+i_fifo.rd_sel[1:0]
+@28
+[color] 6
+i_fifo.rd_addr_vld
+@22
+[color] 6
+i_fifo.rd_addr[5:0]
+@28
+[color] 6
+i_fifo.rd_addr_first
+[color] 6
+i_fifo.rd_addr_last
+i_fifo.rd_data_vld
+dout_vld
+dout_first
+@25
+dout_chan[1:0]
+@28
+i_fifo.dout_last
+dout_frame[3:0]
+@22
+dout[15:0]
+[pattern_trace] 1
+[pattern_trace] 0
