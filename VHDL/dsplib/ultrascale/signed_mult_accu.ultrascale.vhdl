@@ -125,7 +125,10 @@ begin
   chainin_i(0) <= chainin;
 
   -- accumulator enabled in last instance only!
-  clr_i <= ((NUM_ENTITY-1)=>clr, others=>'1');
+  clr_i(NUM_ENTITY-1) <= clr;
+  g_clr: if NUM_ENTITY>=2 generate
+    clr_i(0 to NUM_ENTITY-2) <= (others=>'1');
+  end generate;
 
   gn: for n in 0 to (NUM_ENTITY-1) generate
     mult1 : entity dsplib.signed_mult1_accu(ultrascale)
