@@ -82,12 +82,41 @@ begin
     din_frame       => din_frame(1)
   );
 
-  
+  usr2 : entity work.din_emulator
+  generic map (
+    DATA_WIDTH => DATA_WIDTH,
+    INSTANCE_IDX => 2
+  )
+  port map(
+    clk             => clk,
+    rst             => rst_usr(2),
+    vld_pattern     => "0000",
+    din             => din(2),
+    din_vld         => din_vld(2),
+    din_frame       => din_frame(2)
+  );
+
+  usr3 : entity work.din_emulator
+  generic map (
+    DATA_WIDTH => DATA_WIDTH,
+    INSTANCE_IDX => 3
+  )
+  port map(
+    clk             => clk,
+    rst             => rst_usr(3),
+    vld_pattern     => "0000",
+    din             => din(3),
+    din_vld         => din_vld(3),
+    din_frame       => din_frame(3)
+  );
+
+
   i_fifo : entity ramlib.burst_forming_arbiter
   generic map(
     NUM_PORTS  => NUM_PORTS, -- for now up to 4 supported
     DATA_WIDTH => DATA_WIDTH,
-    BURST_SIZE => 8
+    BURST_SIZE => 8,
+    FIFO_DEPTH_LOG2 => 4
   )
   port map (
     clk         => clk,
@@ -121,72 +150,25 @@ begin
     rst_usr(1) <= '0';
     wait until rising_edge(clk);
 
-    for n in 1 to 55 loop
+    for n in 1 to 25 loop
       wait until rising_edge(clk);
     end loop;
+
+    dout_req <= '0';
     
+    for n in 1 to 10 loop
+      wait until rising_edge(clk);
+    end loop;
+
+    dout_req <= '1';
+    
+    for n in 1 to 20 loop
+      wait until rising_edge(clk);
+    end loop;
+
     rst_usr(0) <= '1';
     rst_usr(1) <= '1';
 
---    din_frame <= "1111";
---    wait until rising_edge(clk);
---    din_vld <= "1010"; wait until rising_edge(clk);
---    din_vld <= "0100"; wait until rising_edge(clk);
---    din_vld <= "0001"; wait until rising_edge(clk);
---    din_vld <= "0000"; wait until rising_edge(clk);
---    din_vld <= "1111"; wait until rising_edge(clk);
---    din_vld <= "0000"; wait until rising_edge(clk);
---    din_vld <= "0000"; wait until rising_edge(clk);
---    din_vld <= "0000"; wait until rising_edge(clk);
---    din_vld <= "0000"; wait until rising_edge(clk);
---    din_vld <= "0001"; wait until rising_edge(clk);
---    din_vld <= "0100"; wait until rising_edge(clk);
---    din_vld <= "0011"; wait until rising_edge(clk);
---    din_vld <= "0000"; wait until rising_edge(clk);
---    din_vld <= "1110"; wait until rising_edge(clk);
---    din_vld <= "0000"; wait until rising_edge(clk);
---    din_vld <= "0000"; wait until rising_edge(clk);
---    din_vld <= "0000"; wait until rising_edge(clk);
---    din_vld <= "1000"; wait until rising_edge(clk);
---    din_vld <= "1001"; wait until rising_edge(clk);
---    din_vld <= "0000"; wait until rising_edge(clk);
---    din_vld <= "1001"; wait until rising_edge(clk);
---    din_vld <= "0000"; wait until rising_edge(clk);
---    din_vld <= "1001"; wait until rising_edge(clk);
---    din_vld <= "0000"; wait until rising_edge(clk);
---    din_vld <= "0100"; wait until rising_edge(clk);
---    din_vld <= "0100"; wait until rising_edge(clk);
---    din_vld <= "0100"; wait until rising_edge(clk);
---    din_vld <= "0100"; wait until rising_edge(clk);
---    din_vld <= "0100"; wait until rising_edge(clk);
---    din_vld <= "0010"; wait until rising_edge(clk);
---    din_vld <= "0010"; wait until rising_edge(clk);
---    din_vld <= "0010"; wait until rising_edge(clk);
---    din_vld <= "0010"; wait until rising_edge(clk);
---    din_vld <= "0010"; wait until rising_edge(clk);
---    din_vld <= "0100"; wait until rising_edge(clk);
---    din_vld <= "0010"; wait until rising_edge(clk);
---    din_vld <= "0100"; wait until rising_edge(clk);
---    din_vld <= "0010"; wait until rising_edge(clk);
---    din_vld <= "0100"; wait until rising_edge(clk);
---    din_vld <= "0010"; wait until rising_edge(clk);
---    din_vld <= "1001"; wait until rising_edge(clk);
---    din_vld <= "0000"; wait until rising_edge(clk);
---    din_vld <= "0100"; wait until rising_edge(clk);
---    din_vld <= "0010"; wait until rising_edge(clk);
---    din_vld <= "0100"; wait until rising_edge(clk);
---    din_vld <= "0010"; wait until rising_edge(clk);
---    din_vld <= "0100"; wait until rising_edge(clk);
---    din_vld <= "0010"; wait until rising_edge(clk);
---    din_vld <= "0100"; wait until rising_edge(clk);
---    din_vld <= "0010"; wait until rising_edge(clk);
---    din_vld <= "1000"; wait until rising_edge(clk);
---    din_vld <= "1000"; wait until rising_edge(clk);
---    din_vld <= "0100"; wait until rising_edge(clk);
---    din_vld <= "0010"; wait until rising_edge(clk);
---
---    din_frame <= "0011";
---    din_vld <= "0000"; wait until rising_edge(clk);
     wait for 400 ns;
     finish <= '1';
 

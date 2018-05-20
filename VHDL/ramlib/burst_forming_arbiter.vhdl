@@ -27,20 +27,30 @@ entity burst_forming_arbiter is
 generic(
   --! Number of input ports
   NUM_PORTS  : positive;
-  --! Port data width
+  --! Input port and output data width
   DATA_WIDTH : positive;
   --! Output burst length (minimum length is 2)
-  BURST_SIZE : integer range 2 to integer'high
+  BURST_SIZE : positive;
+  --! @brief FIFO depth per port. LOG2(depth) ensures that the depth is a power of 2.
+  --! The depth must be at least double the burst size.
+  FIFO_DEPTH_LOG2 : positive
 );
 port(
+  --! System clock
   clk         : in  std_logic;
+  --! Synchronous reset
   rst         : in  std_logic;
+  
 --  din         : in  slv_array(0 to NUM_PORTS-1)(DATA_WIDTH-1 downto 0);
   din         : in  slv16_array(0 to NUM_PORTS-1);
+  --! Data input frame, rising_edge opens a channel, falling edge closes a channel
   din_frame   : in  std_logic_vector(NUM_PORTS-1 downto 0);
+  --! Data input valid, only considered when din_frame='1'
   din_vld     : in  std_logic_vector(NUM_PORTS-1 downto 0);
+  --! Data input overflow, occurs when din_vld rate is too high and data cannot be written into FIFO on-time
   din_ovf     : out std_logic_vector(NUM_PORTS-1 downto 0);
-  dout_req    : in  std_logic := '1'; -- TODO (to connect receiver ready signal)
+  --! Data output request, default is '1'
+  dout_req    : in  std_logic := '1';
   --! Burst data output
   dout        : out std_logic_vector(DATA_WIDTH-1 downto 0);
   --! Burst data output enable
@@ -58,6 +68,15 @@ port(
   --! FIFO overflow (one per input port)
   fifo_ovf    : out std_logic_vector(NUM_PORTS-1 downto 0)
 );
+begin
+  -- synthesis translate_off (Altera Quartus)
+  -- pragma translate_off (Xilinx Vivado , Synopsys)
+  assert (2*BURST_SIZE)<=(2**FIFO_DEPTH_LOG2)
+    report "ERROR in " & burst_forming_arbiter'INSTANCE_NAME & 
+           " FIFO depth must be at least double the burst size."
+    severity failure;
+  -- synthesis translate_on (Altera Quartus)
+  -- pragma translate_on (Xilinx Vivado , Synopsys)
 end entity;
 
 -------------------------------------------------------------------------------
@@ -66,9 +85,6 @@ architecture rtl of burst_forming_arbiter is
 
   -- Width of FIFO/Channel select signal
   constant FIFO_SEL_WIDTH : positive := log2ceil(NUM_PORTS);
-
-  -- Depth of each single FIFO, need to hold max two bursts
-  constant FIFO_DEPTH_LOG2 : positive := log2ceil(BURST_SIZE) + 1;
 
   constant RAM_ADDR_WIDTH : positive := FIFO_SEL_WIDTH + FIFO_DEPTH_LOG2;
   constant RAM_DATA_WIDTH : positive := DATA_WIDTH;
@@ -97,6 +113,7 @@ architecture rtl of burst_forming_arbiter is
     rd_ptr : unsigned(FIFO_DEPTH_LOG2-1 downto 0);
     level  : unsigned(FIFO_DEPTH_LOG2-1 downto 0);
     empty  : std_logic;
+    full  : std_logic;
     filled : std_logic;
     active : std_logic;
     flush_triggered : std_logic;
@@ -108,6 +125,7 @@ architecture rtl of burst_forming_arbiter is
     rd_ptr => (others=>'0'),
     level => (others=>'0'),
     empty => '1',
+    full => '0',
     filled => '0',
     active => '0',
     flush_triggered => '0',
@@ -161,6 +179,7 @@ architecture rtl of burst_forming_arbiter is
   signal ptr3 : unsigned(FIFO_DEPTH_LOG2-1 downto 0);
   signal fifo_active : std_logic_vector(NUM_PORTS-1 downto 0);
   signal fifo_empty : std_logic_vector(NUM_PORTS-1 downto 0);
+  signal fifo_full : std_logic_vector(NUM_PORTS-1 downto 0);
   signal fifo_filled : std_logic_vector(NUM_PORTS-1 downto 0);
   signal fifo_flush_triggered : std_logic_vector(NUM_PORTS-1 downto 0);
   signal fifo_flush : std_logic_vector(NUM_PORTS-1 downto 0);
@@ -219,6 +238,7 @@ begin
   g_gtkwave : for n in 0 to (NUM_PORTS-1) generate
     fifo_active(n) <= fifo(n).active;
     fifo_empty(n) <= fifo(n).empty;
+    fifo_full(n) <= fifo(n).full;
     fifo_filled(n) <= fifo(n).filled;
     fifo_flush_triggered(n) <= fifo(n).flush_triggered;
     fifo_flush(n) <= fifo(n).flush;
@@ -304,8 +324,8 @@ begin
             v_level(n) := fifo(n).level - 1;
           end if;
           fifo(n).empty <= to_01(v_level(n)=0);
-          fifo(n).filled <= to_01(v_level(n)>BURST_SIZE); -- TODO # registered for timing ?
-          fifo(n).ovfl <= to_01(v_level(n)=to_unsigned(2**FIFO_DEPTH_LOG2-1,FIFO_DEPTH_LOG2));
+          fifo(n).full <= to_01(v_level(n)=to_unsigned(2**FIFO_DEPTH_LOG2-1,FIFO_DEPTH_LOG2));
+          fifo(n).ovfl <= fifo(n).full and to_01(v_level(n)=0);
           fifo(n).level <= v_level(n);
           fifo(n).active <= fifo(n).active or (din_frame(n) and (not din_frame_q(n)));
           -- Ensure that the wr_ptr does not change anymore after flush has been triggered.
@@ -360,10 +380,8 @@ begin
         rd.sel <= (others=>'0');
         burst_cnt <= (others=>'-');
         state <= WAITING;
-      else
 
-        -- TODO : request='0'
-        if dout_req='1' then
+      elsif dout_req='1' then
           
         case state is
           when WAITING =>
@@ -390,6 +408,7 @@ begin
             end if;
 
           when BURST =>
+            rd.ena(to_integer(rd.sel)) <= '1';
             if burst_cnt=2 then 
               rd.addr_last <= '1';
               state <= WAITING;
@@ -398,8 +417,9 @@ begin
                         
         end case;  
 
-      end if; --request 
-
+      else
+        rd.ena <= (others=>'0');
+        
       end if; --reset 
     end if; --clock
   end process;

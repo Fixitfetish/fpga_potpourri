@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.87 (w)1999-2017 BSI
-[*] Sun May 20 18:43:28 2018
+[*] Sun May 20 19:16:08 2018
 [*]
 [dumpfile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\ramlib_tb\burst_forming_arbiter\work\sim.vcd"
-[dumpfile_mtime] "Sun May 20 18:41:37 2018"
-[dumpfile_size] 30721
+[dumpfile_mtime] "Sun May 20 19:11:44 2018"
+[dumpfile_size] 28629
 [savefile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\ramlib_tb\burst_forming_arbiter\sim.gtkw"
 [timestart] 0
 [size] 1304 745
 [pos] -1 -1
-*-28.158607 420000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-28.158607 670000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [sst_width] 211
 [signals_width] 230
 [sst_expanded] 1
@@ -50,12 +50,14 @@ i_fifo.ptr3[3:0]
 i_fifo.fifo_active[3:0]
 [color] 2
 i_fifo.fifo_empty[3:0]
-[color] 2
-i_fifo.fifo_filled[3:0]
 @29
 [color] 2
-i_fifo.fifo_flush_triggered[3:0]
+i_fifo.fifo_full[3:0]
 @28
+[color] 2
+i_fifo.fifo_filled[3:0]
+[color] 2
+i_fifo.fifo_flush_triggered[3:0]
 [color] 2
 i_fifo.fifo_flush[3:0]
 [color] 2
@@ -89,6 +91,7 @@ i_fifo.rd_addr_first
 [color] 6
 i_fifo.rd_addr_last
 dout_frame[3:0]
+dout_req
 dout_en
 dout_vld[3:0]
 dout_first
