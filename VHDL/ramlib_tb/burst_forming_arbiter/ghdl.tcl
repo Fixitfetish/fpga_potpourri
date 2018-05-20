@@ -23,6 +23,7 @@ puts "INFO: Testbench"
 set top bfa_tb
 
 set files [list]
+lappend files [ file normalize din_emulator.vhdl ]
 lappend files [ file normalize ${top}.vhdl ]
 
 compile $WORK $files

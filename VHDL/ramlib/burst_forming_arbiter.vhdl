@@ -1,3 +1,14 @@
+-------------------------------------------------------------------------------
+--! @file       burst_forming_arbiter.vhdl
+--! @author     Fixitfetish
+--! @date       20/May/2018
+--! @version    0.10
+--! @note       VHDL-1993
+--! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
+--!             <https://opensource.org/licenses/MIT>
+-------------------------------------------------------------------------------
+-- Includes DOXYGEN support.
+-------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
@@ -9,6 +20,8 @@ library ramlib;
 -- Required RAM width is DATA_WIDTH
 -- Required RAM depth is NUM_PORTS x 2^ceil(log2(2xBURST_SIZE))
 -- Port 0 has the highest priority.
+-- Requirements
+-- * continuous stream must be possible
 
 entity burst_forming_arbiter is
 generic(
@@ -24,16 +37,25 @@ port(
   rst         : in  std_logic;
 --  din         : in  slv_array(0 to NUM_PORTS-1)(DATA_WIDTH-1 downto 0);
   din         : in  slv16_array(0 to NUM_PORTS-1);
-  din_frame   : in  std_logic_vector(NUM_PORTS-1 downto 0) := (others=>'0');
-  din_vld     : in  std_logic_vector(NUM_PORTS-1 downto 0) := (others=>'0');
+  din_frame   : in  std_logic_vector(NUM_PORTS-1 downto 0);
+  din_vld     : in  std_logic_vector(NUM_PORTS-1 downto 0);
   din_ovf     : out std_logic_vector(NUM_PORTS-1 downto 0);
   dout_req    : in  std_logic := '1'; -- TODO (to connect receiver ready signal)
+  --! Burst data output
   dout        : out std_logic_vector(DATA_WIDTH-1 downto 0);
-  dout_vld    : out std_logic;
+  --! Burst data output enable
+  dout_en     : out std_logic;
+  --! First data of burst flag
   dout_first  : out std_logic;
+  --! Last data of burst flag
   dout_last   : out std_logic;
+  --! Data output channel number (corresponding input port index)
   dout_chan   : out unsigned(log2ceil(NUM_PORTS)-1 downto 0);
+  --! Data output valid (one per input port)
+  dout_vld    : out std_logic_vector(NUM_PORTS-1 downto 0);
+  --! Data output frame (one per input port)
   dout_frame  : out std_logic_vector(NUM_PORTS-1 downto 0);
+  --! FIFO overflow (one per input port)
   fifo_ovf    : out std_logic_vector(NUM_PORTS-1 downto 0)
 );
 end entity;
@@ -60,6 +82,7 @@ architecture rtl of burst_forming_arbiter is
   -- write port
   type t_wr is
   record
+    frame : std_logic_vector(NUM_PORTS-1 downto 0);
     ena : std_logic_vector(NUM_PORTS-1 downto 0);
     sel : unsigned(FIFO_SEL_WIDTH-1 downto 0);
     addr : unsigned(RAM_ADDR_WIDTH-1 downto 0);
@@ -76,6 +99,7 @@ architecture rtl of burst_forming_arbiter is
     empty  : std_logic;
     filled : std_logic;
     active : std_logic;
+    flush_triggered : std_logic;
     flush  : std_logic;
     ovfl   : std_logic;
   end record;
@@ -86,6 +110,7 @@ architecture rtl of burst_forming_arbiter is
     empty => '1',
     filled => '0',
     active => '0',
+    flush_triggered => '0',
     flush => '0',
     ovfl => '0'
   );
@@ -108,7 +133,7 @@ architecture rtl of burst_forming_arbiter is
     addr_vld : std_logic;
     addr_first : std_logic;
     addr_last : std_logic;
-    data_vld : std_logic;
+    data_en : std_logic;
     data : std_logic_vector(DATA_WIDTH-1 downto 0);
   end record;
   signal rd : t_rd;
@@ -116,7 +141,7 @@ architecture rtl of burst_forming_arbiter is
   type t_rd_out is
   record
     sel : unsigned(FIFO_SEL_WIDTH-1 downto 0);
-    vld : std_logic;
+    vld : std_logic_vector(NUM_PORTS-1 downto 0);
     first : std_logic;
     last : std_logic;
     frame : std_logic_vector(NUM_PORTS-1 downto 0);
@@ -134,9 +159,12 @@ architecture rtl of burst_forming_arbiter is
   signal ptr1 : unsigned(FIFO_DEPTH_LOG2-1 downto 0);
   signal ptr2 : unsigned(FIFO_DEPTH_LOG2-1 downto 0);
   signal ptr3 : unsigned(FIFO_DEPTH_LOG2-1 downto 0);
+  signal fifo_active : std_logic_vector(NUM_PORTS-1 downto 0);
   signal fifo_empty : std_logic_vector(NUM_PORTS-1 downto 0);
   signal fifo_filled : std_logic_vector(NUM_PORTS-1 downto 0);
+  signal fifo_flush_triggered : std_logic_vector(NUM_PORTS-1 downto 0);
   signal fifo_flush : std_logic_vector(NUM_PORTS-1 downto 0);
+  signal wr_frame : std_logic_vector(NUM_PORTS-1 downto 0);
   signal wr_ena : std_logic_vector(NUM_PORTS-1 downto 0);
   signal wr_addr : unsigned(RAM_ADDR_WIDTH-1 downto 0);
   signal wr_sel : unsigned(FIFO_SEL_WIDTH-1 downto 0);
@@ -148,7 +176,7 @@ architecture rtl of burst_forming_arbiter is
   signal rd_addr_first : std_logic;
   signal rd_addr_last : std_logic;
   signal rd_sel : unsigned(FIFO_SEL_WIDTH-1 downto 0);
-  signal rd_data_vld : std_logic;
+  signal rd_data_en : std_logic;
   signal rd_data : std_logic_vector(DATA_WIDTH-1 downto 0);
 
   function get_next(pending:std_logic_vector) return std_logic_vector is
@@ -189,8 +217,10 @@ begin
   ptr2 <= fifo(2).wr_ptr;
   ptr3 <= fifo(3).wr_ptr;
   g_gtkwave : for n in 0 to (NUM_PORTS-1) generate
+    fifo_active(n) <= fifo(n).active;
     fifo_empty(n) <= fifo(n).empty;
     fifo_filled(n) <= fifo(n).filled;
+    fifo_flush_triggered(n) <= fifo(n).flush_triggered;
     fifo_flush(n) <= fifo(n).flush;
   end generate;
   wr_addr <= wr.addr;
@@ -198,6 +228,7 @@ begin
   wr_sel <= wr.sel;
   wr_data <= wr.data;
   wr_ena <= wr.ena;
+  wr_frame <= wr.frame;
 
   rd_ena <= rd.ena;
   rd_addr <= rd.addr;
@@ -206,7 +237,7 @@ begin
   rd_addr_last <= rd.addr_last;
   rd_sel <= rd.sel;
   rd_data <= rd.data;
-  rd_data_vld <= rd.data_vld;
+  rd_data_en <= rd.data_en;
 
 
   p_input_arbiter : process(clk)
@@ -219,6 +250,8 @@ begin
       v_din_vld := din_vld and din_frame;
       v_din_pending_new := v_din_vld or din_pending;
       v_din_ack := get_next(v_din_pending_new);
+
+      wr.frame <= v_din_pending_new or din_frame;
 
       if rst='1' then
         din_pending <= (others=>'0');
@@ -251,6 +284,7 @@ begin
 
   p_fifo_logic : process(clk)
     variable v_level : t_fifo_ptr(0 to NUM_PORTS-1);
+    variable v_wr_frame_q : std_logic_vector(NUM_PORTS-1 downto 0);
   begin
     if rising_edge(clk) then
       for n in 0 to (NUM_PORTS-1) loop
@@ -270,14 +304,23 @@ begin
             v_level(n) := fifo(n).level - 1;
           end if;
           fifo(n).empty <= to_01(v_level(n)=0);
-          fifo(n).filled <= to_01(v_level(n)>=BURST_SIZE); -- TODO # registered for timing ?
+          fifo(n).filled <= to_01(v_level(n)>BURST_SIZE); -- TODO # registered for timing ?
           fifo(n).ovfl <= to_01(v_level(n)=to_unsigned(2**FIFO_DEPTH_LOG2-1,FIFO_DEPTH_LOG2));
           fifo(n).level <= v_level(n);
           fifo(n).active <= fifo(n).active or (din_frame(n) and (not din_frame_q(n)));
-          -- TODO # ensure that flush goes high after last value has been written !
-          fifo(n).flush <= fifo(n).flush or (din_frame_q(n) and (not din_frame(n)));
+          -- Ensure that the wr_ptr does not change anymore after flush has been triggered.
+          fifo(n).flush_triggered <= fifo(n).flush_triggered or (v_wr_frame_q(n) and (not wr.frame(n)));
+          if v_level(n)>BURST_SIZE then
+            fifo(n).filled <= '1';
+            fifo(n).flush <= '0';
+          else
+            fifo(n).filled <= '0';
+            -- Enable flush only when no more full bursts are are active or pending. 
+            fifo(n).flush <= fifo(n).flush or (fifo(n).flush_triggered and (not rd_ena(n)));
+          end if;
         end if; --reset
       end loop; 
+      v_wr_frame_q := wr.frame; -- for edge detection
     end if; --clock
   end process;
 
@@ -324,7 +367,7 @@ begin
           
         case state is
           when WAITING =>
-            burst_cnt <= (others=>'-');
+            burst_cnt <= (others=>'0');
             rd.ena <= (others=>'0');
 
             if v_full_sel_vld='1' then
@@ -368,12 +411,12 @@ begin
   wr.data <= din_q(to_integer(wr.sel));
 
   -- read port mux before RAM input register
-  rd.addr_vld <= rd.ena(to_integer(rd.sel)); 
+  rd.addr_vld <= rd.ena(to_integer(rd.sel));
   rd.addr(RAM_ADDR_WIDTH-1 downto FIFO_DEPTH_LOG2) <= rd.sel;
   rd.addr(FIFO_DEPTH_LOG2-1 downto 0) <= fifo(to_integer(rd.sel)).rd_ptr;
 
   -- handle read delay
-  rd_out(1).vld <= rd.addr_vld when rising_edge(clk);
+  rd_out(1).vld <= rd.ena when rising_edge(clk);
   rd_out(1).first <= rd.addr_first when rising_edge(clk);
   rd_out(1).last <= rd.addr_last when rising_edge(clk);
   rd_out(1).sel <= rd.addr(RAM_ADDR_WIDTH-1 downto FIFO_DEPTH_LOG2) when rising_edge(clk);
@@ -388,8 +431,9 @@ begin
   end generate;
 
   dout <= rd.data;
-  dout_vld <= rd.data_vld;
+  dout_en <= rd.data_en;
   
+  dout_vld <= rd_out(RAM_READ_DELAY).vld;  
   dout_first <= rd_out(RAM_READ_DELAY).first;
   dout_last <= rd_out(RAM_READ_DELAY).last;
   dout_frame <= rd_out(RAM_READ_DELAY).frame;
@@ -412,7 +456,7 @@ begin
     rd_addr_en => rd.addr_vld,
     rd_addr    => std_logic_vector(rd.addr),
     rd_data    => rd.data,
-    rd_data_en => rd.data_vld
+    rd_data_en => rd.data_en
   );
   
 
@@ -453,7 +497,7 @@ begin
 --      addr_vld_b => rd.addr_vld,
 --      din_b      => open, -- unused
 --      dout_b     => rd.data,
---      dout_vld_b => rd.data_vld
+--      dout_vld_b => rd.data_en
 --    );
 
   
