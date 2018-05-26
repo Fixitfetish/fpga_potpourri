@@ -17,7 +17,7 @@ library baselib;
   use baselib.ieee_extension.all;
 library ramlib;
 
---! @brief Arbiter that transforms single write requests from multiple inputs port
+--! @brief Arbiter that transforms single write requests from multiple input ports
 --! to write request bursts at the single output port.
 --!
 --! This arbiter has a definable number of input ports and one output port.
