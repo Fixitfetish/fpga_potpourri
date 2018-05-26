@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       arbiter_write_single_to_burst.vhdl
 --! @author     Fixitfetish
---! @date       25/May/2018
---! @version    0.20
+--! @date       26/May/2018
+--! @version    0.30
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -17,11 +17,12 @@ library baselib;
   use baselib.ieee_extension.all;
 library ramlib;
 
---! @brief 
+--! @brief Arbiter that transforms single write requests from multiple inputs port
+--! to write request bursts at the single output port.
 --!
 --! This arbiter has a definable number of input ports and one output port.
---! The output port provides bursts of data words for input port.
---! The burst size is configurable.
+--! The output port provides sequential bursts of data words for each input port.
+--! The burst size is configurable but the same for all.
 --! 
 --! This arbiter is a slightly simplified version of a general arbiter that efficiently uses FPGA
 --! RAM resources. Instead of having seperate independent FIFOs per input port a shared RAM
@@ -35,26 +36,34 @@ library ramlib;
 --! * The overall input data valid rate (all ports) cannot exceed the maximum supported output rate.
 --!   FIFO overflows will occur when the dout_rdy goes low for too long.
 --!
+--! USAGE:
+--! * Setting din_frame(N)='1' opens the port N. The FIFO is reset and dout_frame(N)='1'. 
+--! * Data can be written using the din(N) and din_vld(N) considering the limitations.
+--!   If limitations are not considered din_ovf(N) or fifo_ovf(N) might be set.
+--! * Bursts will be output as soon as BURST_SIZE+1 data words have been provided.
+--! * Setting din_frame(N)='0' closes the port N. Input data is not accepted anymore and
+--!   the FIFO is flushed. A final burst smaller than BURST_SIZE might be generated.
+--! * FIFO flushing is completed when dout_frame(N)='0'. 
+--!
 --! NOTES: 
 --! * If only one input port is open/active then continuous streaming is possible.
 --! * The arbiter intentionally excludes RAM address handling or similar to keep it more flexible. 
 --! 
---! The data width for each input port and the output port is DATA_WIDTH.
 --! Input port 0 has the highest priority and input port NUM_PORTS-1 has the lowest priority.
-
-
--- Required RAM depth is NUM_PORTS x 2^ceil(log2(2xBURST_SIZE))
+--! The data width of each input port, the output port and the RAM is DATA_WIDTH.
+--! The overall used RAM depth is NUM_PORTS x 2^FIFO_DEPTH_LOG2 .
 
 entity arbiter_write_single_to_burst is
 generic(
   --! Number of input ports
   NUM_PORTS  : positive;
-  --! Input port and output data width
+  --! Input, output and FIFO/RAM data width. 
   DATA_WIDTH : positive;
   --! Output burst length (minimum length is 2)
   BURST_SIZE : positive;
-  --! @brief FIFO depth per port. LOG2(depth) ensures that the depth is a power of 2.
+  --! @brief FIFO depth per input port. LOG2(depth) ensures that the depth is a power of 2.
   --! The depth must be at least double the burst size.
+  --! (Example: if BURST_SIZE=7 then FIFO_DEPTH_LOG2>=4 is required)
   FIFO_DEPTH_LOG2 : positive
 );
 port(
@@ -69,7 +78,9 @@ port(
   din_frame   : in  std_logic_vector(NUM_PORTS-1 downto 0);
   --! Data input valid, only considered when din_frame='1'
   din_vld     : in  std_logic_vector(NUM_PORTS-1 downto 0);
-  --! Data input overflow, occurs when din_vld rate is too high and data cannot be written into FIFO on-time
+  --! @brief Data input overflow.
+  --! Occurs when din_vld rate is too high and data cannot be written into FIFO on-time.
+  --! These output bits are NOT sticky, hence they could also be used as error IRQ source.
   din_ovf     : out std_logic_vector(NUM_PORTS-1 downto 0);
   --! Data output ready, default is '1', set '0' to pause dout_vld and dout_ena
   dout_rdy    : in  std_logic := '1';
@@ -87,7 +98,8 @@ port(
   dout_vld    : out std_logic_vector(NUM_PORTS-1 downto 0);
   --! Data output frame (one per input port)
   dout_frame  : out std_logic_vector(NUM_PORTS-1 downto 0);
-  --! FIFO overflow (one per input port)
+  --! @brief FIFO overflow (one per input port)
+  --! These output bits are NOT sticky, hence they could also be used as error IRQ source.
   fifo_ovf    : out std_logic_vector(NUM_PORTS-1 downto 0)
 );
 begin
@@ -502,6 +514,7 @@ begin
   );
   
 
+--  -- TODO : Simple dual-port RAM would be suffient here and might save some RAM blocks.
 --  i_dpram : entity ramlib.ram_tdp
 --    generic map(
 --      DATA_WIDTH_A      => RAM_DATA_WIDTH, 
