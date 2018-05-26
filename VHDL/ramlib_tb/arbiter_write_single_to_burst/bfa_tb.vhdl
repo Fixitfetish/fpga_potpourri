@@ -23,11 +23,11 @@ architecture sim of bfa_tb is
   signal din_vld : std_logic_vector(NUM_PORTS-1 downto 0) := (others=>'0');
   signal din : slv16_array(0 to NUM_PORTS-1) := (others=>(others=>'1'));
   signal din_ovf : std_logic_vector(NUM_PORTS-1 downto 0);
-  signal dout_req : std_logic := '1';
+  signal dout_rdy : std_logic := '1';
   signal dout : std_logic_vector(DATA_WIDTH-1 downto 0);
-  signal dout_en, dout_first, dout_last : std_logic;
+  signal dout_ena, dout_first, dout_last : std_logic;
   signal dout_vld : std_logic_vector(NUM_PORTS-1 downto 0);
-  signal dout_chan : unsigned(log2ceil(NUM_PORTS)-1 downto 0);
+  signal dout_idx : unsigned(log2ceil(NUM_PORTS)-1 downto 0);
   signal dout_frame : std_logic_vector(NUM_PORTS-1 downto 0);
   signal fifo_ovf : std_logic_vector(NUM_PORTS-1 downto 0);
 
@@ -111,7 +111,7 @@ begin
   );
 
 
-  i_fifo : entity ramlib.burst_forming_arbiter
+  i_fifo : entity ramlib.arbiter_write_single_to_burst
   generic map(
     NUM_PORTS  => NUM_PORTS, -- for now up to 4 supported
     DATA_WIDTH => DATA_WIDTH,
@@ -125,12 +125,12 @@ begin
     din_frame   => din_frame,
     din_vld     => din_vld,
     din_ovf     => din_ovf,
-    dout_req    => dout_req,
+    dout_rdy    => dout_rdy,
     dout        => dout,
-    dout_en     => dout_en,
+    dout_ena    => dout_ena,
     dout_first  => dout_first,
     dout_last   => dout_last,
-    dout_chan   => dout_chan,
+    dout_idx    => dout_idx,
     dout_vld    => dout_vld,
     dout_frame  => dout_frame,
     fifo_ovf    => fifo_ovf
@@ -154,13 +154,13 @@ begin
       wait until rising_edge(clk);
     end loop;
 
-    dout_req <= '0';
+    dout_rdy <= '0';
     
     for n in 1 to 10 loop
       wait until rising_edge(clk);
     end loop;
 
-    dout_req <= '1';
+    dout_rdy <= '1';
     
     for n in 1 to 20 loop
       wait until rising_edge(clk);

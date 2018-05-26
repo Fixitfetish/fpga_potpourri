@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
---! @file       burst_forming_arbiter.vhdl
+--! @file       arbiter_write_single_to_burst.vhdl
 --! @author     Fixitfetish
---! @date       20/May/2018
---! @version    0.10
+--! @date       25/May/2018
+--! @version    0.20
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -17,13 +17,35 @@ library baselib;
   use baselib.ieee_extension.all;
 library ramlib;
 
--- Required RAM width is DATA_WIDTH
--- Required RAM depth is NUM_PORTS x 2^ceil(log2(2xBURST_SIZE))
--- Port 0 has the highest priority.
--- Requirements
--- * continuous stream must be possible
+--! @brief 
+--!
+--! This arbiter has a definable number of input ports and one output port.
+--! The output port provides bursts of data words for input port.
+--! The burst size is configurable.
+--! 
+--! This arbiter is a slightly simplified version of a general arbiter that efficiently uses FPGA
+--! RAM resources. Instead of having seperate independent FIFOs per input port a shared RAM
+--! is used to hold the FIFOs of all input ports. Hence, FPGA memory blocks can be used more
+--! efficiently when FIFOs with small depth but large data width are required.
+--!
+--! As a drawback the following limitations need to be considered
+--! * This is a synchronous design. Input and output must run with the same clock.
+--! * If N input ports are active only every Nth cycle can have valid data at each input port.
+--!   For N>1 input data valid bursts of consecutive cycles are not allowed and cause input overflows.
+--! * The overall input data valid rate (all ports) cannot exceed the maximum supported output rate.
+--!   FIFO overflows will occur when the dout_rdy goes low for too long.
+--!
+--! NOTES: 
+--! * If only one input port is open/active then continuous streaming is possible.
+--! * The arbiter intentionally excludes RAM address handling or similar to keep it more flexible. 
+--! 
+--! The data width for each input port and the output port is DATA_WIDTH.
+--! Input port 0 has the highest priority and input port NUM_PORTS-1 has the lowest priority.
 
-entity burst_forming_arbiter is
+
+-- Required RAM depth is NUM_PORTS x 2^ceil(log2(2xBURST_SIZE))
+
+entity arbiter_write_single_to_burst is
 generic(
   --! Number of input ports
   NUM_PORTS  : positive;
@@ -43,24 +65,24 @@ port(
   
 --  din         : in  slv_array(0 to NUM_PORTS-1)(DATA_WIDTH-1 downto 0);
   din         : in  slv16_array(0 to NUM_PORTS-1);
-  --! Data input frame, rising_edge opens a channel, falling edge closes a channel
+  --! Data input frame, rising_edge opens a port, falling edge closes a port
   din_frame   : in  std_logic_vector(NUM_PORTS-1 downto 0);
   --! Data input valid, only considered when din_frame='1'
   din_vld     : in  std_logic_vector(NUM_PORTS-1 downto 0);
   --! Data input overflow, occurs when din_vld rate is too high and data cannot be written into FIFO on-time
   din_ovf     : out std_logic_vector(NUM_PORTS-1 downto 0);
-  --! Data output request, default is '1'
-  dout_req    : in  std_logic := '1';
+  --! Data output ready, default is '1', set '0' to pause dout_vld and dout_ena
+  dout_rdy    : in  std_logic := '1';
   --! Burst data output
   dout        : out std_logic_vector(DATA_WIDTH-1 downto 0);
   --! Burst data output enable
-  dout_en     : out std_logic;
-  --! First data of burst flag
+  dout_ena    : out std_logic;
+  --! First data of burst
   dout_first  : out std_logic;
-  --! Last data of burst flag
+  --! Last data of burst
   dout_last   : out std_logic;
-  --! Data output channel number (corresponding input port index)
-  dout_chan   : out unsigned(log2ceil(NUM_PORTS)-1 downto 0);
+  --! Data output index of corresponding input port
+  dout_idx    : out unsigned(log2ceil(NUM_PORTS)-1 downto 0);
   --! Data output valid (one per input port)
   dout_vld    : out std_logic_vector(NUM_PORTS-1 downto 0);
   --! Data output frame (one per input port)
@@ -72,7 +94,7 @@ begin
   -- synthesis translate_off (Altera Quartus)
   -- pragma translate_off (Xilinx Vivado , Synopsys)
   assert (2*BURST_SIZE)<=(2**FIFO_DEPTH_LOG2)
-    report "ERROR in " & burst_forming_arbiter'INSTANCE_NAME & 
+    report "ERROR in " & arbiter_write_single_to_burst'INSTANCE_NAME & 
            " FIFO depth must be at least double the burst size."
     severity failure;
   -- synthesis translate_on (Altera Quartus)
@@ -81,9 +103,9 @@ end entity;
 
 -------------------------------------------------------------------------------
 
-architecture rtl of burst_forming_arbiter is
+architecture rtl of arbiter_write_single_to_burst is
 
-  -- Width of FIFO/Channel select signal
+  -- Width of FIFO/Port select signal
   constant FIFO_SEL_WIDTH : positive := log2ceil(NUM_PORTS);
 
   constant RAM_ADDR_WIDTH : positive := FIFO_SEL_WIDTH + FIFO_DEPTH_LOG2;
@@ -381,7 +403,7 @@ begin
         burst_cnt <= (others=>'-');
         state <= WAITING;
 
-      elsif dout_req='1' then
+      elsif dout_rdy='1' then
           
         case state is
           when WAITING =>
@@ -451,13 +473,13 @@ begin
   end generate;
 
   dout <= rd.data;
-  dout_en <= rd.data_en;
+  dout_ena <= rd.data_en;
   
   dout_vld <= rd_out(RAM_READ_DELAY).vld;  
   dout_first <= rd_out(RAM_READ_DELAY).first;
   dout_last <= rd_out(RAM_READ_DELAY).last;
   dout_frame <= rd_out(RAM_READ_DELAY).frame;
-  dout_chan <= rd_out(RAM_READ_DELAY).sel;
+  dout_idx <= rd_out(RAM_READ_DELAY).sel;
 
   i_dpram : entity ramlib.ram_sdp
     generic map(

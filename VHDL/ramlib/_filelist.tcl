@@ -11,7 +11,10 @@ set files [list]
 # entities
 lappend files fifo_sync.vhdl
 lappend files ram_sdp.vhdl
-lappend files burst_forming_arbiter.vhdl
+lappend files arbiter_write_single_to_burst.vhdl
+lappend files ram_arbiter_pkg.vhdl
+lappend files ram_arbiter_write.vhdl
+
 
 # create final file list with absolute path
 set filelist [list]
