@@ -2,7 +2,7 @@
 --! @file       arbiter_write_single_to_burst.vhdl
 --! @author     Fixitfetish
 --! @date       26/May/2018
---! @version    0.30
+--! @version    0.40
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -23,6 +23,13 @@ library ramlib;
 --! This arbiter has a definable number of input ports and one output port.
 --! The output port provides sequential bursts of data words for each input port.
 --! The burst size is configurable but the same for all.
+--! 
+--! NOTES: 
+--! * Input port 0 has the highest priority and input port NUM_PORTS-1 has the lowest priority.
+--! * The data width of each input port, the output port and the RAM is DATA_WIDTH.
+--! * The overall used RAM depth is NUM_PORTS x 2^FIFO_DEPTH_LOG2 .
+--! * If only one input port is open/active then continuous streaming is possible.
+--! * The arbiter intentionally excludes RAM address handling or similar to keep it more flexible. 
 --! 
 --! This arbiter is a slightly simplified version of a general arbiter that efficiently uses FPGA
 --! RAM resources. Instead of having seperate independent FIFOs per input port a shared RAM
@@ -45,13 +52,8 @@ library ramlib;
 --!   the FIFO is flushed. A final burst smaller than BURST_SIZE might be generated.
 --! * FIFO flushing is completed when dout_frame(N)='0'. 
 --!
---! NOTES: 
---! * If only one input port is open/active then continuous streaming is possible.
---! * The arbiter intentionally excludes RAM address handling or similar to keep it more flexible. 
---! 
---! Input port 0 has the highest priority and input port NUM_PORTS-1 has the lowest priority.
---! The data width of each input port, the output port and the RAM is DATA_WIDTH.
---! The overall used RAM depth is NUM_PORTS x 2^FIFO_DEPTH_LOG2 .
+--! @image html arbiter_write_single_to_burst.svg "" width=500px
+--!
 
 entity arbiter_write_single_to_burst is
 generic(
