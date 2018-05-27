@@ -23,25 +23,25 @@ generic(
 );
 port(
   --! System clock
-  clk             : in  std_logic;
+  clk              : in  std_logic;
   --! Synchronous reset
-  rst             : in  std_logic;
+  rst              : in  std_logic;
   --! User write input port(s)
-  usr_wr_port_tx  : in  a_ram_arbiter_wr_port_tx(0 to NUM_PORTS-1);
+  usr_out_wr_port  : in  a_ram_arbiter_wr_port_tx(0 to NUM_PORTS-1);
   --! User write status output
-  usr_wr_port_rx  : out a_ram_arbiter_wr_port_rx(0 to NUM_PORTS-1);
+  usr_in_wr_port   : out a_ram_arbiter_wr_port_rx(0 to NUM_PORTS-1);
   --! RAM is ready to accept data input
-  ram_wr_ready    : in  std_logic;
+  ram_out_wr_ready : in  std_logic;
   --! RAM data word write address
-  ram_wr_addr     : out std_logic_vector(ADDR_WIDTH-1 downto 0);
+  ram_in_wr_addr   : out std_logic_vector(ADDR_WIDTH-1 downto 0);
   --! RAM data word input
-  ram_wr_data     : out std_logic_vector(DATA_WIDTH-1 downto 0);
+  ram_in_wr_data   : out std_logic_vector(DATA_WIDTH-1 downto 0);
   --! RAM data word enable
-  ram_wr_ena      : out std_logic;
+  ram_in_wr_ena    : out std_logic;
   --! Marker for first data word of a burst with incrementing address
-  ram_wr_first    : out std_logic;
+  ram_in_wr_first  : out std_logic;
   --! Marker for last data word of a burst with incrementing address
-  ram_wr_last     : out std_logic
+  ram_in_wr_last   : out std_logic
 );
 end entity;
 
@@ -93,20 +93,20 @@ begin
 
   g_in : for n in 0 to NUM_PORTS-1 generate
     -- TX
-    arb_din_frame(n) <= usr_wr_port_tx(n).frame;
---    din_vld(n) <= usr_wr_port_tx(n).data_vld;
-    arb_din_vld(n) <= usr_wr_port_tx(n).data_vld and addr_incr_active(n); -- TODO
-    arb_din(n) <= usr_wr_port_tx(n).data;
+    arb_din_frame(n) <= usr_out_wr_port(n).frame;
+--    din_vld(n) <= usr_out_wr_port(n).data_vld;
+    arb_din_vld(n) <= usr_out_wr_port(n).data_vld and addr_incr_active(n); -- TODO
+    arb_din(n) <= usr_out_wr_port(n).data;
     -- RX
---    usr_wr_port_rx(n).active <= dout_frame(n);
-    usr_wr_port_rx(n).active <= addr_incr_active(n) and arb_dout_frame(n) when rising_edge(clk);
-    usr_wr_port_rx(n).wrap <= wrap(n);
-    usr_wr_port_rx(n).tx_ovfl <= arb_din_ovf(n);
-    usr_wr_port_rx(n).fifo_ovfl <= arb_fifo_ovf(n);
-    usr_wr_port_rx(n).addr_next <= addr_next(n);
+--    usr_in_wr_port(n).active <= dout_frame(n);
+    usr_in_wr_port(n).active <= addr_incr_active(n) and arb_dout_frame(n) when rising_edge(clk);
+    usr_in_wr_port(n).wrap <= wrap(n);
+    usr_in_wr_port(n).tx_ovfl <= arb_din_ovf(n);
+    usr_in_wr_port(n).fifo_ovfl <= arb_fifo_ovf(n);
+    usr_in_wr_port(n).addr_next <= addr_next(n);
   end generate;
 
-  arb_dout_rdy <= ram_wr_ready when rising_edge(clk);
+  arb_dout_rdy <= ram_out_wr_ready when rising_edge(clk);
 
   i_fifo : entity ramlib.arbiter_write_single_to_burst
   generic map(
@@ -154,12 +154,12 @@ begin
         for n in 0 to (NUM_PORTS-1) loop
           if arb_din_frame(n)='1' and arb_din_frame_q(n)='0' then
             -- start channel, hold configuration        
-            cfg(n).addr_first <= usr_wr_port_tx(n).cfg_addr_first;
-            cfg(n).addr_last <= usr_wr_port_tx(n).cfg_addr_last;
-            cfg(n).single_shot <= usr_wr_port_tx(n).cfg_single_shot;
+            cfg(n).addr_first <= usr_out_wr_port(n).cfg_addr_first;
+            cfg(n).addr_last <= usr_out_wr_port(n).cfg_addr_last;
+            cfg(n).single_shot <= usr_out_wr_port(n).cfg_single_shot;
             -- reset address
             wrap(n) <= '0';    
-            addr_next(n) <= usr_wr_port_tx(n).cfg_addr_first;
+            addr_next(n) <= usr_out_wr_port(n).cfg_addr_first;
             addr_incr_active(n) <= '1';
 
           elsif arb_dout_frame(n)='0' and arb_dout_frame_q(n)='1' then
@@ -192,27 +192,27 @@ begin
   begin
     if rising_edge(clk) then
       if rst='1' then
-        ram_wr_ena <= '0';
-        ram_wr_first <= '0';
-        ram_wr_last <= '0';
-        ram_wr_addr <= (others=>'-');
-        ram_wr_data <= (others=>'-');
+        ram_in_wr_ena <= '0';
+        ram_in_wr_first <= '0';
+        ram_in_wr_last <= '0';
+        ram_in_wr_addr <= (others=>'-');
+        ram_in_wr_data <= (others=>'-');
         
       else
         v_active := addr_incr_active(to_integer(arb_dout_idx));
         v_single_shot := cfg(to_integer(arb_dout_idx)).single_shot;
         v_addr := addr_next(to_integer(arb_dout_idx));
 
-        ram_wr_ena <= arb_dout_ena and v_active;
-        ram_wr_first <= arb_dout_first and v_active;
+        ram_in_wr_ena <= arb_dout_ena and v_active;
+        ram_in_wr_first <= arb_dout_first and v_active;
         if v_single_shot='1' and v_addr=cfg(to_integer(arb_dout_idx)).addr_last then
           -- always set last flag for last write of single-shot
-          ram_wr_last <= v_active;
+          ram_in_wr_last <= v_active;
         else
-          ram_wr_last <= arb_dout_last and v_active;
+          ram_in_wr_last <= arb_dout_last and v_active;
         end if;
-        ram_wr_addr <= std_logic_vector(v_addr);
-        ram_wr_data <= arb_dout;
+        ram_in_wr_addr <= std_logic_vector(v_addr);
+        ram_in_wr_data <= arb_dout;
       end if;
     end if;    
   end process;

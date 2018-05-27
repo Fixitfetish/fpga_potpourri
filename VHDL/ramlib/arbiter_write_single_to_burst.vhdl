@@ -29,7 +29,8 @@ library ramlib;
 --! * The data width of each input port, the output port and the RAM is DATA_WIDTH.
 --! * The overall used RAM depth is NUM_PORTS x 2^FIFO_DEPTH_LOG2 .
 --! * If only one input port is open/active then continuous streaming is possible.
---! * The arbiter intentionally excludes RAM address handling or similar to keep it more flexible. 
+--! * The arbiter intentionally excludes RAM address handling or similar to keep it more flexible.
+--!   Address handling can be implemented easily on top of this arbiter. 
 --! 
 --! This arbiter is a slightly simplified version of a general arbiter that efficiently uses FPGA
 --! RAM resources. Instead of having seperate independent FIFOs per input port a shared RAM
@@ -43,6 +44,12 @@ library ramlib;
 --! * The overall input data valid rate (all ports) cannot exceed the maximum supported output rate.
 --!   FIFO overflows will occur when the bus_out_req_rdy goes low for too long.
 --!
+--! Signal Prefix Naming (also useful for record mapping):
+--! * usr_out : user output port, signals that the user generate (e.g. requests)
+--! * usr_in : user input port, signals that the user receives (e.g. status)
+--! * bus_out : bus output port, signals that are orginated by the bus (e.g. status or answers)
+--! * bus_in : bus input port, signals that feed the bus (e.g. write/read requests)
+--!
 --! USAGE:
 --! * Setting usr_out_req_frame(N)='1' opens the port N. The FIFO is reset and bus_in_req_port_frame(N)='1'. 
 --! * Data can be written using the usr_out_req_wr_data(N) and usr_out_req_wr_ena(N) considering the limitations.
@@ -55,6 +62,7 @@ library ramlib;
 --! Further ideas for future development
 --! * Generic POST_BURST_GAP : add idle gap of X cycles after each burst,
 --!   allow adding of a header infront of each burst.
+--! * do different priority modes like e.g. round-robin or first-come-first-serve make sense?
 --!     
 --! @image html arbiter_write_single_to_burst.svg "" width=500px
 --!
@@ -127,6 +135,8 @@ architecture rtl of arbiter_write_single_to_burst is
 
   constant RAM_ADDR_WIDTH : positive := FIFO_SEL_WIDTH + FIFO_DEPTH_LOG2;
   constant RAM_DATA_WIDTH : positive := DATA_WIDTH;
+
+  -- RAM read delay can be adjusted if another RAM/FIFO with more pipeline stages is used.
   constant RAM_READ_DELAY : positive := 2;
 
   signal usr_out_req_wr_data_q : slv16_array(0 to NUM_PORTS-1);

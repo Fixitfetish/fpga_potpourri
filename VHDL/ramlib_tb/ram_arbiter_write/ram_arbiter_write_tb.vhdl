@@ -100,16 +100,16 @@ begin
     OUTPUT_BURST_SIZE => 8
   )
   port map (
-    clk             => clk,
-    rst             => rst,
-    usr_wr_port_tx  => usr_wr_port_tx,
-    usr_wr_port_rx  => usr_wr_port_rx,
-    ram_wr_ready    => ram_wr_ready,
-    ram_wr_addr     => ram_wr_addr,
-    ram_wr_data     => ram_wr_data,
-    ram_wr_ena      => ram_wr_ena,
-    ram_wr_first    => ram_wr_first,
-    ram_wr_last     => ram_wr_last
+    clk              => clk,
+    rst              => rst,
+    usr_out_wr_port  => usr_wr_port_tx,
+    usr_in_wr_port   => usr_wr_port_rx,
+    ram_out_wr_ready => ram_wr_ready,
+    ram_in_wr_addr   => ram_wr_addr,
+    ram_in_wr_data   => ram_wr_data,
+    ram_in_wr_ena    => ram_wr_ena,
+    ram_in_wr_first  => ram_wr_first,
+    ram_in_wr_last   => ram_wr_last
   );
 
   p_stimuli: process
