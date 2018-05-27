@@ -116,21 +116,21 @@ begin
     FIFO_DEPTH_LOG2 => log2ceil(2*OUTPUT_BURST_SIZE)
   )
   port map (
-    clk         => clk,
-    rst         => rst,
-    din         => arb_din,
-    din_frame   => arb_din_frame,
-    din_vld     => arb_din_vld,
-    din_ovf     => arb_din_ovf,
-    dout_rdy    => arb_dout_rdy,
-    dout        => arb_dout,
-    dout_ena    => arb_dout_ena,
-    dout_first  => arb_dout_first,
-    dout_last   => arb_dout_last,
-    dout_idx    => arb_dout_idx,
-    dout_vld    => arb_dout_vld,
-    dout_frame  => arb_dout_frame,
-    fifo_ovf    => arb_fifo_ovf
+    clk                     => clk,
+    rst                     => rst,
+    usr_out_req_frame       => arb_din_frame,
+    usr_out_req_wr_ena      => arb_din_vld,
+    usr_out_req_wr_data     => arb_din,
+    usr_in_req_wr_ovfl      => arb_din_ovf,
+    usr_in_req_wr_fifo_ovfl => arb_fifo_ovf,
+    bus_out_req_rdy         => arb_dout_rdy,
+    bus_in_req_wr_ena       => arb_dout_ena,
+    bus_in_req_wr_data      => arb_dout,
+    bus_in_req_first        => arb_dout_first,
+    bus_in_req_last         => arb_dout_last,
+    bus_in_req_port_frame   => arb_dout_frame,
+    bus_in_req_port_ena     => arb_dout_vld,
+    bus_in_req_port_idx     => arb_dout_idx
   );
 
   p_addr : process(clk)

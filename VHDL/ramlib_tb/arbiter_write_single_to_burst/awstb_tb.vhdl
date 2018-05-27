@@ -6,10 +6,10 @@ library baselib;
   use baselib.ieee_extension.all;
 library ramlib;
 
-entity bfa_tb is
+entity awstb_tb is
 end entity;
 
-architecture sim of bfa_tb is
+architecture sim of awstb_tb is
 
   constant PERIOD : time := 10 ns; -- 100MHz
   signal rst : std_logic := '1';
@@ -119,21 +119,21 @@ begin
     FIFO_DEPTH_LOG2 => 4
   )
   port map (
-    clk         => clk,
-    rst         => rst,
-    din         => din,
-    din_frame   => din_frame,
-    din_vld     => din_vld,
-    din_ovf     => din_ovf,
-    dout_rdy    => dout_rdy,
-    dout        => dout,
-    dout_ena    => dout_ena,
-    dout_first  => dout_first,
-    dout_last   => dout_last,
-    dout_idx    => dout_idx,
-    dout_vld    => dout_vld,
-    dout_frame  => dout_frame,
-    fifo_ovf    => fifo_ovf
+    clk                     => clk,
+    rst                     => rst,
+    usr_out_req_frame       => din_frame,
+    usr_out_req_wr_ena      => din_vld,
+    usr_out_req_wr_data     => din,
+    usr_in_req_wr_ovfl      => din_ovf,
+    usr_in_req_wr_fifo_ovfl => fifo_ovf,
+    bus_out_req_rdy         => dout_rdy,
+    bus_in_req_wr_ena       => dout_ena,
+    bus_in_req_wr_data      => dout,
+    bus_in_req_first        => dout_first,
+    bus_in_req_last         => dout_last,
+    bus_in_req_port_frame   => dout_frame,
+    bus_in_req_port_ena     => dout_vld,
+    bus_in_req_port_idx     => dout_idx
   );
 
 

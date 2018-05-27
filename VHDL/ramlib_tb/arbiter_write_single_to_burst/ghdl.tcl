@@ -20,7 +20,7 @@ compile $LIB $filelist
 puts "--------------------------------------------------------------------------"
 puts "INFO: Testbench"
 
-set top bfa_tb
+set top awstb_tb
 
 set files [list]
 lappend files [ file normalize din_emulator.vhdl ]

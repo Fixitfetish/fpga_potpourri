@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       arbiter_write_single_to_burst.vhdl
 --! @author     Fixitfetish
---! @date       26/May/2018
---! @version    0.40
+--! @date       27/May/2018
+--! @version    0.50
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -41,17 +41,21 @@ library ramlib;
 --! * If N input ports are active only every Nth cycle can have valid data at each input port.
 --!   For N>1 input data valid bursts of consecutive cycles are not allowed and cause input overflows.
 --! * The overall input data valid rate (all ports) cannot exceed the maximum supported output rate.
---!   FIFO overflows will occur when the dout_rdy goes low for too long.
+--!   FIFO overflows will occur when the bus_out_req_rdy goes low for too long.
 --!
 --! USAGE:
---! * Setting din_frame(N)='1' opens the port N. The FIFO is reset and dout_frame(N)='1'. 
---! * Data can be written using the din(N) and din_vld(N) considering the limitations.
---!   If limitations are not considered din_ovf(N) or fifo_ovf(N) might be set.
+--! * Setting usr_out_req_frame(N)='1' opens the port N. The FIFO is reset and bus_in_req_port_frame(N)='1'. 
+--! * Data can be written using the usr_out_req_wr_data(N) and usr_out_req_wr_ena(N) considering the limitations.
+--!   If limitations are not considered usr_in_req_wr_ovfl(N) or usr_in_req_wr_fifo_ovfl(N) might be set.
 --! * Bursts will be output as soon as BURST_SIZE+1 data words have been provided.
---! * Setting din_frame(N)='0' closes the port N. Input data is not accepted anymore and
+--! * Setting usr_out_req_frame(N)='0' closes the port N. Input data is not accepted anymore and
 --!   the FIFO is flushed. A final burst smaller than BURST_SIZE might be generated.
---! * FIFO flushing is completed when dout_frame(N)='0'. 
+--! * FIFO flushing is completed when bus_in_req_port_frame(N)='0'. 
 --!
+--! Further ideas for future development
+--! * Generic POST_BURST_GAP : add idle gap of X cycles after each burst,
+--!   allow adding of a header infront of each burst.
+--!     
 --! @image html arbiter_write_single_to_burst.svg "" width=500px
 --!
 
@@ -70,39 +74,38 @@ generic(
 );
 port(
   --! System clock
-  clk         : in  std_logic;
+  clk                     : in  std_logic;
   --! Synchronous reset
-  rst         : in  std_logic;
-  
---  din         : in  slv_array(0 to NUM_PORTS-1)(DATA_WIDTH-1 downto 0);
-  din         : in  slv16_array(0 to NUM_PORTS-1);
+  rst                     : in  std_logic;
   --! Data input frame, rising_edge opens a port, falling edge closes a port
-  din_frame   : in  std_logic_vector(NUM_PORTS-1 downto 0);
-  --! Data input valid, only considered when din_frame='1'
-  din_vld     : in  std_logic_vector(NUM_PORTS-1 downto 0);
+  usr_out_req_frame       : in  std_logic_vector(NUM_PORTS-1 downto 0);
+  --! Data input valid, only considered when usr_out_req_frame='1'
+  usr_out_req_wr_ena      : in  std_logic_vector(NUM_PORTS-1 downto 0);
+--  din         : in  slv_array(0 to NUM_PORTS-1)(DATA_WIDTH-1 downto 0);
+  usr_out_req_wr_data     : in  slv16_array(0 to NUM_PORTS-1);
   --! @brief Data input overflow.
-  --! Occurs when din_vld rate is too high and data cannot be written into FIFO on-time.
+  --! Occurs when usr_out_req_wr_ena rate is too high and data cannot be written into FIFO on-time.
   --! These output bits are NOT sticky, hence they could also be used as error IRQ source.
-  din_ovf     : out std_logic_vector(NUM_PORTS-1 downto 0);
-  --! Data output ready, default is '1', set '0' to pause dout_vld and dout_ena
-  dout_rdy    : in  std_logic := '1';
-  --! Burst data output
-  dout        : out std_logic_vector(DATA_WIDTH-1 downto 0);
-  --! Burst data output enable
-  dout_ena    : out std_logic;
-  --! First data of burst
-  dout_first  : out std_logic;
-  --! Last data of burst
-  dout_last   : out std_logic;
-  --! Data output index of corresponding input port
-  dout_idx    : out unsigned(log2ceil(NUM_PORTS)-1 downto 0);
-  --! Data output valid (one per input port)
-  dout_vld    : out std_logic_vector(NUM_PORTS-1 downto 0);
-  --! Data output frame (one per input port)
-  dout_frame  : out std_logic_vector(NUM_PORTS-1 downto 0);
+  usr_in_req_wr_ovfl      : out std_logic_vector(NUM_PORTS-1 downto 0);
   --! @brief FIFO overflow (one per input port)
   --! These output bits are NOT sticky, hence they could also be used as error IRQ source.
-  fifo_ovf    : out std_logic_vector(NUM_PORTS-1 downto 0)
+  usr_in_req_wr_fifo_ovfl : out std_logic_vector(NUM_PORTS-1 downto 0);
+  --! Bus is ready to accept requests, default is '1', set '0' to pause bus_in_req_wr_ena and bus_in_req_port_ena
+  bus_out_req_rdy         : in  std_logic := '1';
+  --! Burst data output enable
+  bus_in_req_wr_ena       : out std_logic;
+  --! Burst data output
+  bus_in_req_wr_data      : out std_logic_vector(DATA_WIDTH-1 downto 0);
+  --! First data of burst
+  bus_in_req_first        : out std_logic;
+  --! Last data of burst
+  bus_in_req_last         : out std_logic;
+  --! Data output frame (one bit per input port)
+  bus_in_req_port_frame   : out std_logic_vector(NUM_PORTS-1 downto 0);
+  --! Data output valid (one bit per input port)
+  bus_in_req_port_ena     : out std_logic_vector(NUM_PORTS-1 downto 0);
+  --! User index of corresponding user request port
+  bus_in_req_port_idx     : out unsigned(log2ceil(NUM_PORTS)-1 downto 0)
 );
 begin
   -- synthesis translate_off (Altera Quartus)
@@ -126,9 +129,9 @@ architecture rtl of arbiter_write_single_to_burst is
   constant RAM_DATA_WIDTH : positive := DATA_WIDTH;
   constant RAM_READ_DELAY : positive := 2;
 
-  signal din_q : slv16_array(0 to NUM_PORTS-1);
+  signal usr_out_req_wr_data_q : slv16_array(0 to NUM_PORTS-1);
 --  signal din_q : slv_array(0 to NUM_PORTS-1)(DATA_WIDTH-1 downto 0);
-  signal din_frame_q : std_logic_vector(NUM_PORTS-1 downto 0);
+  signal usr_out_req_frame_q : std_logic_vector(NUM_PORTS-1 downto 0);
   signal din_pending : std_logic_vector(NUM_PORTS-1 downto 0);
 
   -- write port
@@ -303,26 +306,26 @@ begin
   begin
     if rising_edge(clk) then
 
-      v_din_vld := din_vld and din_frame;
+      v_din_vld := usr_out_req_wr_ena and usr_out_req_frame;
       v_din_pending_new := v_din_vld or din_pending;
       v_din_ack := get_next(v_din_pending_new);
 
-      wr.frame <= v_din_pending_new or din_frame;
+      wr.frame <= v_din_pending_new or usr_out_req_frame;
 
       if rst='1' then
         din_pending <= (others=>'0');
-        din_frame_q <= (others=>'0');
-        din_q <= (others=>(others=>'-'));
-        din_ovf <= (others=>'0');
+        usr_out_req_frame_q <= (others=>'0');
+        usr_out_req_wr_data_q <= (others=>(others=>'-'));
+        usr_in_req_wr_ovfl <= (others=>'0');
         wr.sel <= (others=>'0');
         wr.ena <= (others=>'0');
 
       else
         -- by default register all incoming inputs
-        din_frame_q <= din_frame; -- TODO  frame_q goes low only when not pending ?
+        usr_out_req_frame_q <= usr_out_req_frame; -- TODO  frame_q goes low only when not pending ?
         for n in 0 to (NUM_PORTS-1) loop
           if v_din_vld(n)='1' then
-            din_q(n) <= din(n); 
+            usr_out_req_wr_data_q(n) <= usr_out_req_wr_data(n); 
           end if;
         end loop;
 
@@ -331,7 +334,7 @@ begin
 
         -- handling of pending bits and overflow errors
         din_pending <= v_din_pending_new and (not v_din_ack);
-        din_ovf <= din_pending and v_din_vld;
+        usr_in_req_wr_ovfl <= din_pending and v_din_vld;
 
       end if; --reset 
     end if; --clock
@@ -363,7 +366,7 @@ begin
           fifo(n).full <= to_01(v_level(n)=to_unsigned(2**FIFO_DEPTH_LOG2-1,FIFO_DEPTH_LOG2));
           fifo(n).ovfl <= fifo(n).full and to_01(v_level(n)=0);
           fifo(n).level <= v_level(n);
-          fifo(n).active <= fifo(n).active or (din_frame(n) and (not din_frame_q(n)));
+          fifo(n).active <= fifo(n).active or (usr_out_req_frame(n) and (not usr_out_req_frame_q(n)));
           -- Ensure that the wr_ptr does not change anymore after flush has been triggered.
           fifo(n).flush_triggered <= fifo(n).flush_triggered or (v_wr_frame_q(n) and (not wr.frame(n)));
           if v_level(n)>BURST_SIZE then
@@ -417,7 +420,7 @@ begin
         burst_cnt <= (others=>'-');
         state <= WAITING;
 
-      elsif dout_rdy='1' then
+      elsif bus_out_req_rdy='1' then
           
         case state is
           when WAITING =>
@@ -464,7 +467,7 @@ begin
   wr.addr_vld <= wr.ena(to_integer(wr.sel)); -- TODO use slv_or ?
   wr.addr(RAM_ADDR_WIDTH-1 downto FIFO_DEPTH_LOG2) <= wr.sel;
   wr.addr(FIFO_DEPTH_LOG2-1 downto 0) <= fifo(to_integer(wr.sel)).wr_ptr;
-  wr.data <= din_q(to_integer(wr.sel));
+  wr.data <= usr_out_req_wr_data_q(to_integer(wr.sel));
 
   -- read port mux before RAM input register
   rd.addr_vld <= rd.ena(to_integer(rd.sel));
@@ -478,7 +481,7 @@ begin
   rd_out(1).sel <= rd.addr(RAM_ADDR_WIDTH-1 downto FIFO_DEPTH_LOG2) when rising_edge(clk);
 
   g_out : for n in 0 to (NUM_PORTS-1) generate
-    fifo_ovf(n) <= fifo(n).ovfl;
+    usr_in_req_wr_fifo_ovfl(n) <= fifo(n).ovfl;
     rd_out(1).frame(n) <= fifo(n).active when rising_edge(clk);
   end generate;
 
@@ -486,14 +489,14 @@ begin
     rd_out(d) <= rd_out(d-1) when rising_edge(clk);
   end generate;
 
-  dout <= rd.data;
-  dout_ena <= rd.data_en;
+  bus_in_req_wr_data <= rd.data;
+  bus_in_req_wr_ena <= rd.data_en;
   
-  dout_vld <= rd_out(RAM_READ_DELAY).vld;  
-  dout_first <= rd_out(RAM_READ_DELAY).first;
-  dout_last <= rd_out(RAM_READ_DELAY).last;
-  dout_frame <= rd_out(RAM_READ_DELAY).frame;
-  dout_idx <= rd_out(RAM_READ_DELAY).sel;
+  bus_in_req_port_ena <= rd_out(RAM_READ_DELAY).vld;  
+  bus_in_req_first <= rd_out(RAM_READ_DELAY).first;
+  bus_in_req_last <= rd_out(RAM_READ_DELAY).last;
+  bus_in_req_port_frame <= rd_out(RAM_READ_DELAY).frame;
+  bus_in_req_port_idx <= rd_out(RAM_READ_DELAY).sel;
 
   i_dpram : entity ramlib.ram_sdp
     generic map(
