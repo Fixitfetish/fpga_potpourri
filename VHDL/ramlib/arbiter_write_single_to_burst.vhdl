@@ -140,7 +140,7 @@ architecture rtl of arbiter_write_single_to_burst is
   constant RAM_READ_DELAY : positive := 2;
 
   signal usr_out_req_wr_data_q : slv16_array(0 to NUM_PORTS-1);
---  signal din_q : slv_array(0 to NUM_PORTS-1)(DATA_WIDTH-1 downto 0);
+--  signal usr_out_req_wr_data_q : slv_array(0 to NUM_PORTS-1)(DATA_WIDTH-1 downto 0);
   signal usr_out_req_frame_q : std_logic_vector(NUM_PORTS-1 downto 0);
   signal din_pending : std_logic_vector(NUM_PORTS-1 downto 0);
 
@@ -385,7 +385,7 @@ begin
           else
             fifo(n).filled <= '0';
             -- Enable flush only when no more full bursts are are active or pending. 
-            fifo(n).flush <= fifo(n).flush or (fifo(n).flush_triggered and (not rd_ena(n)));
+            fifo(n).flush <= fifo(n).flush or (fifo(n).flush_triggered and (not rd.ena(n)));
           end if;
         end if; --reset
       end loop; 
@@ -529,7 +529,7 @@ begin
   );
   
 
---  -- TODO : Simple dual-port RAM would be suffient here and might save some RAM blocks.
+--  -- TODO : Simple dual-port RAM would be sufficient here and might save some RAM blocks.
 --  i_dpram : entity ramlib.ram_tdp
 --    generic map(
 --      DATA_WIDTH_A      => RAM_DATA_WIDTH, 

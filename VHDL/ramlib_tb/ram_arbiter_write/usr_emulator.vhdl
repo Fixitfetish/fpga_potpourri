@@ -9,8 +9,10 @@ library ramlib;
 
 entity usr_emulator is
 generic(
-  ADDR_FIRST : unsigned(ramlib.ram_arbiter_pkg.ADDR_WIDTH-1 downto 0); 
-  ADDR_LAST : unsigned(ramlib.ram_arbiter_pkg.ADDR_WIDTH-1 downto 0); 
+  ADDR_WIDTH : positive; 
+  DATA_WIDTH : positive; 
+  ADDR_FIRST : unsigned; 
+  ADDR_LAST : unsigned; 
   SINGLE_SHOT : std_logic;
   INSTANCE_IDX : natural := 0 
 );
@@ -18,22 +20,19 @@ port(
   clk             : in  std_logic;
   rst             : in  std_logic;
   vld_pattern     : in  std_logic_vector;
-  usr_wr_port_tx  : buffer r_ram_arbiter_wr_port_tx;
-  usr_wr_port_rx  : in  r_ram_arbiter_wr_port_rx
+  usr_out_wr_port : buffer r_ram_arbiter_usr_out_wr_port;
+  usr_in_wr_port  : in  r_ram_arbiter_usr_in_wr_port
 );
 end entity;
 
 architecture sim of usr_emulator is
 
-  constant DATA_WIDTH : positive := ramlib.ram_arbiter_pkg.DATA_WIDTH;
-  constant ADDR_WIDTH : positive := ramlib.ram_arbiter_pkg.ADDR_WIDTH;
-  
   signal cnt : integer;
 
   -- use 4 MSBs for instance/channel index and the remaining LSBs for the counter
   signal data_cnt : unsigned(DATA_WIDTH-5 downto 0);
-  alias din_idx is usr_wr_port_tx.data(DATA_WIDTH-1 downto DATA_WIDTH-4);
-  alias din_cnt is usr_wr_port_tx.data(DATA_WIDTH-5 downto 0);
+  alias din_idx is usr_out_wr_port.data(DATA_WIDTH-1 downto DATA_WIDTH-4);
+  alias din_cnt is usr_out_wr_port.data(DATA_WIDTH-5 downto 0);
 
   -- GTKWAVE work-around
   signal usr_tx_addr_first : unsigned(ADDR_WIDTH-1 downto 0);
@@ -51,34 +50,32 @@ architecture sim of usr_emulator is
 begin
 
   -- GTKWAVE work-around
-  usr_tx_addr_first <= usr_wr_port_tx.cfg_addr_first;
-  usr_tx_addr_last <= usr_wr_port_tx.cfg_addr_last;
-  usr_tx_single_shot <= usr_wr_port_tx.cfg_single_shot;
-  usr_tx_frame <= usr_wr_port_tx.frame;
-  usr_tx_data <= usr_wr_port_tx.data;
-  usr_tx_data_vld <= usr_wr_port_tx.data_vld;
-  usr_rx_active <= usr_wr_port_rx.active;
-  usr_rx_wrap <= usr_wr_port_rx.wrap;
-  usr_rx_tx_ovfl <= usr_wr_port_rx.tx_ovfl;
-  usr_rx_fifo_ovfl <= usr_wr_port_rx.fifo_ovfl;
-  usr_rx_addr_next <= usr_wr_port_rx.addr_next;
+  usr_tx_addr_first <= usr_out_wr_port.cfg_addr_first;
+  usr_tx_addr_last <= usr_out_wr_port.cfg_addr_last;
+  usr_tx_single_shot <= usr_out_wr_port.cfg_single_shot;
+  usr_tx_frame <= usr_out_wr_port.frame;
+  usr_tx_data <= usr_out_wr_port.data;
+  usr_tx_data_vld <= usr_out_wr_port.data_vld;
+  usr_rx_active <= usr_in_wr_port.active;
+  usr_rx_wrap <= usr_in_wr_port.wrap;
+  usr_rx_tx_ovfl <= usr_in_wr_port.tx_ovfl;
+  usr_rx_fifo_ovfl <= usr_in_wr_port.fifo_ovfl;
+  usr_rx_addr_next <= usr_in_wr_port.addr_next;
 
   p_clk : process(clk)
   begin
     if rising_edge(clk) then
       if rst='1' then
---        usr_wr_port_tx <= DEFAULT_RAM_ARBITER_WR_PORT_TX;
-        usr_wr_port_tx <= RESET(usr_wr_port_tx);
+        usr_out_wr_port <= RESET(usr_out_wr_port);
         cnt <= 0;
         data_cnt <= (others=>'0');
       else
         -- control
-        usr_wr_port_tx.cfg_addr_first <= ADDR_FIRST;
-        usr_wr_port_tx.cfg_addr_last <= ADDR_LAST;
-        usr_wr_port_tx.cfg_single_shot <= SINGLE_SHOT;
-        usr_wr_port_tx.frame <= '1';
---        usr_wr_port_tx.data <= (DATA_WIDTH-1 downto 0=>'0');
-        usr_wr_port_tx.data_vld <= vld_pattern(cnt);
+        usr_out_wr_port.cfg_addr_first <= ADDR_FIRST;
+        usr_out_wr_port.cfg_addr_last <= ADDR_LAST;
+        usr_out_wr_port.cfg_single_shot <= SINGLE_SHOT;
+        usr_out_wr_port.frame <= '1';
+        usr_out_wr_port.data_vld <= vld_pattern(cnt);
         if cnt=(vld_pattern'length-1) then
           cnt <= 0;
         else
@@ -97,4 +94,3 @@ begin
 
 
 end architecture;
-

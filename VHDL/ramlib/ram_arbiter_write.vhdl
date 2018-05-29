@@ -1,3 +1,12 @@
+-------------------------------------------------------------------------------
+--! @file       ram_arbiter_write.vhdl
+--! @author     Fixitfetish
+--! @date       27/May/2018
+--! @version    0.50
+--! @note       VHDL-2008
+--! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
+--!             <https://opensource.org/licenses/MIT>
+-------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
@@ -7,12 +16,34 @@ library baselib;
 library ramlib;
   use ramlib.ram_arbiter_pkg.all;
 
--- Arbiter for multiple write channels
--- Port 0 has the highest priority.
+--! @brief Arbiter that transforms single write requests from multiple user ports
+--! to write request bursts at the single RAM port.
+--!
+--! This arbiter has a definable number of user ports and one RAM port.
+--! The output port provides sequential bursts of data words for each input port.
+--! The burst size is configurable but the same for all.
+--! 
+--! NOTES: 
+--! * User input port 0 has the highest priority and user input port NUM_PORTS-1 has the lowest priority.
+--! * The data width of each user port, the RAM port is DATA_WIDTH.
+--! * If only one user port is open/active then continuous streaming is possible.
+--!
+--! Signal Prefix Naming (also useful for record mapping):
+--! * usr_out : user output port, signals that the user generate (e.g. requests)
+--! * usr_in : user input port, signals that the user receives (e.g. status)
+--! * ram_out : ram output port, signals that are orginated by the ram (e.g. status or read data)
+--! * ram_in : ram input port, signals that feed the bus (e.g. write/read requests)
+--!
+--! For details refer to the entity arbiter_write_single_to_burst which is used for this implementation.
+--! Also consider using the optional entity ram_arbiter_write_data_width_adapter at the user interface
+--! to adapt different user data widths to the RAM width.
+--!  
+--! @image html ram_arbiter_write.svg "" width=500px
+--!
 
 entity ram_arbiter_write is
 generic(
-  --! Number of input ports
+  --! Number of user input ports
   NUM_PORTS : positive;
   --! RAM data width at user input and RAM output ports
   DATA_WIDTH : positive;
@@ -27,9 +58,9 @@ port(
   --! Synchronous reset
   rst              : in  std_logic;
   --! User write input port(s)
-  usr_out_wr_port  : in  a_ram_arbiter_wr_port_tx(0 to NUM_PORTS-1);
+  usr_out_wr_port  : in  a_ram_arbiter_usr_out_wr_port(0 to NUM_PORTS-1);
   --! User write status output
-  usr_in_wr_port   : out a_ram_arbiter_wr_port_rx(0 to NUM_PORTS-1);
+  usr_in_wr_port   : out a_ram_arbiter_usr_in_wr_port(0 to NUM_PORTS-1);
   --! RAM is ready to accept data input
   ram_out_wr_ready : in  std_logic;
   --! RAM data word write address
@@ -49,7 +80,7 @@ end entity;
 
 architecture rtl of ram_arbiter_write is
 
---  signal arb_din         : slv_array(0 to NUM_PORTS-1)(15 downto 0);
+--  signal arb_din         : slv_array(0 to NUM_PORTS-1)(DATA_WIDTH-1 downto 0);
   signal arb_din         : slv16_array(0 to NUM_PORTS-1);
   signal arb_din_frame   : std_logic_vector(NUM_PORTS-1 downto 0);
   signal arb_din_vld     : std_logic_vector(NUM_PORTS-1 downto 0);
@@ -94,11 +125,9 @@ begin
   g_in : for n in 0 to NUM_PORTS-1 generate
     -- TX
     arb_din_frame(n) <= usr_out_wr_port(n).frame;
---    din_vld(n) <= usr_out_wr_port(n).data_vld;
     arb_din_vld(n) <= usr_out_wr_port(n).data_vld and addr_incr_active(n); -- TODO
     arb_din(n) <= usr_out_wr_port(n).data;
     -- RX
---    usr_in_wr_port(n).active <= dout_frame(n);
     usr_in_wr_port(n).active <= addr_incr_active(n) and arb_dout_frame(n) when rising_edge(clk);
     usr_in_wr_port(n).wrap <= wrap(n);
     usr_in_wr_port(n).tx_ovfl <= arb_din_ovf(n);

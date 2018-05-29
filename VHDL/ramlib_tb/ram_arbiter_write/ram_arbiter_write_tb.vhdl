@@ -10,6 +10,7 @@ library ramlib;
 entity ram_arbiter_write_tb is
 end entity;
 
+
 architecture sim of ram_arbiter_write_tb is
 
   constant PERIOD : time := 10 ns; -- 100MHz
@@ -18,24 +19,27 @@ architecture sim of ram_arbiter_write_tb is
   signal finish : std_logic := '0';
 
   constant NUM_PORTS : positive := 4;
-  constant DATA_WIDTH : positive := ramlib.ram_arbiter_pkg.DATA_WIDTH;
-  constant ADDR_WIDTH : positive := ramlib.ram_arbiter_pkg.ADDR_WIDTH;
+  constant DATA_WIDTH : positive := 16;
+  constant ADDR_WIDTH : positive := 16;
 
-  signal usr_wr_port_tx  : a_ram_arbiter_wr_port_tx(0 to NUM_PORTS-1);
---  signal usr_wr_port_tx  : a_ram_arbiter_wr_port_tx(0 to NUM_PORTS-1)(
+  signal usr_out_wr_port  : a_ram_arbiter_usr_out_wr_port(0 to NUM_PORTS-1);
+--  signal usr_out_wr_port : a_ram_arbiter_usr_out_wr_port(0 to NUM_PORTS-1)(
 --                             cfg_addr_first(ADDR_WIDTH-1 downto 0),
 --                             cfg_addr_last(ADDR_WIDTH-1 downto 0),
 --                             data(DATA_WIDTH-1 downto 0)
 --                           );
-  signal usr_wr_port_rx  : a_ram_arbiter_wr_port_rx(0 to NUM_PORTS-1);
-  signal ram_wr_ready    : std_logic := '1';
-  signal ram_wr_addr     : std_logic_vector(ADDR_WIDTH - 1 downto 0);
-  signal ram_wr_data     : std_logic_vector(DATA_WIDTH - 1 downto 0);
-  signal ram_wr_ena      : std_logic;
-  signal ram_wr_first    : std_logic;
-  signal ram_wr_last     : std_logic;
+  signal usr_in_wr_port  : a_ram_arbiter_usr_in_wr_port(0 to NUM_PORTS-1);
+--  signal usr_in_wr_port  : a_ram_arbiter_usr_in_wr_port(0 to NUM_PORTS-1)(
+--                             addr_next(ADDR_WIDTH-1 downto 0)
+--                           );
+  signal ram_out_wr_ready  : std_logic := '1';
+  signal ram_in_wr_addr    : std_logic_vector(ADDR_WIDTH - 1 downto 0);
+  signal ram_in_wr_data    : std_logic_vector(DATA_WIDTH - 1 downto 0);
+  signal ram_in_wr_ena     : std_logic;
+  signal ram_in_wr_first   : std_logic;
+  signal ram_in_wr_last    : std_logic;
 
-  signal rst_usr : std_logic_vector(NUM_PORTS-1 downto 0) := (others=>'1');
+  signal usr_rst : std_logic_vector(NUM_PORTS-1 downto 0) := (others=>'1');
 
 begin
 
@@ -60,6 +64,8 @@ begin
   
   usr0 : entity work.usr_emulator
   generic map (
+    ADDR_WIDTH => ADDR_WIDTH,
+    DATA_WIDTH => DATA_WIDTH,
     ADDR_FIRST => to_unsigned(257,ADDR_WIDTH), 
     ADDR_LAST => to_unsigned(275,ADDR_WIDTH),
     SINGLE_SHOT => '1',
@@ -67,14 +73,16 @@ begin
   )
   port map(
     clk             => clk,
-    rst             => rst_usr(0),
+    rst             => usr_rst(0),
     vld_pattern     => "1100",
-    usr_wr_port_tx  => usr_wr_port_tx(0),
-    usr_wr_port_rx  => usr_wr_port_rx(0)
+    usr_out_wr_port => usr_out_wr_port(0),
+    usr_in_wr_port  => usr_in_wr_port(0)
   );
 
   usr1 : entity work.usr_emulator
   generic map (
+    ADDR_WIDTH => ADDR_WIDTH,
+    DATA_WIDTH => DATA_WIDTH,
     ADDR_FIRST => to_unsigned(785,ADDR_WIDTH), 
     ADDR_LAST => to_unsigned(797,ADDR_WIDTH),
     SINGLE_SHOT => '0',
@@ -82,15 +90,14 @@ begin
   )
   port map(
     clk             => clk,
-    rst             => rst_usr(1),
+    rst             => usr_rst(1),
     vld_pattern     => "0101",
-    usr_wr_port_tx  => usr_wr_port_tx(1),
-    usr_wr_port_rx  => usr_wr_port_rx(1)
+    usr_out_wr_port => usr_out_wr_port(1),
+    usr_in_wr_port  => usr_in_wr_port(1)
   );
 
   -- currently unused usr ports
-  usr_wr_port_tx(2 to NUM_PORTS-1) <= RESET(usr_wr_port_tx(2 to NUM_PORTS-1));
---  usr_wr_port_tx(2 to NUM_PORTS-1) <= (others=>DEFAULT_RAM_ARBITER_WR_PORT_TX);
+  usr_out_wr_port(2 to NUM_PORTS-1) <= RESET(usr_out_wr_port(2 to NUM_PORTS-1));
 
   i_arbiter : entity ramlib.ram_arbiter_write
   generic map(
@@ -102,14 +109,14 @@ begin
   port map (
     clk              => clk,
     rst              => rst,
-    usr_out_wr_port  => usr_wr_port_tx,
-    usr_in_wr_port   => usr_wr_port_rx,
-    ram_out_wr_ready => ram_wr_ready,
-    ram_in_wr_addr   => ram_wr_addr,
-    ram_in_wr_data   => ram_wr_data,
-    ram_in_wr_ena    => ram_wr_ena,
-    ram_in_wr_first  => ram_wr_first,
-    ram_in_wr_last   => ram_wr_last
+    usr_out_wr_port  => usr_out_wr_port,
+    usr_in_wr_port   => usr_in_wr_port,
+    ram_out_wr_ready => ram_out_wr_ready,
+    ram_in_wr_addr   => ram_in_wr_addr,
+    ram_in_wr_data   => ram_in_wr_data,
+    ram_in_wr_ena    => ram_in_wr_ena,
+    ram_in_wr_first  => ram_in_wr_first,
+    ram_in_wr_last   => ram_in_wr_last
   );
 
   p_stimuli: process
@@ -121,16 +128,16 @@ begin
 
     wait for 100 ns;
     wait until rising_edge(clk);
-    rst_usr(0) <= '0';
-    rst_usr(1) <= '0';
+    usr_rst(0) <= '0';
+    usr_rst(1) <= '0';
     wait until rising_edge(clk);
 
     for n in 1 to 97 loop
       wait until rising_edge(clk);
     end loop;
     
-    rst_usr(0) <= '1';
-    rst_usr(1) <= '1';
+    usr_rst(0) <= '1';
+    usr_rst(1) <= '1';
 
     wait for 400 ns;
     finish <= '1';

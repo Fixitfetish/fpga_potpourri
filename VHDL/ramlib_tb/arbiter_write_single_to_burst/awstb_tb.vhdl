@@ -21,6 +21,7 @@ architecture sim of awstb_tb is
 
   signal din_frame : std_logic_vector(NUM_PORTS-1 downto 0) := (others=>'0');
   signal din_vld : std_logic_vector(NUM_PORTS-1 downto 0) := (others=>'0');
+--  signal din : slv_array(0 to NUM_PORTS-1)(DATA_WIDTH-1 downto 0) := (others=>(others=>'0'));
   signal din : slv16_array(0 to NUM_PORTS-1) := (others=>(others=>'1'));
   signal din_ovf : std_logic_vector(NUM_PORTS-1 downto 0);
   signal dout_rdy : std_logic := '1';

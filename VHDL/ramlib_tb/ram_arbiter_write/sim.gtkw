@@ -89,14 +89,14 @@ i_arbiter.arb_dout[15:0]
 [color] 3
 i_arbiter.arb_fifo_ovf[3:0]
 @28
-ram_wr_ready
-ram_wr_ena
+ram_out_wr_ready
+ram_in_wr_ena
 @22
-ram_wr_addr[15:0]
+ram_in_wr_addr[15:0]
 @28
-ram_wr_first
-ram_wr_last
+ram_in_wr_first
+ram_in_wr_last
 @22
-ram_wr_data[15:0]
+ram_in_wr_data[15:0]
 [pattern_trace] 1
 [pattern_trace] 0
