@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- FILE    : fifo_sync_tb.vhdl   
 -- AUTHOR  : Fixitfetish
--- DATE    : 08/May/2016
--- VERSION : 1.0
+-- DATE    : 07/Jun/2018
+-- VERSION : 1.10
 -- VHDL    : 1993
 -- LICENSE : MIT License
 -------------------------------------------------------------------------------
@@ -32,17 +32,17 @@ architecture rtl of fifo_sync_tb is
   signal level : integer range 0 to FIFO_DEPTH; -- FIFO fill level
   signal data : unsigned(FIFO_WIDTH-1 downto 0) := (others=>'0');
 
-  signal wr_ena       : std_logic := '0';
-  signal wr_din       : std_logic_vector(FIFO_WIDTH-1 downto 0) := (others=>'1');
-  signal wr_full      : std_logic; -- FIFO full
-  signal wr_alm_full  : std_logic; -- FIFO almost full
-  signal wr_overflow  : std_logic; -- FIFO overflow (wr_ena=1 and wr_full=1)
+  signal wr_ena        : std_logic := '0';
+  signal wr_din        : std_logic_vector(FIFO_WIDTH-1 downto 0) := (others=>'1');
+  signal wr_full       : std_logic; -- FIFO full
+  signal wr_prog_full  : std_logic; -- FIFO prog full
+  signal wr_overflow   : std_logic; -- FIFO overflow (wr_ena=1 and wr_full=1)
 
-  signal rd_req_ack   : std_logic := '0';
-  signal rd_dout      : std_logic_vector(FIFO_WIDTH-1 downto 0); -- read data output
-  signal rd_empty     : std_logic; -- FIFO empty
-  signal rd_alm_empty : std_logic; -- FIFO almost empty
-  signal rd_underflow : std_logic; -- FIFO underflow (rd_req_ack=1 and rd_empty=1)
+  signal rd_req_ack    : std_logic := '0';
+  signal rd_dout       : std_logic_vector(FIFO_WIDTH-1 downto 0); -- read data output
+  signal rd_empty      : std_logic; -- FIFO empty
+  signal rd_prog_empty : std_logic; -- FIFO prog empty
+  signal rd_underflow  : std_logic; -- FIFO underflow (rd_req_ack=1 and rd_empty=1)
 
 begin
 
@@ -97,25 +97,25 @@ begin
     FIFO_DEPTH => FIFO_DEPTH,
     USE_BLOCK_RAM => false,
     ACKNOWLEDGE_MODE => false,
-    ALMOST_FULL_THRESHOLD => FIFO_DEPTH-2,
-    ALMOST_EMPTY_THRESHOLD => 2
+    PROG_FULL_THRESHOLD => FIFO_DEPTH-2,
+    PROG_EMPTY_THRESHOLD => 2
   )
   port map (
-    clock        => clk, -- clock
-    reset        => rst, -- synchronous reset
-    level        => level,
+    clock         => clk, -- clock
+    reset         => rst, -- synchronous reset
+    level         => level,
     -- write port
-    wr_ena       => wr_ena, 
-    wr_din       => wr_din, 
-    wr_full      => wr_full, 
-    wr_alm_full  => wr_alm_full, 
-    wr_overflow  => wr_overflow, 
+    wr_ena        => wr_ena, 
+    wr_din        => wr_din, 
+    wr_full       => wr_full, 
+    wr_prog_full  => wr_prog_full, 
+    wr_overflow   => wr_overflow, 
     -- read port
-    rd_req_ack   => rd_req_ack, 
-    rd_dout      => rd_dout, 
-    rd_empty     => rd_empty, 
-    rd_alm_empty => rd_alm_empty, 
-    rd_underflow => rd_underflow 
+    rd_req_ack    => rd_req_ack, 
+    rd_dout       => rd_dout, 
+    rd_empty      => rd_empty, 
+    rd_prog_empty => rd_prog_empty, 
+    rd_underflow  => rd_underflow 
   );
 
 end architecture;

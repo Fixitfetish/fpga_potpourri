@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       fifo_sync.behave.vhdl
 --! @author     Fixitfetish
---! @date       07/May/2016
---! @version    1.00
+--! @date       07/June/2018
+--! @version    1.10
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -84,8 +84,8 @@ begin
   end process;
 
   wr_full <= full;
-  wr_alm_full <= '0' when (ALMOST_FULL_THRESHOLD=0) else
-                 '1' when (level_i>=ALMOST_FULL_THRESHOLD or reset='1') else '0';
+  wr_prog_full <= '0' when (PROG_FULL_THRESHOLD=0) else
+                  '1' when (level_i>=PROG_FULL_THRESHOLD or reset='1') else '0';
   
   ----------------------------------------------------------
   
@@ -110,8 +110,8 @@ begin
   fifo_dout <= fifo(rd_ptr);
 
   rd_empty <= empty;
-  rd_alm_empty <= '0' when (ALMOST_EMPTY_THRESHOLD=0) else
-                  '1' when (level_i<=ALMOST_EMPTY_THRESHOLD) else '0';
+  rd_prog_empty <= '0' when (PROG_EMPTY_THRESHOLD=0) else
+                   '1' when (level_i<=PROG_EMPTY_THRESHOLD) else '0';
   
   ----------------------------------------------------------
   

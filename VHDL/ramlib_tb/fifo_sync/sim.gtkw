@@ -25,7 +25,7 @@ wr_ena
 @22
 wr_din[7:0]
 @28
-wr_alm_full
+wr_prog_full
 wr_full
 wr_overflow
 @420
@@ -35,7 +35,7 @@ rd_req_ack
 @22
 rd_dout[7:0]
 @28
-rd_alm_empty
+rd_prog_empty
 rd_empty
 @29
 rd_underflow
