@@ -118,8 +118,8 @@ begin
         full_i <= '0';
         wr_ptr_i <= (others=>'0');
         rd_ptr_i <= (others=>'0');
-        rd_prog_empty <= '0';
         wr_prog_full <= '0';
+        rd_prog_empty <= '1';
         wr_overflow <= '0';
         rd_underflow <= '0';
 
@@ -164,13 +164,13 @@ begin
         if PROG_EMPTY_THRESHOLD>0 then
           rd_prog_empty <= to_01(v_level<=to_unsigned(PROG_EMPTY_THRESHOLD,v_level'length));
         else
-          rd_prog_empty <= '0';
+          rd_prog_empty <= '1'; -- keep reset value
         end if;
 
         if PROG_FULL_THRESHOLD>0 then
           wr_prog_full <= to_01(v_level>=to_unsigned(PROG_FULL_THRESHOLD,v_level'length));
         else
-          wr_prog_full <= '0';
+          wr_prog_full <= '0'; -- keep reset value
         end if;
 
       end if;
