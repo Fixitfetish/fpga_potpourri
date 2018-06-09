@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.87 (w)1999-2017 BSI
-[*] Sun May 20 19:16:08 2018
+[*] Fri Jun 08 21:42:11 2018
 [*]
-[dumpfile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\ramlib_tb\burst_forming_arbiter\work\sim.vcd"
-[dumpfile_mtime] "Sun May 20 19:11:44 2018"
-[dumpfile_size] 28629
-[savefile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\ramlib_tb\burst_forming_arbiter\sim.gtkw"
+[dumpfile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\ramlib_tb\arbiter_write_single_to_burst\work\sim.vcd"
+[dumpfile_mtime] "Fri Jun 08 21:40:30 2018"
+[dumpfile_size] 45767
+[savefile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\ramlib_tb\arbiter_write_single_to_burst\sim.gtkw"
 [timestart] 0
 [size] 1304 745
 [pos] -1 -1
-*-28.158607 670000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-28.158607 900000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [sst_width] 211
 [signals_width] 230
 [sst_expanded] 1
@@ -19,16 +19,12 @@ i_fifo.rst
 finish
 clk
 [color] 5
-i_fifo.din_frame[3:0]
-[color] 5
-i_fifo.din_frame_q[3:0]
-[color] 5
-i_fifo.din_vld[3:0]
-[color] 5
-i_fifo.din_ovf[3:0]
-[color] 5
 i_fifo.din_pending[3:0]
 i_fifo.wr_frame[3:0]
+@22
+i_fifo.wr_sof[3:0]
+i_fifo.wr_eof[3:0]
+@28
 i_fifo.wr_ena[3:0]
 @24
 i_fifo.wr_sel[1:0]
@@ -50,29 +46,23 @@ i_fifo.ptr3[3:0]
 i_fifo.fifo_active[3:0]
 [color] 2
 i_fifo.fifo_empty[3:0]
-@29
 [color] 2
 i_fifo.fifo_full[3:0]
-@28
 [color] 2
 i_fifo.fifo_filled[3:0]
 [color] 2
 i_fifo.fifo_flush_triggered[3:0]
 [color] 2
 i_fifo.fifo_flush[3:0]
-[color] 2
-i_fifo.fifo_ovf[3:0]
 @22
 [color] 3
-i_fifo.level0[3:0]
+i_fifo.level0[4:0]
 [color] 3
-i_fifo.level1[3:0]
+i_fifo.level1[4:0]
 [color] 3
-i_fifo.level2[3:0]
+i_fifo.level2[4:0]
 [color] 3
-i_fifo.level3[3:0]
-@24
-i_fifo.burst_cnt[3:0]
+i_fifo.level3[4:0]
 @28
 [color] 6
 i_fifo.rd_ena[3:0]
@@ -87,18 +77,22 @@ i_fifo.rd_addr_vld
 i_fifo.rd_addr[5:0]
 @28
 [color] 6
-i_fifo.rd_addr_first
+i_fifo.rd_sob
 [color] 6
-i_fifo.rd_addr_last
+i_fifo.rd_eob
+[color] 6
+i_fifo.rd_eof
 dout_frame[3:0]
-dout_req
-dout_en
-dout_vld[3:0]
-dout_first
+dout_vld
+dout_sob
 @24
-dout_chan[1:0]
+dout_idx[1:0]
 @28
-i_fifo.dout_last
+dout_eob
+@29
+dout_eof
+@28
+dout_ena
 @22
 dout[15:0]
 [pattern_trace] 1

@@ -26,8 +26,8 @@ architecture sim of awstb_tb is
   signal din_ovf : std_logic_vector(NUM_PORTS-1 downto 0);
   signal dout_rdy : std_logic := '1';
   signal dout : std_logic_vector(DATA_WIDTH-1 downto 0);
-  signal dout_ena, dout_first, dout_last : std_logic;
-  signal dout_vld : std_logic_vector(NUM_PORTS-1 downto 0);
+  signal dout_ena, dout_sob, dout_eob, dout_eof : std_logic;
+  signal dout_vld : std_logic;
   signal dout_idx : unsigned(log2ceil(NUM_PORTS)-1 downto 0);
   signal dout_frame : std_logic_vector(NUM_PORTS-1 downto 0);
   signal fifo_ovf : std_logic_vector(NUM_PORTS-1 downto 0);
@@ -117,24 +117,26 @@ begin
     NUM_PORTS  => NUM_PORTS, -- for now up to 4 supported
     DATA_WIDTH => DATA_WIDTH,
     BURST_SIZE => 8,
-    FIFO_DEPTH_LOG2 => 4
+    FIFO_DEPTH_LOG2 => 4,
+    WRITE_ENABLE => true
   )
   port map (
     clk                     => clk,
     rst                     => rst,
     usr_out_req_frame       => din_frame,
-    usr_out_req_wr_ena      => din_vld,
+    usr_out_req_ena         => din_vld,
     usr_out_req_wr_data     => din,
-    usr_in_req_wr_ovfl      => din_ovf,
-    usr_in_req_wr_fifo_ovfl => fifo_ovf,
+    usr_in_req_ovfl         => din_ovf,
+    usr_in_req_fifo_ovfl    => fifo_ovf,
     bus_out_req_rdy         => dout_rdy,
-    bus_in_req_wr_ena       => dout_ena,
-    bus_in_req_wr_data      => dout,
-    bus_in_req_first        => dout_first,
-    bus_in_req_last         => dout_last,
-    bus_in_req_port_frame   => dout_frame,
-    bus_in_req_port_ena     => dout_vld,
-    bus_in_req_port_idx     => dout_idx
+    bus_in_req_ena          => dout_vld,
+    bus_in_req_sob          => dout_sob,
+    bus_in_req_eob          => dout_eob,
+    bus_in_req_eof          => dout_eof,
+    bus_in_req_usr_id       => dout_idx,
+    bus_in_req_usr_frame    => dout_frame,
+    bus_in_req_data         => dout,
+    bus_in_req_data_vld     => dout_ena
   );
 
 

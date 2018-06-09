@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.87 (w)1999-2017 BSI
-[*] Fri Jun 08 18:59:28 2018
+[*] Fri Jun 08 22:37:03 2018
 [*]
 [dumpfile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\ramlib_tb\arbiter_read_single_to_burst\work\sim.vcd"
-[dumpfile_mtime] "Fri Jun 08 18:58:25 2018"
-[dumpfile_size] 66904
+[dumpfile_mtime] "Fri Jun 08 22:36:41 2018"
+[dumpfile_size] 74373
 [savefile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\ramlib_tb\arbiter_read_single_to_burst\sim.gtkw"
 [timestart] 0
-[size] 1304 746
+[size] 1304 745
 [pos] -1 -1
-*-28.201946 1100000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-28.201946 935000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [sst_width] 211
 [signals_width] 254
 [sst_expanded] 1
@@ -18,26 +18,28 @@
 rst
 finish
 clk
-i_arbiter.usr_out_frame[3:0]
-i_arbiter.usr_out_sof[3:0]
-i_arbiter.usr_out_eof[3:0]
-i_arbiter.usr_out_ena[3:0]
+@29
+usr_out_req_frame[3:0]
+usr_out_req_ena[3:0]
+@28
+usr_in_req_ovfl[3:0]
+usr_in_req_fifo_ovfl[3:0]
 @420
 [color] 2
 i_arbiter.seq_fifo_level
 @28
 [color] 3
+bus_in_req_usr_frame[3:0]
+[color] 3
 bus_in_req_ena
 [color] 3
 bus_in_req_sob
-[color] 3
-bus_in_req_eob
 @24
 [color] 3
 bus_in_req_usr_id[1:0]
 @28
 [color] 3
-bus_in_req_usr_frame[3:0]
+bus_in_req_eob
 [color] 3
 bus_out_req_rdy
 [color] 3
@@ -75,7 +77,6 @@ i_arbiter.cpl_ram_rd_addr[5:0]
 [color] 7
 i_arbiter.cpl_ram_rd_data_vld
 usr_in_cpl_data_vld[3:0]
-@29
 usr_in_cpl_data_eof[3:0]
 @22
 usr_in_cpl_data[15:0]

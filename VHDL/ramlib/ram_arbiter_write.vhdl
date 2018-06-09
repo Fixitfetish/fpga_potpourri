@@ -91,7 +91,8 @@ architecture rtl of ram_arbiter_write is
   signal arb_dout_first  : std_logic;
   signal arb_dout_last   : std_logic;
   signal arb_dout_idx    : unsigned(log2ceil(NUM_PORTS)-1 downto 0);
-  signal arb_dout_vld    : std_logic_vector(NUM_PORTS-1 downto 0);
+  signal arb_dout_vld    : std_logic;
+--  signal arb_dout_vld    : std_logic_vector(NUM_PORTS-1 downto 0);
   signal arb_dout_frame  : std_logic_vector(NUM_PORTS-1 downto 0);
   signal arb_fifo_ovf    : std_logic_vector(NUM_PORTS-1 downto 0);
 
@@ -142,24 +143,27 @@ begin
     NUM_PORTS  => NUM_PORTS,
     DATA_WIDTH => DATA_WIDTH,
     BURST_SIZE => OUTPUT_BURST_SIZE,
-    FIFO_DEPTH_LOG2 => log2ceil(2*OUTPUT_BURST_SIZE)
+    FIFO_DEPTH_LOG2 => log2ceil(2*OUTPUT_BURST_SIZE),
+    WRITE_ENABLE => true
   )
   port map (
     clk                     => clk,
     rst                     => rst,
     usr_out_req_frame       => arb_din_frame,
-    usr_out_req_wr_ena      => arb_din_vld,
+    usr_out_req_ena         => arb_din_vld,
     usr_out_req_wr_data     => arb_din,
-    usr_in_req_wr_ovfl      => arb_din_ovf,
-    usr_in_req_wr_fifo_ovfl => arb_fifo_ovf,
+    usr_in_req_ovfl         => arb_din_ovf,
+    usr_in_req_fifo_ovfl    => arb_fifo_ovf,
     bus_out_req_rdy         => arb_dout_rdy,
-    bus_in_req_wr_ena       => arb_dout_ena,
-    bus_in_req_wr_data      => arb_dout,
-    bus_in_req_first        => arb_dout_first,
-    bus_in_req_last         => arb_dout_last,
-    bus_in_req_port_frame   => arb_dout_frame,
-    bus_in_req_port_ena     => arb_dout_vld,
-    bus_in_req_port_idx     => arb_dout_idx
+    bus_in_req_ena          => arb_dout_vld,
+    bus_in_req_sob          => arb_dout_first,
+    bus_in_req_eob          => arb_dout_last,
+    bus_in_req_eof          => open,
+    bus_in_req_usr_id       => arb_dout_idx,
+    bus_in_req_usr_frame    => arb_dout_frame,
+    bus_in_req_data         => arb_dout,
+    bus_in_req_data_vld     => arb_dout_ena
+--    bus_in_req_port_ena     => arb_dout_vld
   );
 
   p_addr : process(clk)
@@ -195,7 +199,8 @@ begin
             -- end of channel        
             addr_incr_active(n) <= '1';
 
-          elsif arb_dout_vld(n)='1' and addr_incr_active(n)='1' then
+--          elsif arb_dout_vld(n)='1' and addr_incr_active(n)='1' then
+          elsif arb_dout_vld='1' and arb_dout_idx=n and addr_incr_active(n)='1' then
             -- address increment
             addr_next(n) <= addr_next(n) + 1;
             if addr_next(n)=cfg(n).addr_last then
