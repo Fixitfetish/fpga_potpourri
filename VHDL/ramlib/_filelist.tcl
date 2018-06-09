@@ -12,7 +12,7 @@ set files [list]
 lappend files fifo_logic_sync.vhdl
 lappend files fifo_sync.vhdl
 lappend files ram_sdp.vhdl
-lappend files arbiter_write_single_to_burst.vhdl
+lappend files arbiter_mux_stream_to_burst.vhdl
 lappend files arbiter_read_single_to_burst.vhdl
 lappend files ram_arbiter_pkg.vhdl
 lappend files ram_arbiter_write.vhdl

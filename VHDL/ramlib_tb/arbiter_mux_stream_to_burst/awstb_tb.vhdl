@@ -112,7 +112,7 @@ begin
   );
 
 
-  i_fifo : entity ramlib.arbiter_write_single_to_burst
+  i_fifo : entity ramlib.arbiter_mux_stream_to_burst
   generic map(
     NUM_PORTS  => NUM_PORTS, -- for now up to 4 supported
     DATA_WIDTH => DATA_WIDTH,

@@ -138,7 +138,7 @@ begin
 
   arb_dout_rdy <= ram_out_wr_ready when rising_edge(clk);
 
-  i_fifo : entity ramlib.arbiter_write_single_to_burst
+  i_fifo : entity ramlib.arbiter_mux_stream_to_burst
   generic map(
     NUM_PORTS  => NUM_PORTS,
     DATA_WIDTH => DATA_WIDTH,

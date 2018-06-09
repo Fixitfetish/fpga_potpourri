@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       arbiter_write_single_to_burst.vhdl
+--! @file       arbiter_mux_stream_to_burst.vhdl
 --! @author     Fixitfetish
 --! @date       07/Jun/2018
 --! @version    0.60
@@ -64,10 +64,10 @@ library ramlib;
 --!   allow adding of a header infront of each burst.
 --! * do different priority modes like e.g. round-robin or first-come-first-serve make sense?
 --!     
---! @image html arbiter_write_single_to_burst.svg "" width=500px
+--! @image html arbiter_mux_stream_to_burst.svg "" width=500px
 --!
 
-entity arbiter_write_single_to_burst is
+entity arbiter_mux_stream_to_burst is
 generic(
   --! Number of user ports
   NUM_PORTS  : positive;
@@ -126,7 +126,7 @@ begin
   -- synthesis translate_off (Altera Quartus)
   -- pragma translate_off (Xilinx Vivado , Synopsys)
   assert (2*BURST_SIZE)<=(2**FIFO_DEPTH_LOG2)
-    report "ERROR in " & arbiter_write_single_to_burst'INSTANCE_NAME & 
+    report "ERROR in " & arbiter_mux_stream_to_burst'INSTANCE_NAME & 
            " FIFO depth must be at least double the burst size."
     severity failure;
   -- synthesis translate_on (Altera Quartus)
@@ -135,7 +135,7 @@ end entity;
 
 -------------------------------------------------------------------------------
 
-architecture rtl of arbiter_write_single_to_burst is
+architecture rtl of arbiter_mux_stream_to_burst is
 
   -- Width of FIFO/Port select signal
   constant FIFO_SEL_WIDTH : positive := log2ceil(NUM_PORTS);
