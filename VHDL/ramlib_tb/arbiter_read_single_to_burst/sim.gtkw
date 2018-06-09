@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.87 (w)1999-2017 BSI
-[*] Fri Jun 08 22:37:03 2018
+[*] Sat Jun 09 15:09:03 2018
 [*]
 [dumpfile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\ramlib_tb\arbiter_read_single_to_burst\work\sim.vcd"
-[dumpfile_mtime] "Fri Jun 08 22:36:41 2018"
-[dumpfile_size] 74373
+[dumpfile_mtime] "Sat Jun 09 13:07:05 2018"
+[dumpfile_size] 78494
 [savefile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\ramlib_tb\arbiter_read_single_to_burst\sim.gtkw"
 [timestart] 0
 [size] 1304 745
 [pos] -1 -1
-*-28.201946 935000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-28.201946 625000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [sst_width] 211
 [signals_width] 254
 [sst_expanded] 1
@@ -54,28 +54,11 @@ i_arbiter.seq_fifo_cpl_id[1:0]
 [color] 2
 i_arbiter.seq_fifo_cpl_eof
 [color] 5
-i_arbiter.cpl_ram_wr_addr_vld
-[color] 5
-i_arbiter.cpl_ram_wr_data_vld
-@22
-[color] 5
-i_arbiter.cpl_ram_wr_addr[5:0]
-[color] 5
-i_arbiter.cpl_ram_wr_data[16:0]
-@28
-[color] 5
 usr_in_cpl_fifo_ovfl[3:0]
 usr_in_cpl_rdy[3:0]
 usr_out_cpl_ack[3:0]
 usr_in_cpl_ack_ovfl[3:0]
 [color] 7
-i_arbiter.cpl_ram_rd_addr_vld
-@22
-[color] 7
-i_arbiter.cpl_ram_rd_addr[5:0]
-@28
-[color] 7
-i_arbiter.cpl_ram_rd_data_vld
 usr_in_cpl_data_vld[3:0]
 usr_in_cpl_data_eof[3:0]
 @22

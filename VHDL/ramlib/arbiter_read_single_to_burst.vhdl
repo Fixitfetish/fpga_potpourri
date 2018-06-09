@@ -177,99 +177,14 @@ architecture rtl of arbiter_read_single_to_burst is
   signal seq_fifo_cpl_id : unsigned(FIFO_SEL_WIDTH-1 downto 0);
   signal seq_fifo_cpl_eof : std_logic;
 
-  -----------------------
-  -- Completion FIFO/RAM
-  -----------------------
-
-  type r_cpl_fifo is
-  record
-    rst          : std_logic;
-    wr_ena       : std_logic;
-    wr_ptr       : unsigned(FIFO_DEPTH_LOG2-1 downto 0);
-    wr_full      : std_logic;
-    wr_overflow  : std_logic;
-    rd_ena       : std_logic;
-    rd_ptr       : unsigned(FIFO_DEPTH_LOG2-1 downto 0);
-    rd_empty     : std_logic;
-    rd_underflow : std_logic;
-    level        : unsigned(FIFO_DEPTH_LOG2 downto 0);
-  end record;
-  type a_cpl_fifo is array(integer range <>) of r_cpl_fifo;
-  signal cpl_fifo : a_cpl_fifo(0 to NUM_PORTS-1);
-
-  -- Data width of the completion FIFO/RAM (data + EOF flag)
-  constant CPL_RAM_DATA_WIDTH : positive := DATA_WIDTH + 1;
-
-  -- Address width of the completion FIFO/RAM
-  constant CPL_RAM_ADDR_WIDTH : positive := FIFO_SEL_WIDTH + FIFO_DEPTH_LOG2;
-
-  -- CPL RAM read delay can be adjusted if another RAM/FIFO with more pipeline stages is used.
-  constant CPL_RAM_READ_DELAY : natural := 2;
-
-  type r_cpl_ram is
-  record
-    addr     : unsigned(CPL_RAM_ADDR_WIDTH-1 downto 0);
-    addr_vld : std_logic;
-    data     : std_logic_vector(CPL_RAM_DATA_WIDTH-1 downto 0);
-    data_vld : std_logic;
-  end record;
-  signal cpl_ram_wr : r_cpl_ram;
-  signal cpl_ram_rd : r_cpl_ram;
-
-  type a_cpl_ram_rd_ena is array(integer range <>) of std_logic_vector(NUM_PORTS-1 downto 0);
-  signal cpl_ram_rd_ena : a_cpl_ram_rd_ena(0 to CPL_RAM_READ_DELAY);
-
-
-  function get_next(pending:std_logic_vector) return std_logic_vector is
-    variable res : std_logic_vector(NUM_PORTS-1 downto 0);
-  begin
-    res := (others=>'0');
-    -- lowest index = highest priority
-    for n in pending'low to pending'high loop
-      if pending(n)='1' then
-        res(n):='1'; return res;
-      end if;
-    end loop;
-    return res;
-  end function;
-
-  function get_next(pending:std_logic_vector) return unsigned is
-    variable sel : unsigned(FIFO_SEL_WIDTH-1 downto 0);
-  begin
-    sel := (others=>'0');
-    -- lowest index = highest priority
-    for n in pending'low to pending'high loop
-      if pending(n)='1' then
-        sel := to_unsigned(n-pending'low,sel'length); return sel;
-      end if;
-    end loop;
-    return sel;
-  end function;
-
 
   -- GTKWave work-around
   signal seq_fifo_level : integer;
-  signal cpl_ram_wr_addr     : unsigned(CPL_RAM_ADDR_WIDTH-1 downto 0);
-  signal cpl_ram_wr_addr_vld : std_logic;
-  signal cpl_ram_wr_data     : std_logic_vector(CPL_RAM_DATA_WIDTH-1 downto 0);
-  signal cpl_ram_wr_data_vld : std_logic;
-  signal cpl_ram_rd_addr     : unsigned(CPL_RAM_ADDR_WIDTH-1 downto 0);
-  signal cpl_ram_rd_addr_vld : std_logic;
-  signal cpl_ram_rd_data     : std_logic_vector(CPL_RAM_DATA_WIDTH-1 downto 0);
-  signal cpl_ram_rd_data_vld : std_logic;
 
 begin
 
   -- GTKWave work-around
   seq_fifo_level <= seq_fifo.level;
-  cpl_ram_wr_addr     <= cpl_ram_wr.addr;
-  cpl_ram_wr_addr_vld <= cpl_ram_wr.addr_vld;
-  cpl_ram_wr_data     <= cpl_ram_wr.data;
-  cpl_ram_wr_data_vld <= cpl_ram_wr.data_vld;
-  cpl_ram_rd_addr     <= cpl_ram_rd.addr;
-  cpl_ram_rd_addr_vld <= cpl_ram_rd.addr_vld;
-  cpl_ram_rd_data     <= cpl_ram_rd.data;
-  cpl_ram_rd_data_vld <= cpl_ram_rd.data_vld;
 
   -----------------------------------------------------------------------------
   -- Request FIFO
@@ -349,138 +264,26 @@ begin
   -- Completion FIFO
   -----------------------------------------------------------------------------
 
-  p_cpl : process(clk)
-  begin
-    if rising_edge(clk) then
-      if rst='1' then
-        cpl_ram_wr.addr_vld <= '0';
-        cpl_ram_wr.data_vld <= '0';
-        cpl_ram_wr.addr <= (others=>'-');
-        cpl_ram_wr.data <= (others=>'-');
-      else
-        cpl_ram_wr.addr_vld <= bus_out_cpl_data_vld;
-        cpl_ram_wr.data_vld <= bus_out_cpl_data_vld;
-        cpl_ram_wr.addr(CPL_RAM_ADDR_WIDTH-1 downto FIFO_DEPTH_LOG2) <= seq_fifo_cpl_id;
-        cpl_ram_wr.addr(FIFO_DEPTH_LOG2-1 downto 0) <= cpl_fifo(to_integer(seq_fifo_cpl_id)).wr_ptr;
-        cpl_ram_wr.data <= seq_fifo_cpl_eof & bus_out_cpl_data;
-      end if; --reset
-    end if; --clock
-  end process;
-
-  g_cpl_fifo : for n in 0 to (NUM_PORTS-1) generate
-  begin
-
-    -- reset FIFO 
-    cpl_fifo(n).rst <= rst; -- TODO also after frame when FIFO is empty
-    cpl_fifo(n).wr_ena <= bus_out_cpl_data_vld when seq_fifo_cpl_id=n else '0'; 
-    
-    i_logic : entity ramlib.fifo_logic_sync
-    generic map(
-      FIFO_DEPTH => 2**FIFO_DEPTH_LOG2,
-      PROG_FULL_THRESHOLD => 0,
-      PROG_EMPTY_THRESHOLD => 0
-    )
-    port map(
-      clk           => clk,
-      rst           => cpl_fifo(n).rst,
-      wr_ena        => cpl_fifo(n).wr_ena,
-      wr_ptr        => cpl_fifo(n).wr_ptr,
-      wr_full       => cpl_fifo(n).wr_full,
-      wr_prog_full  => open,
-      wr_overflow   => cpl_fifo(n).wr_overflow,
-      rd_ena        => cpl_fifo(n).rd_ena,
-      rd_ptr        => cpl_fifo(n).rd_ptr,
-      rd_empty      => cpl_fifo(n).rd_empty,
-      rd_prog_empty => open,
-      rd_underflow  => cpl_fifo(n).rd_underflow,
-      level         => cpl_fifo(n).level
-    );
-
-    usr_in_cpl_fifo_ovfl(n) <= cpl_fifo(n).wr_overflow;
-    usr_in_cpl_rdy(n) <= not cpl_fifo(n).rd_empty;
-    cpl_fifo(n).rd_ena <= usr_out_cpl_ack(n);
-
-  end generate;
-
-  i_cpl_ram : entity ramlib.ram_sdp
+  i_cpl : entity ramlib.arbiter_demux_single_to_stream
   generic map(
-    ADDR_WIDTH => CPL_RAM_ADDR_WIDTH,
-    DATA_WIDTH => CPL_RAM_DATA_WIDTH,
-    RD_OUTPUT_REGS => 1
+    NUM_PORTS  => NUM_PORTS,
+    DATA_WIDTH => DATA_WIDTH,
+    FIFO_DEPTH_LOG2 => FIFO_DEPTH_LOG2
   )
-  port map(
-    clk        => clk,
-    rst        => rst,
-    wr_clk_en  => '1',
-    wr_addr_en => cpl_ram_wr.addr_vld,
-    wr_addr    => std_logic_vector(cpl_ram_wr.addr),
-    wr_data    => cpl_ram_wr.data,
-    rd_clk_en  => '1',
-    rd_addr_en => cpl_ram_rd.addr_vld,
-    rd_addr    => std_logic_vector(cpl_ram_rd.addr),
-    rd_data    => cpl_ram_rd.data,
-    rd_data_en => cpl_ram_rd.data_vld
+  port map (
+    clk                     => clk,
+    rst                     => rst,
+    bus_out_cpl_eof         => seq_fifo_cpl_eof, 
+    bus_out_cpl_usr_id      => seq_fifo_cpl_id, 
+    bus_out_cpl_data        => bus_out_cpl_data, 
+    bus_out_cpl_data_vld    => bus_out_cpl_data_vld, 
+    usr_in_cpl_rdy          => usr_in_cpl_rdy, 
+    usr_out_cpl_ack         => usr_out_cpl_ack, 
+    usr_in_cpl_ack_ovfl     => usr_in_cpl_ack_ovfl, 
+    usr_in_cpl_data         => usr_in_cpl_data, 
+    usr_in_cpl_data_vld     => usr_in_cpl_data_vld, 
+    usr_in_cpl_data_eof     => usr_in_cpl_data_eof, 
+    usr_in_cpl_fifo_ovfl    => usr_in_cpl_fifo_ovfl
   );
-
-
-  p_output_arbiter : process(clk)
-    type a_rd_ptr is array(integer range <>) of unsigned(FIFO_DEPTH_LOG2-1 downto 0);
-    variable v_cpl_rd_ptr : a_rd_ptr(NUM_PORTS-1 downto 0) := (others=>(others=>'-'));
-    variable v_cpl_ack : std_logic_vector(NUM_PORTS-1 downto 0);
-    variable v_cpl_rd_pending : std_logic_vector(NUM_PORTS-1 downto 0);
-    variable v_cpl_rd_pending_new : std_logic_vector(NUM_PORTS-1 downto 0);
-    variable v_cpl_rd_ena : std_logic_vector(NUM_PORTS-1 downto 0);
-    variable v_cpl_rd_id : unsigned(FIFO_SEL_WIDTH-1 downto 0);
-  begin
-    if rising_edge(clk) then
-
-      for n in 0 to (NUM_PORTS-1) loop
-        v_cpl_ack(n) := usr_out_cpl_ack(n); -- TODO allow only when frame active
-        if usr_out_cpl_ack(n)='1' then
-          v_cpl_rd_ptr(n) := cpl_fifo(n).rd_ptr;
-        end if;  
-      end loop;
-
-      v_cpl_rd_pending_new := v_cpl_ack or v_cpl_rd_pending;
-      v_cpl_rd_ena := get_next(v_cpl_rd_pending_new);
-      v_cpl_rd_id := get_next(v_cpl_rd_pending_new);
-
-      if rst='1' then
-        cpl_ram_rd.addr_vld <= '0';
-        cpl_ram_rd.addr <= (others=>'-');
-
-        usr_in_cpl_ack_ovfl <= (others=>'0');
-        v_cpl_rd_pending := (others=>'0');
-
-      else
-        cpl_ram_rd.addr_vld <= slv_or(v_cpl_rd_ena);
-        cpl_ram_rd.addr(CPL_RAM_ADDR_WIDTH-1 downto FIFO_DEPTH_LOG2) <= v_cpl_rd_id;
-        cpl_ram_rd.addr(FIFO_DEPTH_LOG2-1 downto 0) <= v_cpl_rd_ptr(to_integer(v_cpl_rd_id));
-
-        -- handling of pending bits and overflow errors
-        usr_in_cpl_ack_ovfl <= v_cpl_rd_pending and v_cpl_ack;
-        v_cpl_rd_pending := v_cpl_rd_pending_new and (not v_cpl_rd_ena);
-
-      end if; 
-
-      -- compensate CPL RAM delay
-      cpl_ram_rd_ena(0) <= v_cpl_rd_ena;
-      for n in 1 to CPL_RAM_READ_DELAY loop
-        cpl_ram_rd_ena(n) <= cpl_ram_rd_ena(n-1);
-      end loop;
-
-    end if; --clock
-  end process;
-
-  -- all users directly connect to CPL RAM data output register
-  usr_in_cpl_data <= cpl_ram_rd.data(usr_in_cpl_data'length-1 downto 0); -- without EOF flag!
-
-  -- one data valid per user, only one user per cycle
-  usr_in_cpl_data_vld <= cpl_ram_rd_ena(CPL_RAM_READ_DELAY);
-  
-  -- completion data end of frame (EOF)
-  g_cpl_eof : for n in 0 to NUM_PORTS-1 generate 
-    usr_in_cpl_data_eof(n) <= cpl_ram_rd_ena(CPL_RAM_READ_DELAY)(n) and cpl_ram_rd.data(cpl_ram_rd.data'high);
-  end generate;
 
 end architecture;
