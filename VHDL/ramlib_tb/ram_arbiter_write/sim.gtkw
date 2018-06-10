@@ -1,85 +1,70 @@
 [*]
 [*] GTKWave Analyzer v3.3.87 (w)1999-2017 BSI
-[*] Fri Jun 08 20:50:21 2018
+[*] Sun Jun 10 19:19:41 2018
 [*]
 [dumpfile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\ramlib_tb\ram_arbiter_write\work\sim.vcd"
-[dumpfile_mtime] "Fri Jun 08 20:47:47 2018"
-[dumpfile_size] 78403
+[dumpfile_mtime] "Sun Jun 10 19:17:27 2018"
+[dumpfile_size] 96817
 [savefile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\ramlib_tb\ram_arbiter_write\sim.gtkw"
 [timestart] 0
 [size] 1304 745
-[pos] -9 -9
-*-28.544867 220000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] -1 -1
+*-28.686888 220000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] i_arbiter.
 [sst_width] 211
-[signals_width] 206
+[signals_width] 238
 [sst_expanded] 1
 [sst_vpaned_height] 205
 @28
 rst
 finish
 clk
-[color] 7
-usr0.usr_tx_frame
-[color] 7
-usr0.usr_tx_data_vld
+[color] 3
+usr0.usr_req_frame
+[color] 3
+usr0.usr_req_ena
 @22
-[color] 7
-usr0.usr_tx_data[15:0]
+[color] 3
+usr0.usr_req_data[15:0]
 @28
-[color] 7
-usr0.usr_rx_active
-@22
-[color] 7
-usr0.usr_rx_addr_next[15:0]
-@28
-[color] 7
-usr0.usr_rx_wrap
-[color] 7
-usr0.usr_rx_tx_ovfl
-[color] 7
-usr0.usr_rx_fifo_ovfl
-usr1.usr_tx_frame
-usr1.usr_tx_data_vld
-usr1.usr_rx_active
-@22
-usr1.usr_rx_addr_next[15:0]
-@28
-usr1.usr_rx_wrap
-usr1.usr_rx_tx_ovfl
-usr1.usr_rx_fifo_ovfl
 [color] 5
-i_arbiter.i_fifo.wr_ena[3:0]
-[color] 5
-i_arbiter.addr_incr_active[3:0]
-[color] 3
-i_arbiter.arb_din_frame[3:0]
-[color] 3
-i_arbiter.arb_din_vld[3:0]
-[color] 3
-i_arbiter.arb_din_ovf[3:0]
-[color] 3
-i_arbiter.arb_dout_rdy
-[color] 3
-i_arbiter.arb_dout_ena
-[color] 3
-i_arbiter.arb_dout_frame[3:0]
-[color] 3
-i_arbiter.arb_dout_first
-@24
-[color] 3
-i_arbiter.arb_dout_idx[1:0]
-@28
-[color] 3
-i_arbiter.arb_dout_last
+usr1.usr_req_frame
 @29
-[color] 3
-i_arbiter.arb_dout_vld[3:0]
+[color] 5
+usr1.usr_req_ena
 @22
-[color] 3
-i_arbiter.arb_dout[15:0]
-[color] 3
-i_arbiter.arb_fifo_ovf[3:0]
+[color] 5
+usr1.usr_req_data[15:0]
+@28
+i_arbiter.i_mux.wr_ena[3:0]
+i_arbiter.addr_incr_active[3:0]
+[color] 2
+i_arbiter.mux_usr_req_frame[3:0]
+[color] 2
+i_arbiter.mux_usr_req_ena[3:0]
+[color] 2
+i_arbiter.mux_usr_req_ovfl[3:0]
+[color] 2
+i_arbiter.mux_bus_req_rdy
+[color] 2
+i_arbiter.mux_bus_req_data_vld
+[color] 2
+i_arbiter.mux_bus_req_frame[3:0]
+[color] 2
+i_arbiter.mux_bus_req_sob
+@24
+[color] 2
+i_arbiter.mux_bus_req_id[1:0]
+@28
+[color] 2
+i_arbiter.mux_bus_req_eob
+[color] 2
+i_arbiter.mux_bus_req_eof
+@22
+[color] 2
+i_arbiter.mux_bus_req_data[31:0]
+[color] 2
+i_arbiter.mux_usr_req_fifo_ovfl[3:0]
 @28
 ram_out_wr_ready
 ram_in_wr_ena
@@ -89,6 +74,6 @@ ram_in_wr_addr[15:0]
 ram_in_wr_first
 ram_in_wr_last
 @22
-ram_in_wr_data[15:0]
+ram_in_wr_data[31:0]
 [pattern_trace] 1
 [pattern_trace] 0

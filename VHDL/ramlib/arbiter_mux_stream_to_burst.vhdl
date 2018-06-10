@@ -94,7 +94,7 @@ port(
   --! Request enable, only considered when usr_out_req_frame='1'
   usr_out_req_ena         : in  std_logic_vector(NUM_PORTS-1 downto 0);
 --  din         : in  slv_array(0 to NUM_PORTS-1)(DATA_WIDTH-1 downto 0);
-  usr_out_req_wr_data     : in  slv16_array(0 to NUM_PORTS-1);
+  usr_out_req_wr_data     : in  slv32_array(0 to NUM_PORTS-1);
   --! @brief Request overflow.
   --! Occurs when overall usr_out_req_ena rate is too high and requests cannot be written into FIFO on-time.
   --! These output bits are NOT sticky, hence they could also be used as error IRQ source.

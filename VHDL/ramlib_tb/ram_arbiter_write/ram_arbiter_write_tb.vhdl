@@ -19,17 +19,17 @@ architecture sim of ram_arbiter_write_tb is
   signal finish : std_logic := '0';
 
   constant NUM_PORTS : positive := 4;
-  constant DATA_WIDTH : positive := 16;
+  constant DATA_WIDTH : positive := 32;
   constant ADDR_WIDTH : positive := 16;
 
-  signal usr_out_wr_port  : a_ram_arbiter_usr_out_wr_port(0 to NUM_PORTS-1);
---  signal usr_out_wr_port : a_ram_arbiter_usr_out_wr_port(0 to NUM_PORTS-1)(
+  signal usr_out_port  : a_ram_arbiter_usr_out_port(0 to NUM_PORTS-1);
+--  signal usr_out_port : a_ram_arbiter_usr_out_port(0 to NUM_PORTS-1)(
 --                             cfg_addr_first(ADDR_WIDTH-1 downto 0),
 --                             cfg_addr_last(ADDR_WIDTH-1 downto 0),
 --                             data(DATA_WIDTH-1 downto 0)
 --                           );
-  signal usr_in_wr_port  : a_ram_arbiter_usr_in_wr_port(0 to NUM_PORTS-1);
---  signal usr_in_wr_port  : a_ram_arbiter_usr_in_wr_port(0 to NUM_PORTS-1)(
+  signal usr_in_port  : a_ram_arbiter_usr_in_port(0 to NUM_PORTS-1);
+--  signal usr_in_port  : a_ram_arbiter_usr_in_port(0 to NUM_PORTS-1)(
 --                             addr_next(ADDR_WIDTH-1 downto 0)
 --                           );
   signal ram_out_wr_ready  : std_logic := '1';
@@ -39,7 +39,7 @@ architecture sim of ram_arbiter_write_tb is
   signal ram_in_wr_first   : std_logic;
   signal ram_in_wr_last    : std_logic;
 
-  signal usr_rst : std_logic_vector(NUM_PORTS-1 downto 0) := (others=>'1');
+  signal usr_frame : std_logic_vector(NUM_PORTS-1 downto 0) := (others=>'0');
 
 begin
 
@@ -62,42 +62,46 @@ begin
   rst <= '0' after 10*PERIOD;
 
   
-  usr0 : entity work.usr_emulator
+  usr0 : entity work.usr_write_emulator
   generic map (
-    ADDR_WIDTH => ADDR_WIDTH,
-    DATA_WIDTH => DATA_WIDTH,
+    ARBITER_ADDR_WIDTH => ADDR_WIDTH,
+    ARBITER_DATA_WIDTH => DATA_WIDTH,
+    USER_DATA_WIDTH => DATA_WIDTH/2,
     ADDR_FIRST => to_unsigned(257,ADDR_WIDTH), 
     ADDR_LAST => to_unsigned(275,ADDR_WIDTH),
-    SINGLE_SHOT => '1',
+    SINGLE_SHOT => '0',
     INSTANCE_IDX => 0
   )
   port map(
-    clk             => clk,
-    rst             => usr_rst(0),
-    vld_pattern     => "1100",
-    usr_out_wr_port => usr_out_wr_port(0),
-    usr_in_wr_port  => usr_in_wr_port(0)
+    clk           => clk,
+    rst           => rst,
+    usr_req_frame => usr_frame(0),
+    usr_req_ena   => usr_frame(0),
+    arb_in        => usr_out_port(0),
+    arb_out       => usr_in_port(0)
   );
 
-  usr1 : entity work.usr_emulator
+  usr1 : entity work.usr_write_emulator
   generic map (
-    ADDR_WIDTH => ADDR_WIDTH,
-    DATA_WIDTH => DATA_WIDTH,
+    ARBITER_ADDR_WIDTH => ADDR_WIDTH,
+    ARBITER_DATA_WIDTH => DATA_WIDTH,
+    USER_DATA_WIDTH => DATA_WIDTH/2,
     ADDR_FIRST => to_unsigned(785,ADDR_WIDTH), 
     ADDR_LAST => to_unsigned(797,ADDR_WIDTH),
     SINGLE_SHOT => '0',
     INSTANCE_IDX => 1
   )
   port map(
-    clk             => clk,
-    rst             => usr_rst(1),
-    vld_pattern     => "0101",
-    usr_out_wr_port => usr_out_wr_port(1),
-    usr_in_wr_port  => usr_in_wr_port(1)
+    clk           => clk,
+    rst           => rst,
+    usr_req_frame => usr_frame(1),
+    usr_req_ena   => usr_frame(1),
+    arb_in        => usr_out_port(1),
+    arb_out       => usr_in_port(1)
   );
 
   -- currently unused usr ports
-  usr_out_wr_port(2 to NUM_PORTS-1) <= RESET(usr_out_wr_port(2 to NUM_PORTS-1));
+  usr_out_port(2 to NUM_PORTS-1) <= RESET(usr_out_port(2 to NUM_PORTS-1));
 
   i_arbiter : entity ramlib.ram_arbiter_write
   generic map(
@@ -109,8 +113,8 @@ begin
   port map (
     clk              => clk,
     rst              => rst,
-    usr_out_wr_port  => usr_out_wr_port,
-    usr_in_wr_port   => usr_in_wr_port,
+    usr_out_port     => usr_out_port,
+    usr_in_port      => usr_in_port,
     ram_out_wr_ready => ram_out_wr_ready,
     ram_in_wr_addr   => ram_in_wr_addr,
     ram_in_wr_data   => ram_in_wr_data,
@@ -128,18 +132,18 @@ begin
 
     wait for 100 ns;
     wait until rising_edge(clk);
-    usr_rst(0) <= '0';
-    usr_rst(1) <= '0';
+    usr_frame(0) <= '1';
+    usr_frame(1) <= '1';
     wait until rising_edge(clk);
 
     for n in 1 to 97 loop
       wait until rising_edge(clk);
     end loop;
     
-    usr_rst(0) <= '1';
-    usr_rst(1) <= '1';
+    usr_frame(0) <= '0';
+    usr_frame(1) <= '0';
 
-    wait for 400 ns;
+    wait for 500 ns;
     finish <= '1';
 
     wait until rising_edge(clk);

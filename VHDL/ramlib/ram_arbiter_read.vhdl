@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       ram_arbiter_write.vhdl
+--! @file       ram_arbiter_read.vhdl
 --! @author     Fixitfetish
 --! @date       09/Jun/2018
 --! @version    0.60
@@ -16,15 +16,16 @@ library baselib;
 library ramlib;
   use ramlib.ram_arbiter_pkg.all;
 
---! @brief Arbiter that transforms single write requests from multiple user ports
---! to write request bursts at the single RAM port.
+--! @brief Arbiter that transforms single read requests (stream) from multiple user ports
+--! to read request bursts at the single RAM port. The read data is demultiplexed
+--! back to the user ports.
 --!
 --! This arbiter has a definable number of user ports and one RAM port.
---! The output port provides sequential bursts of data words for each input port.
+--! The RAM port provides sequential requests bursts of data words for each user port.
 --! The burst size is configurable but the same for all.
 --! 
 --! NOTES: 
---! * User input port 0 has the highest priority and user input port NUM_PORTS-1 has the lowest priority.
+--! * User port 0 has the highest priority and user port NUM_PORTS-1 has the lowest priority.
 --! * The data width of each user port, the RAM port is DATA_WIDTH.
 --! * If only one user port is open/active then continuous streaming is possible.
 --!
@@ -34,14 +35,15 @@ library ramlib;
 --! * ram_out : ram output port, signals that are orginated by the ram (e.g. status or read data)
 --! * ram_in : ram input port, signals that feed the bus (e.g. write/read requests)
 --!
---! For details refer to the entity arbiter_write_single_to_burst which is used for this implementation.
---! Also consider using the optional entity ram_arbiter_write_data_width_adapter at the user interface
+--! For more details refer to the entities arbiter_mux_stream_to_burst and arbiter_demux_single_to_stream
+--! which are used for this implementation.
+--! Also consider using the optional entity ram_arbiter_read_data_width_adapter at the user interface
 --! to adapt different user data widths to the RAM width.
 --!  
---! @image html ram_arbiter_write.svg "" width=500px
+--! @image html ram_arbiter_read.svg "" width=500px
 --!
 
-entity ram_arbiter_write is
+entity ram_arbiter_read is
 generic(
   --! Number of user input ports
   NUM_PORTS : positive;
@@ -49,49 +51,54 @@ generic(
   DATA_WIDTH : positive;
   --! Data word address width at user input and RAM output ports
   ADDR_WIDTH : positive;
-  --! Maximum length of output bursts in number of data words (or cycles)
-  OUTPUT_BURST_SIZE : positive
+  --! Maximum length of bursts in number of data word requests (or cycles)
+  BURST_SIZE : positive;
+  --! Maximum completion (RAM read) delay from bus_in_req to bus_out_cpl.
+  MAX_CPL_DELAY : positive
 );
 port(
   --! System clock
   clk              : in  std_logic;
   --! Synchronous reset
   rst              : in  std_logic;
-  --! User write input port(s)
+  --! User read request input port(s)
   usr_out_port     : in  a_ram_arbiter_usr_out_port(0 to NUM_PORTS-1);
-  --! User write status output
+  --! User read status output
   usr_in_port      : out a_ram_arbiter_usr_in_port(0 to NUM_PORTS-1);
   --! RAM is ready to accept data input
   ram_out_wr_ready : in  std_logic;
-  --! RAM data word write address
-  ram_in_wr_addr   : out std_logic_vector(ADDR_WIDTH-1 downto 0);
-  --! RAM data word input
-  ram_in_wr_data   : out std_logic_vector(DATA_WIDTH-1 downto 0);
-  --! RAM data word enable
-  ram_in_wr_ena    : out std_logic;
-  --! Marker for first data word of a burst with incrementing address
-  ram_in_wr_first  : out std_logic;
-  --! Marker for last data word of a burst with incrementing address
-  ram_in_wr_last   : out std_logic
+  --! RAM request read address
+  ram_in_addr      : out std_logic_vector(ADDR_WIDTH-1 downto 0);
+  --! RAM request enable
+  ram_in_ena       : out std_logic;
+  --! Marker for first request of a burst with incrementing address
+  ram_in_first     : out std_logic;
+  --! Marker for last request of a burst with incrementing address
+  ram_in_last      : out std_logic;
+  --! Read data returned by RAM 
+  ram_out_data     : in  std_logic_vector(DATA_WIDTH-1 downto 0);
+  --! Read data valid returned by RAM
+  ram_out_data_vld : in  std_logic
 );
 end entity;
 
 -------------------------------------------------------------------------------
 
-architecture rtl of ram_arbiter_write is
+architecture rtl of ram_arbiter_read is
 
---  signal mux_usr_req_data     : slv_array(0 to NUM_PORTS-1)(DATA_WIDTH-1 downto 0);
-  signal mux_usr_req_data     : slv32_array(0 to NUM_PORTS-1);
+  -- Width of FIFO/Port select signal
+  constant USER_ID_WIDTH : positive := log2ceil(NUM_PORTS);
+
+  constant FIFO_DEPTH_LOG2 : positive := log2ceil(2*BURST_SIZE);
+
   signal mux_usr_req_frame    : std_logic_vector(NUM_PORTS-1 downto 0);
   signal mux_usr_req_ena      : std_logic_vector(NUM_PORTS-1 downto 0);
   signal mux_usr_req_ovfl     : std_logic_vector(NUM_PORTS-1 downto 0);
   signal mux_bus_req_rdy      : std_logic;
-  signal mux_bus_req_data     : std_logic_vector(DATA_WIDTH-1 downto 0);
-  signal mux_bus_req_data_vld : std_logic;
   signal mux_bus_req_sob      : std_logic;
   signal mux_bus_req_eob      : std_logic;
   signal mux_bus_req_eof      : std_logic;
-  signal mux_bus_req_id       : unsigned(log2ceil(NUM_PORTS)-1 downto 0);
+  signal mux_bus_req_id       : unsigned(USER_ID_WIDTH-1 downto 0);
   signal mux_bus_req_ena      : std_logic;
   signal mux_bus_req_frame    : std_logic_vector(NUM_PORTS-1 downto 0);
   signal mux_usr_req_fifo_ovfl: std_logic_vector(NUM_PORTS-1 downto 0);
@@ -121,19 +128,61 @@ architecture rtl of ram_arbiter_write is
   type a_cfg is array(integer range <>) of r_cfg;
   signal cfg : a_cfg(NUM_PORTS-1 downto 0); 
 
+  -----------------------
+  -- Sequence FIFO
+  -----------------------
+
+  -- Data width of the request sequence FIFO (port index + EOF flag)
+  constant SEQ_FIFO_WIDTH : positive := USER_ID_WIDTH + 1;
+
+  -- Depth of the request sequence FIFO
+  constant SEQ_FIFO_DEPTH : positive := MAX_CPL_DELAY;
+
+  type r_seq_fifo is
+  record
+    wr_ena       : std_logic;
+    wr_data      : std_logic_vector(SEQ_FIFO_WIDTH-1 downto 0);
+    wr_full      : std_logic;
+    wr_overflow  : std_logic;
+    rd_ack       : std_logic;
+    rd_data      : std_logic_vector(SEQ_FIFO_WIDTH-1 downto 0);
+    rd_empty     : std_logic;
+    rd_underflow : std_logic;
+    level        : integer;
+  end record;
+  signal seq_fifo : r_seq_fifo;
+  signal seq_fifo_cpl_id : unsigned(USER_ID_WIDTH-1 downto 0);
+  signal seq_fifo_cpl_eof : std_logic;
+
+
+  signal usr_in_cpl_data      : std_logic_vector(DATA_WIDTH-1 downto 0);
+  signal usr_in_cpl_data_vld  : std_logic_vector(NUM_PORTS-1 downto 0);
+  signal usr_in_cpl_data_eof  : std_logic_vector(NUM_PORTS-1 downto 0);
+  signal usr_in_cpl_rdy       : std_logic_vector(NUM_PORTS-1 downto 0);
+  signal usr_out_cpl_ack      : std_logic_vector(NUM_PORTS-1 downto 0) := (others=>'1');
+  signal usr_in_cpl_ack_ovfl  : std_logic_vector(NUM_PORTS-1 downto 0);
+  signal usr_in_cpl_fifo_ovfl : std_logic_vector(NUM_PORTS-1 downto 0);
+
+
+  -- GTKWave work-around
+  signal seq_fifo_level : integer;
+
 begin
 
-  g_usr : for n in 0 to NUM_PORTS-1 generate
+  -- GTKWave work-around
+  seq_fifo_level <= seq_fifo.level;
+
+
+  g_usr_req : for n in 0 to NUM_PORTS-1 generate
     -- TX
     mux_usr_req_frame(n) <= usr_out_port(n).req_frame;
     mux_usr_req_ena(n) <= usr_out_port(n).req_ena and addr_incr_active(n); -- TODO
-    mux_usr_req_data(n) <= usr_out_port(n).req_data;
     -- RX
     usr_in_port(n).active <= addr_incr_active(n) and mux_bus_req_frame(n) when rising_edge(clk);
     usr_in_port(n).wrap <= wrap(n);
-    usr_in_port(n).addr_next <= addr_next(n);
     usr_in_port(n).req_ovfl <= mux_usr_req_ovfl(n);
     usr_in_port(n).req_fifo_ovfl <= mux_usr_req_fifo_ovfl(n);
+    usr_in_port(n).addr_next <= addr_next(n);
   end generate;
 
   mux_bus_req_rdy <= ram_out_wr_ready when rising_edge(clk);
@@ -142,16 +191,16 @@ begin
   generic map(
     NUM_PORTS  => NUM_PORTS,
     DATA_WIDTH => DATA_WIDTH,
-    BURST_SIZE => OUTPUT_BURST_SIZE,
-    FIFO_DEPTH_LOG2 => log2ceil(2*OUTPUT_BURST_SIZE),
-    WRITE_ENABLE => true
+    BURST_SIZE => BURST_SIZE,
+    FIFO_DEPTH_LOG2 => FIFO_DEPTH_LOG2,
+    WRITE_ENABLE => false
   )
   port map (
     clk                     => clk,
     rst                     => rst,
     usr_out_req_frame       => mux_usr_req_frame,
     usr_out_req_ena         => mux_usr_req_ena,
-    usr_out_req_wr_data     => mux_usr_req_data,
+    usr_out_req_wr_data     => (others=>(others=>'0')), -- unused
     usr_in_req_ovfl         => mux_usr_req_ovfl,
     usr_in_req_fifo_ovfl    => mux_usr_req_fifo_ovfl,
     bus_out_req_rdy         => mux_bus_req_rdy,
@@ -161,8 +210,8 @@ begin
     bus_in_req_eof          => mux_bus_req_eof,
     bus_in_req_usr_id       => mux_bus_req_id,
     bus_in_req_usr_frame    => mux_bus_req_frame,
-    bus_in_req_data         => mux_bus_req_data,
-    bus_in_req_data_vld     => mux_bus_req_data_vld
+    bus_in_req_data         => open,
+    bus_in_req_data_vld     => open
   );
 
   p_addr : process(clk)
@@ -188,7 +237,7 @@ begin
             -- start channel, hold configuration        
             cfg(n).addr_first <= usr_out_port(n).cfg_addr_first;
             cfg(n).addr_last <= usr_out_port(n).cfg_addr_last;
-            cfg(n).single_shot <= usr_out_port(n).cfg_single_shot;
+            cfg(n).single_shot <= usr_out_port(n).cfg_single_shot; -- TODO
             -- reset address
             wrap(n) <= '0';    
             addr_next(n) <= usr_out_port(n).cfg_addr_first;
@@ -224,29 +273,102 @@ begin
   begin
     if rising_edge(clk) then
       if rst='1' then
-        ram_in_wr_ena <= '0';
-        ram_in_wr_first <= '0';
-        ram_in_wr_last <= '0';
-        ram_in_wr_addr <= (others=>'-');
-        ram_in_wr_data <= (others=>'-');
+        ram_in_ena <= '0';
+        ram_in_first <= '0';
+        ram_in_last <= '0';
+        ram_in_addr <= (others=>'-');
         
       else
         v_active := addr_incr_active(to_integer(mux_bus_req_id));
         v_single_shot := cfg(to_integer(mux_bus_req_id)).single_shot;
         v_addr := addr_next(to_integer(mux_bus_req_id));
 
-        ram_in_wr_ena <= mux_bus_req_data_vld and v_active;
-        ram_in_wr_first <= mux_bus_req_sob and v_active;
+        ram_in_ena <= mux_bus_req_ena and v_active;
+        ram_in_first <= mux_bus_req_sob and v_active;
         if v_single_shot='1' and v_addr=cfg(to_integer(mux_bus_req_id)).addr_last then
           -- always set last flag for last write of single-shot
-          ram_in_wr_last <= v_active;
+          ram_in_last <= v_active;
         else
-          ram_in_wr_last <= mux_bus_req_eob and v_active;
+          ram_in_last <= mux_bus_req_eob and v_active;
         end if;
-        ram_in_wr_addr <= std_logic_vector(v_addr);
-        ram_in_wr_data <= mux_bus_req_data;
+        ram_in_addr <= std_logic_vector(v_addr);
       end if;
     end if;    
   end process;
+
+  -----------------------------------------------------------------------------
+  -- Sequence FIFO
+  -----------------------------------------------------------------------------
+
+  seq_fifo.wr_data(seq_fifo.wr_data'high) <= mux_bus_req_eof;
+  seq_fifo.wr_data(mux_bus_req_id'length-1 downto 0) <= std_logic_vector(mux_bus_req_id);
+  seq_fifo.wr_ena <= mux_bus_req_ena;
+
+  i_seq_fifo : entity ramlib.fifo_sync
+  generic map (
+    FIFO_WIDTH => SEQ_FIFO_WIDTH,
+    FIFO_DEPTH => SEQ_FIFO_DEPTH,
+    USE_BLOCK_RAM => true,
+    ACKNOWLEDGE_MODE => true,
+    PROG_FULL_THRESHOLD => 0,
+    PROG_EMPTY_THRESHOLD => 0
+  )
+  port map (
+    clock         => clk, -- clock
+    reset         => rst, -- synchronous reset
+    level         => seq_fifo.level,
+    -- write port
+    wr_ena        => seq_fifo.wr_ena, 
+    wr_din        => seq_fifo.wr_data, 
+    wr_full       => seq_fifo.wr_full, 
+    wr_prog_full  => open, 
+    wr_overflow   => seq_fifo.wr_overflow, 
+    -- read port
+    rd_req_ack    => seq_fifo.rd_ack, 
+    rd_dout       => seq_fifo.rd_data, 
+    rd_empty      => seq_fifo.rd_empty, 
+    rd_prog_empty => open, 
+    rd_underflow  => seq_fifo.rd_underflow 
+  );
+
+  seq_fifo.rd_ack <= ram_out_data_vld;
+  seq_fifo_cpl_id <= unsigned(seq_fifo.rd_data(seq_fifo_cpl_id'length-1 downto 0));
+  seq_fifo_cpl_eof <= seq_fifo.rd_data(seq_fifo.rd_data'high);
+
+  -----------------------------------------------------------------------------
+  -- Completion FIFO
+  -----------------------------------------------------------------------------
+
+  i_cpl : entity ramlib.arbiter_demux_single_to_stream
+  generic map(
+    NUM_PORTS  => NUM_PORTS,
+    DATA_WIDTH => DATA_WIDTH,
+    FIFO_DEPTH_LOG2 => FIFO_DEPTH_LOG2
+  )
+  port map (
+    clk                     => clk,
+    rst                     => rst,
+    bus_out_cpl_eof         => seq_fifo_cpl_eof, 
+    bus_out_cpl_usr_id      => seq_fifo_cpl_id, 
+    bus_out_cpl_data        => ram_out_data, 
+    bus_out_cpl_data_vld    => ram_out_data_vld, 
+    usr_in_cpl_rdy          => usr_in_cpl_rdy, 
+    usr_out_cpl_ack         => usr_out_cpl_ack, 
+    usr_in_cpl_ack_ovfl     => usr_in_cpl_ack_ovfl, 
+    usr_in_cpl_data         => usr_in_cpl_data, 
+    usr_in_cpl_data_vld     => usr_in_cpl_data_vld, 
+    usr_in_cpl_data_eof     => usr_in_cpl_data_eof, 
+    usr_in_cpl_fifo_ovfl    => usr_in_cpl_fifo_ovfl
+  );
+
+  g_usr_cpl : for n in 0 to NUM_PORTS-1 generate
+    usr_out_cpl_ack(n) <= usr_out_port(n).cpl_ack;
+    usr_in_port(n).cpl_rdy <= usr_in_cpl_rdy(n);
+    usr_in_port(n).cpl_ack_ovfl <= usr_in_cpl_ack_ovfl(n);
+    usr_in_port(n).cpl_fifo_ovfl <= usr_in_cpl_fifo_ovfl(n);
+    usr_in_port(n).cpl_data_vld <= usr_in_cpl_data_vld(n);
+    usr_in_port(n).cpl_data_eof <= usr_in_cpl_data_eof(n);
+    usr_in_port(n).cpl_data <= usr_in_cpl_data;
+  end generate;
 
 end architecture;

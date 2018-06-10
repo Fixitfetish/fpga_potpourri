@@ -17,6 +17,13 @@ library ieee;
 
 package ieee_extension_types is
 
+  type slv_array  is array(integer range<>) of std_logic_vector;
+
+  type slv16_array is array(integer range<>) of std_logic_vector(15 downto 0);
+  type slv32_array is array(integer range<>) of std_logic_vector(31 downto 0);
+--  subtype slv16_array is slv_array(open)(15 downto 0);
+
+
   --! General unconstrained unsigned vector type (preferably "to" direction)
   type unsigned_vector is array(integer range <>) of unsigned;
 

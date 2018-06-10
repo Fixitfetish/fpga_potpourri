@@ -29,6 +29,9 @@ package ieee_extension_types is
   type real_vector is array(natural range <>) of real;
   type time_vector is array(natural range <>) of time;
 
+  type slv16_array  is array(integer range<>) of std_logic_vector(15 downto 0);
+  type slv32_array  is array(integer range<>) of std_logic_vector(31 downto 0);
+
   -----------------------------------------------------------------------------
   -- UNSIGNED vector types
   type unsigned4_vector  is array(integer range<>) of unsigned( 3 downto 0);

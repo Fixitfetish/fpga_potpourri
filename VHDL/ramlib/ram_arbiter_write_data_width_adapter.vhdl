@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --! @file       ram_arbiter_write_data_width_adapter.vhdl
 --! @author     Fixitfetish
---! @date       29/May/2018
+--! @date       10/Jun/2018
 --! @version    0.10
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
@@ -19,9 +19,11 @@ library ramlib;
   use ramlib.ram_arbiter_pkg.all;
 
 --! @brief Entity that adapts user data width to the arbiter data width using a shift register.
---! 
---! Data valid towards arbiter is generated after every RAM_ARBITER_DATA_WIDTH/USER_DATA_WIDTH
---! user data valid cycles.
+--!
+--! The user can request data of width USER_DATA_WIDTH every cycle. Always
+--! N = RAM_ARBITER_DATA_WIDTH/USER_DATA_WIDTH requests are collected before an arbiter request is generated.
+--! The resulting minimum arbiter request period is N cycles.
+--!
 
 entity ram_arbiter_write_data_width_adapter is
 generic(
@@ -37,14 +39,28 @@ port(
   clk                 : in  std_logic;
   --! Synchronous reset
   rst                 : in  std_logic;
-  --! Arbiter-IF, User output signals (from user to arbiter)
-  arb_usr_out_wr_port : out r_ram_arbiter_usr_out_wr_port;
-  --! Arbiter-IF, User input signals (from arbiter to user)
-  arb_usr_in_wr_port  : in  r_ram_arbiter_usr_in_wr_port;
-  --! User output signals (from user)
-  usr_out_wr_port     : in  r_ram_arbiter_usr_out_wr_port;
+  --! start address (must be valid at rising edge of frame signal)
+  usr_cfg_addr_first  : in  unsigned(RAM_ARBITER_ADDR_WIDTH-1 downto 0); 
+  --! last address before wrap (must be valid at rising edge of frame signal)
+  usr_cfg_addr_last   : in  unsigned(RAM_ARBITER_ADDR_WIDTH-1 downto 0); 
+  --! '1'=single-shot mode , '0'=continuous with wrap (must be valid at rising edge of frame signal)
+  usr_cfg_single_shot : in  std_logic;
+  --! request frame, start=rising edge, stop=falling edge 
+  usr_req_frame       : in  std_logic;
+  --! request enable
+  usr_req_ena         : in  std_logic;
+  --! request data (write)
+  usr_req_data        : in  std_logic_vector(USER_DATA_WIDTH-1 downto 0); 
+  --! request overflow reported by arbiter
+  usr_req_ovfl        : out std_logic;
+  --! request FIFO overflow reported by arbiter
+  usr_req_fifo_ovfl   : out std_logic;
   --! bypass from input port arb_to_usr_wr_port
-  usr_in_wr_port      : out r_ram_arbiter_usr_in_wr_port
+  usr_in              : out r_ram_arbiter_usr_in_port;
+  --! Arbiter output signals (from arbiter to user)
+  arb_out             : in  r_ram_arbiter_usr_in_port;
+  --! Arbiter input signals (from user to arbiter)
+  arb_in              : out r_ram_arbiter_usr_out_port
 );
 begin
   -- synthesis translate_off (Altera Quartus)
@@ -65,47 +81,51 @@ end entity;
 
 architecture rtl of ram_arbiter_write_data_width_adapter is
 
-  constant SIZE_FRAGMENT : positive := USER_DATA_WIDTH;
-  constant NUM_FRAGMENT : positive := RAM_ARBITER_DATA_WIDTH / SIZE_FRAGMENT;
+  constant RAM_REQ_PERIOD : positive := RAM_ARBITER_DATA_WIDTH/USER_DATA_WIDTH;
 
-  constant FRAGMENT_CNT_WIDTH : positive := log2ceil(NUM_FRAGMENT);
+  signal arb_in_req_frame : std_logic;
+  signal arb_in_req_ena : std_logic;
+
+  constant FRAGMENT_CNT_WIDTH : positive := log2ceil(RAM_REQ_PERIOD);
   signal cnt : unsigned(FRAGMENT_CNT_WIDTH-1 downto 0); 
 
-  signal shift_reg : std_logic_vector(RAM_ARBITER_DATA_WIDTH-1 downto 0);
+  signal shift_reg_data : std_logic_vector(RAM_ARBITER_DATA_WIDTH-1 downto 0);
   signal shift_reg_active : std_logic;
 
 begin
 
-  p_input_arbiter : process(clk)
+  -- debug
+  arb_in_req_frame <= arb_in.req_frame;
+  arb_in_req_ena <= arb_in.req_ena;
+
+  -- request generation
+  p_req : process(clk)
     variable v_shift : std_logic;
     variable v_fragment : std_logic_vector(USER_DATA_WIDTH-1 downto 0);
   begin
     if rising_edge(clk) then
+      arb_in.req_ena <= '0'; -- default
 
+--      if rst='1' or usr_req_frame='0' then
       if rst='1' then
+        arb_in.cfg_addr_first <= (RAM_ARBITER_ADDR_WIDTH-1 downto 0 => '-');
+        arb_in.cfg_addr_last <= (RAM_ARBITER_ADDR_WIDTH-1 downto 0 => '-');
+        arb_in.cfg_single_shot <= '0';
+        arb_in.req_frame <= '0';
         shift_reg_active <= '0';
-        shift_reg <= (others=>'0');
+        shift_reg_data <= (others=>'0');
         cnt <= (others=>'0');
-        arb_usr_out_wr_port.cfg_addr_first <= (usr_out_wr_port.cfg_addr_first'range=>'-');
-        arb_usr_out_wr_port.cfg_addr_last <= (usr_out_wr_port.cfg_addr_last'range=>'-');
-        arb_usr_out_wr_port.cfg_single_shot <= '0';
-        arb_usr_out_wr_port.frame <= '0';
-        arb_usr_out_wr_port.data_vld <= '0'; -- default
 
       else
+        arb_in.cfg_addr_first <= usr_cfg_addr_first;
+        arb_in.cfg_addr_last <= usr_cfg_addr_last;
+        arb_in.cfg_single_shot <= usr_cfg_single_shot;
 
-        -- bypass
-        arb_usr_out_wr_port.cfg_addr_first <= usr_out_wr_port.cfg_addr_first;
-        arb_usr_out_wr_port.cfg_addr_last <= usr_out_wr_port.cfg_addr_last;
-        arb_usr_out_wr_port.cfg_single_shot <= usr_out_wr_port.cfg_single_shot;
-
-        arb_usr_out_wr_port.data_vld <= '0'; -- default
-
-        if usr_out_wr_port.frame='1' then
-          if usr_out_wr_port.data_vld='1' then
-            v_fragment := usr_out_wr_port.data;
+        if usr_req_frame='1' then
+          if usr_req_ena='1' then
+            v_fragment := usr_req_data;
           end if;
-          v_shift := usr_out_wr_port.data_vld;
+          v_shift := usr_req_ena;
           shift_reg_active <= '1';
 
         elsif shift_reg_active='1' then
@@ -127,11 +147,12 @@ begin
         if v_shift='1' then
           -- NOTE: First word is placed into MSBs and then shifted to the LSBs.
           -- when writing to RAM the first word must be in LSBs.
-          shift_reg(RAM_ARBITER_DATA_WIDTH-SIZE_FRAGMENT-1 downto 0) <= shift_reg(RAM_ARBITER_DATA_WIDTH-1 downto SIZE_FRAGMENT);
-          shift_reg(RAM_ARBITER_DATA_WIDTH-1 downto RAM_ARBITER_DATA_WIDTH-SIZE_FRAGMENT) <= v_fragment;
+          shift_reg_data(RAM_ARBITER_DATA_WIDTH-USER_DATA_WIDTH-1 downto 0) <= 
+            shift_reg_data(RAM_ARBITER_DATA_WIDTH-1 downto USER_DATA_WIDTH);
+          shift_reg_data(RAM_ARBITER_DATA_WIDTH-1 downto RAM_ARBITER_DATA_WIDTH-USER_DATA_WIDTH) <= v_fragment;
       
-          if cnt=to_unsigned(NUM_FRAGMENT-1,cnt'length) then
-            arb_usr_out_wr_port.data_vld <= '1';
+          if cnt=to_unsigned(RAM_REQ_PERIOD-1,cnt'length) then
+            arb_in.req_ena <= '1';
             cnt <= (others=>'0');
           else
             cnt <= cnt + 1;
@@ -139,15 +160,23 @@ begin
 
         end if;
         
-        arb_usr_out_wr_port.frame <= usr_out_wr_port.frame or shift_reg_active;
+        arb_in.req_frame <= usr_req_frame or shift_reg_active;
         
       end if; --reset 
     end if; --clock
   end process;
 
-  arb_usr_out_wr_port.data <= shift_reg;
+  -- request data
+  arb_in.req_data <= shift_reg_data;
+
+  -- error reporting (with pipeline register)
+  usr_req_ovfl <= arb_out.req_ovfl when rising_edge(clk);
+  usr_req_fifo_ovfl <= arb_out.req_fifo_ovfl when rising_edge(clk);
+
+  -- completion acknowledge is irrelevant (only required for read)
+  arb_in.cpl_ack <= '-';
 
   -- bypass
-  usr_in_wr_port <= arb_usr_in_wr_port;
+  usr_in <= arb_out;
   
 end architecture;
