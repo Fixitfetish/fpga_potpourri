@@ -49,8 +49,8 @@ generic(
   DATA_WIDTH : positive;
   --! Data word address width at user input and RAM output ports
   ADDR_WIDTH : positive;
-  --! Maximum length of output bursts in number of data words (or cycles)
-  OUTPUT_BURST_SIZE : positive
+  --! Maximum length of bursts in number of data word requests (or cycles)
+  BURST_SIZE : positive
 );
 port(
   --! System clock
@@ -62,17 +62,17 @@ port(
   --! User write status output
   usr_in_port      : out a_ram_arbiter_usr_in_port(0 to NUM_PORTS-1);
   --! RAM is ready to accept data input
-  ram_out_wr_ready : in  std_logic;
-  --! RAM data word write address
-  ram_in_wr_addr   : out std_logic_vector(ADDR_WIDTH-1 downto 0);
-  --! RAM data word input
-  ram_in_wr_data   : out std_logic_vector(DATA_WIDTH-1 downto 0);
-  --! RAM data word enable
-  ram_in_wr_ena    : out std_logic;
-  --! Marker for first data word of a burst with incrementing address
-  ram_in_wr_first  : out std_logic;
-  --! Marker for last data word of a burst with incrementing address
-  ram_in_wr_last   : out std_logic
+  ram_out_rdy      : in  std_logic;
+  --! RAM request address
+  ram_in_addr      : out std_logic_vector(ADDR_WIDTH-1 downto 0);
+  --! RAM request enable
+  ram_in_ena       : out std_logic;
+  --! Marker for first request of a burst with incrementing address
+  ram_in_first     : out std_logic;
+  --! Marker for last request of a burst with incrementing address
+  ram_in_last      : out std_logic;
+  --! Write data to RAM
+  ram_in_data      : out std_logic_vector(DATA_WIDTH-1 downto 0)
 );
 end entity;
 
@@ -136,14 +136,14 @@ begin
     usr_in_port(n).req_fifo_ovfl <= mux_usr_req_fifo_ovfl(n);
   end generate;
 
-  mux_bus_req_rdy <= ram_out_wr_ready when rising_edge(clk);
+  mux_bus_req_rdy <= ram_out_rdy when rising_edge(clk);
 
   i_mux : entity ramlib.arbiter_mux_stream_to_burst
   generic map(
     NUM_PORTS  => NUM_PORTS,
     DATA_WIDTH => DATA_WIDTH,
-    BURST_SIZE => OUTPUT_BURST_SIZE,
-    FIFO_DEPTH_LOG2 => log2ceil(2*OUTPUT_BURST_SIZE),
+    BURST_SIZE => BURST_SIZE,
+    FIFO_DEPTH_LOG2 => log2ceil(2*BURST_SIZE),
     WRITE_ENABLE => true
   )
   port map (
@@ -224,27 +224,27 @@ begin
   begin
     if rising_edge(clk) then
       if rst='1' then
-        ram_in_wr_ena <= '0';
-        ram_in_wr_first <= '0';
-        ram_in_wr_last <= '0';
-        ram_in_wr_addr <= (others=>'-');
-        ram_in_wr_data <= (others=>'-');
+        ram_in_ena <= '0';
+        ram_in_first <= '0';
+        ram_in_last <= '0';
+        ram_in_addr <= (others=>'-');
+        ram_in_data <= (others=>'-');
         
       else
         v_active := addr_incr_active(to_integer(mux_bus_req_id));
         v_single_shot := cfg(to_integer(mux_bus_req_id)).single_shot;
         v_addr := addr_next(to_integer(mux_bus_req_id));
 
-        ram_in_wr_ena <= mux_bus_req_data_vld and v_active;
-        ram_in_wr_first <= mux_bus_req_sob and v_active;
+        ram_in_ena <= mux_bus_req_data_vld and v_active;
+        ram_in_first <= mux_bus_req_sob and v_active;
         if v_single_shot='1' and v_addr=cfg(to_integer(mux_bus_req_id)).addr_last then
           -- always set last flag for last write of single-shot
-          ram_in_wr_last <= v_active;
+          ram_in_last <= v_active;
         else
-          ram_in_wr_last <= mux_bus_req_eob and v_active;
+          ram_in_last <= mux_bus_req_eob and v_active;
         end if;
-        ram_in_wr_addr <= std_logic_vector(v_addr);
-        ram_in_wr_data <= mux_bus_req_data;
+        ram_in_addr <= std_logic_vector(v_addr);
+        ram_in_data <= mux_bus_req_data;
       end if;
     end if;    
   end process;

@@ -93,7 +93,7 @@ port(
   usr_out_req_frame       : in  std_logic_vector(NUM_PORTS-1 downto 0);
   --! Request enable, only considered when usr_out_req_frame='1'
   usr_out_req_ena         : in  std_logic_vector(NUM_PORTS-1 downto 0);
---  din         : in  slv_array(0 to NUM_PORTS-1)(DATA_WIDTH-1 downto 0);
+--  usr_out_req_wr_data     : in  slv_array(0 to NUM_PORTS-1)(DATA_WIDTH-1 downto 0);
   usr_out_req_wr_data     : in  slv32_array(0 to NUM_PORTS-1);
   --! @brief Request overflow.
   --! Occurs when overall usr_out_req_ena rate is too high and requests cannot be written into FIFO on-time.
@@ -177,24 +177,6 @@ architecture rtl of arbiter_mux_stream_to_burst is
 
   signal usr_out_sel : unsigned(FIFO_SEL_WIDTH-1 downto 0);
 
---  type t_fifo_wr is
---  record
---    ena        : std_logic;
---    ptr        : unsigned(FIFO_DEPTH_LOG2-1 downto 0);
---    full       : std_logic;
---    prog_full  : std_logic;
---    overflow   : std_logic;
---  end record;
---  
---  type t_fifo_rd is
---  record
---    ena        : std_logic;
---    ptr        : unsigned(FIFO_DEPTH_LOG2-1 downto 0);
---    empty      : std_logic;
---    prog_empty : std_logic;
---    underflow  : std_logic;
---  end record;
-  
   type t_req_fifo is
   record
     rst          : std_logic;
@@ -242,8 +224,6 @@ architecture rtl of arbiter_mux_stream_to_burst is
   end record;
   signal req_ram_wr : t_req_ram;
   signal req_ram_rd : t_req_ram;
-
-  type t_fifo_ptr is array(integer range <>) of unsigned(FIFO_DEPTH_LOG2-1 downto 0);
 
   
   function get_next(pending:std_logic_vector) return std_logic_vector is

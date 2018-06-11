@@ -73,7 +73,7 @@ port(
   bus_out_cpl_eof         : in  std_logic;
   --! User ID of corresponding request user
   bus_out_cpl_usr_id      : in  unsigned(log2ceil(NUM_PORTS)-1 downto 0);
-  --! Completiton data input
+  --! Completion data input
   bus_out_cpl_data        : in  std_logic_vector(DATA_WIDTH-1 downto 0);
   --! Competition data input valid
   bus_out_cpl_data_vld    : in  std_logic;
@@ -82,9 +82,9 @@ port(
   usr_in_cpl_rdy          : out std_logic_vector(NUM_PORTS-1 downto 0);
   usr_out_cpl_ack         : in  std_logic_vector(NUM_PORTS-1 downto 0) := (others=>'1');
   usr_in_cpl_ack_ovfl     : out std_logic_vector(NUM_PORTS-1 downto 0);
-  --! Read completiton data
+  --! Read completion data
   usr_in_cpl_data         : out std_logic_vector(DATA_WIDTH-1 downto 0);
-  --! Read completiton data valid
+  --! Read completion data valid
   usr_in_cpl_data_vld     : out std_logic_vector(NUM_PORTS-1 downto 0);
   --! End/last data of frame
   usr_in_cpl_data_eof     : out std_logic_vector(NUM_PORTS-1 downto 0);
@@ -270,6 +270,46 @@ begin
     rd_data_en => cpl_ram_rd.data_vld
   );
 
+--  -- TODO : Simple dual-port RAM would be sufficient here and might save some RAM blocks.
+--  i_cpl_ram : entity ramlib.ram_tdp
+--    generic map(
+--      DATA_WIDTH_A      => CPL_RAM_DATA_WIDTH, 
+--      DATA_WIDTH_B      => CPL_RAM_DATA_WIDTH,
+--      ADDR_WIDTH_A      => CPL_RAM_ADDR_WIDTH,
+--      ADDR_WIDTH_B      => CPL_RAM_ADDR_WIDTH,
+--      DEPTH_A           => 2**CPL_RAM_ADDR_WIDTH,
+--      DEPTH_B           => 2**CPL_RAM_ADDR_WIDTH,
+--      INPUT_REGS_A      => 1,
+--      INPUT_REGS_B      => 1,
+--      OUTPUT_REGS_A     => 1,
+--      OUTPUT_REGS_B     => 1,
+--      USE_BYTE_ENABLE_A => false,
+--      USE_BYTE_ENABLE_B => false,
+--      RAM_TYPE          => "block",
+--      INIT_FILE         => open
+--    )
+--    port map(
+--      clk_a      => clk,
+--      rst_a      => rst,
+--      ce_a       => '1',
+--      we_a       => cpl_ram_wr.data_vld,
+--      be_a       => open, -- unused
+--      addr_a     => std_logic_vector(cpl_ram_wr.addr),
+--      addr_vld_a => cpl_ram_wr.addr_vld,
+--      din_a      => cpl_ram_wr.data,
+--      dout_a     => open, -- unused
+--      dout_vld_a => open, -- unused
+--      clk_b      => clk,
+--      rst_b      => rst,
+--      ce_b       => '1',
+--      we_b       => '0', -- read only
+--      be_b       => open, -- unused
+--      addr_b     => std_logic_vector(cpl_ram_rd.addr),
+--      addr_vld_b => cpl_ram_rd.addr_vld,
+--      din_b      => open, -- unused
+--      dout_b     => cpl_ram_rd.data,
+--      dout_vld_b => cpl_ram_rd.data_vld
+--    );
 
   p_output_arbiter : process(clk)
     type a_rd_ptr is array(integer range <>) of unsigned(FIFO_DEPTH_LOG2-1 downto 0);

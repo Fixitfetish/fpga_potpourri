@@ -66,8 +66,8 @@ port(
   --! User read status output
   usr_in_port      : out a_ram_arbiter_usr_in_port(0 to NUM_PORTS-1);
   --! RAM is ready to accept data input
-  ram_out_wr_ready : in  std_logic;
-  --! RAM request read address
+  ram_out_rdy      : in  std_logic;
+  --! RAM request address
   ram_in_addr      : out std_logic_vector(ADDR_WIDTH-1 downto 0);
   --! RAM request enable
   ram_in_ena       : out std_logic;
@@ -185,7 +185,7 @@ begin
     usr_in_port(n).addr_next <= addr_next(n);
   end generate;
 
-  mux_bus_req_rdy <= ram_out_wr_ready when rising_edge(clk);
+  mux_bus_req_rdy <= ram_out_rdy when rising_edge(clk);
 
   i_mux : entity ramlib.arbiter_mux_stream_to_burst
   generic map(
@@ -309,6 +309,7 @@ begin
     FIFO_WIDTH => SEQ_FIFO_WIDTH,
     FIFO_DEPTH => SEQ_FIFO_DEPTH,
     USE_BLOCK_RAM => true,
+--    RAM_TYPE => "block",
     ACKNOWLEDGE_MODE => true,
     PROG_FULL_THRESHOLD => 0,
     PROG_EMPTY_THRESHOLD => 0

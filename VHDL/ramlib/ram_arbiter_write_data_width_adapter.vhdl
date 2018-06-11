@@ -55,8 +55,6 @@ port(
   usr_req_ovfl        : out std_logic;
   --! request FIFO overflow reported by arbiter
   usr_req_fifo_ovfl   : out std_logic;
-  --! bypass from input port arb_to_usr_wr_port
-  usr_in              : out r_ram_arbiter_usr_in_port;
   --! Arbiter output signals (from arbiter to user)
   arb_out             : in  r_ram_arbiter_usr_in_port;
   --! Arbiter input signals (from user to arbiter)
@@ -174,9 +172,6 @@ begin
   usr_req_fifo_ovfl <= arb_out.req_fifo_ovfl when rising_edge(clk);
 
   -- completion acknowledge is irrelevant (only required for read)
-  arb_in.cpl_ack <= '-';
+  arb_in.cpl_ack <= '0';
 
-  -- bypass
-  usr_in <= arb_out;
-  
 end architecture;

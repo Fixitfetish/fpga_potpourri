@@ -66,14 +66,14 @@ i_arbiter.mux_bus_req_data[31:0]
 [color] 2
 i_arbiter.mux_usr_req_fifo_ovfl[3:0]
 @28
-ram_out_wr_ready
-ram_in_wr_ena
+ram_out_rdy
+ram_in_addr_vld
 @22
-ram_in_wr_addr[15:0]
+ram_in_addr[15:0]
 @28
-ram_in_wr_first
-ram_in_wr_last
+ram_in_first
+ram_in_last
 @22
-ram_in_wr_data[31:0]
+ram_in_data[31:0]
 [pattern_trace] 1
 [pattern_trace] 0

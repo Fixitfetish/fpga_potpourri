@@ -17,15 +17,15 @@ architecture sim of awstb_tb is
   signal finish : std_logic := '0';
 
   constant NUM_PORTS : positive := 4;
-  constant DATA_WIDTH : positive := 16;
+  constant BUS_DATA_WIDTH : positive := 16;
 
   signal din_frame : std_logic_vector(NUM_PORTS-1 downto 0) := (others=>'0');
   signal din_vld : std_logic_vector(NUM_PORTS-1 downto 0) := (others=>'0');
---  signal din : slv_array(0 to NUM_PORTS-1)(DATA_WIDTH-1 downto 0) := (others=>(others=>'0'));
+--  signal din : slv_array(0 to NUM_PORTS-1)(BUS_DATA_WIDTH-1 downto 0) := (others=>(others=>'0'));
   signal din : slv16_array(0 to NUM_PORTS-1) := (others=>(others=>'1'));
   signal din_ovf : std_logic_vector(NUM_PORTS-1 downto 0);
   signal dout_rdy : std_logic := '1';
-  signal dout : std_logic_vector(DATA_WIDTH-1 downto 0);
+  signal dout : std_logic_vector(BUS_DATA_WIDTH-1 downto 0);
   signal dout_ena, dout_sob, dout_eob, dout_eof : std_logic;
   signal dout_vld : std_logic;
   signal dout_idx : unsigned(log2ceil(NUM_PORTS)-1 downto 0);
@@ -57,7 +57,7 @@ begin
 
   usr0 : entity work.din_emulator
   generic map (
-    DATA_WIDTH => DATA_WIDTH,
+    DATA_WIDTH => BUS_DATA_WIDTH,
     INSTANCE_IDX => 0
   )
   port map(
@@ -71,7 +71,7 @@ begin
 
   usr1 : entity work.din_emulator
   generic map (
-    DATA_WIDTH => DATA_WIDTH,
+    DATA_WIDTH => BUS_DATA_WIDTH,
     INSTANCE_IDX => 1
   )
   port map(
@@ -85,7 +85,7 @@ begin
 
   usr2 : entity work.din_emulator
   generic map (
-    DATA_WIDTH => DATA_WIDTH,
+    DATA_WIDTH => BUS_DATA_WIDTH,
     INSTANCE_IDX => 2
   )
   port map(
@@ -99,7 +99,7 @@ begin
 
   usr3 : entity work.din_emulator
   generic map (
-    DATA_WIDTH => DATA_WIDTH,
+    DATA_WIDTH => BUS_DATA_WIDTH,
     INSTANCE_IDX => 3
   )
   port map(
@@ -115,7 +115,7 @@ begin
   i_fifo : entity ramlib.arbiter_mux_stream_to_burst
   generic map(
     NUM_PORTS  => NUM_PORTS, -- for now up to 4 supported
-    DATA_WIDTH => DATA_WIDTH,
+    DATA_WIDTH => BUS_DATA_WIDTH,
     BURST_SIZE => 8,
     FIFO_DEPTH_LOG2 => 4,
     WRITE_ENABLE => true

@@ -193,9 +193,10 @@ begin
 
 
   g_out_adapt_false : if RAM_REQ_PERIOD=1 generate
+    -- RAM_ARBITER_DATA_WIDTH = USER_DATA_WIDTH
     -- disable completion data width adaptation
     -- (pass through completion data with full RAM data width)
-    usr_cpl_data <= arb_out_data;
+    usr_cpl_data <= arb_out_data(usr_cpl_data'length-1 downto 0);
     usr_cpl_data_vld <= arb_out_data_vld;
     usr_cpl_data_eof <= arb_out_data_eof;
     arb_out_data_ack <= arb_out_data_vld;

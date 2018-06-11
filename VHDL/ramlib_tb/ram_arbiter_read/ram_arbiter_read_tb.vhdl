@@ -23,7 +23,16 @@ architecture sim of ram_arbiter_read_tb is
   constant RAM_DATA_WIDTH : positive := 32;
 
   signal usr_out_port  : a_ram_arbiter_usr_out_port(0 to NUM_PORTS-1);
+--  signal usr_out_port : a_ram_arbiter_usr_out_port(0 to NUM_PORTS-1)(
+--                             cfg_addr_first(RAM_ADDR_WIDTH-1 downto 0),
+--                             cfg_addr_last(RAM_ADDR_WIDTH-1 downto 0),
+--                             req_data(RAM_DATA_WIDTH-1 downto 0)
+--                           );
   signal usr_in_port  : a_ram_arbiter_usr_in_port(0 to NUM_PORTS-1);
+--  signal usr_in_port  : a_ram_arbiter_usr_in_port(0 to NUM_PORTS-1)(
+--                             addr_next(RAM_ADDR_WIDTH-1 downto 0),
+--                             cpl_data(RAM_DATA_WIDTH-1 downto 0)
+--                           );
 
   signal ram_out_rdy      : std_logic;
   signal ram_in_addr      : std_logic_vector(RAM_ADDR_WIDTH-1 downto 0);
@@ -118,7 +127,7 @@ begin
     rst              => rst,
     usr_out_port     => usr_out_port,
     usr_in_port      => usr_in_port,
-    ram_out_wr_ready => ram_out_rdy,
+    ram_out_rdy      => ram_out_rdy,
     ram_in_addr      => ram_in_addr,
     ram_in_ena       => ram_in_addr_vld,
     ram_in_first     => ram_in_first,
