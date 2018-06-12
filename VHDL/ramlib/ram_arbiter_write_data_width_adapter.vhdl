@@ -55,6 +55,12 @@ port(
   usr_req_ovfl        : out std_logic;
   --! request FIFO overflow reported by arbiter
   usr_req_fifo_ovfl   : out std_logic;
+  --! channel active
+  usr_status_active   : out std_logic;
+  --! wrap after last request address occurred (disabled single-shot only)
+  usr_status_wrap     : out std_logic;
+  --! next request address (hold after frame end)
+  usr_status_addr_next: out unsigned(RAM_ARBITER_ADDR_WIDTH-1 downto 0); 
   --! Arbiter output signals (from arbiter to user)
   arb_out             : in  r_ram_arbiter_usr_in_port;
   --! Arbiter input signals (from user to arbiter)
@@ -166,6 +172,11 @@ begin
 
   -- request data
   arb_in.req_data <= shift_reg_data;
+
+  -- status reporting (with pipeline register)
+  usr_status_active <= arb_out.active when rising_edge(clk);
+  usr_status_wrap <= arb_out.wrap when rising_edge(clk);
+  usr_status_addr_next <= arb_out.addr_next when rising_edge(clk);
 
   -- error reporting (with pipeline register)
   usr_req_ovfl <= arb_out.req_ovfl when rising_edge(clk);

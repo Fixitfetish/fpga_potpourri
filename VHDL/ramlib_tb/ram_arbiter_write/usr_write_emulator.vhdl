@@ -73,6 +73,9 @@ begin
     usr_req_data        => usr_req_data,
     usr_req_ovfl        => open,
     usr_req_fifo_ovfl   => open,
+    usr_status_active   => open,
+    usr_status_wrap     => open,
+    usr_status_addr_next=> open,
     arb_out             => arb_out,
     arb_in              => arb_in
   );

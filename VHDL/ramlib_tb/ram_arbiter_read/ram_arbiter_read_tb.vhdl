@@ -84,6 +84,9 @@ begin
     usr_cpl_data        => open,
     usr_cpl_data_vld    => open,
     usr_cpl_data_eof    => open,
+    usr_status_active   => open,
+    usr_status_wrap     => open,
+    usr_status_addr_next=> open,
     arb_out             => usr_in_port(0),
     arb_in              => usr_out_port(0)
   );
@@ -107,6 +110,9 @@ begin
     usr_cpl_data        => open,
     usr_cpl_data_vld    => open,
     usr_cpl_data_eof    => open,
+    usr_status_active   => open,
+    usr_status_wrap     => open,
+    usr_status_addr_next=> open,
     arb_out             => usr_in_port(1),
     arb_in              => usr_out_port(1)
   );

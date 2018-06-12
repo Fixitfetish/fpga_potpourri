@@ -25,7 +25,7 @@ library ramlib;
 --! The resulting minimum arbiter request period is N cycles.
 --!
 --! Corresponding to the arbiter request period the arbiter read completions are auto-acknowledged
---! with a minimum period od N cycles. Hence, the extracted read data for the user can be provided every cycle. 
+--! with a minimum period of N cycles. Hence, the extracted read data for the user can be provided every cycle. 
 
 entity ram_arbiter_read_data_width_adapter is
 generic(
@@ -61,6 +61,12 @@ port(
   usr_cpl_data_vld    : out std_logic;
   --! read completion data end of frame
   usr_cpl_data_eof    : out std_logic;
+  --! channel active
+  usr_status_active   : out std_logic;
+  --! wrap after last request address occurred (disabled single-shot only)
+  usr_status_wrap     : out std_logic;
+  --! next request address (hold after frame end)
+  usr_status_addr_next: out unsigned(RAM_ARBITER_ADDR_WIDTH-1 downto 0); 
   --! Arbiter output signals (from arbiter to user)
   arb_out             : in  r_ram_arbiter_usr_in_port;
   --! Arbiter input signals (from user to arbiter)
@@ -140,6 +146,11 @@ begin
 
   -- request data is irrelevant (only required for write)
   arb_in.req_data <= (RAM_ARBITER_DATA_WIDTH-1 downto 0 => '-');
+
+  -- status reporting (with pipeline register)
+  usr_status_active <= arb_out.active when rising_edge(clk);
+  usr_status_wrap <= arb_out.wrap when rising_edge(clk);
+  usr_status_addr_next <= arb_out.addr_next when rising_edge(clk);
 
   -- error reporting (with pipeline register)
   usr_req_ovfl <= arb_out.req_ovfl when rising_edge(clk);
