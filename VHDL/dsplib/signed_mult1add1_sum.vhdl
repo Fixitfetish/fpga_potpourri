@@ -132,7 +132,7 @@ port (
   chainout   : out signed(79 downto 0) := (others=>'0');
   --! @brief Number of pipeline stages, constant, depends on configuration and device specific implementation.
   --! Here the pipeline stages of the main X*Y path through the multiplier are reported.
-  PIPESTAGES : out natural := 0
+  PIPESTAGES : out natural := 1
 );
 begin
 

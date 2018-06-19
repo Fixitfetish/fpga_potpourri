@@ -118,7 +118,7 @@ port (
   --! Result output overflow/clipping detection
   result_ovf : out std_logic_vector(0 to NUM_MULT-1);
   --! Number of pipeline stages, constant, depends on configuration and device specific implementation
-  PIPESTAGES : out natural := 0
+  PIPESTAGES : out natural := 1
 );
 begin
 

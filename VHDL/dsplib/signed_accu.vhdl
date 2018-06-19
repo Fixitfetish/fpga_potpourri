@@ -92,7 +92,7 @@ port (
   --! If the device specific chain width is smaller then only the LSBs are used.
   chainout   : out signed(79 downto 0) := (others=>'0');
   --! Number of pipeline stages, constant, depends on configuration and device specific implementation
-  PIPESTAGES : out natural := 0
+  PIPESTAGES : out natural := 1
 );
 begin
 
