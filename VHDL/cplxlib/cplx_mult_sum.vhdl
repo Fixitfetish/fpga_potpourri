@@ -141,7 +141,7 @@ port (
   --! Resulting product/accumulator output (optionally rounded and clipped).
   result     : out cplx;
   --! Number of pipeline stages, constant, depends on configuration and device specific implementation
-  PIPESTAGES : out natural := 0
+  PIPESTAGES : out natural := 1
 );
 begin
 
