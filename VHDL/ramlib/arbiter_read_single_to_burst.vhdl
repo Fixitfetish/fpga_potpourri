@@ -26,12 +26,9 @@ library ramlib;
 --! 
 --! * Completion read data must be returned in same order as requested.
 --! 
---!
 --! @image html arbiter_read_single_to_burst.svg "" width=500px
 --!
-
-
---! NOTES: 
+--! NOTES: TODO
 --! * Input port 0 has the highest priority and input port NUM_PORTS-1 has the lowest priority.
 --! * The data width of each input port, the output port and the RAM is DATA_WIDTH.
 --! * The overall used RAM depth is NUM_PORTS x 2^FIFO_DEPTH_LOG2 .

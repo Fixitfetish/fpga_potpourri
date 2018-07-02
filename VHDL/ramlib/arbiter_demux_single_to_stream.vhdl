@@ -25,9 +25,7 @@ library ramlib;
 --!
 --! @image html arbiter_demux_single_to_stream.svg "" width=500px
 --!
-
-
---! NOTES: 
+--! NOTES: TODO 
 --! * Input port 0 has the highest priority and input port NUM_PORTS-1 has the lowest priority.
 --! * The data width of each input port, the output port and the RAM is DATA_WIDTH.
 --! * The overall used RAM depth is NUM_PORTS x 2^FIFO_DEPTH_LOG2 .
@@ -77,10 +75,11 @@ port(
   bus_out_cpl_data        : in  std_logic_vector(DATA_WIDTH-1 downto 0);
   --! Competition data input valid
   bus_out_cpl_data_vld    : in  std_logic;
-
   --! User ready to accept read data
   usr_in_cpl_rdy          : out std_logic_vector(NUM_PORTS-1 downto 0);
+  --! User completion data acknowledge 
   usr_out_cpl_ack         : in  std_logic_vector(NUM_PORTS-1 downto 0) := (others=>'1');
+  --! User completion data acknowledge overflow 
   usr_in_cpl_ack_ovfl     : out std_logic_vector(NUM_PORTS-1 downto 0);
   --! Read completion data
   usr_in_cpl_data         : out std_logic_vector(DATA_WIDTH-1 downto 0);
