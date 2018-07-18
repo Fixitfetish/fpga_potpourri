@@ -1,0 +1,56 @@
+[*]
+[*] GTKWave Analyzer v3.3.87 (w)1999-2017 BSI
+[*] Fri Jul 13 16:11:22 2018
+[*]
+[dumpfile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\baselib_tb\slv_pack_unpack\work\sim.vcd"
+[dumpfile_mtime] "Fri Jul 13 16:10:04 2018"
+[dumpfile_size] 36837
+[savefile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\baselib_tb\slv_pack_unpack\sim.gtkw"
+[timestart] 0
+[size] 1304 745
+[pos] -1 -1
+*-27.832781 50000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 211
+[signals_width] 150
+[sst_expanded] 1
+[sst_vpaned_height] 205
+@28
+rst
+finish
+clk
+@24
+ratio_log2[2:0]
+@22
+cnt[31:0]
+@28
+din_frame
+din_ena
+@22
+din[31:0]
+[color] 3
+i_pack.cnt[4:0]
+@28
+[color] 3
+i_pack.flush
+[color] 3
+i_pack.shift_ena[4:0]
+@22
+[color] 3
+i_pack.sr[31:0]
+@28
+dpack_frame
+dpack_ena
+@22
+dpack[31:0]
+[color] 2
+i_unpack.sr[31:0]
+@29
+[color] 2
+unpack_ovfl
+@28
+dout_frame
+dout_ena
+@22
+dout[31:0]
+[pattern_trace] 1
+[pattern_trace] 0

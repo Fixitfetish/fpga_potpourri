@@ -18,8 +18,8 @@ lappend files gray_code.vhdl
 lappend files lfsr.vhdl
 lappend files string_conversion_pkg.vhdl
 lappend files file_io_pkg.vhdl
-#lappend files slv_pack.vhdl
-#lappend files slv_unpack.vhdl
+lappend files slv_pack.vhdl
+lappend files slv_unpack.vhdl
 
 # create final file list with absolute path
 set filelist [list]

@@ -20,6 +20,7 @@ Modules
 * enable_burst_generator 
 * gray_code_pkg , gray_count
 * @link lfsr lfsr @endlink
+* slv_pack, slv_unpack
 
 
 ---
