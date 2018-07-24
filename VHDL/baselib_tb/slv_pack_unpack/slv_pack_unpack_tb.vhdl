@@ -16,7 +16,8 @@ architecture sim of slv_pack_unpack_tb is
   constant WIDTH : positive := 32;
   constant MIN_RATIO_LOG2 : natural := 0;
   constant MAX_RATIO_LOG2 : positive := 4;
-  constant MSB_BOUND : boolean := false;
+  constant MSB_BOUND_DATA : boolean := false;
+  constant MSB_BOUND_PACK : boolean := true;
   signal ratio_log2 : unsigned(2 downto 0) := to_unsigned(2,3);
 
   signal cnt       : unsigned(WIDTH-1 downto 0) := (others=>'0');  
@@ -65,7 +66,8 @@ begin
     DATA_WIDTH        => WIDTH,
     MIN_RATIO_LOG2    => MIN_RATIO_LOG2,
     MAX_RATIO_LOG2    => MAX_RATIO_LOG2,
-    MSB_BOUND_OUTPUT  => MSB_BOUND
+    MSB_BOUND_INPUT   => MSB_BOUND_DATA,
+    MSB_BOUND_OUTPUT  => MSB_BOUND_PACK
   )
   port map (
     clk        => clk,
@@ -84,7 +86,7 @@ begin
     DATA_WIDTH        => WIDTH,
     MIN_RATIO_LOG2    => MIN_RATIO_LOG2,
     MAX_RATIO_LOG2    => MAX_RATIO_LOG2,
-    MSB_BOUND_INPUT   => MSB_BOUND
+    MSB_BOUND_INPUT   => MSB_BOUND_PACK
   )
   port map (
     clk        => clk,

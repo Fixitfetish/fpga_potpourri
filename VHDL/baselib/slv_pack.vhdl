@@ -38,8 +38,6 @@ library ieee;
 --! * Output must be registered, i.e. all required multiplexers before output register.
 --! * Low latency and efficient FPGA logic resource usage.
 --!
---! TODO : MSB_BOUND_INPUT !?
---!
 --! @image html slv_pack.svg "" width=1000px
 --!
 
@@ -53,6 +51,9 @@ generic (
   --! @brief Maximum output-to-input ratio. LOG2 enforces ratio with power of 2.
   --! To not waste FPGA logic choose as small as possible but >=MIN_RATIO_LOG2.
   MAX_RATIO_LOG2 : natural := 4;
+  --! @brief If enabled provide input in DATA_WIDTH/(2**ratio_log2) MSBs. 
+  --! By default only the DATA_WIDTH/(2**ratio_log2) LSBs are relevant.
+  MSB_BOUND_INPUT : boolean := false;
   --! @brief First input goes into MSBs of output.
   --! By default first input goes into LSBs of output.
   MSB_BOUND_OUTPUT : boolean := false
@@ -70,7 +71,7 @@ port (
   din_frame  : in  std_logic;
   --! Data input enable. Only considered when din_frame='1'.
   din_ena    : in  std_logic;
-  --! Input data, LSB-bound. Relevant are only the DATA_WIDTH/(2**ratio_log2) LSBs.
+  --! Input data, either LSB or MSB bound. See MSB_BOUND_INPUT.
   din        : in  std_logic_vector(DATA_WIDTH-1 downto 0);
   --! Data output frame. Falling edge after flush is completed.
   dout_frame : out std_logic;
@@ -150,6 +151,9 @@ begin
               if flush='1' then
                 -- flush LSBs with zeros
                 sr(W/(2**n)-1 downto 0) <= (others=>'0');
+              elsif MSB_BOUND_INPUT then
+                -- input MSBs to shift register LSBs
+                sr(W/(2**n)-1 downto 0) <= din(W-1 downto W-W/(2**n));
               else
                 -- input LSBs to shift register LSBs
                 sr(W/(2**n)-1 downto 0) <= din(W/(2**n)-1 downto 0);
@@ -159,6 +163,9 @@ begin
               if flush='1' then
                 -- flush MSBs with zeros
                 sr(W-1 downto W-W/(2**n)) <= (others=>'0');
+              elsif MSB_BOUND_INPUT then
+                -- input MSBs to shift register MSBs
+                sr(W-1 downto W-W/(2**n)) <= din(W-1 downto W-W/(2**n));
               else
                 -- input LSBs to shift register MSBs
                 sr(W-1 downto W-W/(2**n)) <= din(W/(2**n)-1 downto 0);
