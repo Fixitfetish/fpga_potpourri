@@ -13,14 +13,15 @@ architecture sim of slv_pack_unpack_tb is
   signal clk : std_logic := '1';
   signal finish : std_logic := '0';
 
+  -- testbench configuration
   constant WIDTH : positive := 32;
   constant MIN_RATIO_LOG2 : natural := 0;
-  constant MAX_RATIO_LOG2 : positive := 4;
+  constant MAX_RATIO_LOG2 : positive := 3;
   constant MSB_BOUND_DATA : boolean := false;
   constant MSB_BOUND_PACK : boolean := true;
-  signal ratio_log2 : unsigned(2 downto 0) := to_unsigned(2,3);
 
-  signal cnt       : unsigned(WIDTH-1 downto 0) := (others=>'0');  
+  signal ratio_log2 : unsigned(2 downto 0) := (others=>'0');
+  signal cnt : unsigned(WIDTH-1 downto 0) := (others=>'0');  
 
   signal din_frame  : std_logic := '0';
   signal din_ena    : std_logic := '0';
@@ -120,27 +121,25 @@ begin
     end loop;
     
     wait until rising_edge(clk);
-    wait until rising_edge(clk);
-    din_frame <= '1'; 
+
+    for r in MIN_RATIO_LOG2 to MAX_RATIO_LOG2 loop
+
+      ratio_log2 <= to_unsigned(r,ratio_log2'length);
+
+      wait until rising_edge(clk);
+      din_frame <= '1'; 
     
-    for n in 1 to 51 loop
-      wait until rising_edge(clk);
+      for n in 1 to 37 loop
+        wait until rising_edge(clk);
+      end loop;
+
+      din_frame <= '0'; 
+
+      for n in 1 to 7 loop
+        wait until rising_edge(clk);
+      end loop;
+
     end loop;
-
-    din_frame <= '0'; 
-
-    for n in 1 to 6 loop
-      wait until rising_edge(clk);
-    end loop;
-
-    din_frame <= '1';
-    ratio_log2 <= to_unsigned(0,3);
-
-    for n in 1 to 21 loop
-      wait until rising_edge(clk);
-    end loop;
-
-    din_frame <= '0'; 
 
     for n in 0 to 20 loop
       wait until rising_edge(clk);

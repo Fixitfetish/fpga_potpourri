@@ -38,7 +38,7 @@ library ieee;
 --! * Output must be registered, i.e. all required multiplexers before output register.
 --! * Low latency and efficient FPGA logic resource usage.
 --!
---! TODO : MSB_BOUND_OUTPUT !?
+--! TODO : MSB_BOUND_OUTPUT not yet supported by slv_unpack
 --!
 
 entity slv_unpack is
