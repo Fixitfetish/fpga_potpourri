@@ -115,10 +115,16 @@ begin
 
   -- synthesis translate_off (Altera Quartus)
   -- pragma translate_off (Xilinx Vivado , Synopsys)
-  assert (ratio_log2>=MIN_RATIO_LOG2) and (ratio_log2<=MAX_RATIO_LOG2)
-    report "ERROR in " & slv_pack'INSTANCE_NAME & 
-           " Input ratio_log2 must be in range MIN_RATIO_LOG2 to MAX_RATIO_LOG2."
-    severity failure;
+  p_assert : process(clk)
+  begin
+    -- consider clock and reset to avoid issues during simulation initialization
+    if rising_edge(clk) then
+      assert rst/='0' or (ratio_log2>=MIN_RATIO_LOG2 and ratio_log2<=MAX_RATIO_LOG2)
+        report "ERROR in " & slv_pack'INSTANCE_NAME & 
+               " Input ratio_log2 must be in range MIN_RATIO_LOG2 to MAX_RATIO_LOG2."
+        severity failure;
+    end if;
+  end process;
   -- synthesis translate_on (Altera Quartus)
   -- pragma translate_on (Xilinx Vivado , Synopsys)
 

@@ -28,9 +28,12 @@ architecture sim of slv_pack_unpack_tb is
   signal din        : std_logic_vector(WIDTH-1 downto 0);
   signal dpack_frame: std_logic;
   signal dpack_ena  : std_logic;
+  signal dpack_eof  : std_logic := '0';
+  signal dpack_rdy  : std_logic;
   signal dpack      : std_logic_vector(WIDTH-1 downto 0);
   signal dout_frame : std_logic;
   signal dout_ena   : std_logic;
+  signal dout_eof   : std_logic;
   signal dout       : std_logic_vector(WIDTH-1 downto 0);
 
   signal unpack_ovfl : std_logic;
@@ -95,10 +98,13 @@ begin
     ratio_log2 => ratio_log2,
     din_frame  => dpack_frame,
     din_ena    => dpack_ena,
+    din_eof    => dpack_eof,
     din        => dpack,
+    din_rdy    => dpack_rdy,
     din_ovfl   => unpack_ovfl,
     dout_frame => dout_frame,
     dout_ena   => dout_ena,
+    dout_eof   => dout_eof,
     dout       => dout
   );
 
