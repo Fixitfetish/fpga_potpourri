@@ -31,12 +31,17 @@ end entity;
 
 architecture sim of usr_write_emulator is
 
+  constant RATIO : positive := ARBITER_DATA_WIDTH/USER_DATA_WIDTH;
+  constant RATIO_LOG2 : natural := log2ceil(RATIO);
+
   -- use 4 MSBs for instance/channel index and the remaining LSBs for the counter
   signal data_cnt : unsigned(USER_DATA_WIDTH-5 downto 0);
 
-  signal usr_req_data : std_logic_vector(USER_DATA_WIDTH-1 downto 0);
+  signal usr_req_data : std_logic_vector(ARBITER_DATA_WIDTH-1 downto 0);
   alias usr_req_data_id  is usr_req_data(USER_DATA_WIDTH-1 downto USER_DATA_WIDTH-4);
   alias usr_req_data_cnt is usr_req_data(USER_DATA_WIDTH-5 downto 0);
+
+  constant cfg_ratio_log2 : unsigned(2 downto 0) := to_unsigned(RATIO_LOG2,3);
 
 begin
 
@@ -60,7 +65,8 @@ begin
   generic map(
     RAM_ARBITER_DATA_WIDTH => ARBITER_DATA_WIDTH,
     RAM_ARBITER_ADDR_WIDTH => ARBITER_ADDR_WIDTH,
-    USER_DATA_WIDTH => USER_DATA_WIDTH
+    USER_MIN_RATIO_LOG2 => 0, 
+    USER_MAX_RATIO_LOG2 => 2
   )
   port map(
     clk                 => clk,
@@ -68,6 +74,7 @@ begin
     usr_cfg_addr_first  => ADDR_FIRST,
     usr_cfg_addr_last   => ADDR_LAST,
     usr_cfg_single_shot => SINGLE_SHOT,
+    usr_cfg_ratio_log2  => cfg_ratio_log2,
     usr_req_frame       => usr_req_frame,
     usr_req_ena         => usr_req_ena,
     usr_req_data        => usr_req_data,

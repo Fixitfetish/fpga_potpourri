@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       ram_arbiter_write_data_width_adapter.vhdl
 --! @author     Fixitfetish
---! @date       10/Jun/2018
---! @version    0.10
+--! @date       25/Jul/2018
+--! @version    0.20
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -20,19 +20,23 @@ library ramlib;
 
 --! @brief Entity that adapts user data width to the arbiter data width using a shift register.
 --!
---! The user can request data of width USER_DATA_WIDTH every cycle. Always
---! N = RAM_ARBITER_DATA_WIDTH/USER_DATA_WIDTH requests are collected before an arbiter request is generated.
---! The resulting minimum arbiter request period is N cycles.
+--! The user can request data of width RAM_ARBITER_DATA_WIDTH/(2**RATIO_LOG2) every cycle.
+--! Always N = 2**RATIO_LOG2 requests are collected before an arbiter request is generated.
+--! Hence, the resulting minimum arbiter request period is N cycles.
 --!
 
 entity ram_arbiter_write_data_width_adapter is
 generic(
-  --! RAM Data Width (must be a multiple of the USER_DATA_WIDTH)
+  --! RAM Data Width must be a multiple of 2**USER_MAX_RATIO_LOG2
   RAM_ARBITER_DATA_WIDTH : positive;
   --! RAM Address Width (RAM arbiter data word address)
   RAM_ARBITER_ADDR_WIDTH : positive;
-  --! User Data Width (must be smaller or equal the RAM_ARBITER_DATA_WIDTH)
-  USER_DATA_WIDTH : positive
+  --! @brief Minimum RAM-to-USER data width ratio. LOG2 enforces ratio with power of 2.
+  --! To not waste FPGA logic choose as large as possible but <=USER_MAX_RATIO_LOG2.
+  USER_MIN_RATIO_LOG2 : natural := 0;
+  --! @brief Maximum RAM-to-USER data width ratio. LOG2 enforces ratio with power of 2.
+  --! To not waste FPGA logic choose as small as possible but >=USER_MIN_RATIO_LOG2.
+  USER_MAX_RATIO_LOG2 : natural := 4
 );
 port(
   --! System clock
@@ -45,12 +49,18 @@ port(
   usr_cfg_addr_last   : in  unsigned(RAM_ARBITER_ADDR_WIDTH-1 downto 0); 
   --! '1'=single-shot mode , '0'=continuous with wrap (must be valid at rising edge of frame signal)
   usr_cfg_single_shot : in  std_logic;
+  --! @brief Number of user requests (log2) per RAM request.
+  --! Must be in range USER_MIN_RATIO_LOG2 to USER_MAX_RATIO_LOG2. 
+  --! Do not change while frame is active.
+  --! The resulting USER_DATA_WIDTH is RAM_ARBITER_DATA_WIDTH/(2**usr_cfg_ratio_log2) .
+  --! Example: For RAM_ARBITER_DATA_WIDTH=512 and ratio_log2=3 results in USER_DATA_WIDTH=64.  
+  usr_cfg_ratio_log2  : in  unsigned;
   --! request frame, start=rising edge, stop=falling edge 
   usr_req_frame       : in  std_logic;
   --! request enable
   usr_req_ena         : in  std_logic;
   --! request data (write)
-  usr_req_data        : in  std_logic_vector(USER_DATA_WIDTH-1 downto 0); 
+  usr_req_data        : in  std_logic_vector(RAM_ARBITER_DATA_WIDTH-1 downto 0); 
   --! request overflow reported by arbiter
   usr_req_ovfl        : out std_logic;
   --! request FIFO overflow reported by arbiter
@@ -66,35 +76,14 @@ port(
   --! Arbiter input signals (from user to arbiter)
   arb_in              : out r_ram_arbiter_usr_out_port
 );
-begin
-  -- synthesis translate_off (Altera Quartus)
-  -- pragma translate_off (Xilinx Vivado , Synopsys)
-  assert USER_DATA_WIDTH<=RAM_ARBITER_DATA_WIDTH
-    report "ERROR in " & ram_arbiter_write_data_width_adapter'INSTANCE_NAME & 
-           " USER_DATA_WIDTH must be smaller or equal the RAM_ARBITER_DATA_WIDTH."
-    severity failure;
-  assert (RAM_ARBITER_DATA_WIDTH mod USER_DATA_WIDTH)=0
-    report "ERROR in " & ram_arbiter_write_data_width_adapter'INSTANCE_NAME & 
-           " RAM_ARBITER_DATA_WIDTH must be a multiple of the USER_DATA_WIDTH."
-    severity failure;
-  -- synthesis translate_on (Altera Quartus)
-  -- pragma translate_on (Xilinx Vivado , Synopsys)
 end entity;
 
 -------------------------------------------------------------------------------
 
 architecture rtl of ram_arbiter_write_data_width_adapter is
 
-  constant RAM_REQ_PERIOD : positive := RAM_ARBITER_DATA_WIDTH/USER_DATA_WIDTH;
-
   signal arb_in_req_frame : std_logic;
   signal arb_in_req_ena : std_logic;
-
-  constant FRAGMENT_CNT_WIDTH : positive := log2ceil(RAM_REQ_PERIOD);
-  signal cnt : unsigned(FRAGMENT_CNT_WIDTH-1 downto 0); 
-
-  signal shift_reg_data : std_logic_vector(RAM_ARBITER_DATA_WIDTH-1 downto 0);
-  signal shift_reg_active : std_logic;
 
 begin
 
@@ -103,75 +92,41 @@ begin
   arb_in_req_ena <= arb_in.req_ena;
 
   -- request generation
-  p_req : process(clk)
-    variable v_shift : std_logic;
-    variable v_fragment : std_logic_vector(USER_DATA_WIDTH-1 downto 0);
+  p_cfg : process(clk)
   begin
     if rising_edge(clk) then
-      arb_in.req_ena <= '0'; -- default
-
---      if rst='1' or usr_req_frame='0' then
       if rst='1' then
         arb_in.cfg_addr_first <= (RAM_ARBITER_ADDR_WIDTH-1 downto 0 => '-');
         arb_in.cfg_addr_last <= (RAM_ARBITER_ADDR_WIDTH-1 downto 0 => '-');
         arb_in.cfg_single_shot <= '0';
-        arb_in.req_frame <= '0';
-        shift_reg_active <= '0';
-        shift_reg_data <= (others=>'0');
-        cnt <= (others=>'0');
-
       else
         arb_in.cfg_addr_first <= usr_cfg_addr_first;
         arb_in.cfg_addr_last <= usr_cfg_addr_last;
-        arb_in.cfg_single_shot <= usr_cfg_single_shot;
-
-        if usr_req_frame='1' then
-          if usr_req_ena='1' then
-            v_fragment := usr_req_data;
-          end if;
-          v_shift := usr_req_ena;
-          shift_reg_active <= '1';
-
-        elsif shift_reg_active='1' then
-          
-          -- flush at end of frame
-          if cnt=0 then
-            -- nothing to flush, stop immediately
-            shift_reg_active <= '0';
-            v_shift := '0';
-          else
-            v_fragment := (others=>'0');
-            v_shift := '1';
-          end if;
-           
-        else
-          v_shift := '0';
-        end if;
-      
-        if v_shift='1' then
-          -- NOTE: First word is placed into MSBs and then shifted to the LSBs.
-          -- when writing to RAM the first word must be in LSBs.
-          shift_reg_data(RAM_ARBITER_DATA_WIDTH-USER_DATA_WIDTH-1 downto 0) <= 
-            shift_reg_data(RAM_ARBITER_DATA_WIDTH-1 downto USER_DATA_WIDTH);
-          shift_reg_data(RAM_ARBITER_DATA_WIDTH-1 downto RAM_ARBITER_DATA_WIDTH-USER_DATA_WIDTH) <= v_fragment;
-      
-          if cnt=to_unsigned(RAM_REQ_PERIOD-1,cnt'length) then
-            arb_in.req_ena <= '1';
-            cnt <= (others=>'0');
-          else
-            cnt <= cnt + 1;
-          end if;
-
-        end if;
-        
-        arb_in.req_frame <= usr_req_frame or shift_reg_active;
-        
+        arb_in.cfg_single_shot <= usr_cfg_single_shot;        
       end if; --reset 
     end if; --clock
   end process;
 
-  -- request data
-  arb_in.req_data <= shift_reg_data;
+  i_pack : entity baselib.slv_pack
+  generic map(
+    DATA_WIDTH        => RAM_ARBITER_DATA_WIDTH,
+    MIN_RATIO_LOG2    => USER_MIN_RATIO_LOG2,
+    MAX_RATIO_LOG2    => USER_MAX_RATIO_LOG2,
+    MSB_BOUND_INPUT   => false,
+    MSB_BOUND_OUTPUT  => false
+  )
+  port map (
+    clk        => clk,
+    rst        => rst,
+    ratio_log2 => usr_cfg_ratio_log2,
+    din_frame  => usr_req_frame,
+    din_ena    => usr_req_ena,
+    din        => usr_req_data,
+    dout_frame => arb_in.req_frame,
+    dout_ena   => arb_in.req_ena,
+    dout       => arb_in.req_data
+  );
+
 
   -- status reporting (with pipeline register)
   usr_status_active <= arb_out.active when rising_edge(clk);
