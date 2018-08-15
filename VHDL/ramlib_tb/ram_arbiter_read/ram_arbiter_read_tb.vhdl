@@ -65,56 +65,40 @@ begin
   rst <= '0' after 10*PERIOD;
 
 
-  usr0 : entity ramlib.ram_arbiter_read_data_width_adapter
-  generic map(
-    RAM_ARBITER_DATA_WIDTH => RAM_DATA_WIDTH,
-    RAM_ARBITER_ADDR_WIDTH => RAM_ADDR_WIDTH,
-    USER_DATA_WIDTH => RAM_DATA_WIDTH/2
+  usr0 : entity work.usr_read_emulator
+  generic map (
+    ARBITER_ADDR_WIDTH => RAM_ADDR_WIDTH,
+    ARBITER_DATA_WIDTH => RAM_DATA_WIDTH,
+    USER_DATA_WIDTH => RAM_DATA_WIDTH/2,
+    ADDR_FIRST => to_unsigned(257,RAM_ADDR_WIDTH), 
+    ADDR_LAST => to_unsigned(275,RAM_ADDR_WIDTH),
+    SINGLE_SHOT => '0'
   )
   port map(
-    clk                 => clk,
-    rst                 => rst,
-    usr_cfg_addr_first  => to_unsigned(257,RAM_ADDR_WIDTH),
-    usr_cfg_addr_last   => to_unsigned(275,RAM_ADDR_WIDTH),
-    usr_cfg_single_shot => '0',
-    usr_req_frame       => usr_frame(0),
-    usr_req_ena         => usr_frame(0),
-    usr_req_ovfl        => open,
-    usr_req_fifo_ovfl   => open,
-    usr_cpl_data        => open,
-    usr_cpl_data_vld    => open,
-    usr_cpl_data_eof    => open,
-    usr_status_active   => open,
-    usr_status_wrap     => open,
-    usr_status_addr_next=> open,
-    arb_out             => usr_in_port(0),
-    arb_in              => usr_out_port(0)
+    clk           => clk,
+    rst           => rst,
+    usr_req_frame => usr_frame(0),
+    usr_req_ena   => usr_frame(0),
+    arb_out       => usr_in_port(0),
+    arb_in        => usr_out_port(0)
   );
 
-  usr1 : entity ramlib.ram_arbiter_read_data_width_adapter
-  generic map(
-    RAM_ARBITER_DATA_WIDTH => RAM_DATA_WIDTH,
-    RAM_ARBITER_ADDR_WIDTH => RAM_ADDR_WIDTH,
-    USER_DATA_WIDTH => RAM_DATA_WIDTH/2
+  usr1 : entity work.usr_read_emulator
+  generic map (
+    ARBITER_ADDR_WIDTH => RAM_ADDR_WIDTH,
+    ARBITER_DATA_WIDTH => RAM_DATA_WIDTH,
+    USER_DATA_WIDTH => RAM_DATA_WIDTH/4,
+    ADDR_FIRST => to_unsigned(785,RAM_ADDR_WIDTH), 
+    ADDR_LAST => to_unsigned(797,RAM_ADDR_WIDTH),
+    SINGLE_SHOT => '0'
   )
   port map(
-    clk                 => clk,
-    rst                 => rst,
-    usr_cfg_addr_first  => to_unsigned(785,RAM_ADDR_WIDTH),
-    usr_cfg_addr_last   => to_unsigned(797,RAM_ADDR_WIDTH),
-    usr_cfg_single_shot => '0',
-    usr_req_frame       => usr_frame(1),
-    usr_req_ena         => usr_frame(1),
-    usr_req_ovfl        => open,
-    usr_req_fifo_ovfl   => open,
-    usr_cpl_data        => open,
-    usr_cpl_data_vld    => open,
-    usr_cpl_data_eof    => open,
-    usr_status_active   => open,
-    usr_status_wrap     => open,
-    usr_status_addr_next=> open,
-    arb_out             => usr_in_port(1),
-    arb_in              => usr_out_port(1)
+    clk           => clk,
+    rst           => rst,
+    usr_req_frame => usr_frame(1),
+    usr_req_ena   => usr_frame(1),
+    arb_out       => usr_in_port(1),
+    arb_in        => usr_out_port(1)
   );
 
   -- currently unused usr ports
@@ -186,7 +170,7 @@ begin
     usr_frame(0) <= '0';
     usr_frame(1) <= '0';
 
-    wait for 500 ns;
+    wait for 800 ns;
     finish <= '1';
 
     wait until rising_edge(clk);

@@ -24,6 +24,7 @@ set top ram_arbiter_read_tb
 
 set files [list]
 lappend files [ file normalize ram_emulator.vhdl ]
+lappend files [ file normalize usr_read_emulator.vhdl ]
 lappend files [ file normalize ${top}.vhdl ]
 
 compile $WORK $files
