@@ -1,0 +1,4 @@
+html/
+*.lnk
+**/.~lock.*
+doxygen_default
