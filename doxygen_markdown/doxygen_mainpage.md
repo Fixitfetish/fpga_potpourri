@@ -17,9 +17,12 @@ Special keywords can be used when they follow the `\` or `@` character
 * ref
 * ... and many others
 
+Doxygen : <http://www.doxygen.org> \n  
+Download of Doxygen executables and manuals : <ftp://ftp.stack.nl/pub/users/dimitri/>
+
 \subpage ANOTHER_PAGE : This is a link to another page.
 
-This is a reference to \ref MY_SECTION_LABEL as short version. \n
+This is a reference to \ref MY_SECTION_LABEL as short version. \n  
 This is a reference to \ref MY_SECTION_LABEL "My 1. Section (alternative text)" as longer version.
 
 
