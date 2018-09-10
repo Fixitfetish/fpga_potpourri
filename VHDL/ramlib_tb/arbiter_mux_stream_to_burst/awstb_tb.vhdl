@@ -17,12 +17,12 @@ architecture sim of awstb_tb is
   signal finish : std_logic := '0';
 
   constant NUM_PORTS : positive := 4;
-  constant BUS_DATA_WIDTH : positive := 16;
+  constant BUS_DATA_WIDTH : positive := 32;
 
   signal din_frame : std_logic_vector(NUM_PORTS-1 downto 0) := (others=>'0');
   signal din_vld : std_logic_vector(NUM_PORTS-1 downto 0) := (others=>'0');
 --  signal din : slv_array(0 to NUM_PORTS-1)(BUS_DATA_WIDTH-1 downto 0) := (others=>(others=>'0'));
-  signal din : slv16_array(0 to NUM_PORTS-1) := (others=>(others=>'1'));
+  signal din : slv32_array(0 to NUM_PORTS-1) := (others=>(others=>'1'));
   signal din_ovf : std_logic_vector(NUM_PORTS-1 downto 0);
   signal dout_rdy : std_logic := '1';
   signal dout : std_logic_vector(BUS_DATA_WIDTH-1 downto 0);
@@ -31,6 +31,7 @@ architecture sim of awstb_tb is
   signal dout_idx : unsigned(log2ceil(NUM_PORTS)-1 downto 0);
   signal dout_frame : std_logic_vector(NUM_PORTS-1 downto 0);
   signal fifo_ovf : std_logic_vector(NUM_PORTS-1 downto 0);
+  signal fifo_rdy : std_logic_vector(NUM_PORTS-1 downto 0);
 
   signal rst_usr : std_logic_vector(NUM_PORTS-1 downto 0) := (others=>'1');
 
@@ -118,7 +119,8 @@ begin
     DATA_WIDTH => BUS_DATA_WIDTH,
     BURST_SIZE => 8,
     FIFO_DEPTH_LOG2 => 4,
-    WRITE_ENABLE => true
+    WRITE_ENABLE => true,
+    POST_BURST_GAP_CYCLES => 0
   )
   port map (
     clk                     => clk,
@@ -127,6 +129,7 @@ begin
     usr_out_req_ena         => din_vld,
     usr_out_req_wr_data     => din,
     usr_in_req_ovfl         => din_ovf,
+    usr_in_req_fifo_rdy     => fifo_rdy,
     usr_in_req_fifo_ovfl    => fifo_ovf,
     bus_out_req_rdy         => dout_rdy,
     bus_in_req_ena          => dout_vld,

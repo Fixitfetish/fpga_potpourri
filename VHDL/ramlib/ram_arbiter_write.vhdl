@@ -144,7 +144,8 @@ begin
     DATA_WIDTH => DATA_WIDTH,
     BURST_SIZE => BURST_SIZE,
     FIFO_DEPTH_LOG2 => log2ceil(2*BURST_SIZE),
-    WRITE_ENABLE => true
+    WRITE_ENABLE => true,
+    POST_BURST_GAP_CYCLES => 0
   )
   port map (
     clk                     => clk,

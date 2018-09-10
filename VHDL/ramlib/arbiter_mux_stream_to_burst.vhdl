@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       arbiter_mux_stream_to_burst.vhdl
 --! @author     Fixitfetish
---! @date       07/Jun/2018
---! @version    0.60
+--! @date       10/Sep/2018
+--! @version    0.70
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -33,7 +33,7 @@ library ramlib;
 --!   Address handling can be implemented easily on top of this arbiter. 
 --! 
 --! This arbiter is a slightly simplified version of a general arbiter that efficiently uses FPGA
---! RAM resources. Instead of having seperate independent FIFOs per input port a shared RAM
+--! RAM resources. Instead of having separate independent FIFOs per input port a shared RAM
 --! is used to hold the FIFOs of all input ports. Hence, FPGA memory blocks can be used more
 --! efficiently when FIFOs with small depth but large data width are required.
 --!
@@ -47,21 +47,19 @@ library ramlib;
 --! Signal Prefix Naming (also useful for record mapping):
 --! * usr_out : user output port, signals that the user generate (e.g. requests)
 --! * usr_in : user input port, signals that the user receives (e.g. status)
---! * bus_out : bus output port, signals that are orginated by the bus (e.g. status or answers)
+--! * bus_out : bus output port, signals that are originated by the bus (e.g. status or answers)
 --! * bus_in : bus input port, signals that feed the bus (e.g. write/read requests)
 --!
 --! USAGE:
 --! * Setting usr_out_req_frame(N)='1' opens the port N. The FIFO is reset and bus_in_req_usr_frame(N)='1'. 
 --! * Data can be written using the usr_out_req_wr_data(N) and usr_out_req_ena(N) considering the limitations.
---!   If limitations are not considered usr_in_req_ovfl(N) or usr_in_req_fifo_ovfl(N) might be set.
+--!   If limitations are not considered usr_in_req_ovfl(N) or usr_in_req_fifo_ovfl(N) might flag errors.
 --! * Bursts will be output as soon as BURST_SIZE+1 data words have been provided.
 --! * Setting usr_out_req_frame(N)='0' closes the port N. Input data is not accepted anymore and
 --!   the FIFO is flushed. A final burst smaller than BURST_SIZE might be generated.
 --! * FIFO flushing is completed when bus_in_req_usr_frame(N)='0'. 
 --!
 --! Further ideas for future development
---! * Generic POST_BURST_GAP : add idle gap of X cycles after each burst,
---!   allow adding of a header infront of each burst.
 --! * do different priority modes like e.g. round-robin or first-come-first-serve make sense?
 --!     
 --! @image html arbiter_mux_stream_to_burst.svg "" width=500px
@@ -82,7 +80,10 @@ generic(
   --! @brief Write request enable. If disabled then usr_out_req_wr_data is ignored and
   --! only read requests without data are allowed.
   --! If enabled then usr_out_req_wr_data is stored in the FIFO and more RAM resources are needed.
-  WRITE_ENABLE : boolean := true
+  WRITE_ENABLE : boolean := true;
+  --! @brief Add an idle gap of a few cycles after each burst, e.g. to allow header insertion in front of each burst.
+  --! Note that additional gap cycles reduce the maximum possible arbiter throughput.
+  POST_BURST_GAP_CYCLES : integer range 0 to 3 := 0
 );
 port(
   --! System clock
@@ -99,6 +100,8 @@ port(
   --! Occurs when overall usr_out_req_ena rate is too high and requests cannot be written into FIFO on-time.
   --! These output bits are NOT sticky, hence they could also be used as error IRQ source.
   usr_in_req_ovfl         : out std_logic_vector(NUM_PORTS-1 downto 0);
+  --! FIFO is ready to accept input data. User must stop writing to FIFO when ready flag is '0'.
+  usr_in_req_fifo_rdy     : out std_logic_vector(NUM_PORTS-1 downto 0);
   --! @brief FIFO overflow (one per input port)
   --! Occurs when requests cannot be transmitted on the bus fast enough. 
   --! These output bits are NOT sticky, hence they could also be used as error IRQ source.
@@ -113,8 +116,8 @@ port(
   bus_in_req_eob          : out std_logic;
   --! End of frame, last request of frame (current user ID)
   bus_in_req_eof          : out std_logic;
-  --! User ID of corresponding user request port
-  bus_in_req_usr_id       : out unsigned(log2ceil(NUM_PORTS)-1 downto 0);
+  --! User ID of corresponding user request port (0 .. NUM_PORTS-1). Width must be at least 2 bits.
+  bus_in_req_usr_id       : out unsigned;
   --! Data output frame (one bit per input port)
   bus_in_req_usr_frame    : out std_logic_vector(NUM_PORTS-1 downto 0);
   --! Write request data output, optional
@@ -183,6 +186,7 @@ architecture rtl of arbiter_mux_stream_to_burst is
     wr_ena       : std_logic;
     wr_ptr       : unsigned(FIFO_DEPTH_LOG2-1 downto 0);
     wr_full      : std_logic;
+    wr_prog_full : std_logic;
     wr_overflow  : std_logic;
     rd_ena       : std_logic;
     rd_ptr       : unsigned(FIFO_DEPTH_LOG2-1 downto 0);
@@ -209,9 +213,17 @@ architecture rtl of arbiter_mux_stream_to_burst is
   type a_rd is array(integer range <>) of t_rd;
   signal rd : a_rd(0 to REQ_RAM_READ_DELAY);
 
+  -- burst cycle counter
   signal burst_cnt : unsigned(FIFO_DEPTH_LOG2 downto 0);
 
-  type t_state is (WAITING, BURST);
+  -- gap cycle counter
+  signal gap_cnt : unsigned(1 downto 0) := (others=>'-');
+
+  type t_state is (
+    WAITING, -- wait until next burst is available
+    BURST,   -- burst transmission is active
+    GAP      -- gap insertion after burst
+  );
   signal state : t_state;
 
 
@@ -381,7 +393,7 @@ begin
     i_logic : entity ramlib.fifo_logic_sync
     generic map(
       FIFO_DEPTH => 2**FIFO_DEPTH_LOG2,
-      PROG_FULL_THRESHOLD => 0,
+      PROG_FULL_THRESHOLD => 2**FIFO_DEPTH_LOG2-2, -- TODO : some margin to give user time to react 
       PROG_EMPTY_THRESHOLD => BURST_SIZE -- ensures that at least one element remains for final flushing
     )
     port map(
@@ -390,7 +402,7 @@ begin
       wr_ena        => req_fifo(n).wr_ena,
       wr_ptr        => req_fifo(n).wr_ptr,
       wr_full       => req_fifo(n).wr_full,
-      wr_prog_full  => open,
+      wr_prog_full  => req_fifo(n).wr_prog_full,
       wr_overflow   => req_fifo(n).wr_overflow,
       rd_ena        => req_fifo(n).rd_ena,
       rd_ptr        => req_fifo(n).rd_ptr,
@@ -402,6 +414,7 @@ begin
 
     req_fifo(n).rd_ena <= rd(0).ena(n);
     usr_in_req_fifo_ovfl(n) <= req_fifo(n).wr_overflow;
+    usr_in_req_fifo_rdy(n) <= not req_fifo(n).wr_prog_full;
 
     p_flush : process(clk)
     begin
@@ -454,9 +467,9 @@ begin
       v_flush_sel := get_next(v_burst_flush_pending);
       v_flush_sel_vld := slv_or(v_burst_flush_pending);
 
-      rd(0).sob <= '0';
-      rd(0).eob <= '0';
-      rd(0).eof <= '0';
+      rd(0).sob <= '0'; -- default
+      rd(0).eob <= '0'; -- default
+      rd(0).eof <= '0'; -- default
 
       if rst='1' then
         rd(0).ena <= (others=>'0');
@@ -496,10 +509,23 @@ begin
             if burst_cnt=2 then 
               rd(0).eob <= '1';
               rd(0).eof <= req_fifo(to_integer(rd(0).sel)).flushing;
-              state <= WAITING;
+              if POST_BURST_GAP_CYCLES/=0 then
+                gap_cnt <= to_unsigned(POST_BURST_GAP_CYCLES,gap_cnt'length);
+                state <= GAP;
+              else
+                state <= WAITING; -- gap not needed
+              end if;
             end if;
             burst_cnt <= burst_cnt - 1;
-                        
+
+          when GAP =>
+            rd(0).ena <= (others=>'0');
+            if gap_cnt=1 then
+              state <= WAITING;
+            else
+              gap_cnt <= gap_cnt - 1;
+            end if;
+        
         end case;  
 
       else
@@ -522,7 +548,7 @@ begin
   bus_in_req_sob <= rd(REQ_RAM_READ_DELAY).sob;
   bus_in_req_eob <= rd(REQ_RAM_READ_DELAY).eob;
   bus_in_req_eof <= rd(REQ_RAM_READ_DELAY).eof;
-  bus_in_req_usr_id <= rd(REQ_RAM_READ_DELAY).sel;
+  bus_in_req_usr_id <= resize(rd(REQ_RAM_READ_DELAY).sel, bus_in_req_usr_id'length);
   bus_in_req_usr_frame <= rd(REQ_RAM_READ_DELAY).frame;
 
   g_write_false : if not WRITE_ENABLE generate
