@@ -253,17 +253,21 @@ begin
   generic map(
     ADDR_WIDTH => CPL_RAM_ADDR_WIDTH,
     DATA_WIDTH => CPL_RAM_DATA_WIDTH,
+    WR_INPUT_REGS => 1,
+    RD_INPUT_REGS => 1,
     RD_OUTPUT_REGS => 1
   )
   port map(
-    clk        => clk,
-    rst        => rst,
+    wr_clk     => clk,
+    wr_rst     => rst,
     wr_clk_en  => '1',
-    wr_addr_en => cpl_ram_wr.addr_vld,
+    wr_en      => cpl_ram_wr.addr_vld,
     wr_addr    => std_logic_vector(cpl_ram_wr.addr),
     wr_data    => cpl_ram_wr.data,
+    rd_clk     => clk,
+    rd_rst     => rst,
     rd_clk_en  => '1',
-    rd_addr_en => cpl_ram_rd.addr_vld,
+    rd_en      => cpl_ram_rd.addr_vld,
     rd_addr    => std_logic_vector(cpl_ram_rd.addr),
     rd_data    => cpl_ram_rd.data,
     rd_data_en => cpl_ram_rd.data_vld
