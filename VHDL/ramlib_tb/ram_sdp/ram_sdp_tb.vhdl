@@ -24,6 +24,7 @@ architecture sim of ram_sdp_tb is
   signal wr_en      : std_logic := '0';
   signal wr_addr    : unsigned(ADDR_WIDTH-1 downto 0);
   signal wr_data    : unsigned(DATA_WIDTH-1 downto 0);
+  signal wr_be      : std_logic_vector(DATA_WIDTH/8-1 downto 0) := (others=>'0');
   
   signal rd_clk_en  : std_logic := '1';
   signal rd_en      : std_logic := '0';
@@ -78,11 +79,14 @@ begin
 
   i_ram : entity ramlib.ram_sdp
   generic map(
-    ADDR_WIDTH     => ADDR_WIDTH,
-    DATA_WIDTH     => DATA_WIDTH,
-    WR_INPUT_REGS  => 4,
-    RD_INPUT_REGS  => 1,
-    RD_OUTPUT_REGS => 1
+    ADDR_WIDTH         => ADDR_WIDTH,
+    WR_DATA_WIDTH      => DATA_WIDTH,
+    RD_DATA_WIDTH      => DATA_WIDTH,
+    WR_DEPTH           => 2**ADDR_WIDTH,
+    WR_USE_BYTE_ENABLE => false,
+    WR_INPUT_REGS      => 4,
+    RD_INPUT_REGS      => 1,
+    RD_OUTPUT_REGS     => 1
   )
   port map(
     wr_clk     => clk,
@@ -90,6 +94,7 @@ begin
     wr_clk_en  => '1',
     wr_en      => wr_en,
     wr_addr    => std_logic_vector(wr_addr),
+    wr_be      => wr_be,
     wr_data    => std_logic_vector(wr_data),
     rd_clk     => clk,
     rd_rst     => rst,

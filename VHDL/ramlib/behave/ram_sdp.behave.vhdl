@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       ram_sdp.behave.vhdl
 --! @author     Fixitfetish
---! @date       12/Sep/2018
---! @version    0.20
+--! @date       13/Sep/2018
+--! @version    0.30
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -17,8 +17,10 @@ library ieee;
 
 architecture rtl of ram_sdp is
 
-  type RAM_type is ARRAY(integer range <>) of STD_LOGIC_VECTOR(DATA_WIDTH-1 downto 0);
-  signal RAM : RAM_type(0 to 2**ADDR_WIDTH-1) := (others => (others => '-'));
+  constant WR_BE_WIDTH : positive := WR_DATA_WIDTH/8;
+
+  type RAM_type is ARRAY(integer range <>) of STD_LOGIC_VECTOR(WR_DATA_WIDTH-1 downto 0);
+  signal RAM : RAM_type(0 to 2**ADDR_WIDTH-1) := (others => (others => '0'));
 
   type a_wr_addr is array(integer range <>) of unsigned(wr_addr'length-1 downto 0);
   signal wr_addr_q : a_wr_addr(WR_INPUT_REGS downto 1);
@@ -26,6 +28,9 @@ architecture rtl of ram_sdp is
   
   type a_wr_data is array(integer range <>) of std_logic_vector(wr_data'length-1 downto 0);
   signal wr_data_q : a_wr_data(WR_INPUT_REGS downto 1);
+
+  type a_wr_be is array(integer range <>) of std_logic_vector(WR_BE_WIDTH-1 downto 0);
+  signal wr_be_q : a_wr_be(WR_INPUT_REGS downto 1);
 
   type a_rd_addr is array(integer range <>) of unsigned(rd_addr'length-1 downto 0);
   signal rd_addr_q : a_rd_addr(RD_INPUT_REGS downto 1);
@@ -40,22 +45,45 @@ begin
 
   -- RAM write input register (at least one required)
   p_wr_in : process(wr_clk)
+    -- data bit mask according to byte enables
+    variable v_mask : std_logic_vector(WR_DATA_WIDTH-1 downto 0);
   begin
     if rising_edge(wr_clk) then
       if wr_rst='1' then
         wr_en_q <= (others=>'0');
         wr_addr_q <= (others=>(others=>'0'));
         wr_data_q <= (others=>(others=>'-'));
+        wr_be_q <= (others=>(others=>'0'));
       elsif wr_clk_en='1' then
         wr_en_q(WR_INPUT_REGS) <= wr_en;
-        wr_addr_q(WR_INPUT_REGS) <= unsigned(wr_addr);
+        wr_addr_q(WR_INPUT_REGS) <= resize(unsigned(wr_addr),ADDR_WIDTH);
         wr_data_q(WR_INPUT_REGS) <= wr_data;
+        -- byte enables
+        if WR_USE_BYTE_ENABLE then
+          wr_be_q(WR_INPUT_REGS) <= wr_be;
+        else
+          wr_be_q(WR_INPUT_REGS) <= (others=>'1');
+        end if;
+        -- input register pipeline
         for n in 1 to (WR_INPUT_REGS-1) loop
           wr_en_q(n) <= wr_en_q(n+1);
           wr_addr_q(n) <= wr_addr_q(n+1);
           wr_data_q(n) <= wr_data_q(n+1);
+          wr_be_q(n) <= wr_be_q(n+1);
         end loop;
-        RAM(to_integer(wr_addr_q(1))) <= wr_data_q(1);
+        -- byte enable mask
+        for i in 0 to WR_BE_WIDTH-1 loop
+          if wr_be_q(1)(i)='1' then
+            v_mask((i+1)*8-1 downto i*8) := x"FF"; 
+          else
+            v_mask((i+1)*8-1 downto i*8) := x"00"; 
+          end if;
+        end loop;
+        -- RAM access
+        if wr_en_q(1)='1' then
+          RAM(to_integer(wr_addr_q(1))) <=
+            (wr_data_q(1) and v_mask)  or  (RAM(to_integer(wr_addr_q(1))) and (not v_mask));
+        end if;
       end if;
     end if;
   end process;
@@ -70,7 +98,7 @@ begin
         rd_addr_q <= (others=>(others=>'0'));
       elsif rd_clk_en='1' then
         rd_en_q(RD_INPUT_REGS) <= rd_en;
-        rd_addr_q(RD_INPUT_REGS) <= unsigned(rd_addr);
+        rd_addr_q(RD_INPUT_REGS) <= resize(unsigned(rd_addr),ADDR_WIDTH);
         for n in 1 to (RD_INPUT_REGS-1) loop
           rd_addr_q(n) <= rd_addr_q(n+1);
           rd_en_q(n) <= rd_en_q(n+1);

@@ -252,7 +252,10 @@ begin
   i_cpl_ram : entity ramlib.ram_sdp
   generic map(
     ADDR_WIDTH => CPL_RAM_ADDR_WIDTH,
-    DATA_WIDTH => CPL_RAM_DATA_WIDTH,
+    WR_DATA_WIDTH => CPL_RAM_DATA_WIDTH,
+    RD_DATA_WIDTH => CPL_RAM_DATA_WIDTH,
+    WR_DEPTH => 2**CPL_RAM_ADDR_WIDTH,
+    WR_USE_BYTE_ENABLE => false,
     WR_INPUT_REGS => 1,
     RD_INPUT_REGS => 1,
     RD_OUTPUT_REGS => 1
@@ -263,6 +266,7 @@ begin
     wr_clk_en  => '1',
     wr_en      => cpl_ram_wr.addr_vld,
     wr_addr    => std_logic_vector(cpl_ram_wr.addr),
+    wr_be      => open, -- unused
     wr_data    => cpl_ram_wr.data,
     rd_clk     => clk,
     rd_rst     => rst,
