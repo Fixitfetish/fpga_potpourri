@@ -15,7 +15,7 @@ library ieee;
 
 --! @brief Behavioral model of the Simple Dual Port RAM. 
 
-architecture rtl of ram_sdp is
+architecture behave of ram_sdp is
 
   constant WR_BE_WIDTH : positive := WR_DATA_WIDTH/8;
 

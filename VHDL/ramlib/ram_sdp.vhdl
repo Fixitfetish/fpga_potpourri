@@ -13,7 +13,7 @@ library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
 
---! @brief Simple Dual Port RAM 
+--! @brief Simple Dual Port RAM
 
 entity ram_sdp is
   generic(
@@ -26,12 +26,16 @@ entity ram_sdp is
     WR_DEPTH           : positive;
     --! Use write port byte enables
     WR_USE_BYTE_ENABLE : boolean := false;
-    --! Write port input pipeline registers (at least one required!)
+    --! Write port input pipeline registers, preferably RAM internal (at least one required!)
     WR_INPUT_REGS      : positive := 1;
-    --! Read port input pipeline registers (at least one required!)
+    --! Read port input pipeline registers, preferably RAM internal (at least one required!)
     RD_INPUT_REGS      : positive := 1;
-    --! Read port output pipeline registers
-    RD_OUTPUT_REGS     : natural := 1
+    --! Read port output pipeline registers, preferably RAM internal
+    RD_OUTPUT_REGS     : natural := 1;
+    --! RAM primitive type ("dist", "block" or "ultra")
+    RAM_TYPE           : string := "block";
+    --! Initialization file (without file extension)
+    INIT_FILE          : string := ""
   );
   port(
     --! Write port clock
@@ -44,7 +48,7 @@ entity ram_sdp is
     wr_en      : in  std_logic := '0';
     --! Write port address
     wr_addr    : in  std_logic_vector(ADDR_WIDTH-1 downto 0);
-    --! Write port data byte enable (optional)
+    --! Write port data byte enable. Requires WR_USE_BYTE_ENABLE=true (optional)
     wr_be      : in  std_logic_vector(WR_DATA_WIDTH/8-1 downto 0) := (others=>'1');
     --! Write port data
     wr_data    : in  std_logic_vector(WR_DATA_WIDTH-1 downto 0);

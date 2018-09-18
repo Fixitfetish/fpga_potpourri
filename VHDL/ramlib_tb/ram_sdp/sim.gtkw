@@ -1,17 +1,17 @@
 [*]
 [*] GTKWave Analyzer v3.3.87 (w)1999-2017 BSI
-[*] Thu Sep 13 19:46:59 2018
+[*] Tue Sep 18 20:38:09 2018
 [*]
 [dumpfile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\ramlib_tb\ram_sdp\work\sim.vcd"
-[dumpfile_mtime] "Thu Sep 13 19:46:24 2018"
-[dumpfile_size] 32122
+[dumpfile_mtime] "Tue Sep 18 20:36:57 2018"
+[dumpfile_size] 43488
 [savefile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\ramlib_tb\ram_sdp\sim.gtkw"
 [timestart] 158200000
 [size] 1790 600
 [pos] -1 -1
 *-24.916897 268850000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [sst_width] 211
-[signals_width] 134
+[signals_width] 158
 [sst_expanded] 1
 [sst_vpaned_height] 154
 @28
@@ -22,9 +22,7 @@ wr_clk_en
 wr_en
 @22
 wr_addr[11:0]
-@23
 wr_be[3:0]
-@22
 wr_data[31:0]
 @28
 rd_clk_en
@@ -32,8 +30,12 @@ rd_en
 @22
 rd_addr[11:0]
 @28
-rd_data_en
+bh_rd_data_en
 @22
-rd_data[31:0]
+bh_rd_data[31:0]
+@28
+us_rd_data_en
+@23
+us_rd_data[31:0]
 [pattern_trace] 1
 [pattern_trace] 0
