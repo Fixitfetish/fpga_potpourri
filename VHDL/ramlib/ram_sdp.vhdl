@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       ram_sdp.vhdl
 --! @author     Fixitfetish
---! @date       13/Sep/2018
---! @version    0.30
+--! @date       19/Sep/2018
+--! @version    0.40
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -17,7 +17,6 @@ library ieee;
 
 entity ram_sdp is
   generic(
-    ADDR_WIDTH         : positive;
     --! Write port RAM data width
     WR_DATA_WIDTH      : positive;
     --! Read port RAM data width
@@ -47,7 +46,7 @@ entity ram_sdp is
     --! Write port enable
     wr_en      : in  std_logic := '0';
     --! Write port address
-    wr_addr    : in  std_logic_vector(ADDR_WIDTH-1 downto 0);
+    wr_addr    : in  std_logic_vector;
     --! Write port data byte enable. Requires WR_USE_BYTE_ENABLE=true (optional)
     wr_be      : in  std_logic_vector(WR_DATA_WIDTH/8-1 downto 0) := (others=>'1');
     --! Write port data
@@ -61,7 +60,7 @@ entity ram_sdp is
     --! Read port (address) enable
     rd_en      : in  std_logic := '0';
     --! Read port address
-    rd_addr    : in  std_logic_vector(ADDR_WIDTH-1 downto 0);
+    rd_addr    : in  std_logic_vector;
     --! Read port data
     rd_data    : out std_logic_vector(RD_DATA_WIDTH-1 downto 0);
     --! Read port data enable
@@ -73,9 +72,6 @@ begin
   -- pragma translate_off (Xilinx Vivado , Synopsys)
   assert (not (WR_USE_BYTE_ENABLE and (WR_DATA_WIDTH mod 8)/=0))
     report "Error " & ram_sdp'instance_name & ": When using byte enables the DATA_WIDTH must be multiple of 8."
-    severity failure;
-  assert (WR_DATA_WIDTH=RD_DATA_WIDTH)
-    report "Error " & ram_sdp'instance_name & ": Currently the write and read data width must be the same. TODO!"
     severity failure;
   -- synthesis translate_on (Altera Quartus)
   -- pragma translate_on (Xilinx Vivado , Synopsys)

@@ -17,7 +17,8 @@ architecture sim of ram_sdp_tb is
   signal clk : std_logic := '1';
   signal finish : std_logic := '0';
 
-  constant DATA_WIDTH : positive := 32;
+  constant WR_DATA_WIDTH : positive := 32;
+  constant RD_DATA_WIDTH : positive := 32;
   constant ADDR_WIDTH : positive := 12;
   constant WR_USE_BYTE_ENABLE : boolean := false;
   constant WR_INPUT_REGS      : positive := 4;
@@ -27,15 +28,18 @@ architecture sim of ram_sdp_tb is
   signal wr_clk_en  : std_logic := '1';
   signal wr_en      : std_logic := '0';
   signal wr_addr    : unsigned(ADDR_WIDTH-1 downto 0);
-  signal wr_data    : unsigned(DATA_WIDTH-1 downto 0);
-  signal wr_be      : std_logic_vector(DATA_WIDTH/8-1 downto 0) := (others=>'0');
+  signal wr_data    : unsigned(WR_DATA_WIDTH-1 downto 0);
+  signal wr_be      : std_logic_vector(WR_DATA_WIDTH/8-1 downto 0) := (others=>'0');
+  signal wr_addr_slv: std_logic_vector(ADDR_WIDTH-1 downto 0);
   
   signal rd_clk_en     : std_logic := '1';
   signal rd_en         : std_logic := '0';
   signal rd_addr       : unsigned(ADDR_WIDTH-1 downto 0);
-  signal bh_rd_data    : std_logic_vector(DATA_WIDTH-1 downto 0);
+  signal rd_addr_slv   : std_logic_vector(ADDR_WIDTH-1 downto 0);
+
+  signal bh_rd_data    : std_logic_vector(RD_DATA_WIDTH-1 downto 0);
   signal bh_rd_data_en : std_logic;
-  signal us_rd_data    : std_logic_vector(DATA_WIDTH-1 downto 0);
+  signal us_rd_data    : std_logic_vector(RD_DATA_WIDTH-1 downto 0);
   signal us_rd_data_en : std_logic;
 
 begin
@@ -82,59 +86,63 @@ begin
     end if;
   end process;
 
+  wr_addr_slv <= std_logic_vector(wr_addr);
+  rd_addr_slv <= std_logic_vector(rd_addr);
 
   i_behave : entity ramlib.ram_sdp(behave)
   generic map(
-    ADDR_WIDTH         => ADDR_WIDTH,
-    WR_DATA_WIDTH      => DATA_WIDTH,
-    RD_DATA_WIDTH      => DATA_WIDTH,
+    WR_DATA_WIDTH      => WR_DATA_WIDTH,
+    RD_DATA_WIDTH      => RD_DATA_WIDTH,
     WR_DEPTH           => 2**ADDR_WIDTH,
     WR_USE_BYTE_ENABLE => WR_USE_BYTE_ENABLE,
     WR_INPUT_REGS      => WR_INPUT_REGS,
     RD_INPUT_REGS      => RD_INPUT_REGS,
-    RD_OUTPUT_REGS     => RD_OUTPUT_REGS
+    RD_OUTPUT_REGS     => RD_OUTPUT_REGS,
+    RAM_TYPE           => open,
+    INIT_FILE          => open
   )
   port map(
     wr_clk     => clk,
     wr_rst     => rst,
-    wr_clk_en  => '1',
+    wr_clk_en  => wr_clk_en,
     wr_en      => wr_en,
-    wr_addr    => std_logic_vector(wr_addr),
+    wr_addr    => wr_addr_slv,
     wr_be      => wr_be,
     wr_data    => std_logic_vector(wr_data),
     rd_clk     => clk,
     rd_rst     => rst,
-    rd_clk_en  => '1',
+    rd_clk_en  => rd_clk_en,
     rd_en      => rd_en,
-    rd_addr    => std_logic_vector(rd_addr),
+    rd_addr    => rd_addr_slv,
     rd_data    => bh_rd_data,
     rd_data_en => bh_rd_data_en
   );
 
   i_ultrascale : entity ramlib.ram_sdp(ultrascale)
   generic map(
-    ADDR_WIDTH         => ADDR_WIDTH,
-    WR_DATA_WIDTH      => DATA_WIDTH,
-    RD_DATA_WIDTH      => DATA_WIDTH,
-    WR_DEPTH           => 2**ADDR_WIDTH,
+    WR_DATA_WIDTH      => WR_DATA_WIDTH,
+    RD_DATA_WIDTH      => RD_DATA_WIDTH,
+    WR_DEPTH           => 2**10,
     WR_USE_BYTE_ENABLE => WR_USE_BYTE_ENABLE,
     WR_INPUT_REGS      => WR_INPUT_REGS,
     RD_INPUT_REGS      => RD_INPUT_REGS,
-    RD_OUTPUT_REGS     => RD_OUTPUT_REGS
+    RD_OUTPUT_REGS     => RD_OUTPUT_REGS,
+    RAM_TYPE           => open,
+    INIT_FILE          => open
   )
   port map(
     wr_clk     => clk,
     wr_rst     => rst,
-    wr_clk_en  => '1',
+    wr_clk_en  => wr_clk_en,
     wr_en      => wr_en,
-    wr_addr    => std_logic_vector(wr_addr),
+    wr_addr    => wr_addr_slv,
     wr_be      => wr_be,
     wr_data    => std_logic_vector(wr_data),
     rd_clk     => clk,
     rd_rst     => rst,
-    rd_clk_en  => '1',
+    rd_clk_en  => rd_clk_en,
     rd_en      => rd_en,
-    rd_addr    => std_logic_vector(rd_addr),
+    rd_addr    => rd_addr_slv,
     rd_data    => us_rd_data,
     rd_data_en => us_rd_data_en
   );

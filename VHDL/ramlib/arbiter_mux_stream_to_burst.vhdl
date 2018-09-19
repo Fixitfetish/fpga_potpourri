@@ -236,7 +236,8 @@ architecture rtl of arbiter_mux_stream_to_burst is
   end record;
   signal req_ram_wr : t_req_ram;
   signal req_ram_rd : t_req_ram;
-
+  signal req_ram_wr_addr : std_logic_vector(REQ_RAM_ADDR_WIDTH-1 downto 0); -- work-around
+  signal req_ram_rd_addr : std_logic_vector(REQ_RAM_ADDR_WIDTH-1 downto 0); -- work-around
   
   function get_next(pending:std_logic_vector) return std_logic_vector is
     variable res : std_logic_vector(NUM_PORTS-1 downto 0);
@@ -573,30 +574,36 @@ begin
   req_ram_rd.addr(REQ_RAM_ADDR_WIDTH-1 downto FIFO_DEPTH_LOG2) <= rd(0).sel;
   req_ram_rd.addr(FIFO_DEPTH_LOG2-1 downto 0) <= req_fifo(to_integer(rd(0).sel)).rd_ptr;
 
+  req_ram_wr_addr <= std_logic_vector(req_ram_wr.addr);
+  req_ram_rd_addr <= std_logic_vector(req_ram_rd.addr);
+  
   i_req_ram : entity ramlib.ram_sdp
     generic map(
-    ADDR_WIDTH => REQ_RAM_ADDR_WIDTH,
     WR_DATA_WIDTH => REQ_RAM_DATA_WIDTH,
     RD_DATA_WIDTH => REQ_RAM_DATA_WIDTH,
     WR_DEPTH => 2**REQ_RAM_ADDR_WIDTH,
     WR_USE_BYTE_ENABLE => false,
     WR_INPUT_REGS => 1,
     RD_INPUT_REGS => 1,
-    RD_OUTPUT_REGS => 1
+    RD_OUTPUT_REGS => 1,
+    RAM_TYPE => open,
+    INIT_FILE => open
   )
   port map(
     wr_clk     => clk,
     wr_rst     => rst,
     wr_clk_en  => '1',
     wr_en      => req_ram_wr.addr_vld,
-    wr_addr    => std_logic_vector(req_ram_wr.addr),
+--    wr_addr    => std_logic_vector(req_ram_wr.addr),
+    wr_addr    => req_ram_wr_addr,
     wr_be      => open, -- unused
     wr_data    => req_ram_wr.data,
     rd_clk     => clk,
     rd_rst     => rst,
     rd_clk_en  => '1',
     rd_en      => req_ram_rd.addr_vld,
-    rd_addr    => std_logic_vector(req_ram_rd.addr),
+--    rd_addr    => std_logic_vector(req_ram_rd.addr),
+    rd_addr    => req_ram_rd_addr,
     rd_data    => req_ram_rd.data,
     rd_data_en => req_ram_rd.data_vld
   );

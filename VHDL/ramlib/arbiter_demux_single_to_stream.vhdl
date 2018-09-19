@@ -251,14 +251,15 @@ begin
 
   i_cpl_ram : entity ramlib.ram_sdp
   generic map(
-    ADDR_WIDTH => CPL_RAM_ADDR_WIDTH,
     WR_DATA_WIDTH => CPL_RAM_DATA_WIDTH,
     RD_DATA_WIDTH => CPL_RAM_DATA_WIDTH,
     WR_DEPTH => 2**CPL_RAM_ADDR_WIDTH,
     WR_USE_BYTE_ENABLE => false,
     WR_INPUT_REGS => 1,
     RD_INPUT_REGS => 1,
-    RD_OUTPUT_REGS => 1
+    RD_OUTPUT_REGS => 1,
+    RAM_TYPE => open,
+    INIT_FILE => open
   )
   port map(
     wr_clk     => clk,

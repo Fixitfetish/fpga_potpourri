@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       ram_sdp.ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       15/Sep/2018
---! @version    0.10
+--! @date       19/Sep/2018
+--! @version    0.20
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -11,6 +11,8 @@
 -------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
+library baselib;
+  use baselib.ieee_extension.all;
 
 --library xpm;
 --  use xpm.vcomponents.all;
@@ -42,7 +44,7 @@ architecture ultrascale of ram_sdp is
   function RAM_INPUT_REGS return positive is
   begin
     -- dependent on the RAM type always 1 or 2 input registers are required.
-    if RAM_TYPE="ultra" then return 2; else return 1; end if;
+    if (RAM_TYPE="ultra" and RD_INPUT_REGS>=2) then return 2; else return 1; end if;
   end function;
 
   --! Number of RAM internal output registers (read port only)
@@ -69,22 +71,25 @@ architecture ultrascale of ram_sdp is
   --! overall read latency
   constant RD_LATENCY : natural := RD_INPUT_REGS + RD_OUTPUT_REGS;
   
+  --! write address width
+  constant WR_ADDR_WIDTH : positive := log2ceil(WR_DEPTH);
+
+  --! derive read address width from data widths and write address width
+  function RD_ADDR_WIDTH return positive is
+  begin
+    if RD_DATA_WIDTH<WR_DATA_WIDTH then
+      return (WR_ADDR_WIDTH + log2ceil(WR_DATA_WIDTH/RD_DATA_WIDTH));
+    elsif RD_DATA_WIDTH>WR_DATA_WIDTH then
+      return (WR_ADDR_WIDTH - log2ceil(RD_DATA_WIDTH/WR_DATA_WIDTH));
+    else
+      return WR_ADDR_WIDTH;
+    end if;
+  end function;
+
   --! clocking mode for macro xpm_memory_sdpram
   function CLOCKING_MODE return string is
   begin
     if RAM_TYPE="ultra" then return "common_clock"; else return "independent_clock"; end if;
-  end function;
-
-  --! write mode for macro xpm_memory_sdpram
-  function WRITE_MODE return string is
-  begin
-    if RAM_TYPE = "block" then
-      return "write_first";
-    elsif RAM_TYPE = "dist" then
-      return "read_first";
-    else
-      return "no_change";
-    end if;
   end function;
 
   --! XILINX UltraScale+ specific initialization file for macro xpm_memory_sdpram
@@ -102,7 +107,7 @@ architecture ultrascale of ram_sdp is
   --! Write/byte enable width (write port only)
   constant WE_WIDTH : positive := (WR_DATA_WIDTH / BYTE_WRITE_WIDTH);
 
-  type t_ram_addr_a is array(integer range <>) of std_logic_vector(ADDR_WIDTH-1 downto 0);
+  type t_ram_addr_a is array(integer range <>) of std_logic_vector(WR_ADDR_WIDTH-1 downto 0);
   -- write address input pipeline
   signal ram_addr_a  : t_ram_addr_a(WR_INPUT_REGS_LOGIC downto 0);
 
@@ -114,7 +119,7 @@ architecture ultrascale of ram_sdp is
   -- write enable input pipeline
   signal ram_we_a : t_ram_we_a(WR_INPUT_REGS_LOGIC downto 0);
   
-  type t_ram_addr_b is array(integer range <>) of std_logic_vector(ADDR_WIDTH-1 downto 0);
+  type t_ram_addr_b is array(integer range <>) of std_logic_vector(RD_ADDR_WIDTH-1 downto 0);
   -- read address input pipeline
   signal ram_addr_b  : t_ram_addr_b(RD_INPUT_REGS_LOGIC downto 0);
 
@@ -127,7 +132,9 @@ architecture ultrascale of ram_sdp is
 
 begin
 
-  ram_addr_a(0) <= wr_addr;
+  -- resize input write address to actually needed address width
+  ram_addr_a(0) <= std_logic_vector(resize(unsigned(wr_addr),WR_ADDR_WIDTH));
+
   ram_din_a(0) <= wr_data;
   
   g_be_off : if not WR_USE_BYTE_ENABLE generate
@@ -191,13 +198,13 @@ begin
 --    -- Port A module generics
 --    WRITE_DATA_WIDTH_A      => WR_DATA_WIDTH, --positive integer
 --    BYTE_WRITE_WIDTH_A      => BYTE_WRITE_WIDTH, --integer; 8, 9, or WRITE_DATA_WIDTH_A value
---    ADDR_WIDTH_A            => 6  , --positive integer
+--    ADDR_WIDTH_A            => WR_ADDR_WIDTH, --positive integer
 --    -- Port B module generics
 --    READ_DATA_WIDTH_B       => RD_DATA_WIDTH, --positive integer
---    ADDR_WIDTH_B            => 6 , --positive integer
+--    ADDR_WIDTH_B            => RD_ADDR_WIDTH, --positive integer
 --    READ_RESET_VALUE_B      => "0",
 --    READ_LATENCY_B          => RAM_INPUT_REGS + RAM_OUTPUT_REGS,
---    WRITE_MODE_B            => WRITE_MODE
+--    WRITE_MODE_B            => "read_first"
 --  )
 --  port map(
 --    -- Common module ports
@@ -221,7 +228,8 @@ begin
 --    dbiterrb       => open
 --  );
 
-  ram_addr_b(0) <= rd_addr;
+  -- resize input read address to actually needed address width
+  ram_addr_b(0) <= std_logic_vector(resize(unsigned(rd_addr),RD_ADDR_WIDTH));
 
   g_rd_addr : if RD_INPUT_REGS_LOGIC>=1 generate
     g_loop : for n in 1 to RD_INPUT_REGS_LOGIC generate
