@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       arbiter_demux_single_to_stream.vhdl
 --! @author     Fixitfetish
---! @date       09/Jun/2018
---! @version    0.10
+--! @date       22/Sep/2018
+--! @version    0.20
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -138,6 +138,8 @@ architecture rtl of arbiter_demux_single_to_stream is
   end record;
   signal cpl_ram_wr : r_cpl_ram;
   signal cpl_ram_rd : r_cpl_ram;
+  signal cpl_ram_wr_addr : std_logic_vector(CPL_RAM_ADDR_WIDTH-1 downto 0); -- GHDL work-around
+  signal cpl_ram_rd_addr : std_logic_vector(CPL_RAM_ADDR_WIDTH-1 downto 0); -- GHDL work-around
 
   type a_cpl_ram_rd_ena is array(integer range <>) of std_logic_vector(NUM_PORTS-1 downto 0);
   signal cpl_ram_rd_ena : a_cpl_ram_rd_ena(0 to CPL_RAM_READ_DELAY);
@@ -171,11 +173,9 @@ architecture rtl of arbiter_demux_single_to_stream is
 
 
   -- GTKWave work-around
-  signal cpl_ram_wr_addr     : unsigned(CPL_RAM_ADDR_WIDTH-1 downto 0);
   signal cpl_ram_wr_addr_vld : std_logic;
   signal cpl_ram_wr_data     : std_logic_vector(CPL_RAM_DATA_WIDTH-1 downto 0);
   signal cpl_ram_wr_data_vld : std_logic;
-  signal cpl_ram_rd_addr     : unsigned(CPL_RAM_ADDR_WIDTH-1 downto 0);
   signal cpl_ram_rd_addr_vld : std_logic;
   signal cpl_ram_rd_data     : std_logic_vector(CPL_RAM_DATA_WIDTH-1 downto 0);
   signal cpl_ram_rd_data_vld : std_logic;
@@ -183,11 +183,9 @@ architecture rtl of arbiter_demux_single_to_stream is
 begin
 
   -- GTKWave work-around
-  cpl_ram_wr_addr     <= cpl_ram_wr.addr;
   cpl_ram_wr_addr_vld <= cpl_ram_wr.addr_vld;
   cpl_ram_wr_data     <= cpl_ram_wr.data;
   cpl_ram_wr_data_vld <= cpl_ram_wr.data_vld;
-  cpl_ram_rd_addr     <= cpl_ram_rd.addr;
   cpl_ram_rd_addr_vld <= cpl_ram_rd.addr_vld;
   cpl_ram_rd_data     <= cpl_ram_rd.data;
   cpl_ram_rd_data_vld <= cpl_ram_rd.data_vld;
@@ -249,6 +247,9 @@ begin
 
   end generate;
 
+  cpl_ram_wr_addr <= std_logic_vector(cpl_ram_wr_addr); -- GHDL work-around
+  cpl_ram_rd_addr <= std_logic_vector(cpl_ram_rd.addr); -- GHDL work-around
+
   i_cpl_ram : entity ramlib.ram_sdp
   generic map(
     WR_DATA_WIDTH => CPL_RAM_DATA_WIDTH,
@@ -266,58 +267,19 @@ begin
     wr_rst     => rst,
     wr_clk_en  => '1',
     wr_en      => cpl_ram_wr.addr_vld,
-    wr_addr    => std_logic_vector(cpl_ram_wr.addr),
+--    wr_addr    => std_logic_vector(cpl_ram_wr.addr),
+    wr_addr    => cpl_ram_wr_addr, -- GHDL work-around
     wr_be      => open, -- unused
     wr_data    => cpl_ram_wr.data,
     rd_clk     => clk,
     rd_rst     => rst,
     rd_clk_en  => '1',
     rd_en      => cpl_ram_rd.addr_vld,
-    rd_addr    => std_logic_vector(cpl_ram_rd.addr),
+--    rd_addr    => std_logic_vector(cpl_ram_rd.addr),
+    rd_addr    => cpl_ram_rd_addr, -- GHDL work-around
     rd_data    => cpl_ram_rd.data,
     rd_data_en => cpl_ram_rd.data_vld
   );
-
---  -- TODO : Simple dual-port RAM would be sufficient here and might save some RAM blocks.
---  i_cpl_ram : entity ramlib.ram_tdp
---    generic map(
---      DATA_WIDTH_A      => CPL_RAM_DATA_WIDTH, 
---      DATA_WIDTH_B      => CPL_RAM_DATA_WIDTH,
---      ADDR_WIDTH_A      => CPL_RAM_ADDR_WIDTH,
---      ADDR_WIDTH_B      => CPL_RAM_ADDR_WIDTH,
---      DEPTH_A           => 2**CPL_RAM_ADDR_WIDTH,
---      DEPTH_B           => 2**CPL_RAM_ADDR_WIDTH,
---      INPUT_REGS_A      => 1,
---      INPUT_REGS_B      => 1,
---      OUTPUT_REGS_A     => 1,
---      OUTPUT_REGS_B     => 1,
---      USE_BYTE_ENABLE_A => false,
---      USE_BYTE_ENABLE_B => false,
---      RAM_TYPE          => "block",
---      INIT_FILE         => open
---    )
---    port map(
---      clk_a      => clk,
---      rst_a      => rst,
---      ce_a       => '1',
---      we_a       => cpl_ram_wr.data_vld,
---      be_a       => open, -- unused
---      addr_a     => std_logic_vector(cpl_ram_wr.addr),
---      addr_vld_a => cpl_ram_wr.addr_vld,
---      din_a      => cpl_ram_wr.data,
---      dout_a     => open, -- unused
---      dout_vld_a => open, -- unused
---      clk_b      => clk,
---      rst_b      => rst,
---      ce_b       => '1',
---      we_b       => '0', -- read only
---      be_b       => open, -- unused
---      addr_b     => std_logic_vector(cpl_ram_rd.addr),
---      addr_vld_b => cpl_ram_rd.addr_vld,
---      din_b      => open, -- unused
---      dout_b     => cpl_ram_rd.data,
---      dout_vld_b => cpl_ram_rd.data_vld
---    );
 
   p_output_arbiter : process(clk)
     type a_rd_ptr is array(integer range <>) of unsigned(FIFO_DEPTH_LOG2-1 downto 0);

@@ -25,13 +25,23 @@ architecture behave of ram_sdp is
   --! write address width
   constant WR_ADDR_WIDTH : positive := log2ceil(WR_DEPTH);
 
+  function DATA_WIDTH_RATIO return positive is
+  begin
+    if RD_DATA_WIDTH<WR_DATA_WIDTH then
+      return WR_DATA_WIDTH/RD_DATA_WIDTH;
+    else
+      return RD_DATA_WIDTH/WR_DATA_WIDTH;
+    end if;
+  end function;
+  constant DATA_WIDTH_RATIO_LOG2 : positive := log2ceil(DATA_WIDTH_RATIO);
+
   --! derive read address width from data widths and write address width
   function RD_ADDR_WIDTH return positive is
   begin
     if RD_DATA_WIDTH<WR_DATA_WIDTH then
-      return (WR_ADDR_WIDTH + log2ceil(WR_DATA_WIDTH/RD_DATA_WIDTH));
+      return (WR_ADDR_WIDTH + DATA_WIDTH_RATIO_LOG2);
     elsif RD_DATA_WIDTH>WR_DATA_WIDTH then
-      return (WR_ADDR_WIDTH - log2ceil(RD_DATA_WIDTH/WR_DATA_WIDTH));
+      return (WR_ADDR_WIDTH - DATA_WIDTH_RATIO_LOG2);
     else
       return WR_ADDR_WIDTH;
     end if;
@@ -39,6 +49,7 @@ architecture behave of ram_sdp is
 
   type t_RAM is ARRAY(integer range <>) of STD_LOGIC_VECTOR(WR_DATA_WIDTH-1 downto 0);
   signal RAM : t_RAM(0 to WR_DEPTH-1) := (others => (others => '0'));
+  signal ram_d0, ram_d1 : unsigned(WR_DATA_WIDTH-1 downto 0);
 
   type a_wr_addr is array(integer range <>) of unsigned(wr_addr'length-1 downto 0);
   signal wr_addr_q : a_wr_addr(WR_INPUT_REGS downto 1);
@@ -50,25 +61,16 @@ architecture behave of ram_sdp is
   type a_wr_be is array(integer range <>) of std_logic_vector(WR_BE_WIDTH-1 downto 0);
   signal wr_be_q : a_wr_be(WR_INPUT_REGS downto 1);
 
-  type a_rd_addr is array(integer range <>) of unsigned(rd_addr'length-1 downto 0);
+  type a_rd_addr is array(integer range <>) of unsigned(RD_ADDR_WIDTH-1 downto 0);
   signal rd_addr_q : a_rd_addr(RD_INPUT_REGS downto 1);
   signal rd_en_q : std_logic_vector(RD_INPUT_REGS downto 1);
   
-  type a_rd_data is array(integer range <>) of std_logic_vector(rd_data'length-1 downto 0);
+  type a_rd_data is array(integer range <>) of std_logic_vector(RD_DATA_WIDTH-1 downto 0);
   signal rd_data_q : a_rd_data(0 to RD_OUTPUT_REGS);
   signal rd_data_en_q : std_logic_vector(0 to RD_OUTPUT_REGS);
   
   
 begin
-
-  -- synthesis translate_off (Altera Quartus)
-  -- pragma translate_off (Xilinx Vivado , Synopsys)
-  assert (WR_DATA_WIDTH=RD_DATA_WIDTH)
-    report "Error " & ram_sdp'instance_name & ": Currently the write and read data width must be the same. TODO!"
-    severity failure;
-  -- synthesis translate_on (Altera Quartus)
-  -- pragma translate_on (Xilinx Vivado , Synopsys)
-
 
   -- RAM write input register (at least one required)
   p_wr_in : process(wr_clk)
@@ -134,32 +136,41 @@ begin
     end if;
   end process;
 
-  g_rd_out : if RD_OUTPUT_REGS=0 generate 
-    rd_data <= RAM(to_integer(rd_addr_q(1)));
-    rd_data_en <= rd_en_q(1); 
+  g_rd_equal : if WR_DATA_WIDTH=RD_DATA_WIDTH generate
+    rd_data_q(0) <= RAM(to_integer(rd_addr_q(1)));
   end generate;
 
-  g_rd_out_reg : if RD_OUTPUT_REGS>=1 generate
+  g_rd_less : if WR_DATA_WIDTH>RD_DATA_WIDTH generate
+    ram_d0 <= unsigned(RAM(to_integer(rd_addr_q(1)(rd_addr_q(1)'high downto DATA_WIDTH_RATIO_LOG2))));
+    ram_d1 <= shift_right(ram_d0,RD_DATA_WIDTH*to_integer(rd_addr_q(1)(DATA_WIDTH_RATIO_LOG2-1 downto 0)));
+    rd_data_q(0) <= std_logic_vector(ram_d1(RD_DATA_WIDTH-1 downto 0));
+  end generate;
+
+  g_rd_more : if WR_DATA_WIDTH<RD_DATA_WIDTH generate
+    gloop : for n in 0 to DATA_WIDTH_RATIO-1 generate
+      rd_data_q(0)((n+1)*WR_DATA_WIDTH-1 downto n*WR_DATA_WIDTH) <= RAM(DATA_WIDTH_RATIO*to_integer(rd_addr_q(1))+n);
+    end generate;
+  end generate;
+
+  rd_data_en_q(0) <= rd_en_q(1);
+
+  g_rd_out_reg : for n in 1 to RD_OUTPUT_REGS generate
   begin
-    p_read : process(rd_clk)
+    process(rd_clk)
     begin
       if rising_edge(rd_clk) then
         if rd_rst='1' then
-          rd_data_en_q <= (others=>'0');
-          rd_data_q <= (others=>(others=>'-'));
+          rd_data_en_q(n) <= '0';
+          rd_data_q(n) <= (others=>'-');
         elsif rd_clk_en='1' then
-          rd_data_en_q(1) <= rd_en_q(1);
-          rd_data_q(1) <= RAM(to_integer(rd_addr_q(1)));
-          for n in RD_OUTPUT_REGS downto 2 loop
-            rd_data_en_q(n) <= rd_data_en_q(n-1);
-            rd_data_q(n) <= rd_data_q(n-1);
-          end loop;
+          rd_data_en_q(n) <= rd_data_en_q(n-1);
+          rd_data_q(n) <= rd_data_q(n-1);
         end if;
       end if;
     end process;
-    rd_data <= rd_data_q(RD_OUTPUT_REGS);
-    rd_data_en <= rd_data_en_q(RD_OUTPUT_REGS);
   end generate;
 
+  rd_data <= rd_data_q(RD_OUTPUT_REGS);
+  rd_data_en <= rd_data_en_q(RD_OUTPUT_REGS);
   
 end architecture;

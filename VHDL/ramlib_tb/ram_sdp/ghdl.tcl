@@ -15,7 +15,7 @@ puts "--------------------------------------------------------------------------
 puts "INFO: RAMLIB"
 source ../../ramlib/_filelist.tcl
 source ../../ramlib/behave/_filelist.tcl
-source ../../ramlib/ultrascale/_filelist.tcl
+#source ../../ramlib/ultrascale/_filelist.tcl
 compile $LIB $filelist
 
 puts "--------------------------------------------------------------------------"

@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       arbiter_mux_stream_to_burst.vhdl
 --! @author     Fixitfetish
---! @date       10/Sep/2018
---! @version    0.70
+--! @date       22/Sep/2018
+--! @version    0.80
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -236,8 +236,8 @@ architecture rtl of arbiter_mux_stream_to_burst is
   end record;
   signal req_ram_wr : t_req_ram;
   signal req_ram_rd : t_req_ram;
-  signal req_ram_wr_addr : std_logic_vector(REQ_RAM_ADDR_WIDTH-1 downto 0); -- work-around
-  signal req_ram_rd_addr : std_logic_vector(REQ_RAM_ADDR_WIDTH-1 downto 0); -- work-around
+  signal req_ram_wr_addr : std_logic_vector(REQ_RAM_ADDR_WIDTH-1 downto 0); -- GHDL work-around
+  signal req_ram_rd_addr : std_logic_vector(REQ_RAM_ADDR_WIDTH-1 downto 0); -- GHDL work-around
   
   function get_next(pending:std_logic_vector) return std_logic_vector is
     variable res : std_logic_vector(NUM_PORTS-1 downto 0);
@@ -574,8 +574,8 @@ begin
   req_ram_rd.addr(REQ_RAM_ADDR_WIDTH-1 downto FIFO_DEPTH_LOG2) <= rd(0).sel;
   req_ram_rd.addr(FIFO_DEPTH_LOG2-1 downto 0) <= req_fifo(to_integer(rd(0).sel)).rd_ptr;
 
-  req_ram_wr_addr <= std_logic_vector(req_ram_wr.addr);
-  req_ram_rd_addr <= std_logic_vector(req_ram_rd.addr);
+  req_ram_wr_addr <= std_logic_vector(req_ram_wr.addr); -- GHDL work-around
+  req_ram_rd_addr <= std_logic_vector(req_ram_rd.addr); -- GHDL work-around
   
   i_req_ram : entity ramlib.ram_sdp
     generic map(
@@ -595,7 +595,7 @@ begin
     wr_clk_en  => '1',
     wr_en      => req_ram_wr.addr_vld,
 --    wr_addr    => std_logic_vector(req_ram_wr.addr),
-    wr_addr    => req_ram_wr_addr,
+    wr_addr    => req_ram_wr_addr, -- GHDL work-around
     wr_be      => open, -- unused
     wr_data    => req_ram_wr.data,
     rd_clk     => clk,
@@ -603,7 +603,7 @@ begin
     rd_clk_en  => '1',
     rd_en      => req_ram_rd.addr_vld,
 --    rd_addr    => std_logic_vector(req_ram_rd.addr),
-    rd_addr    => req_ram_rd_addr,
+    rd_addr    => req_ram_rd_addr, -- GHDL work-around
     rd_data    => req_ram_rd.data,
     rd_data_en => req_ram_rd.data_vld
   );

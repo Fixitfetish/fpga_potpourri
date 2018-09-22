@@ -30,6 +30,7 @@ architecture sim of ram_sdp_tb is
   signal wr_addr    : unsigned(ADDR_WIDTH-1 downto 0);
   signal wr_data    : unsigned(WR_DATA_WIDTH-1 downto 0);
   signal wr_be      : std_logic_vector(WR_DATA_WIDTH/8-1 downto 0) := (others=>'0');
+
   signal wr_addr_slv: std_logic_vector(ADDR_WIDTH-1 downto 0);
   
   signal rd_clk_en     : std_logic := '1';
@@ -118,34 +119,34 @@ begin
     rd_data_en => bh_rd_data_en
   );
 
-  i_ultrascale : entity ramlib.ram_sdp(ultrascale)
-  generic map(
-    WR_DATA_WIDTH      => WR_DATA_WIDTH,
-    RD_DATA_WIDTH      => RD_DATA_WIDTH,
-    WR_DEPTH           => 2**10,
-    WR_USE_BYTE_ENABLE => WR_USE_BYTE_ENABLE,
-    WR_INPUT_REGS      => WR_INPUT_REGS,
-    RD_INPUT_REGS      => RD_INPUT_REGS,
-    RD_OUTPUT_REGS     => RD_OUTPUT_REGS,
-    RAM_TYPE           => open,
-    INIT_FILE          => open
-  )
-  port map(
-    wr_clk     => clk,
-    wr_rst     => rst,
-    wr_clk_en  => wr_clk_en,
-    wr_en      => wr_en,
-    wr_addr    => wr_addr_slv,
-    wr_be      => wr_be,
-    wr_data    => std_logic_vector(wr_data),
-    rd_clk     => clk,
-    rd_rst     => rst,
-    rd_clk_en  => rd_clk_en,
-    rd_en      => rd_en,
-    rd_addr    => rd_addr_slv,
-    rd_data    => us_rd_data,
-    rd_data_en => us_rd_data_en
-  );
+--  i_ultrascale : entity ramlib.ram_sdp(ultrascale)
+--  generic map(
+--    WR_DATA_WIDTH      => WR_DATA_WIDTH,
+--    RD_DATA_WIDTH      => RD_DATA_WIDTH,
+--    WR_DEPTH           => 2**10,
+--    WR_USE_BYTE_ENABLE => WR_USE_BYTE_ENABLE,
+--    WR_INPUT_REGS      => WR_INPUT_REGS,
+--    RD_INPUT_REGS      => RD_INPUT_REGS,
+--    RD_OUTPUT_REGS     => RD_OUTPUT_REGS,
+--    RAM_TYPE           => open,
+--    INIT_FILE          => open
+--  )
+--  port map(
+--    wr_clk     => clk,
+--    wr_rst     => rst,
+--    wr_clk_en  => wr_clk_en,
+--    wr_en      => wr_en,
+--    wr_addr    => wr_addr_slv,
+--    wr_be      => wr_be,
+--    wr_data    => std_logic_vector(wr_data),
+--    rd_clk     => clk,
+--    rd_rst     => rst,
+--    rd_clk_en  => rd_clk_en,
+--    rd_en      => rd_en,
+--    rd_addr    => rd_addr_slv,
+--    rd_data    => us_rd_data,
+--    rd_data_en => us_rd_data_en
+--  );
 
 
 
@@ -160,7 +161,7 @@ begin
     wait until rising_edge(clk);
 
     wr_en <= '1';
-    for n in 1 to 4 loop
+    for n in 1 to 6 loop
       wait until rising_edge(clk);
     end loop;
     
