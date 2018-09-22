@@ -608,48 +608,6 @@ begin
     rd_data_en => req_ram_rd.data_vld
   );
   
-
---  -- TODO : Simple dual-port RAM would be sufficient here and might save some RAM blocks.
---  i_req_ram : entity ramlib.ram_tdp
---    generic map(
---      DATA_WIDTH_A      => REQ_RAM_DATA_WIDTH, 
---      DATA_WIDTH_B      => REQ_RAM_DATA_WIDTH,
---      ADDR_WIDTH_A      => REQ_RAM_ADDR_WIDTH,
---      ADDR_WIDTH_B      => REQ_RAM_ADDR_WIDTH,
---      DEPTH_A           => 2**REQ_RAM_ADDR_WIDTH,
---      DEPTH_B           => 2**REQ_RAM_ADDR_WIDTH,
---      INPUT_REGS_A      => 1,
---      INPUT_REGS_B      => 1,
---      OUTPUT_REGS_A     => 1,
---      OUTPUT_REGS_B     => 1,
---      USE_BYTE_ENABLE_A => false,
---      USE_BYTE_ENABLE_B => false,
---      RAM_TYPE          => "block",
---      INIT_FILE         => open
---    )
---    port map(
---      clk_a      => clk,
---      rst_a      => rst,
---      ce_a       => '1',
---      we_a       => req_ram_wr.data_vld,
---      be_a       => open, -- unused
---      addr_a     => std_logic_vector(req_ram_wr.addr),
---      addr_vld_a => req_ram_wr.addr_vld,
---      din_a      => req_ram_wr.data,
---      dout_a     => open, -- unused
---      dout_vld_a => open, -- unused
---      clk_b      => clk,
---      rst_b      => rst,
---      ce_b       => '1',
---      we_b       => '0', -- read only
---      be_b       => open, -- unused
---      addr_b     => std_logic_vector(req_ram_rd.addr),
---      addr_vld_b => req_ram_rd.addr_vld,
---      din_b      => open, -- unused
---      dout_b     => req_ram_rd.data,
---      dout_vld_b => req_ram_rd.data_vld
---    );
-
   end generate;
   
 end architecture;
