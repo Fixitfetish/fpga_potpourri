@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       ram_sdp.behave.vhdl
 --! @author     Fixitfetish
---! @date       19/Sep/2018
---! @version    0.40
+--! @date       22/Sep/2018
+--! @version    0.50
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
