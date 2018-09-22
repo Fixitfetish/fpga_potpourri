@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       ram_sdp.ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       19/Sep/2018
---! @version    0.20
+--! @date       22/Sep/2018
+--! @version    0.30
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -14,8 +14,8 @@ library ieee;
 library baselib;
   use baselib.ieee_extension.all;
 
---library xpm;
---  use xpm.vcomponents.all;
+library xpm;
+  use xpm.vcomponents.all;
 
 --! @brief Xilinx UltraScale-Plus specific implementation of the Simple Dual Port RAM.
 --! 
@@ -41,10 +41,10 @@ architecture ultrascale of ram_sdp is
   end function;
 
   --! number of RAM internal input registers (write and read port)
-  function RAM_INPUT_REGS return positive is
+  function RAM_INPUT_REGS(iregs:positive) return positive is
   begin
-    -- dependent on the RAM type always 1 or 2 input registers are required.
-    if (RAM_TYPE="ultra" and RD_INPUT_REGS>=2) then return 2; else return 1; end if;
+    -- dependent on the RAM type 1 or 2 input registers are possible.
+    if (RAM_TYPE="ultra" and iregs>=2) then return 2; else return 1; end if;
   end function;
 
   --! Number of RAM internal output registers (read port only)
@@ -60,16 +60,16 @@ architecture ultrascale of ram_sdp is
   end function;
 
   --! number of additional write input registers in logic
-  constant WR_INPUT_REGS_LOGIC : natural := WR_INPUT_REGS - RAM_INPUT_REGS;
+  constant WR_INPUT_REGS_LOGIC : natural := WR_INPUT_REGS - RAM_INPUT_REGS(WR_INPUT_REGS);
 
   --! number of additional read input registers in logic
-  constant RD_INPUT_REGS_LOGIC : natural := RD_INPUT_REGS - RAM_INPUT_REGS;
+  constant RD_INPUT_REGS_LOGIC : natural := RD_INPUT_REGS - RAM_INPUT_REGS(RD_INPUT_REGS);
 
   --! number of additional read output registers in logic
   constant RD_OUTPUT_REGS_LOGIC : natural := RD_OUTPUT_REGS - RAM_OUTPUT_REGS;
   
   --! overall read latency
-  constant RD_LATENCY : natural := RD_INPUT_REGS + RD_OUTPUT_REGS;
+  constant RD_LATENCY : positive := RD_INPUT_REGS + RD_OUTPUT_REGS;
   
   --! write address width
   constant WR_ADDR_WIDTH : positive := log2ceil(WR_DEPTH);
@@ -109,19 +109,19 @@ architecture ultrascale of ram_sdp is
 
   type t_ram_addr_a is array(integer range <>) of std_logic_vector(WR_ADDR_WIDTH-1 downto 0);
   -- write address input pipeline
-  signal ram_addr_a  : t_ram_addr_a(WR_INPUT_REGS_LOGIC downto 0);
+  signal ram_addr_a  : t_ram_addr_a(0 to WR_INPUT_REGS_LOGIC);
 
   type t_ram_din_a is array(integer range <>) of std_logic_vector(WR_DATA_WIDTH-1 downto 0);
   -- write data input pipeline
-  signal ram_din_a  : t_ram_din_a(WR_INPUT_REGS_LOGIC downto 0);
+  signal ram_din_a  : t_ram_din_a(0 to WR_INPUT_REGS_LOGIC);
   
   type t_ram_we_a is array(integer range <>) of std_logic_vector(WE_WIDTH-1 downto 0);
   -- write enable input pipeline
-  signal ram_we_a : t_ram_we_a(WR_INPUT_REGS_LOGIC downto 0);
+  signal ram_we_a : t_ram_we_a(0 to WR_INPUT_REGS_LOGIC);
   
   type t_ram_addr_b is array(integer range <>) of std_logic_vector(RD_ADDR_WIDTH-1 downto 0);
   -- read address input pipeline
-  signal ram_addr_b  : t_ram_addr_b(RD_INPUT_REGS_LOGIC downto 0);
+  signal ram_addr_b  : t_ram_addr_b(0 to RD_INPUT_REGS_LOGIC);
 
   type t_ram_dout_b is array(integer range <>) of std_logic_vector(RD_DATA_WIDTH-1 downto 0);
   -- read data output pipeline
@@ -147,135 +147,121 @@ begin
     end generate;
   end generate;
 
-  g_in : if WR_INPUT_REGS_LOGIC>=1 generate
-    g_loop : for n in 1 to WR_INPUT_REGS_LOGIC generate
-      ram_addr_a(n) <= (others=>'0')   when (rising_edge(wr_clk) and wr_rst='1') else
-                       ram_addr_a(n-1) when (rising_edge(wr_clk) and wr_clk_en='1');
-      ram_din_a(n)  <= (others=>'-')   when (rising_edge(wr_clk) and wr_rst='1') else
-                       ram_din_a(n-1)  when (rising_edge(wr_clk) and wr_clk_en='1');
-      ram_we_a(n)   <= (others=>'0')   when (rising_edge(wr_clk) and wr_rst='1') else
-                       ram_we_a(n-1)   when (rising_edge(wr_clk) and wr_clk_en='1');
-    end generate;
-  
---  begin
---    p_in : process(wr_clk)
---    begin
---      if rising_edge(wr_clk) then
---        if wr_rst='1' then
---          ram_addr_a(1 to WR_INPUT_REGS_LOGIC) <= (others=>(others=>'0'));
---          ram_din_a(1 to WR_INPUT_REGS_LOGIC) <= (others=>(others=>'-'));
---          ram_we_a(1 to WR_INPUT_REGS_LOGIC) <= (others=>(others=>'0'));
---        elsif wr_clk_en='1' then
---          for n in 1 to WR_INPUT_REGS_LOGIC loop
---            ram_addr_a(n) <= ram_addr_a(n-1);
---            ram_din_a(n) <= ram_din_a(n-1);
---            ram_we_a(n) <= ram_we_a(n-1);
---          end loop;
---        end if;
---      end if;
---    end process;
+  g_in : for n in 1 to WR_INPUT_REGS_LOGIC generate
+  begin
+    process(wr_clk)
+    begin
+      if rising_edge(wr_clk) then
+        if wr_rst='1' then
+          ram_addr_a(n) <= (others=>'0');
+          ram_din_a(n) <= (others=>'-');
+          ram_we_a(n) <= (others=>'0');
+        elsif wr_clk_en='1' then
+          ram_addr_a(n) <= ram_addr_a(n-1);
+          ram_din_a(n) <= ram_din_a(n-1);
+          ram_we_a(n) <= ram_we_a(n-1);
+        end if;
+      end if;
+    end process;
   end generate;
 
 
---  --! Instantiation of macro xpm_memory_sdpram
---  --! xpm_memory_tdpram: Simple Dual Port RAM
---  --! Xilinx Parameterized Macro, Version 2018.2
---  i_sdp : xpm_memory_sdpram
---  generic map(
---    -- Common module generics
---    MEMORY_SIZE             => WR_DATA_WIDTH * WR_DEPTH,
---    MEMORY_PRIMITIVE        => RAM_TYPE_ULTRASCALE, --string; "auto", "distributed", "block" or "ultra"
---    CLOCKING_MODE           => CLOCKING_MODE, --string; "common_clock", "independent_clock" 
---    ECC_MODE                => "no_ecc", --string; "no_ecc", "encode_only", "decode_only" or "both_encode_and_decode"
---    MEMORY_INIT_FILE        => INIT_FILE_ULTRASCALE, --string; "none" or "<filename>.mem"
---    MEMORY_INIT_PARAM       => "",
---    USE_MEM_INIT            => 1, --integer; 0,1
---    WAKEUP_TIME             => "disable_sleep", --string; "disable_sleep" or "use_sleep_pin"
---    AUTO_SLEEP_TIME         => 0, --Do not Change
---    MESSAGE_CONTROL         => 0,
---    USE_EMBEDDED_CONSTRAINT => 0,
---    MEMORY_OPTIMIZATION     => "true",
---    -- Port A module generics
---    WRITE_DATA_WIDTH_A      => WR_DATA_WIDTH, --positive integer
---    BYTE_WRITE_WIDTH_A      => BYTE_WRITE_WIDTH, --integer; 8, 9, or WRITE_DATA_WIDTH_A value
---    ADDR_WIDTH_A            => WR_ADDR_WIDTH, --positive integer
---    -- Port B module generics
---    READ_DATA_WIDTH_B       => RD_DATA_WIDTH, --positive integer
---    ADDR_WIDTH_B            => RD_ADDR_WIDTH, --positive integer
---    READ_RESET_VALUE_B      => "0",
---    READ_LATENCY_B          => RAM_INPUT_REGS + RAM_OUTPUT_REGS,
---    WRITE_MODE_B            => "read_first"
---  )
---  port map(
---    -- Common module ports
---    sleep          => '0',
---    -- Port A module ports
---    clka           => wr_clk,
---    ena            => wr_clk_en,
---    wea            => ram_we_a(WR_INPUT_REGS_LOGIC),
---    addra          => ram_addr_a(WR_INPUT_REGS_LOGIC),
---    dina           => ram_din_a(WR_INPUT_REGS_LOGIC),
---    injectsbiterra => '0',
---    injectdbiterra => '0',
---    -- Port B module ports
---    clkb           => rd_clk,
---    rstb           => rd_rst,
---    enb            => rd_clk_en,
---    regceb         => rd_clk_en,
---    addrb          => ram_addr_b(RD_INPUT_REGS_LOGIC),
---    doutb          => ram_dout_b(0),
---    sbiterrb       => open,
---    dbiterrb       => open
---  );
+  --! Instantiation of macro xpm_memory_sdpram
+  --! xpm_memory_tdpram: Simple Dual Port RAM
+  --! Xilinx Parameterized Macro, Version 2018.2
+  i_sdp : xpm_memory_sdpram
+  generic map(
+    -- Common module generics
+    MEMORY_SIZE             => WR_DATA_WIDTH * WR_DEPTH,
+    MEMORY_PRIMITIVE        => RAM_TYPE_ULTRASCALE, --string; "auto", "distributed", "block" or "ultra"
+    CLOCKING_MODE           => CLOCKING_MODE, --string; "common_clock", "independent_clock" 
+    ECC_MODE                => "no_ecc", --string; "no_ecc", "encode_only", "decode_only" or "both_encode_and_decode"
+    MEMORY_INIT_FILE        => INIT_FILE_ULTRASCALE, --string; "none" or "<filename>.mem"
+    MEMORY_INIT_PARAM       => "",
+    USE_MEM_INIT            => 1, --integer; 0,1
+    WAKEUP_TIME             => "disable_sleep", --string; "disable_sleep" or "use_sleep_pin"
+    AUTO_SLEEP_TIME         => 0, --Do not Change
+    MESSAGE_CONTROL         => 0,
+    USE_EMBEDDED_CONSTRAINT => 0,
+    MEMORY_OPTIMIZATION     => "true",
+    -- Port A module generics
+    WRITE_DATA_WIDTH_A      => WR_DATA_WIDTH, --positive integer
+    BYTE_WRITE_WIDTH_A      => BYTE_WRITE_WIDTH, --integer; 8, 9, or WRITE_DATA_WIDTH_A value
+    ADDR_WIDTH_A            => WR_ADDR_WIDTH, --positive integer
+    -- Port B module generics
+    READ_DATA_WIDTH_B       => RD_DATA_WIDTH, --positive integer
+    ADDR_WIDTH_B            => RD_ADDR_WIDTH, --positive integer
+    READ_RESET_VALUE_B      => "0",
+    READ_LATENCY_B          => RAM_INPUT_REGS(RD_INPUT_REGS) + RAM_OUTPUT_REGS,
+    WRITE_MODE_B            => "read_first"
+  )
+  port map(
+    -- Common module ports
+    sleep          => '0',
+    -- Port A module ports
+    clka           => wr_clk,
+    ena            => wr_clk_en,
+    wea            => ram_we_a(WR_INPUT_REGS_LOGIC),
+    addra          => ram_addr_a(WR_INPUT_REGS_LOGIC),
+    dina           => ram_din_a(WR_INPUT_REGS_LOGIC),
+    injectsbiterra => '0',
+    injectdbiterra => '0',
+    -- Port B module ports
+    clkb           => rd_clk,
+    rstb           => rd_rst,
+    enb            => rd_clk_en,
+    regceb         => rd_clk_en,
+    addrb          => ram_addr_b(RD_INPUT_REGS_LOGIC),
+    doutb          => ram_dout_b(0),
+    sbiterrb       => open,
+    dbiterrb       => open
+  );
 
   -- resize input read address to actually needed address width
   ram_addr_b(0) <= std_logic_vector(resize(unsigned(rd_addr),RD_ADDR_WIDTH));
 
-  g_rd_addr : if RD_INPUT_REGS_LOGIC>=1 generate
-    g_loop : for n in 1 to RD_INPUT_REGS_LOGIC generate
-      ram_addr_b(n) <= (others=>'0')   when (rising_edge(rd_clk) and rd_rst='1') else
-                       ram_addr_b(n-1) when (rising_edge(rd_clk) and rd_clk_en='1');
-    end generate;
---  begin
---    p_addr : process(rd_clk)
---    begin
---      if rising_edge(rd_clk) then
---        if rd_rst='1' then
---          ram_addr_b(1 to RD_INPUT_REGS_LOGIC) <= (others=>(others=>'0'));
---        elsif rd_clk_en='1' then
---          for n in 1 to RD_INPUT_REGS_LOGIC loop
---            ram_addr_b(n) <= ram_addr_b(n-1);
---          end loop;
---        end if;
---      end if;
---    end process;
+  g_rd_addr : for n in 1 to RD_INPUT_REGS_LOGIC generate
+  begin
+    process(rd_clk)
+    begin
+      if rising_edge(rd_clk) then
+        if rd_rst='1' then
+          ram_addr_b(n) <= (others=>'0');
+        elsif rd_clk_en='1' then
+          ram_addr_b(n) <= ram_addr_b(n-1);
+        end if;
+      end if;
+    end process;
   end generate;
 
-  g_rd_data : if RD_OUTPUT_REGS_LOGIC>=1 generate
-    g_loop : for n in 1 to RD_OUTPUT_REGS_LOGIC generate
-      ram_dout_b(n) <= (others=>'-')   when (rising_edge(rd_clk) and rd_rst='1') else
-                       ram_dout_b(n-1) when (rising_edge(rd_clk) and rd_clk_en='1');
-    end generate;
---  begin
---    p_data : process(rd_clk)
---    begin
---      if rising_edge(rd_clk) then
---        if rd_rst='1' then
---          ram_dout_b(1 to RD_OUTPUT_REGS_LOGIC) <= (others=>(others=>'-'));
---        elsif rd_clk_en='1' then
---          for n in 1 to RD_OUTPUT_REGS_LOGIC loop
---            ram_dout_b(n) <= ram_dout_b(n-1);
---          end loop;
---        end if;
---      end if;
---    end process;
+  g_rd_data : for n in 1 to RD_OUTPUT_REGS_LOGIC generate
+  begin
+    process(rd_clk)
+    begin
+      if rising_edge(rd_clk) then
+        if rd_rst='1' then
+          ram_dout_b(n) <= (others=>'-');
+        elsif rd_clk_en='1' then
+          ram_dout_b(n) <= ram_dout_b(n-1);
+        end if;
+      end if;
+    end process;
   end generate;
 
-  -- read enable pipeline
+  -- read enable pipeline (RD_LATENCY is always 1 or more)
   rd_en_q(0) <= rd_en;
   g_rd_data_en : for n in 1 to RD_LATENCY generate
-    rd_en_q(n) <= '0' when (rising_edge(rd_clk) and rd_rst='1') else
-                  rd_en_q(n-1) when (rising_edge(rd_clk) and rd_clk_en='1');
+  begin
+    process(rd_clk)
+    begin
+      if rising_edge(rd_clk) then
+        if rd_rst='1' then
+          rd_en_q(n) <= '0';
+        elsif rd_clk_en='1' then
+          rd_en_q(n) <= rd_en_q(n-1);
+        end if;
+      end if;
+    end process;
   end generate;
 
   rd_data <= ram_dout_b(RD_OUTPUT_REGS_LOGIC);
