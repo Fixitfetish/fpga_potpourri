@@ -24,6 +24,7 @@ library ieee;
 --!
 --! Notes
 --! * Write and read data width must always have a ratio which is a power of 2.
+--! * When using byte enables the write data width must be a multiple of 8.
 --! * The address inputs are internally resized to the actually required address width.
 
 entity ram_sdp is

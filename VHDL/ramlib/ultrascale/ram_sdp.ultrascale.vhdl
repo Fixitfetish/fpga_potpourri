@@ -19,6 +19,12 @@ library xpm;
 
 --! @brief Xilinx UltraScale-Plus specific implementation of the Simple Dual Port RAM.
 --! 
+--! The Xilinx UltraScale-Plus macro xpm_memory_sdpram supports distributed RAM,
+--! Block-RAM and Ultra-RAM.
+--! Block-RAM supports 1 internal input and output register.
+--! Ultra-RAM supports up to 2 internal input and output registers.
+--! For speed it is recommended to use all Ultra-RAM internal input and output registers.
+--! Further input and output registers are implemented in logic.
 
 architecture ultrascale of ram_sdp is
 

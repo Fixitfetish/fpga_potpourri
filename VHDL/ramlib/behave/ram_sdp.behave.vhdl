@@ -15,7 +15,10 @@ library ieee;
 library baselib;
   use baselib.ieee_extension.all;
 
---! @brief Behavioral model of the Simple Dual Port RAM. 
+--! @brief Behavioral model of the Simple Dual Port RAM which should only be used in simulations.
+--! 
+--! For real synthesis please use a FPGA specific implementation which typically
+--! uses block RAM resources and allows much higher clock frequencies.
 
 architecture behave of ram_sdp is
 
@@ -49,7 +52,6 @@ architecture behave of ram_sdp is
 
   type t_RAM is ARRAY(integer range <>) of STD_LOGIC_VECTOR(WR_DATA_WIDTH-1 downto 0);
   signal RAM : t_RAM(0 to WR_DEPTH-1) := (others => (others => '0'));
-  signal ram_d0, ram_d1 : unsigned(WR_DATA_WIDTH-1 downto 0);
 
   type a_wr_addr is array(integer range <>) of unsigned(wr_addr'length-1 downto 0);
   signal wr_addr_q : a_wr_addr(WR_INPUT_REGS downto 1);
@@ -141,9 +143,12 @@ begin
   end generate;
 
   g_rd_less : if WR_DATA_WIDTH>RD_DATA_WIDTH generate
-    ram_d0 <= unsigned(RAM(to_integer(rd_addr_q(1)(rd_addr_q(1)'high downto DATA_WIDTH_RATIO_LOG2))));
-    ram_d1 <= shift_right(ram_d0,RD_DATA_WIDTH*to_integer(rd_addr_q(1)(DATA_WIDTH_RATIO_LOG2-1 downto 0)));
-    rd_data_q(0) <= std_logic_vector(ram_d1(RD_DATA_WIDTH-1 downto 0));
+    signal ram_i : std_logic_vector(WR_DATA_WIDTH-1 downto 0);
+    signal offset : integer := 0;
+  begin
+    ram_i <= RAM(to_integer(rd_addr_q(1)(rd_addr_q(1)'high downto DATA_WIDTH_RATIO_LOG2)));
+    offset <= to_integer(rd_addr_q(1)(DATA_WIDTH_RATIO_LOG2-1 downto 0));
+    rd_data_q(0) <= ram_i((offset+1)*RD_DATA_WIDTH-1 downto offset*RD_DATA_WIDTH);
   end generate;
 
   g_rd_more : if WR_DATA_WIDTH<RD_DATA_WIDTH generate
