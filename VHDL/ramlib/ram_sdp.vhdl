@@ -80,14 +80,14 @@ entity ram_sdp is
   );
   -- synthesis translate_off (Altera Quartus)
   -- pragma translate_off (Xilinx Vivado , Synopsys)
-  constant DATA_WIDTH_RATIO_LOG2 : real := log2(real(WR_DATA_WIDTH)/real(RD_DATA_WIDTH));
+  constant REAL_RATIO_LOG2 : real := log2(real(WR_DATA_WIDTH)/real(RD_DATA_WIDTH));
   
   begin
 
   assert (not (WR_USE_BYTE_ENABLE and (WR_DATA_WIDTH mod 8)/=0))
     report "Error " & ram_sdp'instance_name & ": When using byte enables the DATA_WIDTH must be multiple of 8."
     severity failure;
-  assert (not (RD_DATA_WIDTH/=WR_DATA_WIDTH and abs(round(DATA_WIDTH_RATIO_LOG2)-DATA_WIDTH_RATIO_LOG2)>1.0e-6 ))
+  assert (not (RD_DATA_WIDTH/=WR_DATA_WIDTH and abs(round(REAL_RATIO_LOG2)-REAL_RATIO_LOG2)>1.0e-6 ))
     report "Error " & ram_sdp'instance_name & ": The ratio of write and read data width is not a power of 2."
     severity failure;
   -- synthesis translate_on (Altera Quartus)
