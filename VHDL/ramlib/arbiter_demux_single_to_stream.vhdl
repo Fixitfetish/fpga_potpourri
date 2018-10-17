@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       arbiter_demux_single_to_stream.vhdl
 --! @author     Fixitfetish
---! @date       22/Sep/2018
---! @version    0.20
+--! @date       17/Oct/2018
+--! @version    0.30
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -247,7 +247,7 @@ begin
 
   end generate;
 
-  cpl_ram_wr_addr <= std_logic_vector(cpl_ram_wr_addr); -- GHDL work-around
+  cpl_ram_wr_addr <= std_logic_vector(cpl_ram_wr.addr); -- GHDL work-around
   cpl_ram_rd_addr <= std_logic_vector(cpl_ram_rd.addr); -- GHDL work-around
 
   i_cpl_ram : entity ramlib.ram_sdp

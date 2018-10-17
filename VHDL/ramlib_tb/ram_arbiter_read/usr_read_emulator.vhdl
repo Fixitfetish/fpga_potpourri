@@ -64,6 +64,10 @@ architecture sim of usr_read_emulator is
   signal usr_cpl_data_vld  : std_logic;
   signal usr_cpl_data_eof  : std_logic;
   signal usr_cpl_data      : std_logic_vector(ARBITER_DATA_WIDTH-1 downto 0);
+  signal usr_status_active : std_logic;
+  signal usr_status_wrap   : std_logic;
+  signal usr_req_ovfl      : std_logic;
+  signal usr_req_fifo_ovfl : std_logic;
 
 begin
 
@@ -71,7 +75,11 @@ begin
   usr_cpl_data <= usr_cpl.data;
   usr_cpl_data_vld <= usr_cpl.data_vld;
   usr_cpl_data_eof <= usr_cpl.data_eof;
-
+  usr_status_active <= usr_status.active;
+  usr_status_wrap <= usr_status.wrap;
+  usr_req_ovfl <= usr_req.ovfl;
+  usr_req_fifo_ovfl <= usr_req.fifo_ovfl;
+  
   usr_req.frame <= usr_req_frame;
   usr_req.ena <= usr_req_ena;
   

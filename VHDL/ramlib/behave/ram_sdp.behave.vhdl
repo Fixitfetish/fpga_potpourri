@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       ram_sdp.behave.vhdl
 --! @author     Fixitfetish
---! @date       22/Sep/2018
---! @version    0.50
+--! @date       17/Oct/2018
+--! @version    0.60
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -112,8 +112,12 @@ begin
         end loop;
         -- RAM access
         if wr_en_q(1)='1' then
-          RAM(to_integer(wr_addr_q(1))) <=
-            (wr_data_q(1) and v_mask)  or  (RAM(to_integer(wr_addr_q(1))) and (not v_mask));
+          if WR_USE_BYTE_ENABLE then
+            RAM(to_integer(wr_addr_q(1))) <=
+              (wr_data_q(1) and v_mask)  or  (RAM(to_integer(wr_addr_q(1))) and (not v_mask));
+          else
+            RAM(to_integer(wr_addr_q(1))) <= wr_data_q(1);
+          end if;
         end if;
       end if;
     end if;

@@ -72,7 +72,7 @@ begin
     USER_DATA_WIDTH => RAM_DATA_WIDTH/2,
     ADDR_FIRST => to_unsigned(257,RAM_ADDR_WIDTH), 
     ADDR_LAST => to_unsigned(275,RAM_ADDR_WIDTH),
-    SINGLE_SHOT => '0'
+    SINGLE_SHOT => '1'
   )
   port map(
     clk           => clk,
@@ -153,17 +153,22 @@ begin
     wait until rising_edge(clk);
     usr_frame(0) <= '1';
     usr_frame(1) <= '1';
-    wait until rising_edge(clk);
 
-    for n in 1 to 25 loop
+    for n in 1 to 58 loop
       wait until rising_edge(clk);
     end loop;
 
-    for n in 1 to 10 loop
+    usr_frame(0) <= '0';
+    usr_frame(1) <= '0';
+
+    for n in 1 to 45 loop
       wait until rising_edge(clk);
     end loop;
 
-    for n in 1 to 20 loop
+    usr_frame(0) <= '1';
+    usr_frame(1) <= '1';
+
+    for n in 1 to 58 loop
       wait until rising_edge(clk);
     end loop;
 

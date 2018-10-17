@@ -1,21 +1,20 @@
 [*]
 [*] GTKWave Analyzer v3.3.87 (w)1999-2017 BSI
-[*] Wed Aug 15 20:55:21 2018
+[*] Wed Oct 17 20:25:20 2018
 [*]
 [dumpfile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\ramlib_tb\ram_arbiter_read\work\sim.vcd"
-[dumpfile_mtime] "Wed Aug 15 20:52:20 2018"
-[dumpfile_size] 130770
+[dumpfile_mtime] "Wed Oct 17 20:24:21 2018"
+[dumpfile_size] 108575
 [savefile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\ramlib_tb\ram_arbiter_read\sim.gtkw"
 [timestart] 0
-[size] 1304 745
+[size] 1842 1057
 [pos] -1 -1
-*-28.612524 850000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-27.680395 182000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] usr0.
-[treeopen] usr0.i_adapt.
 [sst_width] 211
 [signals_width] 254
 [sst_expanded] 1
-[sst_vpaned_height] 205
+[sst_vpaned_height] 314
 @28
 rst
 finish
@@ -24,12 +23,10 @@ clk
 usr0.usr_req_ena
 [color] 3
 usr0.usr_req_frame
-@29
 [color] 7
 usr1.usr_req_ena
 [color] 7
 usr1.usr_req_frame
-@28
 [color] 5
 ram_out_rdy
 ram_in_addr_vld
@@ -52,12 +49,26 @@ ram_out_data_vld
 ram_out_data[31:0]
 @28
 [color] 3
+usr0.usr_status_active
+[color] 3
+usr0.usr_status_wrap
+[color] 3
 usr0.usr_cpl_data_vld
 [color] 3
 usr0.usr_cpl_data_eof
 @22
 [color] 3
 usr0.usr_cpl_data[31:0]
+@28
+[color] 3
+usr0.usr_req_ovfl
+[color] 3
+usr0.usr_req_fifo_ovfl
+[color] 7
+usr1.usr_status_active
+@29
+[color] 7
+usr1.usr_status_wrap
 @28
 [color] 7
 usr1.usr_cpl_data_vld
@@ -66,5 +77,10 @@ usr1.usr_cpl_data_eof
 @22
 [color] 7
 usr1.usr_cpl_data[31:0]
+@28
+[color] 7
+usr1.usr_req_ovfl
+[color] 7
+usr1.usr_req_fifo_ovfl
 [pattern_trace] 1
 [pattern_trace] 0

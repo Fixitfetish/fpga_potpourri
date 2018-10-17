@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       ram_arbiter_read.vhdl
 --! @author     Fixitfetish
---! @date       09/Jun/2018
---! @version    0.60
+--! @date       17/Oct/2018
+--! @version    0.70
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -24,6 +24,14 @@ library ramlib;
 --! The RAM port provides sequential requests bursts of data words for each user port.
 --! The burst size is configurable but the same for all.
 --! 
+--! In **single-shot** mode the arbiter automatically stops requesting data from memory
+--! after the configured last address has been accessed. Further user requests are ignored.
+--! The status signal wrap='1' and active='0' signals the end of the single-shot. 
+--! Furthermore, the last read completion data of the single-shot is marked with EOF though
+--! the user frame signal might still be active. 
+--! It is recommended that the user resets the frame signal when either wrap='1' or EOF='1'.
+--! Before another single-shot can be started the user must always reset the frame signal.
+--!
 --! NOTES: 
 --! * User port 0 has the highest priority and user port NUM_PORTS-1 has the lowest priority.
 --! * The data width of each user port, the RAM port is DATA_WIDTH.
@@ -32,7 +40,7 @@ library ramlib;
 --! Signal Prefix Naming (also useful for record mapping):
 --! * usr_out : user output port, signals that the user generate (e.g. requests)
 --! * usr_in : user input port, signals that the user receives (e.g. status)
---! * ram_out : ram output port, signals that are orginated by the ram (e.g. status or read data)
+--! * ram_out : ram output port, signals that are originated by the ram (e.g. status or read data)
 --! * ram_in : ram input port, signals that feed the bus (e.g. write/read requests)
 --!
 --! For more details refer to the entities arbiter_mux_stream_to_burst and arbiter_demux_single_to_stream
@@ -109,7 +117,9 @@ architecture rtl of ram_arbiter_read is
   type a_wr_addr is array(integer range <>) of unsigned(ADDR_WIDTH-1 downto 0);
   signal addr_next : a_wr_addr(NUM_PORTS-1 downto 0);
   signal addr_incr_active : std_logic_vector(NUM_PORTS-1 downto 0); 
-  signal wrap : std_logic_vector(NUM_PORTS-1 downto 0); 
+  signal wrap : std_logic_vector(NUM_PORTS-1 downto 0);
+  signal next_is_addr_last : std_logic_vector(NUM_PORTS-1 downto 0);
+  signal next_is_eof : std_logic_vector(NUM_PORTS-1 downto 0);
 
   type r_cfg is
   record
@@ -165,11 +175,13 @@ architecture rtl of ram_arbiter_read is
 
 
   -- GTKWave work-around
+  signal seq_fifo_wr_ena : std_logic;
   signal seq_fifo_level : integer;
 
 begin
 
   -- GTKWave work-around
+  seq_fifo_wr_ena <= seq_fifo.wr_ena;
   seq_fifo_level <= seq_fifo.level;
 
 
@@ -190,7 +202,7 @@ begin
   i_mux : entity ramlib.arbiter_mux_stream_to_burst
   generic map(
     NUM_PORTS  => NUM_PORTS,
-    DATA_WIDTH => DATA_WIDTH,
+    DATA_WIDTH => DATA_WIDTH, -- TODO # data unused
     BURST_SIZE => BURST_SIZE,
     FIFO_DEPTH_LOG2 => FIFO_DEPTH_LOG2,
     WRITE_ENABLE => false
@@ -237,7 +249,7 @@ begin
             -- start channel, hold configuration        
             cfg(n).addr_first <= usr_out_port(n).cfg_addr_first;
             cfg(n).addr_last <= usr_out_port(n).cfg_addr_last;
-            cfg(n).single_shot <= usr_out_port(n).cfg_single_shot; -- TODO
+            cfg(n).single_shot <= usr_out_port(n).cfg_single_shot;
             -- reset address
             wrap(n) <= '0';    
             addr_next(n) <= usr_out_port(n).cfg_addr_first;
@@ -245,15 +257,15 @@ begin
 
           elsif mux_bus_req_frame(n)='0' and mux_bus_req_frame_q(n)='1' then
             -- end of channel        
-            addr_incr_active(n) <= '1';
+            addr_incr_active(n) <= '0';
 
           elsif mux_bus_req_ena='1' and mux_bus_req_id=n and addr_incr_active(n)='1' then
             -- address increment
             addr_next(n) <= addr_next(n) + 1;
-            if addr_next(n)=cfg(n).addr_last then
+            if next_is_addr_last(n)='1' then
+              wrap(n) <= '1';
               -- single-shot or continuous 
               if cfg(n).single_shot='0' then
-                wrap(n) <= '1';    
                 addr_next(n) <= cfg(n).addr_first;
               end if;
               -- set inactive when single-slot finished 
@@ -265,6 +277,11 @@ begin
       end if;
     end if;    
   end process;
+
+  g_last : for n in 0 to (NUM_PORTS-1) generate
+    next_is_addr_last(n) <= '1' when (addr_next(n)=cfg(n).addr_last) else '0';
+    next_is_eof(n) <= cfg(n).single_shot and next_is_addr_last(n);
+  end generate;
 
   p_ram_req : process(clk)
     variable v_active : std_logic;
@@ -300,9 +317,10 @@ begin
   -- Sequence FIFO
   -----------------------------------------------------------------------------
 
-  seq_fifo.wr_data(seq_fifo.wr_data'high) <= mux_bus_req_eof;
+  -- write only to SEQ-FIFO as long as address increment (single-shot) is active
+  seq_fifo.wr_ena <= mux_bus_req_ena and addr_incr_active(to_integer(mux_bus_req_id));
   seq_fifo.wr_data(mux_bus_req_id'length-1 downto 0) <= std_logic_vector(mux_bus_req_id);
-  seq_fifo.wr_ena <= mux_bus_req_ena;
+  seq_fifo.wr_data(seq_fifo.wr_data'high) <= mux_bus_req_eof or next_is_eof(to_integer(mux_bus_req_id));
 
   i_seq_fifo : entity ramlib.fifo_sync
   generic map (
