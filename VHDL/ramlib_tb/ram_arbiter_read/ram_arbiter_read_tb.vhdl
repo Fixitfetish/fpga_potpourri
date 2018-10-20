@@ -13,7 +13,7 @@ end entity;
 
 architecture sim of ram_arbiter_read_tb is
 
-  constant PERIOD : time := 10 ns; -- 100MHz
+  constant PERIOD : time := 1 us; -- 1MHz
   signal rst : std_logic := '1';
   signal clk : std_logic := '1';
   signal finish : std_logic := '0';
@@ -161,7 +161,7 @@ begin
     usr_frame(0) <= '0';
     usr_frame(1) <= '0';
 
-    for n in 1 to 45 loop
+    for n in 1 to 50 loop
       wait until rising_edge(clk);
     end loop;
 
@@ -175,7 +175,7 @@ begin
     usr_frame(0) <= '0';
     usr_frame(1) <= '0';
 
-    wait for 800 ns;
+    wait for 80 us;
     finish <= '1';
 
     wait until rising_edge(clk);

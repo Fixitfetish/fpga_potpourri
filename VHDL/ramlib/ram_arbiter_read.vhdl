@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       ram_arbiter_read.vhdl
 --! @author     Fixitfetish
---! @date       17/Oct/2018
---! @version    0.70
+--! @date       20/Oct/2018
+--! @version    0.71
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -188,7 +188,8 @@ begin
   g_usr_req : for n in 0 to NUM_PORTS-1 generate
     -- TX
     mux_usr_req_frame(n) <= usr_out_port(n).req_frame;
-    mux_usr_req_ena(n) <= usr_out_port(n).req_ena and addr_incr_active(n); -- TODO
+    -- ignore user requests after end of single-shot
+    mux_usr_req_ena(n) <= usr_out_port(n).req_ena and addr_incr_active(n);
     -- RX
     usr_in_port(n).active <= addr_incr_active(n) and mux_bus_req_frame(n) when rising_edge(clk);
     usr_in_port(n).wrap <= wrap(n);
@@ -256,8 +257,10 @@ begin
             addr_incr_active(n) <= '1';
 
           elsif mux_bus_req_frame(n)='0' and mux_bus_req_frame_q(n)='1' then
-            -- end of channel        
-            addr_incr_active(n) <= '0';
+            -- end of channel
+            -- re-activate address increment after single-shot
+            -- (important for first user request of next frame)  
+            addr_incr_active(n) <= '1';
 
           elsif mux_bus_req_ena='1' and mux_bus_req_id=n and addr_incr_active(n)='1' then
             -- address increment
