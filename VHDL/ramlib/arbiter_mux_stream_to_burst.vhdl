@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       arbiter_mux_stream_to_burst.vhdl
 --! @author     Fixitfetish
---! @date       22/Sep/2018
---! @version    0.80
+--! @date       30/Oct/2018
+--! @version    0.90
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -138,7 +138,7 @@ end entity;
 
 -------------------------------------------------------------------------------
 
-architecture rtl of arbiter_mux_stream_to_burst is
+architecture shared_ram of arbiter_mux_stream_to_burst is
 
   -- Width of FIFO/Port select signal
   constant FIFO_SEL_WIDTH : positive := log2ceil(NUM_PORTS);
@@ -157,7 +157,19 @@ architecture rtl of arbiter_mux_stream_to_burst is
   constant REQ_RAM_ADDR_WIDTH : positive := FIFO_SEL_WIDTH + FIFO_DEPTH_LOG2;
   constant REQ_RAM_DATA_WIDTH : positive := DATA_WIDTH;
 
-  signal din_pending : std_logic_vector(NUM_PORTS-1 downto 0);
+  -- input arbiter
+  type r_arbiter is
+  record
+    request      : std_logic_vector(NUM_PORTS-1 downto 0);
+    request_ovfl : std_logic_vector(NUM_PORTS-1 downto 0);
+    pending      : std_logic_vector(NUM_PORTS-1 downto 0);
+    grant        : std_logic_vector(NUM_PORTS-1 downto 0);
+    grant_idx    : integer range 0 to NUM_PORTS-1;
+    grant_vld    : std_logic;
+  end record;
+  signal arb_usr : r_arbiter;
+  signal arb_burst : r_arbiter;
+  signal arb_flush : r_arbiter;
 
   -- user port
   type r_usr_out is
@@ -192,6 +204,8 @@ architecture rtl of arbiter_mux_stream_to_burst is
     rd_ptr       : unsigned(FIFO_DEPTH_LOG2-1 downto 0);
     rd_empty     : std_logic;
     rd_prog_empty: std_logic;
+    rd_data_vld  : std_logic;
+    rd_data_last : std_logic;
     level        : unsigned(FIFO_DEPTH_LOG2 downto 0);
     active       : std_logic; -- FIFO active
     flush_trig   : std_logic; -- flush triggered
@@ -239,32 +253,6 @@ architecture rtl of arbiter_mux_stream_to_burst is
   signal req_ram_wr_addr : std_logic_vector(REQ_RAM_ADDR_WIDTH-1 downto 0); -- GHDL work-around
   signal req_ram_rd_addr : std_logic_vector(REQ_RAM_ADDR_WIDTH-1 downto 0); -- GHDL work-around
   
-  function get_next(pending:std_logic_vector) return std_logic_vector is
-    variable res : std_logic_vector(NUM_PORTS-1 downto 0);
-  begin
-    res := (others=>'0');
-    -- lowest index = highest priority
-    for n in pending'low to pending'high loop
-      if pending(n)='1' then
-        res(n):='1'; return res;
-      end if;
-    end loop;
-    return res;
-  end function;
-
-  function get_next(pending:std_logic_vector) return unsigned is
-    variable sel : unsigned(FIFO_SEL_WIDTH-1 downto 0);
-  begin
-    sel := (others=>'0');
-    -- lowest index = highest priority
-    for n in pending'low to pending'high loop
-      if pending(n)='1' then
-        sel := to_unsigned(n-pending'low,sel'length); return sel;
-      end if;
-    end loop;
-    return sel;
-  end function;
-
   -- GTKWave work-around
   signal level0 : unsigned(FIFO_DEPTH_LOG2 downto 0);
   signal level1 : unsigned(FIFO_DEPTH_LOG2 downto 0);
@@ -276,6 +264,8 @@ architecture rtl of arbiter_mux_stream_to_burst is
   signal ptr3 : unsigned(FIFO_DEPTH_LOG2-1 downto 0);
   signal fifo_active : std_logic_vector(NUM_PORTS-1 downto 0);
   signal fifo_empty : std_logic_vector(NUM_PORTS-1 downto 0);
+  signal fifo_rd_data_vld : std_logic_vector(NUM_PORTS-1 downto 0);
+  signal fifo_rd_data_last : std_logic_vector(NUM_PORTS-1 downto 0);
   signal fifo_full : std_logic_vector(NUM_PORTS-1 downto 0);
   signal fifo_filled : std_logic_vector(NUM_PORTS-1 downto 0);
   signal fifo_flush_triggered : std_logic_vector(NUM_PORTS-1 downto 0);
@@ -297,6 +287,13 @@ architecture rtl of arbiter_mux_stream_to_burst is
   signal rd_sel : unsigned(FIFO_SEL_WIDTH-1 downto 0);
   signal rd_data_en : std_logic;
   signal rd_data : std_logic_vector(DATA_WIDTH-1 downto 0);
+  
+  signal request : std_logic_vector(NUM_PORTS-1 downto 0) := (others=>'0');
+  signal request_ovfl : std_logic_vector(request'range);
+  signal pending : std_logic_vector(request'range);
+  signal grant : std_logic_vector(request'range);
+  signal grant_idx : integer;
+  signal grant_vld : std_logic;
 
 begin
 
@@ -312,6 +309,8 @@ begin
   g_gtkwave : for n in 0 to (NUM_PORTS-1) generate
     fifo_active(n) <= req_fifo(n).active;
     fifo_empty(n) <= req_fifo(n).rd_empty;
+    fifo_rd_data_vld(n) <= req_fifo(n).rd_data_vld;
+    fifo_rd_data_last(n) <= req_fifo(n).rd_data_last;
     fifo_full(n) <= req_fifo(n).wr_full;
     fifo_filled(n) <= not req_fifo(n).rd_prog_empty;
     fifo_flush_triggered(n) <= req_fifo(n).flush_trig;
@@ -337,46 +336,59 @@ begin
   rd_data <= req_ram_rd.data;
   rd_data_en <= req_ram_rd.data_vld;
 
+  request <= arb_usr.request;
+  request_ovfl <= arb_usr.request_ovfl;
+  pending <= arb_usr.pending;
+  grant <= arb_usr.grant;
+  grant_idx <= arb_usr.grant_idx;
+  grant_vld <= arb_usr.grant_vld;
+
+
+  -- input arbiter
+  arb_usr.request <= usr_out_req_ena and usr_out_req_frame;
+
+  i_arbiter : entity ramlib.arbiter(prio)
+  generic map(
+    RIGHTMOST_REQUEST_FIRST => true,
+    REQUEST_PULSE => true,
+    OUTPUT_REG => false
+  )
+  port map(
+    clk              => clk,
+    rst              => rst,
+    clk_ena          => '1',
+    request          => arb_usr.request,
+    request_ovfl     => arb_usr.request_ovfl,
+    pending          => arb_usr.pending,
+    grant            => arb_usr.grant,
+    grant_idx        => arb_usr.grant_idx,
+    grant_vld        => arb_usr.grant_vld
+  );
 
   p_input_arbiter : process(clk)
-    variable v_din_vld : std_logic_vector(NUM_PORTS-1 downto 0);
-    variable v_din_pending_new : std_logic_vector(NUM_PORTS-1 downto 0);
-    variable v_din_ack : std_logic_vector(NUM_PORTS-1 downto 0);
     variable v_usr_out_frame_q : std_logic_vector(NUM_PORTS-1 downto 0);
   begin
     if rising_edge(clk) then
-
-      v_din_vld := usr_out_req_ena and usr_out_req_frame;
-      v_din_pending_new := v_din_vld or din_pending;
-      v_din_ack := get_next(v_din_pending_new);
-
       if rst='1' then
-        din_pending <= (others=>'0');
         usr_in_req_ovfl <= (others=>'0');
         usr_out_sel <= (others=>'0');
         usr_out <= (others=>DEFAULT_USR_OUT);
         v_usr_out_frame_q := (others=>'0');
-
       else
-
         for n in 0 to (NUM_PORTS-1) loop
-          usr_out(n).frame <= v_din_pending_new(n) or usr_out_req_frame(n);
+          usr_out(n).frame <= arb_usr.request(n) or arb_usr.pending(n) or usr_out_req_frame(n);
           usr_out(n).sof <= usr_out_req_frame(n) and (not usr_out(n).frame); -- rising edge
           usr_out(n).eof <= v_usr_out_frame_q(n) and (not usr_out(n).frame); -- falling edge
-          usr_out(n).ena <= v_din_ack(n);
-          if v_din_vld(n)='1' then
+          usr_out(n).ena <= arb_usr.grant(n);
+          if arb_usr.request(n)='1' then
             usr_out(n).data <= usr_out_req_wr_data(n); 
           end if;
-          
           v_usr_out_frame_q(n) := usr_out(n).frame; -- for edge detection
         end loop;
-
-        usr_out_sel <= get_next(v_din_pending_new);
-
-        -- handling of pending bits and overflow errors
-        din_pending <= v_din_pending_new and (not v_din_ack);
-        usr_in_req_ovfl <= din_pending and v_din_vld;
-
+        -- index of granted request
+        usr_out_sel <= to_unsigned(arb_usr.grant_idx,usr_out_sel'length);
+        -- handling of overflow errors
+        usr_in_req_ovfl <= arb_usr.request_ovfl;
       end if; --reset 
     end if; --clock
   end process;
@@ -413,6 +425,20 @@ begin
       level         => req_fifo(n).level
     );
 
+    i_last : entity ramlib.fifo_read_valid_last_logic
+    generic map(
+      FIFO_DELAY => REQ_RAM_READ_DELAY
+    )
+    port map(
+      rst        => rst,
+      clk        => clk,
+      clk_ena    => '1',
+      rd_ena     => req_fifo(n).rd_ena,
+      rd_empty   => req_fifo(n).rd_empty,
+      data_vld   => req_fifo(n).rd_data_vld,
+      data_last  => req_fifo(n).rd_data_last
+    );
+
     req_fifo(n).rd_ena <= rd(0).ena(n);
     usr_in_req_fifo_ovfl(n) <= req_fifo(n).wr_overflow;
     usr_in_req_fifo_rdy(n) <= not req_fifo(n).wr_prog_full;
@@ -436,37 +462,61 @@ begin
       end if; --clock
     end process;
 
+    arb_burst.request(n) <= not req_fifo(n).rd_prog_empty;
+
+    -- Full pending bursts have priority before flush.
+    -- In case of a flush the FIFO filling stopped already and overflows can't occur anymore.
+    -- Flushing starts after one idle cycle to ensure a stable FIFO level.  
+    arb_flush.request(n) <= '0' when unsigned(rd(0).ena)/=0 else
+                            req_fifo(n).flushing and (not req_fifo(n).rd_empty);
+
   end generate;
+
+  i_burst_grant : entity ramlib.arbiter(prio)
+  generic map(
+    RIGHTMOST_REQUEST_FIRST => true,
+    REQUEST_PULSE => false,
+    OUTPUT_REG => false
+  )
+  port map(
+    clk              => clk,
+    rst              => rst,
+    clk_ena          => '1',
+    request          => arb_burst.request,
+    request_ovfl     => arb_burst.request_ovfl,
+    pending          => arb_burst.pending,
+    grant            => arb_burst.grant,
+    grant_idx        => arb_burst.grant_idx,
+    grant_vld        => arb_burst.grant_vld
+  );
+
+  i_flush_grant : entity ramlib.arbiter(prio)
+  generic map(
+    RIGHTMOST_REQUEST_FIRST => true,
+    REQUEST_PULSE => false,
+    OUTPUT_REG => false
+  )
+  port map(
+    clk              => clk,
+    rst              => rst,
+    clk_ena          => '1',
+    request          => arb_flush.request,
+    request_ovfl     => arb_flush.request_ovfl,
+    pending          => arb_flush.pending,
+    grant            => arb_flush.grant,
+    grant_idx        => arb_flush.grant_idx,
+    grant_vld        => arb_flush.grant_vld
+  );
 
 
   p_output : process(clk)
-    variable v_burst_full_pending : std_logic_vector(NUM_PORTS-1 downto 0);
-    variable v_burst_flush_pending : std_logic_vector(NUM_PORTS-1 downto 0);
     variable v_burst_size : unsigned(FIFO_DEPTH_LOG2 downto 0);
-    variable v_full_sel : unsigned(FIFO_SEL_WIDTH-1 downto 0);
-    variable v_full_sel_vld : std_logic;
-    variable v_flush_sel : unsigned(FIFO_SEL_WIDTH-1 downto 0);
-    variable v_flush_sel_vld : std_logic;
   begin
     if rising_edge(clk) then
 
       for n in 0 to (NUM_PORTS-1) loop
-        v_burst_full_pending(n) := not req_fifo(n).rd_prog_empty;
-        v_burst_flush_pending(n) := req_fifo(n).flushing and (not req_fifo(n).rd_empty);
         rd(0).frame(n) <= req_fifo(n).active;
       end loop;
-
-      v_full_sel := get_next(v_burst_full_pending);
-      v_full_sel_vld := slv_or(v_burst_full_pending);
-
-      -- Full pending bursts have priority before flush.
-      -- In case of a flush the FIFO filling stopped already and overflows can't occur anymore.
-      -- Flushing starts after one idle cycle to ensure a stable FIFO level.  
-      if unsigned(rd(0).ena)/=0 then
-        v_burst_flush_pending := (others=>'0');
-      end if;
-      v_flush_sel := get_next(v_burst_flush_pending);
-      v_flush_sel_vld := slv_or(v_burst_flush_pending);
 
       rd(0).sob <= '0'; -- default
       rd(0).eob <= '0'; -- default
@@ -485,17 +535,17 @@ begin
             burst_cnt <= (others=>'0');
             rd(0).ena <= (others=>'0');
 
-            if v_full_sel_vld='1' then
+            if arb_burst.grant_vld='1' then
               rd(0).sob <= '1';
-              rd(0).sel <= v_full_sel;
-              rd(0).ena(to_integer(v_full_sel)) <= '1';
+              rd(0).sel <= to_unsigned(arb_burst.grant_idx,FIFO_SEL_WIDTH);
+              rd(0).ena <= arb_burst.grant;
               burst_cnt <= to_unsigned(BURST_SIZE,burst_cnt'length);
               state <= BURST;
-            elsif v_flush_sel_vld='1' then
+            elsif arb_flush.grant_vld='1' then
               rd(0).sob <= '1';
-              rd(0).sel <= v_flush_sel;
-              rd(0).ena(to_integer(v_flush_sel)) <= '1';
-              v_burst_size := req_fifo(to_integer(v_flush_sel)).level;
+              rd(0).sel <= to_unsigned(arb_flush.grant_idx,FIFO_SEL_WIDTH);
+              rd(0).ena <= arb_flush.grant;
+              v_burst_size := req_fifo(arb_flush.grant_idx).level;
               burst_cnt <= v_burst_size;
               if v_burst_size=1 then
                 rd(0).eob <= '1';
@@ -611,3 +661,100 @@ begin
   end generate;
   
 end architecture;
+
+-------------------------------------------------------------------------------
+
+--architecture fifo_sync of arbiter_mux_stream_to_burst is
+--
+--  -- Width of FIFO/Port select signal
+--  constant FIFO_SEL_WIDTH : positive := log2ceil(NUM_PORTS);
+--
+--  signal sof : std_logic_vector(NUM_PORTS-1 downto 0);
+--  signal eof : std_logic_vector(NUM_PORTS-1 downto 0);
+--
+--  type t_req_fifo is
+--  record
+--    rst          : std_logic;
+--    wr_ena       : std_logic;
+--    wr_din       : std_logic_vector(DATA_WIDTH-1 downto 0);
+--    wr_full      : std_logic;
+--    wr_prog_full : std_logic;
+--    wr_overflow  : std_logic;
+--    rd_ena       : std_logic;
+--    rd_dout      : std_logic_vector(DATA_WIDTH-1 downto 0);
+--    rd_empty     : std_logic;
+--    rd_prog_empty: std_logic;
+--    level        : unsigned(FIFO_DEPTH_LOG2 downto 0);
+--    active       : std_logic; -- FIFO active
+--    flush_trig   : std_logic; -- flush triggered
+--    flushing     : std_logic; -- flushing active
+--  end record;
+--  type a_req_fifo is array(integer range <>) of t_req_fifo;
+--  signal req_fifo : a_req_fifo(0 to NUM_PORTS-1);
+--
+--
+--begin
+--
+--
+--  g_req_fifo : for n in 0 to (NUM_PORTS-1) generate
+--  begin
+--
+--    -- reset FIFO also when flushing is completed 
+--    req_fifo(n).rst <= rst or (req_fifo(n).flushing and req_fifo(n).rd_empty);
+--
+--    req_fifo(n).wr_ena <= usr_out_req_ena(n) and usr_out_req_frame(n);
+--    req_fifo(n).wr_din <= usr_out_req_wr_data(n);
+--    
+--    usr_in_req_ovfl <= (others=>'0'); -- request overflow can never occur, just FIFO overflow
+--    usr_in_req_fifo_ovfl(n) <= req_fifo(n).wr_overflow;
+--    usr_in_req_fifo_rdy(n) <= not req_fifo(n).wr_prog_full;
+--
+--    i_fifo : entity ramlib.fifo_sync
+--    generic map(
+--      FIFO_WIDTH => DATA_WIDTH,
+--      FIFO_DEPTH => 2**FIFO_DEPTH_LOG2,
+--      USE_BLOCK_RAM => true,
+--      ACKNOWLEDGE_MODE => false,
+--      PROG_FULL_THRESHOLD => 2**FIFO_DEPTH_LOG2-2, -- TODO : some margin to give user time to react 
+--      PROG_EMPTY_THRESHOLD => BURST_SIZE -- ensures that at least one element remains for final flushing
+--    )
+--    port map(
+--      clock         => clk,
+--      reset         => req_fifo(n).rst,
+--      wr_ena        => req_fifo(n).wr_ena,
+--      wr_din        => req_fifo(n).wr_din,
+--      wr_full       => req_fifo(n).wr_full,
+--      wr_prog_full  => req_fifo(n).wr_prog_full,
+--      wr_overflow   => req_fifo(n).wr_overflow,
+--      rd_req_ack    => req_fifo(n).rd_ena,
+--      rd_dout       => req_fifo(n).rd_dout,
+--      rd_empty      => req_fifo(n).rd_empty,
+--      rd_prog_empty => req_fifo(n).rd_prog_empty,
+--      rd_underflow  => open
+--    );
+--
+----    req_fifo(n).rd_ena <= rd(0).ena(n);
+--
+--    p_flush : process(clk)
+--    begin
+--      if rising_edge(clk) then
+--        if req_fifo(n).rst='1' then
+--          req_fifo(n).active <= '0';
+--          req_fifo(n).flush_trig <= '0';
+--          req_fifo(n).flushing <= '0';
+--        else
+--          -- FIFO becomes active with rising edge of frame signal
+--          req_fifo(n).active <= req_fifo(n).active or sof(n);
+--          -- FIFO flush is triggered with falling edge of frame signal but only when the FIFO is already active
+--          req_fifo(n).flush_trig <= req_fifo(n).flush_trig or (req_fifo(n).active and eof(n));
+--          -- FIFO flushing starts after the trigger when no more full bursts are are active or pending
+--          req_fifo(n).flushing <= req_fifo(n).flushing or
+--                                 (req_fifo(n).flush_trig and req_fifo(n).rd_prog_empty and (not req_fifo(n).rd_ena));
+--        end if; --reset
+--      end if; --clock
+--    end process;
+--
+--  end generate;
+--
+--
+--end architecture;
