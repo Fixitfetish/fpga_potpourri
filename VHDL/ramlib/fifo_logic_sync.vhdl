@@ -13,7 +13,6 @@ library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
 library baselib;
---  use baselib.ieee_extension_types.all;
   use baselib.ieee_extension.all;
 
 --! @brief FIFO logic for synchronous RAM based FIFOs.
@@ -27,7 +26,7 @@ library baselib;
 --! The range of both pointers is 0 to FIFO_DEPTH-1. After reset both pointers are 0.
 --! Both pointers only have the same value when the FIFO is either empty or full.
 --! The write pointer is incremented with every write enable but only if the FIFO is not full.
---! The read pointer is incremented with every read enable but only if the FIFO is not emtpy.
+--! The read pointer is incremented with every read enable but only if the FIFO is not empty.
 --! Writing to a full FIFO or reading from an empty FIFO will not change the write or read pointer.
 --! To not override already existing values in the FIFO it is recommended to disable the RAM write
 --! enable when the FIFO is full, hence "only" the value that caused the overflow is lost.
@@ -37,7 +36,6 @@ library baselib;
 --!
 --! Writing to a full FIFO will cause an overflow flag in the next cycle.
 --! Reading from an empty FIFO  will cause an underflow flag in the next cycle.
-
 entity fifo_logic_sync is
 generic (
   --! FIFO depth in number of data words (mandatory!). Power of 2 is recommended for efficiency.

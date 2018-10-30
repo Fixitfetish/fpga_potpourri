@@ -9,7 +9,10 @@ set RAMLIB_PATH [ file dirname [dict get [ info frame 0 ] file ] ]
 set files [list]
 
 # entities
+lappend files arbiter.vhdl
+lappend files arbiter.fcfs.vhdl
 lappend files fifo_logic_sync.vhdl
+lappend files fifo_read_valid_last_logic.vhdl
 lappend files fifo_sync.vhdl
 lappend files ram_sdp.vhdl
 lappend files arbiter_mux_stream_to_burst.vhdl

@@ -125,6 +125,22 @@ begin
     ram_in_data      => ram_in_data
   );
 
+  i_log : entity work.ram_logger
+  generic map(
+    LOG_FILE => "log.txt",
+    TITLE => ""
+  )
+  port map(
+    clk      => clk,
+    rst      => rst,
+    addr     => ram_in_addr,
+    din      => ram_in_data,
+    wren     => ram_in_addr_vld,
+    sob      => ram_in_first,
+    eob      => ram_in_last,
+    finish   => finish
+  );
+
   p_stimuli: process
   begin
     

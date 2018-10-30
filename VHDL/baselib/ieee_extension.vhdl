@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
 --! @file       ieee_extension.vhdl
 --! @author     Fixitfetish
---! @date       01/May/2017
---! @version    0.87
---! @note       VHDL-1993
+--! @date       30/Oct/2018
+--! @version    0.90
+--! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
@@ -27,18 +27,146 @@ package ieee_extension is
  --! convert boolean vector into std_logic_vector (false=>'0', true=>'1')
  function to_01(x:boolean_vector) return std_logic_vector;
 
- --! maximum of two integers
- function MAXIMUM (l,r: integer) return integer;
-
- --! minimum of two integers
- function MINIMUM (l,r: integer) return integer;
-
  --! @brief This function calculates ceil(log2(n)).
  --! Optionally, the maximum result can be limited to 'bits' (bits = 2..32)
  --! | n           | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12| 13| .. |
  --! |-------------|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:--:|
  --! | log2ceil(n) | 1 | 1 | 2 | 2 | 3 | 3 | 3 | 3 | 4 | 4 | 4 | 4 | 4 | .. |
  function LOG2CEIL (n:positive; bits:positive:=32) return natural;
+
+ --! @brief Element-wise ceil(log2(n(i))) of and integer vector
+ function LOG2CEIL (n:integer_vector; bits:positive:=32) return integer_vector;
+
+ ----------------------------------------------------------
+ -- MAXIMUM and MINIMUM
+ ----------------------------------------------------------
+
+ --! maximum of two integers
+ function MAXIMUM (l,r: integer) return integer;
+
+ --! minimum of two integers
+ function MINIMUM (l,r: integer) return integer;
+
+ --! Leftmost maximum and corresponding index of integer vector.
+ --! For rightmost maximum consider using REVERSE() in addition.
+ --! (Note: this is a recursive procedure)
+ procedure MAXIMUM(
+   din : in  integer_vector;
+   max : out integer;
+   idx : out integer
+ );
+
+ --! Leftmost minimum and corresponding index of integer vector.
+ --! For rightmost minimum consider using REVERSE() in addition.
+ --! (Note: this is a recursive procedure)
+ procedure MINIMUM(
+   din : in  integer_vector;
+   min : out integer;
+   idx : out integer
+ );
+
+ --! Leftmost maximum of integer vector
+ --! For rightmost maximum consider using REVERSE() in addition.
+ function MAXIMUM(x:integer_vector) return integer;
+
+ --! Leftmost minimum of integer vector
+ --! For rightmost minimum consider using REVERSE() in addition.
+ function MINIMUM(x:integer_vector) return integer;
+
+ --! Leftmost index of integer vector maximum
+ --! For rightmost maximum consider using REVERSE() in addition.
+ function INDEX_OF_MAXIMUM(x:integer_vector) return integer;
+
+ --! Leftmost index of integer vector minimum
+ --! For rightmost minimum consider using REVERSE() in addition.
+ function INDEX_OF_MINIMUM(x:integer_vector) return integer;
+
+ --! Maximum of two unsigned
+ function MAXIMUM (l,r: unsigned) return unsigned;
+
+ --! Minimum of two unsigned
+ function MINIMUM (l,r: unsigned) return unsigned;
+
+ --! Leftmost maximum and corresponding index of unsigned vector.
+ --! For rightmost maximum consider using REVERSE() in addition.
+ procedure MAXIMUM(
+   din : in  unsigned_vector;
+   max : out unsigned;
+   idx : out integer
+ );
+  
+ --! Leftmost minimum and corresponding index of unsigned vector.
+ --! For rightmost minimum consider using REVERSE() in addition.
+ procedure MINIMUM(
+   din : in  unsigned_vector;
+   min : out unsigned;
+   idx : out integer
+ );
+  
+ --! Leftmost maximum of unsigned vector
+ --! For rightmost maximum consider using REVERSE() in addition.
+ function MAXIMUM(x:unsigned_vector) return unsigned;
+
+ --! Leftmost minimum of unsigned vector
+ --! For rightmost minimum consider using REVERSE() in addition.
+ function MINIMUM(x:unsigned_vector) return unsigned;
+
+ --! Leftmost index of unsigned vector maximum
+ --! For rightmost maximum consider using REVERSE() in addition.
+ function INDEX_OF_MAXIMUM(x:unsigned_vector) return integer;
+
+ --! Leftmost index of unsigned vector minimum
+ --! For rightmost minimum consider using REVERSE() in addition.
+ function INDEX_OF_MINIMUM(x:unsigned_vector) return integer;
+
+ ----------------------------------------------------------
+ -- REVERSE order of vector elements
+ ----------------------------------------------------------
+
+ --! @brief Reverse order of vector elements without changing the index direction.  
+ --! Example:
+ --! * signal x : std_logic_vector(3 to 7) := "10110";
+ --! * signal y : std_logic_vector(x'reverse_range);
+ --! * REVERSE(x) reverses just the vector elements : std_logic_vector(3 to 7) = "01101"
+ --! * y<=x reverses just the index direction : y = std_logic_vector(7 downto 3) = "10110"
+ --! * y<=REVERSE(x) reverses index direction and vector elements : y = std_logic_vector(7 downto 3) = "01101"
+ function REVERSE(arg:std_logic_vector) return std_logic_vector;
+
+ --! @brief Reverse order of vector elements without changing the index direction.  
+ --! Example:
+ --! * signal x : integer_vector(3 to 7) := (8,-3,15,-2,41);
+ --! * signal y : integer_vector(x'reverse_range);
+ --! * REVERSE(x) reverses just the vector elements : integer_vector(3 to 7) = (41,-2,15,-3,8)
+ --! * y<=x reverses just the index direction : y = integer_vector(7 downto 3) = (8,-3,15,-2,41)
+ --! * y<=REVERSE(x) reverses index direction and vector elements : y = integer_vector(7 downto 3) = (41,-2,15,-3,8)
+ function REVERSE(arg:integer_vector) return integer_vector;
+
+ --! @brief Reverse order of vector elements without changing the index direction.  
+ --! Example:
+ --! * signal x : boolean_vector(3 to 5) := (false,true,true);
+ --! * signal y : boolean_vector(x'reverse_range);
+ --! * REVERSE(x) reverses just the vector elements : boolean_vector(3 to 5) = (true,true,false)
+ --! * y<=x reverses just the index direction : y = boolean_vector(5 downto 3) = (false,true,true) 
+ --! * y<=REVERSE(x) reverses index direction and vector elements : y = boolean_vector(5 downto 3) = (true,true,false)
+ function REVERSE(arg:boolean_vector) return boolean_vector;
+
+ --! @brief Reverse order of vector elements without changing the index direction.  
+ --! Example:
+ --! * signal x : unsigned_vector(3 to 5)(2 downto 0) := ("011","100","101");
+ --! * signal y : unsigned_vector(x'reverse_range)(x(x'low)'range);
+ --! * REVERSE(x) results in : unsigned_vector(3 to 5)(2 downto 0) = ("101","100","011")
+ --! * y<=x results in : y = unsigned_vector(5 downto 3)(2 downto 0) = ("011","100","101")
+ --! * y<=REVERSE(x) results in : y = unsigned_vector(5 downto 3)(2 downto 0) = ("101","100","011")
+ function REVERSE(arg:unsigned_vector) return unsigned_vector;
+
+ --! @brief Reverse order of vector elements without changing the index direction.  
+ --! Example:
+ --! * signal x : signed_vector(3 to 5)(2 downto 0) := ("011","100","101");
+ --! * signal y : signed_vector(x'reverse_range)(x(x'low)'range);
+ --! * REVERSE(x) results in : signed_vector(3 to 5)(2 downto 0) = ("101","100","011")
+ --! * y<=x results in : y = signed_vector(5 downto 3)(2 downto 0) = ("011","100","101")
+ --! * y<=REVERSE(x) results in : y = signed_vector(5 downto 3)(2 downto 0) = ("101","100","011")
+ function REVERSE(arg:signed_vector) return signed_vector;
 
  ----------------------------------------------------------
  -- bitwise logic operations on std_logic_vector
@@ -564,16 +692,6 @@ package body ieee_extension is
  -- local auxiliary
  ------------------------------------------
 
- function MAXIMUM (l,r: integer) return integer is
- begin
-   if l > r then return l; else return r; end if;
- end function;
-
- function MINIMUM (l,r: integer) return integer is
- begin
-   if l < r then return l; else return r; end if;
- end function;
-
  -- if x/=0 then return x
  -- if x=0  then return default
  function default_if_zero (x,dflt: integer) return integer is
@@ -609,6 +727,289 @@ package body ieee_extension is
      if x(i) = '1' then return i; end if;
    end loop;
    return 1;
+ end function;
+
+ function LOG2CEIL (n:integer_vector; bits:positive:=32) return integer_vector is
+   variable res : integer_vector(n'range);
+ begin
+   for i in n'range loop
+     res(i) := LOG2CEIL(n(i),bits);
+   end loop;
+   return res;
+ end function;
+
+ ----------------------------------------------------------
+ -- MAXIMUM and MINIMUM
+ ----------------------------------------------------------
+
+ function MAXIMUM (l,r: integer) return integer is
+ begin
+   if l > r then return l; else return r; end if;
+ end function;
+
+ function MINIMUM (l,r: integer) return integer is
+ begin
+   if l < r then return l; else return r; end if;
+ end function;
+
+ procedure MAXIMUM(
+   din : in  integer_vector;
+   max : out integer;
+   idx : out integer
+ ) is
+   constant N : positive := din'length;
+   constant M : integer := (din'left+din'right+1)/2;
+   variable max_temp : integer;
+   variable idx_temp : integer;
+ begin
+   max := din(din'left);
+   idx := din'left;
+   if N=2 then
+     if din(din'right)>max then 
+       max := din(din'right);
+       idx := din'right;
+     end if;
+   elsif N>=3 then
+     if din'ascending then
+       MAXIMUM(din=>din(din'left to M), max=>max, idx=>idx);
+       MAXIMUM(din=>din(M+1 to din'right), max=>max_temp, idx=>idx_temp);
+    else
+       MAXIMUM(din=>din(din'left downto M), max=>max, idx=>idx);
+       MAXIMUM(din=>din(M-1 downto din'right), max=>max_temp, idx=>idx_temp);
+    end if;
+     if max_temp>max then
+       max := max_temp;
+       idx := idx_temp;
+     end if;
+   end if;
+ end procedure;
+
+  function MAXIMUM(x:integer_vector) return integer is
+    variable max, idx : integer;
+  begin
+    MAXIMUM(din=>x, max=>max, idx=>idx);
+    idx := idx; -- avoid warning "idx never read"
+    return max;
+  end function;
+
+  function INDEX_OF_MAXIMUM(x:integer_vector) return integer is
+    variable max, idx : integer;
+  begin
+    MAXIMUM(din=>x, max=>max, idx=>idx);
+    max := max; -- avoid warning "max never read"
+    return idx;
+  end function;
+
+  procedure MINIMUM(
+    din : in  integer_vector;
+    min : out integer;
+    idx : out integer
+  ) is
+    constant N : positive := din'length;
+    constant M : integer := (din'left+din'right+1)/2;
+    variable min_temp : integer;
+    variable idx_temp : integer;
+  begin
+    min := din(din'left);
+    idx := din'left;
+    if N=2 then
+      if din(din'right)<min then 
+        min := din(din'right);
+        idx := din'right;
+      end if;
+    elsif N>=3 then
+      if din'ascending then
+        MINIMUM(din=>din(din'left to M), min=>min, idx=>idx);
+        MINIMUM(din=>din(M+1 to din'right), min=>min_temp, idx=>idx_temp);
+     else
+        MINIMUM(din=>din(din'left downto M), min=>min, idx=>idx);
+        MINIMUM(din=>din(M-1 downto din'right), min=>min_temp, idx=>idx_temp);
+     end if;
+      if min_temp<min then
+        min := min_temp;
+        idx := idx_temp;
+      end if;
+    end if;
+  end procedure;
+
+  function MINIMUM(x:integer_vector) return integer is
+    variable min, idx : integer;
+  begin
+    MINIMUM(din=>x, min=>min, idx=>idx);
+    idx := idx; -- avoid warning "idx never read"
+    return min;
+  end function;
+
+  function INDEX_OF_MINIMUM(x:integer_vector) return integer is
+    variable min, idx : integer;
+  begin
+    MINIMUM(din=>x, min=>min, idx=>idx);
+    min := min; -- avoid warning "min never read"
+    return idx;
+  end function;
+
+ function MAXIMUM (l,r: unsigned) return unsigned is
+   constant N : positive := MAXIMUM(l'length,r'length);
+   variable LL : unsigned(N-1 downto 0);
+   variable RR : unsigned(N-1 downto 0);
+ begin
+   LL := resize(l,N);
+   RR := resize(r,N);
+   if LL > RR then return LL; else return RR; end if;
+ end function;
+
+ function MINIMUM (l,r: unsigned) return unsigned is
+   constant N : positive := MAXIMUM(l'length,r'length);
+   variable LL : unsigned(N-1 downto 0);
+   variable RR : unsigned(N-1 downto 0);
+ begin
+   LL := resize(l,N);
+   RR := resize(r,N);
+   if LL < RR then return LL; else return RR; end if;
+ end function;
+
+  procedure MAXIMUM(
+    din : in  unsigned_vector;
+    max : out unsigned;
+    idx : out integer
+  ) is
+    constant N : positive := din'length;
+--    constant M : integer := (din'left+din'right+1)/2;
+--    constant W : integer := din(din'left)'length;
+--    variable max_temp : unsigned(W-1 downto 0);
+--    variable idx_temp : integer;
+  begin
+    max := din(din'left);
+    idx := din'left;
+    if N=2 then
+      if din(din'right)>max then 
+        max := din(din'right);
+        idx := din'right;
+      end if;
+    elsif N>=3 then
+      for i in din'range loop
+        if din(i)>max then
+          max := din(i);
+          idx := i;
+        end if;
+      end loop;
+--      -- Recursive implementation preferred but currently not yet supported by GHDL
+--      if din'ascending then
+--        MAXIMUM(din=>din(din'left to M), max=>max, idx=>idx);
+--        MAXIMUM(din=>din(M+1 to din'right), max=>max_temp, idx=>idx_temp);
+--      else
+--        MAXIMUM(din=>din(din'left downto M), max=>max, idx=>idx);
+--        MAXIMUM(din=>din(M-1 downto din'right), max=>max_temp, idx=>idx_temp);
+--      end if;
+--      if max_temp>max then
+--        max := max_temp;
+--        idx := idx_temp;
+--      end if;
+    end if;
+  end procedure;
+
+  procedure MINIMUM(
+    din : in  unsigned_vector;
+    min : out unsigned;
+    idx : out integer
+  ) is
+    constant N : positive := din'length;
+  begin
+    min := din(din'left);
+    idx := din'left;
+    if N=2 then
+      if din(din'right)<min then 
+        min := din(din'right);
+        idx := din'right;
+      end if;
+    elsif N>=3 then
+      for i in din'range loop
+        if din(i)<min then
+          min := din(i);
+          idx := i;
+        end if;
+      end loop;
+    end if;
+  end procedure;
+
+  function MAXIMUM(x:unsigned_vector) return unsigned is
+    variable max : unsigned(x(x'left)'range);
+    variable idx : integer;
+  begin
+    MAXIMUM(din=>x, max=>max, idx=>idx);
+    idx := idx; -- avoid warning "idx never read"
+    return max;
+  end function;
+
+  function MINIMUM(x:unsigned_vector) return unsigned is
+    variable min : unsigned(x(x'left)'range);
+    variable idx : integer;
+  begin
+    MINIMUM(din=>x, min=>min, idx=>idx);
+    idx := idx; -- avoid warning "idx never read"
+    return min;
+  end function;
+
+  function INDEX_OF_MAXIMUM(x:unsigned_vector) return integer is
+    variable max : unsigned(x(x'left)'range);
+    variable idx : integer;
+  begin
+    MAXIMUM(din=>x, max=>max, idx=>idx);
+    max := max; -- avoid warning "max never read"
+    return idx;
+  end function;
+
+  function INDEX_OF_MINIMUM(x:unsigned_vector) return integer is
+    variable min : unsigned(x(x'left)'range);
+    variable idx : integer;
+  begin
+    MINIMUM(din=>x, min=>min, idx=>idx);
+    min := min; -- avoid warning "min never read"
+    return idx;
+  end function;
+
+ ----------------------------------------------------------
+ -- REVERSE order of vector elements
+ ----------------------------------------------------------
+
+ function REVERSE(arg:std_logic_vector) return std_logic_vector is
+   variable res : std_logic_vector(arg'range);
+   alias xarg : std_logic_vector(arg'reverse_range) is arg;
+ begin
+   for i in xarg'range loop res(i) := xarg(i); end loop;
+   return res;
+ end function;   
+
+ function REVERSE(arg:integer_vector) return integer_vector is
+   variable res : integer_vector(arg'range);
+   alias xarg : integer_vector(arg'reverse_range) is arg;
+ begin
+   for i in xarg'range loop res(i) := xarg(i); end loop;
+   return res;
+ end function;
+   
+ function REVERSE(arg:boolean_vector) return boolean_vector is
+   variable res : boolean_vector(arg'range);
+   alias xarg : boolean_vector(arg'reverse_range) is arg;
+ begin
+   for i in xarg'range loop res(i) := xarg(i); end loop;
+   return res;
+ end function;
+   
+ function REVERSE(arg:unsigned_vector) return unsigned_vector is
+   variable res : unsigned_vector(arg'range)(arg(arg'low)'range);
+   alias xarg : unsigned_vector(arg'reverse_range)(arg(arg'low)'range) is arg;
+ begin
+   for i in xarg'range loop res(i) := xarg(i); end loop;
+   return res;
+ end function;
+   
+ function REVERSE(arg:signed_vector) return signed_vector is
+   variable res : signed_vector(arg'range)(arg(arg'low)'range);
+   alias xarg : signed_vector(arg'reverse_range)(arg(arg'low)'range) is arg;
+ begin
+   for i in xarg'range loop res(i) := xarg(i); end loop;
+   return res;
  end function;
 
  ----------------------------------------------------------
