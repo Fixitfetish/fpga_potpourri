@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       fifo_logic_sync.vhdl
+--! @file       fifo_logic_sync2.vhdl
 --! @author     Fixitfetish
 --! @date       18/Mar/2019
 --! @version    0.20
@@ -8,6 +8,9 @@
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
 -- Includes DOXYGEN support.
+-- HISTORY
+-- 0.10 : 28/May/2016  First version
+-- 0.20 : 18/Mar/2019  FIFO depth and thresholds reconfigurable during reset
 -------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
@@ -37,7 +40,7 @@ library baselib;
 --! Writing to a full FIFO will cause an overflow flag in the next cycle.
 --! Reading from an empty FIFO  will cause an underflow flag in the next cycle.
 --!
-entity fifo_logic_sync is
+entity fifo_logic_sync2 is
 generic (
   --! @brief Maximum allowed FIFO depth in number of data words, LOG2 to enforce power 2 (mandatory!).
   --! Defines the size of write and read pointer and the range of thresholds.
@@ -48,20 +51,20 @@ port (
   clk                      : in  std_logic;
   --! Synchronous reset
   rst                      : in  std_logic;
-  --! @brief FIFO depth in number of data words (mandatory!). Power of 2 is recommended for efficiency.
+  --! @brief FIFO depth in number of data words minus 1 (mandatory!). (2**N)-1 is recommended for efficiency.
   --! Can only be changed during reset.
-  cfg_fifo_depth           : unsigned(MAX_FIFO_DEPTH_LOG2-1 downto 0);
-  --! @brief 0(unused) < prog full threshold < cfg_fifo_depth
+  cfg_fifo_depth_minus1    : unsigned(MAX_FIFO_DEPTH_LOG2-1 downto 0);
+  --! @brief 0(unused) < prog full threshold <= cfg_fifo_depth_minus1
   --! Can only be changed during reset.
   cfg_prog_full_threshold  : unsigned(MAX_FIFO_DEPTH_LOG2-1 downto 0) := (others=>'0');
-  --! @brief 0(unused) < prog empty threshold < cfg_fifo_depth
+  --! @brief 0(unused) < prog empty threshold <= cfg_fifo_depth_minus1
   --! Can only be changed during reset.
   cfg_prog_empty_threshold : unsigned(MAX_FIFO_DEPTH_LOG2-1 downto 0) := (others=>'0');
   --! Write data enable
   wr_ena                   : in  std_logic;
-  --! Write pointer for RAM based FIFOs with range 0 to cfg_fifo_depth-1
+  --! Write pointer for RAM based FIFOs with range 0 to cfg_fifo_depth_minus1
   wr_ptr                   : out unsigned(MAX_FIFO_DEPTH_LOG2-1 downto 0);
-  --! FIFO full, '1' when level=FIFO_DEPTH
+  --! FIFO full, '1' when level = FIFO depth
   wr_full                  : out std_logic;
   --! FIFO programmable full, '1' when level>=cfg_prog_full_threshold
   wr_prog_full             : out std_logic;
@@ -69,32 +72,30 @@ port (
   wr_overflow              : out std_logic;
   --! Read data enable
   rd_ena                   : in  std_logic;
-  --! Read pointer for RAM based FIFOs with range 0 to cfg_fifo_depth-1
+  --! Read pointer for RAM based FIFOs with range 0 to cfg_fifo_depth_minus1
   rd_ptr                   : out unsigned(MAX_FIFO_DEPTH_LOG2-1 downto 0);
-  --! FIFO empty, '1' when level=0
+  --! FIFO empty, '1' when level = 0
   rd_empty                 : out std_logic;
   --! FIFO programmable empty, '1' when level<=cfg_prog_empty_threshold
   rd_prog_empty            : out std_logic;
   --! FIFO underflow (when rd_ena=1 and rd_empty=1)
   rd_underflow             : out std_logic;
-  --! FIFO fill level with range 0 to cfg_fifo_depth
-  level                    : out unsigned(MAX_FIFO_DEPTH_LOG2-1 downto 0)
+  --! FIFO fill level with range 0 to FIFO depth
+  level                    : out unsigned(MAX_FIFO_DEPTH_LOG2 downto 0)
 );
 end entity;
 
 -------------------------------------------------------------------------------
 
-architecture rtl of fifo_logic_sync is
+architecture rtl of fifo_logic_sync2 is
 
-  constant PTR_LENGTH : positive := MAX_FIFO_DEPTH_LOG2;
-  constant PTR_MAX : unsigned(PTR_LENGTH-1 downto 0) := to_unsigned(FIFO_DEPTH-1,PTR_LENGTH);
-
-  signal cfg_fifo_depth_q : unsigned(MAX_FIFO_DEPTH_LOG2-1 downto 0);
+  signal cfg_fifo_depth_minus1_q : unsigned(MAX_FIFO_DEPTH_LOG2-1 downto 0);
+  signal cfg_fifo_depth_q : unsigned(MAX_FIFO_DEPTH_LOG2 downto 0);
   signal cfg_prog_full_threshold_q : unsigned(MAX_FIFO_DEPTH_LOG2-1 downto 0);
   signal cfg_prog_empty_threshold_q : unsigned(MAX_FIFO_DEPTH_LOG2-1 downto 0);
 
-  signal wr_ptr_i : unsigned(PTR_LENGTH-1 downto 0);
-  signal rd_ptr_i : unsigned(PTR_LENGTH-1 downto 0);
+  signal wr_ptr_i : unsigned(MAX_FIFO_DEPTH_LOG2-1 downto 0);
+  signal rd_ptr_i : unsigned(MAX_FIFO_DEPTH_LOG2-1 downto 0);
 
   signal empty_i : std_logic;
   signal full_i : std_logic;
@@ -118,7 +119,8 @@ begin
         rd_prog_empty <= '1';
         wr_overflow <= '0';
         rd_underflow <= '0';
-        cfg_fifo_depth_q <= cfg_fifo_depth;
+        cfg_fifo_depth_minus1_q <= cfg_fifo_depth_minus1;
+        cfg_fifo_depth_q <= resize(cfg_fifo_depth_minus1,cfg_fifo_depth_q) + 1;
         cfg_prog_full_threshold_q <= cfg_prog_full_threshold;
         cfg_prog_empty_threshold_q <= cfg_prog_empty_threshold;
 
@@ -141,7 +143,7 @@ begin
               
         -- increment write pointer
         if v_incr='1' then
-          if wr_ptr_i=PTR_MAX then
+          if wr_ptr_i=cfg_fifo_depth_minus1_q then
             wr_ptr_i <= (others=>'0');
           else
             wr_ptr_i <= wr_ptr_i + 1;
@@ -150,7 +152,7 @@ begin
 
         -- increment read pointer
         if v_decr='1' then
-          if rd_ptr_i=PTR_MAX then
+          if rd_ptr_i=cfg_fifo_depth_minus1_q then
             rd_ptr_i <= (others=>'0');
           else
             rd_ptr_i <= rd_ptr_i + 1;
@@ -184,5 +186,5 @@ begin
 
   wr_ptr <= wr_ptr_i;
   rd_ptr <= rd_ptr_i;
-  
+
 end architecture;
