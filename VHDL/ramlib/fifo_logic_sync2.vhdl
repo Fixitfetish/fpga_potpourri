@@ -1,16 +1,18 @@
 -------------------------------------------------------------------------------
 --! @file       fifo_logic_sync2.vhdl
 --! @author     Fixitfetish
---! @date       18/Mar/2019
---! @version    0.20
+--! @date       20/Mar/2019
+--! @version    0.30
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
 -- Includes DOXYGEN support.
+--
 -- HISTORY
 -- 0.10 : 28/May/2016  First version
 -- 0.20 : 18/Mar/2019  FIFO depth and thresholds reconfigurable during reset
+-- 0.30 : 20/Mar/2019  New generic to define reset value of FIFO full flag
 -------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
@@ -44,7 +46,9 @@ entity fifo_logic_sync2 is
 generic (
   --! @brief Maximum allowed FIFO depth in number of data words, LOG2 to enforce power 2 (mandatory!).
   --! Defines the size of write and read pointer and the range of thresholds.
-  MAX_FIFO_DEPTH_LOG2 : positive
+  MAX_FIFO_DEPTH_LOG2 : positive;
+  --! @brief Reset value of the flags wr_full and wr_prog_full
+  FULL_RESET_VALUE : std_logic := '1'
 );
 port (
   --! Clock for read and write port
@@ -112,15 +116,15 @@ begin
       if rst='1' then
         v_level := (others=>'0');
         empty_i <= '1';
-        full_i <= '0';
+        full_i <= FULL_RESET_VALUE;
         wr_ptr_i <= (others=>'0');
         rd_ptr_i <= (others=>'0');
-        wr_prog_full <= '0';
+        wr_prog_full <= FULL_RESET_VALUE;
         rd_prog_empty <= '1';
         wr_overflow <= '0';
         rd_underflow <= '0';
         cfg_fifo_depth_minus1_q <= cfg_fifo_depth_minus1;
-        cfg_fifo_depth_q <= resize(cfg_fifo_depth_minus1,cfg_fifo_depth_q) + 1;
+        cfg_fifo_depth_q <= resize(cfg_fifo_depth_minus1,cfg_fifo_depth_q'length) + 1;
         cfg_prog_full_threshold_q <= cfg_prog_full_threshold;
         cfg_prog_empty_threshold_q <= cfg_prog_empty_threshold;
 
@@ -162,16 +166,18 @@ begin
         empty_i <= to_01(v_level=0);
         full_i <= to_01(v_level=cfg_fifo_depth_q);
 
-        if cfg_prog_empty_threshold_q>0 then
-          rd_prog_empty <= to_01(v_level<=cfg_prog_empty_threshold_q);
+        if cfg_prog_empty_threshold_q=0 then
+          -- unused, keep reset value
+          rd_prog_empty <= '1';
         else
-          rd_prog_empty <= '1'; -- keep reset value
+          rd_prog_empty <= to_01(v_level<=cfg_prog_empty_threshold_q);
         end if;
 
-        if cfg_prog_full_threshold_q>0 then
-          wr_prog_full <= to_01(v_level>=cfg_prog_full_threshold_q);
+        if cfg_prog_full_threshold_q=0 then
+          -- unused, keep reset value
+          wr_prog_full <= FULL_RESET_VALUE;
         else
-          wr_prog_full <= '0'; -- keep reset value
+          wr_prog_full <= to_01(v_level>=cfg_prog_full_threshold_q);
         end if;
 
       end if;
