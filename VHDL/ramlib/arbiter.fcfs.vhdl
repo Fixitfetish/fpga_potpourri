@@ -18,11 +18,11 @@ library baselib;
 
 --! @brief First-Come-First-Serve (FCFS) arbiter implementation.
 --!
+--! Pending requests are given priority before new requests.
+--! The longer a request waits for a grant the higher becomes its priority.
 --! Compared to other scheduling disciplines a FCFS arbiter is more difficult
 --! to implement and requires more logic resources, especially when the number
 --! of ports becomes larger. Hence, meeting the timing can be critical. 
---! Pending requests is given priority before new requests.
---! The longer a request waits for a grant the higher becomes its priority.
 --!
 --! If requests occur at the time this arbiter by default grants requests with
 --! leftmost index (MSB) first, that means
@@ -30,6 +30,7 @@ library baselib;
 --! * If the request input has DOWNTO direction then the highest index has highest priority.
 --!
 --! Inversion of priorities is possible by setting the generic RIGHTMOST_REQUEST_FIRST=true .
+--!
 architecture fcfs of arbiter is
 
   constant NUM_PORTS : positive := request'length;
@@ -91,10 +92,10 @@ begin
               prio(p) <= 0;
             end if;
           elsif (not REQUEST_PULSE) and pending_i(p)='0' then
-            -- reset priority if request has been canceled
+            -- clear priority if request has been canceled
             prio(p) <= 0;
           elsif (request(p)='1' or pending_i(p)='1') then
-            -- increase priority of not granted request
+            -- increase priority of deferred request
             if prio(p)/=MAX_PRIO then
               prio(p) <= prio(p) + 1;
             end if;

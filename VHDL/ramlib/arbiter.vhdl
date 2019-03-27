@@ -43,9 +43,9 @@ generic (
 port (
   --! Synchronous reset
   rst          : in  std_logic;
-  --! Clock for read and write port
+  --! Clock
   clk          : in  std_logic;
-  --! clock enable
+  --! Clock enable
   clk_ena      : in  std_logic;
   --! @brief Requests, one per port. Direction can be TO or DOWNTO.
   --! Requests are granted according to the scheduling discipline and the generic RIGHTMOST_REQUEST_FIRST .
