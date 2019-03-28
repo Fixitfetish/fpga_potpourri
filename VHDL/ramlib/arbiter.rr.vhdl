@@ -46,7 +46,7 @@ begin
     begin
       if rising_edge(clk) then
         if rst='1' then
-          request_i <= (others=>'0');        
+          request_i <= (others=>'0');
         elsif clk_ena='1' then
           for p in 0 to (NUM_PORTS-1) loop
             if grant_i(p)='1' then
@@ -97,8 +97,9 @@ begin
           mask <= (others=>'1');
         else
           -- mask remaining requests of current round
-          mask(0) <= '0';
-          mask(NUM_PORTS-1 downto 1) <= ZEROS_RIGHT(grant_idx_i,NUM_PORTS-1);
+          mask <= ZEROS_RIGHT(grant_idx_i,NUM_PORTS-1) & '0';
+--          mask(0) <= '0';
+--          mask(NUM_PORTS-1 downto 1) <= ZEROS_RIGHT(grant_idx_i,NUM_PORTS-1);
         end if;
         
       end if; --reset
