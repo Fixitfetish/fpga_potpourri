@@ -1,0 +1,27 @@
+[*]
+[*] GTKWave Analyzer v3.3.87 (w)1999-2017 BSI
+[*] Mon Apr 22 20:54:59 2019
+[*]
+[dumpfile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\siglib_tb\lfsr\work\sim.vcd"
+[dumpfile_mtime] "Mon Apr 22 20:53:57 2019"
+[dumpfile_size] 890483
+[savefile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\siglib_tb\lfsr\sim.gtkw"
+[timestart] 0
+[size] 1739 745
+[pos] -44 22
+*-50.185085 2448000000000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 211
+[signals_width] 219
+[sst_expanded] 1
+[sst_vpaned_height] 205
+@28
+lfsr_tb.rst
+lfsr_tb.finish
+lfsr_tb.clk
+lfsr_tb.clk_ena
+@22
+lfsr_tb.dout[15:0]
+@23
+lfsr_tb.dout_3gpp[30:0]
+[pattern_trace] 1
+[pattern_trace] 0

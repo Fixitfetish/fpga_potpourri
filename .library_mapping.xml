@@ -7,8 +7,6 @@
   <Mappings Location="Common Libraries/IEEE Synopsys" Library="ieee"/>
   <Mappings Location="Common Libraries" Library="not mapped"/>
   <Mappings Location="VHDL" Library="not mapped"/>
-  <Mappings Location="VHDL/dsplib_tb/signed_add2_accu/output" Library="not mapped"/>
-  <Mappings Location="VHDL/dsplib_tb/signed_add2_accu/work" Library="not mapped"/>
   <Mappings Location="doc" Library="not mapped"/>
   <Mappings Location="VHDL/ramlib" Library="ramlib"/>
   <Mappings Location="VHDL/siglib" Library="siglib"/>
@@ -18,4 +16,6 @@
   <Mappings Location="VHDL/cplxlib_tb" Library="work"/>
   <Mappings Location="VHDL/dsplib_tb" Library="work"/>
   <Mappings Location="VHDL/ramlib_tb" Library="work"/>
+  <Mappings Location="VHDL/siglib_tb/lfsr/lfsr_tb.vhdl" Library="work"/>
+  <Mappings Location="VHDL/siglib_tb/lfsr/prbs_3gpp.vhdl" Library="work"/>
 </com.sigasi.hdt.shared.librarymapping.model:LibraryMappings>
