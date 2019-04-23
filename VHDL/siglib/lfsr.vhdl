@@ -86,14 +86,19 @@ generic (
   --! The first leftmost (greatest) exponent defines the length of the shift register.
   --! Example for a 12-bit shift register with polynomial x^12 + x^11 + x^8 + x^6 + 1 : EXPONENTS=>(12,11,8,6)
   EXPONENTS : integer_vector;
+  --! @brief Enable FIBONACCI implementation. Default is the GALOIS implementation.
+  FIBONACCI : boolean := false;
   --! @brief Number of shifts/bits per cycle. Cannot exceed the length of the shift register.
   BITS_PER_CYCLE : positive := 1;
   --! @brief Offset (fast-forward) in number of bit shifts (default is 0).
   --! If OFFSET>0 then the shift register is initialized with the corresponding offset seed.
   --! In case the seed input is not constant additional logic is required which can cause timing issues. 
   OFFSET : natural := 0;
-  --! @brief Enable FIBONACCI implementation. Default is the GALOIS implementation.
-  FIBONACCI : boolean := false
+  --! @brief By default the offset is applied at the input, i.e. the seed is transformed before it
+  --! is loaded into the shift register. If the offset is applied to the output then the transform logic
+  --! is moved behind the shift register. Moving the transform logic to the output can be beneficial
+  --! for the timing e.g. when the output is followed by pipeline registers anyway.
+  OFFSET_AT_OUTPUT : boolean := false
 );
 port (
   --! Synchronous reset, required to initialize shift register with seed
@@ -168,8 +173,12 @@ begin
   begin
     if rising_edge(clk) then
       if rst='1' then
-        -- shift register initialization (including offset)
-        sr <= mult(seed,OMAT);
+        -- shift register initialization
+        if OFFSET_AT_OUTPUT then
+          sr <= seed; -- without offset
+        else
+          sr <= mult(seed,OMAT); -- including offset
+        end if;
       elsif clk_ena='1' then
         sr <= mult(sr,SMAT);
       end if;
@@ -177,6 +186,12 @@ begin
   end process;
 
   -- final output
-  dout <= sr;
+  g_out : if not OFFSET_AT_OUTPUT generate
+    dout <= sr;
+  end generate;
+
+  g_offset : if OFFSET_AT_OUTPUT generate
+    dout <= mult(sr,OMAT);
+  end generate;
 
 end architecture;

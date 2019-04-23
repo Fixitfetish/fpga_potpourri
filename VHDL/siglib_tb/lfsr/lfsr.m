@@ -131,20 +131,12 @@ classdef lfsr
 
   function m = get.oMat(obj)
   % Offset Matrix
-    m = logical( eye(obj.M) );
-    if obj.offset~=0
-      for o=1:obj.offset
-        m = logical(mod(m*obj.cMat,2));
-      end
-    end
+    m = obj.cMatPow(obj.offset);
   end
 
   function m = get.sMat(obj)
   % Shift Matrix
-    m = logical( eye(obj.M) );
-    for b=1:obj.bitsPerCycle
-      m = logical(mod(m*obj.cMat,2));
-    end
+    m = obj.cMatPow(obj.bitsPerCycle);
   end
 
   function m = get.tMat(obj)
@@ -171,6 +163,17 @@ classdef lfsr
    
   function m = companionMatrixFibonacci(obj)
     m = logical( [flipud(obj.polynom'),[eye(obj.M-1);zeros(1,obj.M-1)]] );
+  end
+
+  % cMat raised to the power of n
+  function m = cMatPow(obj,n)
+    m = logical( eye(obj.M) );
+    f = obj.cMat;
+    nBin = fliplr(dec2bin(n));  
+    for b=1:length(nBin) 
+      if nBin(b)=='1', m=logical(mod(m*f,2)); end
+      f = logical(mod(f*f,2));
+    end
   end
 
  end % methods private

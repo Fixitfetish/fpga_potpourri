@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       std_logic_extension.vhdl
 --! @author     Fixitfetish
---! @date       22/Apr/2019
---! @version    0.10
+--! @date       23/Apr/2019
+--! @version    0.20
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -11,15 +11,21 @@
 -------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
 
 --! @brief Binary operations
 --!
 package std_logic_extension is
-  
+
   type std_logic_vector_array is array(integer range <>) of std_logic_vector;
 
   -- binary matrix, 2-dimensional
   type std_logic_matrix2 is array(integer range <>,integer range <>) of std_logic;
+
+  -- binary identity matrix
+  function eye(
+    L : positive
+  ) return std_logic_vector_array;
 
   -- transpose binary SLV array
   function transpose(
@@ -61,6 +67,17 @@ end package;
 -------------------------------------------------------------------------------
 
 package body std_logic_extension is
+
+  -- binary identity matrix
+  function eye(
+    L : positive
+  ) return std_logic_vector_array is
+    variable res : std_logic_vector_array(L-1 downto 0)(L-1 downto 0);
+  begin
+    res := (others=>(others=>'0'));
+    for j in res'range loop res(j)(j):='1'; end loop;
+    return res;
+  end function;
 
   -- transpose binary SLV array
   function transpose(
@@ -144,24 +161,20 @@ package body std_logic_extension is
   -- power of binary square matrix
   function pow(
      base : std_logic_vector_array; -- square matrix 
-     exp : natural                  -- exponent
+     exp : natural -- exponent
    ) return std_logic_vector_array is
     constant L : positive := base'length;
+    variable uexp : unsigned(30 downto 0);
+    variable fac : std_logic_vector_array(L-1 downto 0)(L-1 downto 0);
     variable res : std_logic_vector_array(L-1 downto 0)(L-1 downto 0);
   begin
-    if exp=0 then
-      -- identity matrix
-      res := (others=>(others=>'0'));
-      for j in res'range loop res(j)(j):='1'; end loop;
-    else
-      -- initialization
-      res := base;
-    end if;
-    if exp>=2 then
-      for i in 2 to exp loop 
-        res := mult(res,base); 
-      end loop;
-    end if;
+    uexp := to_unsigned(exp,uexp'length);
+    res := eye(L); -- identity matrix
+    fac := base;
+    for n in 0 to uexp'length-1 loop
+      if uexp(n)='1' then res:=mult(res,fac); end if;
+      fac := mult(fac,fac);
+    end loop;
     return res;
   end function;
 

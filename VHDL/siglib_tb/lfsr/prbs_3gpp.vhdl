@@ -45,10 +45,11 @@ begin
 
   i_x1 : entity siglib.lfsr
   generic map(
-    EXPONENTS      => (31,28),
-    BITS_PER_CYCLE => BITS_PER_CYCLE,
-    OFFSET         => 1600, -- Nc
-    FIBONACCI      => true
+    EXPONENTS        => (31,28),
+    FIBONACCI        => true,
+    BITS_PER_CYCLE   => BITS_PER_CYCLE,
+    OFFSET           => 1600, -- Nc
+    OFFSET_AT_OUTPUT => false
   )
   port map (
     rst        => rst,
@@ -60,10 +61,11 @@ begin
 
   i_x2 : entity siglib.lfsr
   generic map(
-    EXPONENTS      => (31,30,29,28),
-    BITS_PER_CYCLE => BITS_PER_CYCLE,
-    OFFSET         => 1600, -- Nc
-    FIBONACCI      => true
+    EXPONENTS        => (31,30,29,28),
+    FIBONACCI        => true,
+    BITS_PER_CYCLE   => BITS_PER_CYCLE,
+    OFFSET           => 1600, -- Nc
+    OFFSET_AT_OUTPUT => false
   )
   port map (
     rst        => rst,

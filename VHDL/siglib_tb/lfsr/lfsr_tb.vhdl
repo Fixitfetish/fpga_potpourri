@@ -1,7 +1,6 @@
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
---library baselib;
 library siglib;
 
 entity lfsr_tb is
@@ -40,10 +39,11 @@ begin
 
   i_lfsr : entity siglib.lfsr
   generic map(
-    EXPONENTS      => (16,14,13,11),
-    BITS_PER_CYCLE => 8,
-    OFFSET         => 199,
-    FIBONACCI      => false
+    EXPONENTS        => (16,14,13,11),
+    FIBONACCI        => false,
+    BITS_PER_CYCLE   => 8,
+    OFFSET           => 199,
+    OFFSET_AT_OUTPUT => false
   )
   port map (
     rst        => rst,

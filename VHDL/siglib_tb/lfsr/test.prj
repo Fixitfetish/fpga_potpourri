@@ -1,0 +1,85 @@
+#Synplify Project
+
+#project files
+add_file -vhdl -lib baselib "../../baselib/std_logic_extension.vhdl"
+add_file -vhdl -lib siglib  "../../siglib/lfsr.vhdl"
+add_file -vhdl -lib work    "prbs_3gpp.vhdl"
+ 
+#implementation: "lfsr"
+impl -add lfsr -type fpga
+
+#implementation attributes
+set_option -vlog_std sysv
+set_option -project_relative_includes 1
+ 
+#device options
+set_option -technology VIRTEX-ULTRASCALEPLUS-FPGAS
+set_option -part XCVU7P
+set_option -package FLVA2104
+set_option -speed_grade -2L-e
+set_option -part_companion ""
+
+#compilation/mapping options
+set_option -use_fsm_explorer 0
+set_option -top_module "prbs_3gpp"
+
+# hdl_compiler_options
+set_option -distributed_compile 1
+set_option -hdl_strict_syntax 0
+
+# mapper_without_write_options
+set_option -frequency 400.000000
+set_option -srs_instrumentation 1
+
+# mapper_options
+set_option -write_verilog 1
+set_option -write_vhdl 1
+
+# xilinx_options
+set_option -rw_check_on_ram 1
+set_option -support_implicit_init_netlist 1
+set_option -optimize_ngc 1
+
+# Xilinx Virtex2
+set_option -run_prop_extract 1
+set_option -maxfan 10000
+set_option -disable_io_insertion 1
+set_option -pipe 1
+set_option -update_models_cp 0
+set_option -retiming 0
+set_option -no_sequential_opt 0
+set_option -no_sequential_opt_bram_mapping both
+set_option -fix_gated_and_generated_clocks 1
+
+# Xilinx Virtex UltraScale+ FPGAs
+set_option -enable_prepacking 1
+set_option -use_vivado 1
+
+# sequential_optimization_options
+set_option -symbolic_fsm_compiler 1
+
+# Compiler Options
+set_option -compiler_compatible 0
+set_option -resource_sharing 1
+set_option -multi_file_compilation_unit 1
+
+# Compiler Options
+set_option -auto_infer_blackbox 0
+
+# Compiler Options
+set_option -vhdl2008 1
+
+#timing report file option
+set_option -reporting_filename "./output/test.ta"
+
+#automatic place and route (vendor) options
+set_option -write_apr_constraint 1
+
+#set result format/file last
+project -result_file "./output/test.edf"
+
+#set log file
+set_option log_file "./output/test.log"
+
+#design plan options
+impl -active "lfsr"
