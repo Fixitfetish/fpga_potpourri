@@ -4,6 +4,7 @@
 add_file -vhdl -lib baselib "../../baselib/std_logic_extension.vhdl"
 add_file -vhdl -lib siglib  "../../siglib/lfsr.vhdl"
 add_file -vhdl -lib work    "prbs_3gpp.vhdl"
+add_file -vhdl -lib work    "prbs_3gpp_wrapper.vhdl"
  
 #implementation: "lfsr"
 impl -add lfsr -type fpga
@@ -21,7 +22,7 @@ set_option -part_companion ""
 
 #compilation/mapping options
 set_option -use_fsm_explorer 0
-set_option -top_module "prbs_3gpp"
+set_option -top_module "prbs_3gpp_wrapper"
 
 # hdl_compiler_options
 set_option -distributed_compile 1
