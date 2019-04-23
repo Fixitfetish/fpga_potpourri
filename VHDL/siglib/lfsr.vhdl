@@ -95,9 +95,11 @@ generic (
   --! In case the seed input is not constant additional logic is required which can cause timing issues. 
   OFFSET : natural := 0;
   --! @brief By default the offset is applied at the input, i.e. the seed is transformed before it
-  --! is loaded into the shift register. If the offset is applied to the output then the transform logic
-  --! is moved behind the shift register. Moving the transform logic to the output can be beneficial
-  --! for the timing e.g. when the output is followed by pipeline registers anyway.
+  --! is loaded into the shift register. This is preferred especially when the seed is constant since
+  --! the constant is transformed and additional logic is not implemented.
+  --! If the offset is applied to the output then the transform logic is moved behind the shift register.
+  --! Moving the transform logic to the output can be beneficial for timing,
+  --! e.g. when the output is followed by pipeline registers anyway.
   OFFSET_AT_OUTPUT : boolean := false
 );
 port (
@@ -131,11 +133,8 @@ end entity;
 
 architecture rtl of lfsr is
   
-  -- Width of shift register in bits
-  constant M : integer := EXPONENTS(EXPONENTS'left);
-
-  -- shift register
-  signal sr : std_logic_vector(M downto 1);
+  -- shift register (width defined by largest tap)
+  signal sr : std_logic_vector(EXPONENTS(EXPONENTS'left) downto 1);
 
   -- determine companion matrix according to selected implementation
   function get_companion_matrix(
@@ -158,10 +157,40 @@ architecture rtl of lfsr is
     return res;
   end function;
 
+  -- Transform matrix (Galois <=> Fibonacci)
+  -- Transforms shift register values between galois and fibonacci representation
+  -- to compensate the sequence offset between both.
+  -- The R bits right of the smallest tap are the same for galois and fibonacci,
+  -- i.e. only the L bits left of the smallest tap must be transformed.
+  function get_transform_matrix(
+    taps : integer_vector
+  ) return std_logic_vector_array is
+    constant M : positive := taps(taps'left);  -- leftmost tap defines the polynomial length
+    constant R : positive := taps(taps'right);
+    constant L : natural := M - R;
+    variable cm : std_logic_vector_array(M downto 1)(M downto 1);
+    variable tm : std_logic_vector_array(M downto 1)(M downto 1);
+    variable res : std_logic_vector_array(M downto 1)(M downto 1);
+  begin
+    cm := get_companion_matrix(taps=>taps, fibo=>false);
+    tm := pow(cm,L);
+    res := eye(M);
+    -- replace first L columns
+    for col in M downto M-L+1 loop
+      for row in M downto 1 loop
+        res(row)(col) := tm(row)(col-L);
+      end loop;
+    end loop;
+    return res;
+  end function;
+
   -- companion matrix
   constant CMAT : std_logic_vector_array := get_companion_matrix(taps=>EXPONENTS, fibo=>FIBONACCI);
 
-  -- offset (fast-forward) matrix
+  -- transform matrix (Galois <=> Fibonacci)
+  constant TMAT : std_logic_vector_array := get_transform_matrix(taps=>EXPONENTS);
+
+  -- offset matrix (fast-forward)
   constant OMAT : std_logic_vector_array := pow(CMAT,OFFSET);
 
   -- shift matrix
@@ -182,7 +211,7 @@ begin
       elsif clk_ena='1' then
         sr <= mult(sr,SMAT);
       end if;
-    end if; 
+    end if;
   end process;
 
   -- final output
