@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       lfsr.vhdl
 --! @author     Fixitfetish
---! @date       23/Apr/2019
---! @version    0.40
+--! @date       24/Apr/2019
+--! @version    0.50
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -11,6 +11,7 @@
 -------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
 library baselib;
   use baselib.std_logic_extension.all;
 
@@ -84,44 +85,50 @@ entity lfsr is
 generic (
   --! @brief Feedback polynomial exponents (taps). List of positive integers in descending order.
   --! The first leftmost (greatest) exponent defines the length of the shift register.
-  --! Example for a 12-bit shift register with polynomial x^12 + x^11 + x^8 + x^6 + 1 : EXPONENTS=>(12,11,8,6)
-  EXPONENTS : integer_vector;
+  --! Example for a 12-bit shift register with polynomial x^12 + x^11 + x^8 + x^6 + 1 : TAPS=>(12,11,8,6)
+  TAPS : integer_vector;
   --! @brief Enable FIBONACCI implementation. Default is the GALOIS implementation.
   FIBONACCI : boolean := false;
   --! @brief Number of shifts/bits per cycle. Cannot exceed the length of the shift register.
   BITS_PER_CYCLE : positive := 1;
+  --! @brief In the default request mode one valid value is output one cycle after the request.
+  --! In acknowledge mode the output always shows the next value which must be acknowledged to
+  --! get a new value in next cycle.
+  ACKNOWLEDGE_MODE : boolean := false;
   --! @brief Offset (fast-forward) in number of bit shifts (default is 0).
   --! If OFFSET>0 then the shift register is initialized with the corresponding offset seed.
   --! In case the seed input is not constant additional logic is required which can cause timing issues. 
   OFFSET : natural := 0;
   --! @brief By default the offset is applied at the input, i.e. the seed is transformed before it
   --! is loaded into the shift register. This is preferred especially when the seed is constant since
-  --! the constant is transformed and additional logic is not implemented.
+  --! only the constant is transformed and additional logic is not implemented.
   --! If the offset is applied to the output then the transform logic is moved behind the shift register.
   --! Moving the transform logic to the output can be beneficial for timing,
   --! e.g. when the output is followed by pipeline registers anyway.
   OFFSET_AT_OUTPUT : boolean := false
 );
 port (
-  --! Synchronous reset, required to initialize shift register with seed
-  rst       : in  std_logic;
   --! Clock
   clk       : in  std_logic;
-  --! Clock enable
-  clk_ena   : in  std_logic := '1';
+  --! Initialize/load shift register with seed
+  load      : in  std_logic;
+  --! Request / Acknowledge
+  req_ack   : in  std_logic := '1';
   --! Initial shift register contents after reset. By default only the rightmost bit is set.
-  seed      : in  std_logic_vector(EXPONENTS(EXPONENTS'left)-1 downto 0) := (0=>'1', others=>'0');
+  seed      : in  std_logic_vector(TAPS(TAPS'left)-1 downto 0) := (0=>'1', others=>'0');
   --! Shift register output, right aligned. Is shifted right by BITS_PER_CYCLE bits in each cycle.
-  dout      : out std_logic_vector(EXPONENTS(EXPONENTS'left)-1 downto 0)
+  dout      : out std_logic_vector(TAPS(TAPS'left)-1 downto 0);
+  --! Shift register output valid
+  dout_vld  : out std_logic
 );
 begin
 
   -- synthesis translate_off (Altera Quartus)
   -- pragma translate_off (Xilinx Vivado , Synopsys)
-  assert (BITS_PER_CYCLE<=EXPONENTS(EXPONENTS'left))
+  assert (BITS_PER_CYCLE<=TAPS(TAPS'left))
     report "ERROR in " & lfsr'INSTANCE_NAME & " Number of bits per cycle cannot exceed the length of the shift register."
     severity failure;
-  assert (FIBONACCI or BITS_PER_CYCLE<=EXPONENTS(EXPONENTS'right))
+  assert (FIBONACCI or BITS_PER_CYCLE<=TAPS(TAPS'right))
     report "Warning in " & lfsr'INSTANCE_NAME & " Galois: too many bits per cycle. Exact bit sequence order not possible."
     severity warning;
   -- synthesis translate_on (Altera Quartus)
@@ -134,25 +141,25 @@ end entity;
 architecture rtl of lfsr is
   
   -- shift register (width defined by largest tap)
-  signal sr : std_logic_vector(EXPONENTS(EXPONENTS'left) downto 1);
+  signal sr : std_logic_vector(TAPS(TAPS'left) downto 1);
 
   -- determine companion matrix according to selected implementation
   function get_companion_matrix(
-    taps : integer_vector;
+    taplist : integer_vector;
     fibo : boolean := false -- false=Galois, true=Fibonacci
   ) return std_logic_vector_array is
-    constant L : positive := taps(taps'left); -- leftmost tap defines the polynomial length
+    constant L : positive := taplist(taplist'left); -- leftmost tap defines the polynomial length
     variable res : std_logic_vector_array(L downto 1)(L downto 1);
   begin
     res := (others=>(others=>'0'));
-    -- first rows have right-aligned identity matrix
+    -- first L-1 rows have right-aligned identity matrix
     for j in L downto 2 loop res(j)(j-1):='1'; end loop;
     if fibo then
       -- Fibonacci : first column is mirrored polynomial
-      for t in taps'range loop res(L-taps(t)+1)(L):='1'; end loop;
+      for t in taplist'range loop res(L-taplist(t)+1)(L):='1'; end loop;
     else
       -- Galois : last row is polynomial
-      for t in taps'range loop res(1)(taps(t)):='1'; end loop;
+      for t in taplist'range loop res(1)(taplist(t)):='1'; end loop;
     end if;
     return res;
   end function;
@@ -163,16 +170,16 @@ architecture rtl of lfsr is
   -- The R bits right of the smallest tap are the same for galois and fibonacci,
   -- i.e. only the L bits left of the smallest tap must be transformed.
   function get_transform_matrix(
-    taps : integer_vector
+    taplist : integer_vector
   ) return std_logic_vector_array is
-    constant M : positive := taps(taps'left);  -- leftmost tap defines the polynomial length
-    constant R : positive := taps(taps'right);
+    constant M : positive := taplist(taplist'left);  -- leftmost tap defines the polynomial length
+    constant R : positive := taplist(taplist'right);
     constant L : natural := M - R;
     variable cm : std_logic_vector_array(M downto 1)(M downto 1);
     variable tm : std_logic_vector_array(M downto 1)(M downto 1);
     variable res : std_logic_vector_array(M downto 1)(M downto 1);
   begin
-    cm := get_companion_matrix(taps=>taps, fibo=>false);
+    cm := get_companion_matrix(taplist=>taplist, fibo=>false);
     tm := pow(cm,L);
     res := eye(M);
     -- replace first L columns
@@ -185,10 +192,10 @@ architecture rtl of lfsr is
   end function;
 
   -- companion matrix
-  constant CMAT : std_logic_vector_array := get_companion_matrix(taps=>EXPONENTS, fibo=>FIBONACCI);
+  constant CMAT : std_logic_vector_array := get_companion_matrix(taplist=>TAPS, fibo=>FIBONACCI);
 
   -- transform matrix (Galois <=> Fibonacci)
-  constant TMAT : std_logic_vector_array := get_transform_matrix(taps=>EXPONENTS);
+  constant TMAT : std_logic_vector_array := get_transform_matrix(taplist=>TAPS);
 
   -- offset matrix (fast-forward)
   constant OMAT : std_logic_vector_array := pow(CMAT,OFFSET);
@@ -199,20 +206,36 @@ architecture rtl of lfsr is
 begin
 
   p : process(clk)
+    variable v_run : std_logic := '1';
   begin
     if rising_edge(clk) then
-      if rst='1' then
+      if load='1' then
+        if ACKNOWLEDGE_MODE then v_run:='1'; else v_run:=req_ack; end if;
         -- shift register initialization
         if OFFSET_AT_OUTPUT then
           sr <= seed; -- without offset
         else
           sr <= mult(seed,OMAT); -- including offset
         end if;
-      elsif clk_ena='1' then
-        sr <= mult(sr,SMAT);
+
+      elsif req_ack='1' then
+        if v_run='1' then
+          sr <= mult(sr,SMAT);
+        end if;
+        v_run := '1';
+
       end if;
     end if;
   end process;
+
+  g_ack : if not ACKNOWLEDGE_MODE generate
+    -- TODO : consider load signal
+    dout_vld <= req_ack when rising_edge(clk);
+  end generate;
+
+  g_req : if ACKNOWLEDGE_MODE generate
+    dout_vld <= not load;
+  end generate;
 
   -- final output
   g_out : if not OFFSET_AT_OUTPUT generate

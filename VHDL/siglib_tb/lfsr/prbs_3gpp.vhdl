@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       prbs_3gpp.vhdl
 --! @author     Fixitfetish
---! @date       22/Apr/2019
---! @version    0.10
+--! @date       24/Apr/2019
+--! @version    0.20
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -18,19 +18,27 @@ library siglib;
 entity prbs_3gpp is
 generic (
   --! @brief Number of shifts/bits per cycle. Cannot exceed the length of the shift register.
-  BITS_PER_CYCLE : positive range 1 to 31 := 1
+  BITS_PER_CYCLE : positive range 1 to 31 := 1;
+  --! @brief In the default request mode one valid value is output one cycle after the request.
+  --! In acknowledge mode the output always shows the next value which must be acknowledged to
+  --! get a new value in next cycle.
+  ACKNOWLEDGE_MODE : boolean := false;
+  --! Enable output register
+  OUTPUT_REG : boolean := false
 );
 port (
-  --! Synchronous reset
-  rst       : in  std_logic;
   --! Clock
   clk       : in  std_logic;
-  --! Clock enable
-  clk_ena   : in  std_logic := '1';
+  --! Initialize/load shift register with seed
+  load      : in  std_logic;
+  --! Request / Acknowledge
+  req_ack   : in  std_logic := '1';
   --! Initial contents of X2 shift register after reset.
   seed      : in  std_logic_vector(30 downto 0);
   --! Shift register output, right aligned. Is shifted right by BITS_PER_CYCLE bits in each cycle.
-  dout      : out std_logic_vector(30 downto 0)
+  dout      : out std_logic_vector(30 downto 0);
+  --! Shift register output valid
+  dout_vld  : out std_logic
 );
 end entity;
 
@@ -40,42 +48,55 @@ architecture rtl of prbs_3gpp is
 
   -- shift registers
   signal x1, x2 : std_logic_vector(30 downto 0);
+  signal x1_vld, x2_vld : std_logic;
 
 begin
 
   i_x1 : entity siglib.lfsr
   generic map(
-    EXPONENTS        => (31,28),
+    TAPS             => (31,28),
     FIBONACCI        => true,
     BITS_PER_CYCLE   => BITS_PER_CYCLE,
+    ACKNOWLEDGE_MODE => ACKNOWLEDGE_MODE,
     OFFSET           => 1600, -- Nc
     OFFSET_AT_OUTPUT => false
   )
   port map (
-    rst        => rst,
     clk        => clk,
-    clk_ena    => clk_ena,
+    load       => load,
+    req_ack    => req_ack,
     seed       => (0=>'1', others=>'0'), -- constant seed
-    dout       => x1
+    dout       => x1,
+    dout_vld   => x1_vld
   );
 
   i_x2 : entity siglib.lfsr
   generic map(
-    EXPONENTS        => (31,30,29,28),
+    TAPS             => (31,30,29,28),
     FIBONACCI        => true,
     BITS_PER_CYCLE   => BITS_PER_CYCLE,
+    ACKNOWLEDGE_MODE => ACKNOWLEDGE_MODE,
     OFFSET           => 1600, -- Nc
     OFFSET_AT_OUTPUT => false
   )
   port map (
-    rst        => rst,
     clk        => clk,
-    clk_ena    => clk_ena,
+    load       => load,
+    req_ack    => req_ack,
     seed       => seed,
-    dout       => x2
+    dout       => x2,
+    dout_vld   => x2_vld
   );
 
   -- final output
-  dout <= x1 xor x2;
+  g_oreg_off : if not OUTPUT_REG generate
+    dout <= x1 xor x2;
+    dout_vld <= x1_vld and x2_vld;
+  end generate;
+
+  g_oreg_on : if OUTPUT_REG generate
+    dout <= x1 xor x2 when rising_edge(clk);
+    dout_vld <= x1_vld and x2_vld when rising_edge(clk);
+  end generate;
 
 end architecture;

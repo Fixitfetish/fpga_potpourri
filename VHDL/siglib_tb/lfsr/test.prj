@@ -2,7 +2,7 @@
 
 #project files
 add_file -vhdl -lib baselib "../../baselib/std_logic_extension.vhdl"
-add_file -vhdl -lib siglib  "../../siglib/lfsr.vhdl"
+add_file -vhdl -lib siglib  "../../siglib/lfsr/lfsr.vhdl"
 add_file -vhdl -lib work    "prbs_3gpp.vhdl"
 add_file -vhdl -lib work    "prbs_3gpp_wrapper.vhdl"
  

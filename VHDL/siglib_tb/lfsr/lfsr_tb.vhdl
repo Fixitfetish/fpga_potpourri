@@ -13,9 +13,10 @@ architecture sim of lfsr_tb is
   signal clk : std_logic := '1';
   signal finish : std_logic := '0';
 
-  signal clk_ena : std_logic := '0';
+  signal req_ack: std_logic := '0';
   signal dout : std_logic_vector(15 downto 0);
   signal dout_3gpp : std_logic_vector(30 downto 0);
+  signal dout_vld,dout_vld_3gpp : std_logic;
 
 begin
 
@@ -39,30 +40,35 @@ begin
 
   i_lfsr : entity siglib.lfsr
   generic map(
-    EXPONENTS        => (16,14,13,11),
+    TAPS             => (16,14,13,11),
     FIBONACCI        => false,
     BITS_PER_CYCLE   => 8,
+    ACKNOWLEDGE_MODE => false,
     OFFSET           => 199,
     OFFSET_AT_OUTPUT => false
   )
   port map (
-    rst        => rst,
     clk        => clk,
-    clk_ena    => clk_ena,
+    load       => rst,
+    req_ack    => req_ack,
     seed       => open,
-    dout       => dout
+    dout       => dout,
+    dout_vld   => dout_vld
   );
 
   i_3gpp : entity work.prbs_3gpp
   generic map(
-    BITS_PER_CYCLE => 16
+    BITS_PER_CYCLE => 16,
+    ACKNOWLEDGE_MODE => true,
+    OUTPUT_REG => false
   )
   port map (
-    rst        => rst,
     clk        => clk,
-    clk_ena    => clk_ena,
+    load       => rst,
+    req_ack    => req_ack,
     seed       => (0=>'1', others=>'0'),
-    dout       => dout_3gpp
+    dout       => dout_3gpp,
+    dout_vld   => dout_vld_3gpp
   );
 
 
@@ -71,17 +77,17 @@ begin
     while rst='1' loop
       wait until rising_edge(clk);
     end loop;
-    
+
     -- time forward
     for n in 0 to 1024 loop
        wait until rising_edge(clk);
-       clk_ena <= '1'; 
+       req_ack <= '1'; 
        wait until rising_edge(clk);
-       clk_ena <= '1'; 
+       req_ack <= '0'; 
     end loop;
         
     wait until rising_edge(clk);
-    clk_ena <= '0'; 
+    req_ack <= '0'; 
     wait until rising_edge(clk);
     finish <= '1';
     wait until rising_edge(clk);
