@@ -12,18 +12,29 @@
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
-library baselib;
-  use baselib.std_logic_extension.all;
+library siglib;
+  use siglib.lfsr_pkg.all;
 
 --! @brief Binary Galois/Fibonacci Linear Feedback Shift Register (LFSR).
 --! Generation of pseudo random bit sequences.
 --!
 --! This implementation is based on vector/matrix multiplications.
---! A right shift register (SR) of length M is multiplied with a matrix.
---! The length M is given by the highest numbered exponent.
---! The required constant matrices are derived from generic parameters,
---! hence the calculation of matrices does not require any logic resources.
---! Just shift logic related multiplications require logic resources which
+--! The highest numbered exponent M defines the vector length N of the default
+--! shift register (SR) and the seed. However, the implemented right shift
+--! register length can be larger when the number of required output data bits
+--! D is larger than M. In this case the SR is extended by X=D-M bits to the
+--! length N=M+X.
+--! Furthermore, the number of bit shifts per cycle S can be defined independent
+--! of the shift register length. S and N determine the shift logic.
+--!
+--! **Offset logic** is required when the number of initial offset bit shifts I is
+--! greater than 0 or when D>M (because X pre-shifts are needed). 
+--! The offset logic can be applied to either the input (before SR) or the output (after SR).
+--! For efficiency reasons always apply the offset logic to the input when a constant seed is used.
+--!
+--! Since the required constant offset and shift matrices are derived from generic
+--! parameters, the calculation of matrices does not require any logic resources.
+--! Just the shift and offset logic related multiplications require logic resources which
 --! are usually optimized to a minimum by the synthesis tools.
 --! 
 --! **Galois versus Fibonacci** : 
@@ -36,6 +47,8 @@ library baselib;
 --! per cycle is just limited by the number of shift register bits.
 --! Note that if just a pseudo random values are required but not the exact bit sequence also
 --! the Galois implementation allows shifting the full M bits in a single cycle. 
+--!
+--! @image html lfsr.svg "" width=800px
 --!
 --! Example of maximal-length polynomials :
 --!
@@ -102,8 +115,8 @@ generic (
   --! @brief By default the offset is applied at the input, i.e. the seed is transformed before it
   --! is loaded into the shift register. This is preferred especially when the seed is constant since
   --! only the constant is transformed and additional logic is not implemented.
-  --! If the offset is applied to the output then the transform logic is moved behind the shift register.
-  --! Moving the transform logic to the output can be beneficial for timing,
+  --! If the offset is applied to the output then the offset logic is moved behind the shift register.
+  --! Moving the offset logic to the output can be beneficial for timing,
   --! e.g. when the output is followed by pipeline registers anyway.
   OFFSET_AT_OUTPUT : boolean := false
 );

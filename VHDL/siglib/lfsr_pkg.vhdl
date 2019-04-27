@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       std_logic_extension.vhdl
+--! @file       lfsr_pkg.vhdl
 --! @author     Fixitfetish
 --! @date       23/Apr/2019
 --! @version    0.20
@@ -15,7 +15,7 @@ library ieee;
 
 --! @brief Binary operations
 --!
-package std_logic_extension is
+package lfsr_pkg is
 
   type std_logic_vector_array is array(integer range <>) of std_logic_vector;
 
@@ -66,7 +66,7 @@ end package;
 
 -------------------------------------------------------------------------------
 
-package body std_logic_extension is
+package body lfsr_pkg is
 
   -- binary identity matrix
   function eye(

@@ -9,6 +9,7 @@ set SIGLIB_PATH [ file dirname [dict get [ info frame 0 ] file ] ]
 set files [list]
 
 # entities
+lappend files lfsr_pkg.vhdl
 lappend files lfsr.vhdl
 lappend files sincos.vhdl
 

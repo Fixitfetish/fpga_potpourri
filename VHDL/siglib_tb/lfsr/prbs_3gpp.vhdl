@@ -59,7 +59,7 @@ begin
     BITS_PER_CYCLE   => BITS_PER_CYCLE,
     ACKNOWLEDGE_MODE => ACKNOWLEDGE_MODE,
     OFFSET           => 1600, -- Nc
-    OFFSET_AT_OUTPUT => false
+    OFFSET_AT_OUTPUT => false -- local output register, see below
   )
   port map (
     clk        => clk,
@@ -77,7 +77,7 @@ begin
     BITS_PER_CYCLE   => BITS_PER_CYCLE,
     ACKNOWLEDGE_MODE => ACKNOWLEDGE_MODE,
     OFFSET           => 1600, -- Nc
-    OFFSET_AT_OUTPUT => false
+    OFFSET_AT_OUTPUT => false -- local output register, see below
   )
   port map (
     clk        => clk,
