@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       prbs_3gpp.vhdl
 --! @author     Fixitfetish
---! @date       24/Apr/2019
---! @version    0.20
+--! @date       28/Apr/2019
+--! @version    0.30
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -17,28 +17,32 @@ library siglib;
 --!
 entity prbs_3gpp is
 generic (
-  --! @brief Number of shifts/bits per cycle. Cannot exceed the length of the shift register.
-  BITS_PER_CYCLE : positive range 1 to 31 := 1;
+  --! @brief Number of bit shifts per cycle.
+  SHIFTS_PER_CYCLE : positive := 1;
   --! @brief In the default request mode one valid value is output one cycle after the request.
   --! In acknowledge mode the output always shows the next value which must be acknowledged to
   --! get a new value in next cycle.
   ACKNOWLEDGE_MODE : boolean := false;
-  --! Enable output register
+  --! @brief Number required output bits.
+  OUTPUT_WIDTH : positive := 1;
+  --! Enable additional output register
   OUTPUT_REG : boolean := false
 );
 port (
   --! Clock
-  clk       : in  std_logic;
+  clk        : in  std_logic;
   --! Initialize/load shift register with seed
-  load      : in  std_logic;
+  load       : in  std_logic;
   --! Request / Acknowledge
-  req_ack   : in  std_logic := '1';
+  req_ack    : in  std_logic := '1';
   --! Initial contents of X2 shift register after reset.
-  seed      : in  std_logic_vector(30 downto 0);
+  seed       : in  std_logic_vector(30 downto 0);
   --! Shift register output, right aligned. Is shifted right by BITS_PER_CYCLE bits in each cycle.
-  dout      : out std_logic_vector(30 downto 0);
+  dout       : out std_logic_vector(OUTPUT_WIDTH-1 downto 0);
   --! Shift register output valid
-  dout_vld  : out std_logic
+  dout_vld   : out std_logic;
+  --! First output value after loading
+  dout_first : out std_logic
 );
 end entity;
 
@@ -47,8 +51,10 @@ end entity;
 architecture rtl of prbs_3gpp is
 
   -- shift registers
-  signal x1, x2 : std_logic_vector(30 downto 0);
-  signal x1_vld, x2_vld : std_logic;
+  signal x1, x2, dout_i : std_logic_vector(OUTPUT_WIDTH-1 downto 0);
+  signal x1_vld, x2_vld, dout_vld_i : std_logic;
+  signal x1_first, x2_first, dout_first_i : std_logic;
+  signal req_ack_i : std_logic;
 
 begin
 
@@ -56,10 +62,13 @@ begin
   generic map(
     TAPS             => (31,28),
     FIBONACCI        => true,
-    BITS_PER_CYCLE   => BITS_PER_CYCLE,
+    SHIFTS_PER_CYCLE => SHIFTS_PER_CYCLE,
     ACKNOWLEDGE_MODE => ACKNOWLEDGE_MODE,
     OFFSET           => 1600, -- Nc
-    OFFSET_AT_OUTPUT => false -- local output register, see below
+    OFFSET_AT_OUTPUT => false, -- note: constant seed!
+    OUTPUT_WIDTH     => OUTPUT_WIDTH,
+    OUTPUT_REG       => false -- local output register, see below
+--    OUTPUT_REG       => OUTPUT_REG
   )
   port map (
     clk        => clk,
@@ -67,17 +76,21 @@ begin
     req_ack    => req_ack,
     seed       => (0=>'1', others=>'0'), -- constant seed
     dout       => x1,
-    dout_vld   => x1_vld
+    dout_vld   => x1_vld,
+    dout_first => x1_first
   );
 
   i_x2 : entity siglib.lfsr
   generic map(
     TAPS             => (31,30,29,28),
     FIBONACCI        => true,
-    BITS_PER_CYCLE   => BITS_PER_CYCLE,
+    SHIFTS_PER_CYCLE => SHIFTS_PER_CYCLE,
     ACKNOWLEDGE_MODE => ACKNOWLEDGE_MODE,
     OFFSET           => 1600, -- Nc
-    OFFSET_AT_OUTPUT => false -- local output register, see below
+    OFFSET_AT_OUTPUT => true,
+    OUTPUT_WIDTH     => OUTPUT_WIDTH,
+    OUTPUT_REG       => false -- local output register, see below
+--    OUTPUT_REG       => OUTPUT_REG
   )
   port map (
     clk        => clk,
@@ -85,18 +98,51 @@ begin
     req_ack    => req_ack,
     seed       => seed,
     dout       => x2,
-    dout_vld   => x2_vld
+    dout_vld   => x2_vld,
+    dout_first => x2_first
   );
 
-  -- final output
+  dout_i <= x1 xor x2;
+  dout_vld_i <= x1_vld and x2_vld;
+  dout_first_i <= x1_first and x2_first;
+
+
+  -- output direct, without output register
   g_oreg_off : if not OUTPUT_REG generate
-    dout <= x1 xor x2;
-    dout_vld <= x1_vld and x2_vld;
+    req_ack_i <= req_ack;
+    dout <= dout_i;
+    dout_vld <= dout_vld_i;
+    dout_first <= dout_first_i;
   end generate;
 
-  g_oreg_on : if OUTPUT_REG generate
-    dout <= x1 xor x2 when rising_edge(clk);
-    dout_vld <= x1_vld and x2_vld when rising_edge(clk);
+  -- output register - request mode
+  g_oreg_req : if OUTPUT_REG and not ACKNOWLEDGE_MODE generate
+    req_ack_i <= req_ack;
+    dout <= dout_i when rising_edge(clk);
+    dout_vld <= dout_vld_i when rising_edge(clk);
+    dout_first <= dout_first_i when rising_edge(clk);
   end generate;
+
+  -- output register - acknowledge mode
+  g_oreg_ack : if OUTPUT_REG and ACKNOWLEDGE_MODE generate
+    signal rdy : std_logic;
+  begin
+    rdy <= not load when rising_edge(clk);
+    req_ack_i <= dout_first_i or (rdy and req_ack);
+    p : process(clk)
+    begin
+      if rising_edge(clk) then
+        if load='1' then
+          dout_first <= '0';
+          dout <= (dout_i'range=>'-');
+        elsif dout_first_i='1' or req_ack_i='1' then 
+          dout_first <= dout_first_i;
+          dout <= dout_i;
+        end if;
+      end if;
+    end process;
+    dout_vld <= rdy;
+  end generate;
+
 
 end architecture;

@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       lfsr.vhdl
 --! @author     Fixitfetish
---! @date       24/Apr/2019
---! @version    0.50
+--! @date       28/Apr/2019
+--! @version    0.60
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -50,63 +50,52 @@ library siglib;
 --!
 --! @image html lfsr.svg "" width=800px
 --!
+--! **Examples** with parameters TAPS=(16,14,13,11) , FIBONACCI , SHIFTS_PER_CYCLE=8 , OFFSET=0, default seed
+--!
+--! Example 1 : Request and Acknowledge Mode, disabled output register
+--! @image html lfsr_wave_without_output_reg.jpg "" width=1500px
+--!
+--! Example 2 : Request and Acknowledge Mode, enabled output register
+--! @image html lfsr_wave_with_output_reg.jpg "" width=1500px
+--!
 --! Example of maximal-length polynomials :
 --!
---! Length | Exponents/Taps
---! :-----:|:---------------:
---!   2    |  2, 1
---!   3    |  3, 2
---!   4    |  4, 3
---!   5    |  5, 3
---!   6    |  6, 5
---!   7    |  7, 6 
---!   8    |  8, 6, 5, 4
---!   9    |  9, 5
---!   10   |  10, 7
---!   11   |  11, 9
---!   12   |  12, 11, 8, 6
---!   13   |  13, 12, 10, 6
---!   14   |  14, 13, 11, 9
---!   15   |  15, 14
---!   16   |  16, 14, 13, 11
---!   17   |  17, 14
---!   18   |  18, 11
---!   19   |  19, 18, 17, 14
---!   20   |  20, 17
---!   21   |  21, 19
---!   22   |  22, 21
---!   23   |  23, 18
---!   24   |  24, 23, 21, 20
---!   25   |  25, 22
---!   26   |  26, 25, 24, 20 
---!   27   |  27, 26, 25, 22 
---!   28   |  28, 25
---!   29   |  29, 27
---!   30   |  30, 29, 26, 24
---!   31   |  31, 28
---!   32   |  32, 30, 26, 25
---!   33   |  33, 20
---!   34   |  34, 31, 30, 26
---!   35   |  35, 33
---!   36   |  36, 25
---!   37   |  37, 36, 33, 31
---!   38   |  38, 37, 33, 32
---!   39   |  39, 35
---!   40   |  40, 38, 21, 19
+--! Length | Exponents/Taps      | Length | Exponents/Taps   
+--! :-----:|:-------------------:|:------:|:---------------: 
+--!   1    |  NA                 |   21   |  21, 19            
+--!   2    |  2, 1               |   22   |  22, 21            
+--!   3    |  3, 2               |   23   |  23, 18            
+--!   4    |  4, 3               |   24   |  24, 23, 21, 20    
+--!   5    |  5, 3               |   25   |  25, 22            
+--!   6    |  6, 5               |   26   |  26, 25, 24, 20    
+--!   7    |  7, 6               |   27   |  27, 26, 25, 22    
+--!   8    |  8, 6, 5, 4         |   28   |  28, 25            
+--!   9    |  9, 5               |   29   |  29, 27            
+--!   10   |  10, 7              |   30   |  30, 29, 26, 24    
+--!   11   |  11, 9              |   31   |  31, 28            
+--!   12   |  12, 11, 8, 6       |   32   |  32, 30, 26, 25    
+--!   13   |  13, 12, 10, 6      |   33   |  33, 20            
+--!   14   |  14, 13, 11, 9      |   34   |  34, 31, 30, 26    
+--!   15   |  15, 14             |   35   |  35, 33            
+--!   16   |  16, 14, 13, 11     |   36   |  36, 25            
+--!   17   |  17, 14             |   37   |  37, 36, 33, 31    
+--!   18   |  18, 11             |   38   |  38, 37, 33, 32    
+--!   19   |  19, 18, 17, 14     |   39   |  39, 35            
+--!   20   |  20, 17             |   40   |  40, 38, 21, 19    
 --!
 entity lfsr is
 generic (
   --! @brief Feedback polynomial exponents (taps). List of positive integers in descending order.
-  --! The first leftmost (greatest) exponent defines the length of the shift register.
+  --! The first leftmost (greatest) exponent defines the standard length M of the shift register.
   --! Example for a 12-bit shift register with polynomial x^12 + x^11 + x^8 + x^6 + 1 : TAPS=>(12,11,8,6)
   TAPS : integer_vector;
   --! @brief Enable FIBONACCI implementation. Default is the GALOIS implementation.
   FIBONACCI : boolean := false;
-  --! @brief Number of shifts/bits per cycle. Cannot exceed the length of the shift register.
-  BITS_PER_CYCLE : positive := 1;
-  --! @brief In the default request mode one valid value is output one cycle after the request.
-  --! In acknowledge mode the output always shows the next value which must be acknowledged to
-  --! get a new value in next cycle.
+  --! @brief Number of bit shifts per cycle.
+  SHIFTS_PER_CYCLE : positive := 1;
+  --! @brief In the default request mode a valid value is output with a fixed delay after the request.
+  --! In acknowledge mode (first word fall through) the output always shows the next value 
+  --! which must be acknowledged to get a new value in next cycle.
   ACKNOWLEDGE_MODE : boolean := false;
   --! @brief Offset (fast-forward) in number of bit shifts (default is 0).
   --! If OFFSET>0 then the shift register is initialized with the corresponding offset seed.
@@ -118,86 +107,111 @@ generic (
   --! If the offset is applied to the output then the offset logic is moved behind the shift register.
   --! Moving the offset logic to the output can be beneficial for timing,
   --! e.g. when the output is followed by pipeline registers anyway.
-  OFFSET_AT_OUTPUT : boolean := false
+  OFFSET_AT_OUTPUT : boolean := false;
+  --! @brief Number required output bits D.
+  --! The default D=0 means that output width is equal to the standard shift register width M (see TAPS).
+  --! For 0 < D < M the number of output bits is limited to D.
+  --! For D >= M the full (extended) shift register contents is provided at the output. 
+  OUTPUT_WIDTH : natural := 0;
+  --! @brief Enable additional output register. When enabled the load to output delay and
+  --! request to output delay is 2 cycles.
+  OUTPUT_REG : boolean := false
 );
 port (
   --! Clock
-  clk       : in  std_logic;
+  clk        : in  std_logic;
   --! Initialize/load shift register with seed
-  load      : in  std_logic;
-  --! Request / Acknowledge
-  req_ack   : in  std_logic := '1';
+  load       : in  std_logic;
+  --! Request or Acknowledge according to selected mode
+  req_ack    : in  std_logic := '1';
   --! Initial shift register contents after reset. By default only the rightmost bit is set.
-  seed      : in  std_logic_vector(TAPS(TAPS'left)-1 downto 0) := (0=>'1', others=>'0');
-  --! Shift register output, right aligned. Is shifted right by BITS_PER_CYCLE bits in each cycle.
-  dout      : out std_logic_vector(TAPS(TAPS'left)-1 downto 0);
-  --! Shift register output valid
-  dout_vld  : out std_logic
+  seed       : in  std_logic_vector(TAPS(TAPS'left)-1 downto 0) := (0=>'1', others=>'0');
+  --! @brief Shift register output, right aligned. Is shifted right by SHIFTS_PER_CYCLE bits in each cycle.
+  --! Width depends on the generic OUTPUT_WIDTH.
+  dout       : out std_logic_vector;
+  --! Shift register output valid (request mode) or ready (acknowledge mode)
+  dout_vld   : out std_logic;
+  --! First output value after loading
+  dout_first : out std_logic
 );
-begin
-
-  -- synthesis translate_off (Altera Quartus)
-  -- pragma translate_off (Xilinx Vivado , Synopsys)
-  assert (BITS_PER_CYCLE<=TAPS(TAPS'left))
-    report "ERROR in " & lfsr'INSTANCE_NAME & " Number of bits per cycle cannot exceed the length of the shift register."
-    severity failure;
-  assert (FIBONACCI or BITS_PER_CYCLE<=TAPS(TAPS'right))
-    report "Warning in " & lfsr'INSTANCE_NAME & " Galois: too many bits per cycle. Exact bit sequence order not possible."
-    severity warning;
-  -- synthesis translate_on (Altera Quartus)
-  -- pragma translate_on (Xilinx Vivado , Synopsys)
-
 end entity;
 
 -------------------------------------------------------------------------------
 
 architecture rtl of lfsr is
   
-  -- shift register (width defined by largest tap)
-  signal sr : std_logic_vector(TAPS(TAPS'left) downto 1);
+  function MAX(l,r:integer) return integer is
+  begin
+    if l>r then return l; else return r; end if;
+  end function;
 
-  -- determine companion matrix according to selected implementation
+  -- standard shift register length
+  constant M : positive := TAPS(TAPS'left);
+
+  -- implemented (extended) shift register width
+  constant N : positive := MAX(M,OUTPUT_WIDTH);
+  
+  -- Final number of output bits
+  function D return positive is begin
+    if OUTPUT_WIDTH=0 then return M; else return OUTPUT_WIDTH; end if;
+  end function;
+
+  -- shift register extension bits
+  constant X : natural := N - M;
+  
+  -- number of initial offset bit shifts
+  constant I : natural := OFFSET + X;
+
+  -- shift register
+  signal sr, dout_i : std_logic_vector(N downto 1);
+  signal dout_vld_i : std_logic;
+  signal seed_i, sr_i : std_logic_vector(N downto 1);
+
+  -- determine companion matrix according to selected implementation type
   function get_companion_matrix(
-    taplist : integer_vector;
+    constant W : positive; -- shift register width
+    constant taplist : integer_vector;
     fibo : boolean := false -- false=Galois, true=Fibonacci
   ) return std_logic_vector_array is
     constant L : positive := taplist(taplist'left); -- leftmost tap defines the polynomial length
-    variable res : std_logic_vector_array(L downto 1)(L downto 1);
+    constant XX : natural := W-L;
+    variable res : std_logic_vector_array(W downto 1)(W downto 1);
   begin
     res := (others=>(others=>'0'));
-    -- first L-1 rows have right-aligned identity matrix
-    for j in L downto 2 loop res(j)(j-1):='1'; end loop;
+    -- first W-1 rows have right-aligned identity matrix
+    for j in W downto 2 loop res(j)(j-1):='1'; end loop;
     if fibo then
-      -- Fibonacci : first column is mirrored polynomial
-      for t in taplist'range loop res(L-taplist(t)+1)(L):='1'; end loop;
+      -- Fibonacci : mirrored polynomial top-aligned into first column
+      for t in taplist'range loop res(W-taplist(t)+1)(W):='1'; end loop;
     else
-      -- Galois : last row is polynomial
-      for t in taplist'range loop res(1)(taplist(t)):='1'; end loop;
+      -- Galois : polynomial left-aligned in last row
+      for t in taplist'range loop res(1)(XX+taplist(t)):='1'; end loop;
     end if;
     return res;
   end function;
 
-  -- Transform matrix (Galois <=> Fibonacci)
+
+  -- TODO ### Transform matrix (Galois <=> Fibonacci)
   -- Transforms shift register values between galois and fibonacci representation
   -- to compensate the sequence offset between both.
-  -- The R bits right of the smallest tap are the same for galois and fibonacci,
+  -- The R bits right of the smallest tap are the same for Galois and Fibonacci,
   -- i.e. only the L bits left of the smallest tap must be transformed.
   function get_transform_matrix(
     taplist : integer_vector
   ) return std_logic_vector_array is
-    constant M : positive := taplist(taplist'left);  -- leftmost tap defines the polynomial length
+    constant MM : positive := taplist(taplist'left);  -- leftmost tap defines the polynomial length
     constant R : positive := taplist(taplist'right);
-    constant L : natural := M - R;
-    variable cm : std_logic_vector_array(M downto 1)(M downto 1);
-    variable tm : std_logic_vector_array(M downto 1)(M downto 1);
-    variable res : std_logic_vector_array(M downto 1)(M downto 1);
+    constant L : natural := MM - R;
+    variable cm : std_logic_vector_array(MM downto 1)(MM downto 1);
+    variable tm : std_logic_vector_array(MM downto 1)(MM downto 1);
+    variable res : std_logic_vector_array(MM downto 1)(MM downto 1);
   begin
-    cm := get_companion_matrix(taplist=>taplist, fibo=>false);
+    cm := get_companion_matrix(W=>MM, taplist=>taplist, fibo=>false);
     tm := pow(cm,L);
-    res := eye(M);
+    res := eye(MM);
     -- replace first L columns
-    for col in M downto M-L+1 loop
-      for row in M downto 1 loop
+    for col in MM downto MM-L+1 loop
+      for row in MM downto 1 loop
         res(row)(col) := tm(row)(col-L);
       end loop;
     end loop;
@@ -205,58 +219,131 @@ architecture rtl of lfsr is
   end function;
 
   -- companion matrix
-  constant CMAT : std_logic_vector_array := get_companion_matrix(taplist=>TAPS, fibo=>FIBONACCI);
+  constant CMAT : std_logic_vector_array := get_companion_matrix(W=>N, taplist=>TAPS, fibo=>FIBONACCI);
 
-  -- transform matrix (Galois <=> Fibonacci)
-  constant TMAT : std_logic_vector_array := get_transform_matrix(taplist=>TAPS);
+  -- TODO ### transform matrix (Galois <=> Fibonacci)
+--  constant TMAT : std_logic_vector_array := get_transform_matrix(taplist=>TAPS);
 
   -- offset matrix (fast-forward)
-  constant OMAT : std_logic_vector_array := pow(CMAT,OFFSET);
+  constant OMAT : std_logic_vector_array := pow(CMAT,I);
 
   -- shift matrix
-  constant SMAT : std_logic_vector_array := pow(CMAT,BITS_PER_CYCLE);
+  constant SMAT : std_logic_vector_array := pow(CMAT,SHIFTS_PER_CYCLE);
+
+  signal shift : std_logic := '0';
+  
+  -- first shift register value after loading
+  signal sr_first : std_logic := '0';
 
 begin
 
-  p : process(clk)
-    variable v_run : std_logic := '1';
+  -- Input offset/transform logic 
+  -- (does not require any logic resources when seed input is constant)
+  p_in_logic : process(seed)
+    variable v_seed : std_logic_vector(N-1 downto 0);
+  begin
+    -- seed left-aligned, bit extension right-aligned
+    v_seed := (others=>'-');
+    v_seed(N-1 downto X) := seed;
+    if OFFSET_AT_OUTPUT then
+      seed_i <= v_seed; -- without offset logic
+    else
+      seed_i <= mult(v_seed,OMAT); -- including offset logic
+    end if;
+  end process;
+
+
+  -- shift register logic
+  p_sr : process(clk)
   begin
     if rising_edge(clk) then
       if load='1' then
-        if ACKNOWLEDGE_MODE then v_run:='1'; else v_run:=req_ack; end if;
         -- shift register initialization
-        if OFFSET_AT_OUTPUT then
-          sr <= seed; -- without offset
-        else
-          sr <= mult(seed,OMAT); -- including offset
-        end if;
-
-      elsif req_ack='1' then
-        if v_run='1' then
-          sr <= mult(sr,SMAT);
-        end if;
-        v_run := '1';
-
+        sr <= seed_i;
+        sr_first <= '1';
+      elsif shift='1' then
+        -- shift logic
+        sr <= mult(sr,SMAT);
+        sr_first <= '0';
       end if;
     end if;
   end process;
 
-  g_ack : if not ACKNOWLEDGE_MODE generate
-    -- TODO : consider load signal
-    dout_vld <= req_ack when rising_edge(clk);
-  end generate;
 
-  g_req : if ACKNOWLEDGE_MODE generate
-    dout_vld <= not load;
-  end generate;
+  -- Output offset/transform logic 
+  p_out_logic : process(sr)
+  begin
+    if OFFSET_AT_OUTPUT then
+      sr_i <= mult(sr,OMAT);
+    else
+      sr_i <= sr;
+    end if;
+  end process;
 
-  -- final output
-  g_out : if not OFFSET_AT_OUTPUT generate
-    dout <= sr;
-  end generate;
 
-  g_offset : if OFFSET_AT_OUTPUT generate
-    dout <= mult(sr,OMAT);
-  end generate;
+  -- Request Mode
+  g_req : if not ACKNOWLEDGE_MODE generate
+    signal sr_vld : std_logic := '0';
+  begin
+    p : process(clk)
+    begin
+      if rising_edge(clk) then
+        if req_ack='1' then
+          sr_vld <= '1';
+        elsif load='1' then
+          sr_vld <= '0';
+        end if;
+        dout_vld_i <= req_ack;
+      end if;
+    end process;
+    shift <= req_ack and sr_vld;
+    
+    g_oreg_off : if not OUTPUT_REG generate
+      dout <= sr_i(D downto 1);
+      dout_vld <= dout_vld_i;
+      dout_first <= sr_first;
+    end generate;
+
+    g_oreg_on : if OUTPUT_REG generate
+      dout <= sr_i(D downto 1) when rising_edge(clk);
+      dout_vld <= dout_vld_i when rising_edge(clk);
+      dout_first <= sr_first when rising_edge(clk);
+    end generate;
+    
+  end generate; -- Request Mode
+
+
+  -- Acknowledge Mode
+  g_ack : if ACKNOWLEDGE_MODE generate
+
+    g_oreg_off : if not OUTPUT_REG generate
+      dout_vld <= not load;
+      dout_first <= sr_first;
+      dout <= sr_i(D downto 1);
+      shift <= req_ack and not load;
+    end generate;
+
+    g_oreg_on : if OUTPUT_REG generate
+      signal rdy : std_logic;
+    begin
+      rdy <= not load when rising_edge(clk);
+      shift <= sr_first or (rdy and req_ack);
+      p : process(clk)
+      begin
+        if rising_edge(clk) then
+          if load='1' then
+            dout_first <= '0';
+            dout <= (D downto 1=>'-');
+          elsif sr_first='1' or shift='1' then 
+            dout_first <= sr_first;
+            dout <= sr_i(D downto 1);
+          end if;
+        end if;
+      end process;
+      dout_vld <= rdy;
+    end generate;
+    
+  end generate; -- Acknowledge Mode
+
 
 end architecture;
