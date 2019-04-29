@@ -14,8 +14,15 @@ library ieee;
 
 entity prbs_3gpp_wrapper is
 generic (
-  --! @brief Number of shifts/bits per cycle. Cannot exceed the length of the shift register.
-  BITS_PER_CYCLE : positive range 1 to 31 := 1
+  SHIFTS_PER_CYCLE : positive := 1;
+  --! @brief In the default request mode one valid value is output one cycle after the request.
+  --! In acknowledge mode the output always shows the next value which must be acknowledged to
+  --! get a new value in next cycle.
+  ACKNOWLEDGE_MODE : boolean := false;
+  --! @brief Number required output bits.
+  OUTPUT_WIDTH : positive := 31;
+  --! Enable additional output register
+  OUTPUT_REG : boolean := false
 );
 port (
   --! Synchronous reset
@@ -23,11 +30,11 @@ port (
   --! Clock
   clk       : in  std_logic;
   --! Clock enable
-  clk_ena   : in  std_logic := '1';
+  req_ack   : in  std_logic := '1';
   --! Initial contents of X2 shift register after reset.
   seed      : in  std_logic_vector(30 downto 0);
   --! Shift register output, right aligned. Is shifted right by BITS_PER_CYCLE bits in each cycle.
-  dout      : out std_logic_vector(BITS_PER_CYCLE-1 downto 0)
+  dout      : out std_logic_vector(OUTPUT_WIDTH-1 downto 0)
 );
 end entity;
 
@@ -43,12 +50,15 @@ begin
 
   i_3gpp : entity work.prbs_3gpp
   generic map(
-    BITS_PER_CYCLE => BITS_PER_CYCLE
+    SHIFTS_PER_CYCLE => SHIFTS_PER_CYCLE,
+    ACKNOWLEDGE_MODE => ACKNOWLEDGE_MODE,
+    OUTPUT_WIDTH => OUTPUT_WIDTH,
+    OUTPUT_REG => OUTPUT_REG 
   )
   port map (
-    rst        => rst,
     clk        => clk,
-    clk_ena    => clk_ena,
+    load       => rst,
+    req_ack    => req_ack,
     seed       => seed_q,
     dout       => dout_3gpp
   );

@@ -163,7 +163,7 @@ architecture rtl of lfsr is
   constant I : natural := OFFSET + X;
 
   -- shift register
-  signal sr, dout_i : std_logic_vector(N downto 1);
+  signal sr : std_logic_vector(N downto 1);
   signal dout_vld_i : std_logic;
   signal seed_i, sr_i : std_logic_vector(N downto 1);
 
