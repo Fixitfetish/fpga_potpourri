@@ -139,7 +139,7 @@ package body lfsr_pkg is
     variable res : std_logic_vector(R-1 downto 0);
   begin
     for i in res'range loop 
-      res(i) := mult(m(i),v); -- scalar product 
+      res(i) := mult(mm(i),v); -- scalar product 
     end loop;
     return res;
   end function;
