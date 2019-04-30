@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       lfsr.vhdl
 --! @author     Fixitfetish
---! @date       29/Apr/2019
---! @version    0.61
+--! @date       30/Apr/2019
+--! @version    0.62
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -234,8 +234,6 @@ architecture rtl of lfsr is
   -- seed after offset/transform logic
   signal seed_i : std_logic_vector(N downto 1);
 
-  signal dout_vld_i : std_logic;
-  
   signal shift : std_logic := '0';
   
 begin
@@ -287,6 +285,7 @@ begin
   -- Request Mode
   g_req : if not ACKNOWLEDGE_MODE generate
     signal sr_vld : std_logic := '0';
+    signal dout_vld_i : std_logic;
   begin
     p : process(clk)
     begin
