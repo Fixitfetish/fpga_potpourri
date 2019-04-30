@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       lfsr.vhdl
 --! @author     Fixitfetish
---! @date       28/Apr/2019
---! @version    0.60
+--! @date       29/Apr/2019
+--! @version    0.61
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -162,11 +162,6 @@ architecture rtl of lfsr is
   -- number of initial offset bit shifts
   constant I : natural := OFFSET + X;
 
-  -- shift register
-  signal sr : std_logic_vector(N downto 1);
-  signal dout_vld_i : std_logic;
-  signal seed_i, sr_i : std_logic_vector(N downto 1);
-
   -- determine companion matrix according to selected implementation type
   function get_companion_matrix(
     constant W : positive; -- shift register width
@@ -190,28 +185,28 @@ architecture rtl of lfsr is
     return res;
   end function;
 
-
-  -- TODO ### Transform matrix (Galois <=> Fibonacci)
-  -- Transforms shift register values between galois and fibonacci representation
+  -- Transform matrix (Galois <=> Fibonacci)
+  -- Transforms shift register values between Galois and Fibonacci representation
   -- to compensate the sequence offset between both.
+  -- Considered are also shift registers which are extended by X bits to the right.
   -- The R bits right of the smallest tap are the same for Galois and Fibonacci,
   -- i.e. only the L bits left of the smallest tap must be transformed.
   function get_transform_matrix(
-    taplist : integer_vector
+    constant W : positive; -- shift register width
+    constant taplist : integer_vector
   ) return std_logic_vector_array is
-    constant MM : positive := taplist(taplist'left);  -- leftmost tap defines the polynomial length
-    constant R : positive := taplist(taplist'right);
-    constant L : natural := MM - R;
-    variable cm : std_logic_vector_array(MM downto 1)(MM downto 1);
-    variable tm : std_logic_vector_array(MM downto 1)(MM downto 1);
-    variable res : std_logic_vector_array(MM downto 1)(MM downto 1);
+    constant R : positive := taplist(taplist'right); -- leftmost tap defines the polynomial length
+    constant L : natural := taplist(taplist'left) - R;
+    variable cm : std_logic_vector_array(W downto 1)(W downto 1);
+    variable tm : std_logic_vector_array(W downto 1)(W downto 1);
+    variable res : std_logic_vector_array(W downto 1)(W downto 1);
   begin
-    cm := get_companion_matrix(W=>MM, taplist=>taplist, fibo=>false);
+    cm := get_companion_matrix(W=>W, taplist=>taplist, fibo=>false);
     tm := pow(cm,L);
-    res := eye(MM);
+    res := eye(W);
     -- replace first L columns
-    for col in MM downto MM-L+1 loop
-      for row in MM downto 1 loop
+    for col in W downto W-L+1 loop
+      for row in W downto 1 loop
         res(row)(col) := tm(row)(col-L);
       end loop;
     end loop;
@@ -221,8 +216,8 @@ architecture rtl of lfsr is
   -- companion matrix
   constant CMAT : std_logic_vector_array := get_companion_matrix(W=>N, taplist=>TAPS, fibo=>FIBONACCI);
 
-  -- TODO ### transform matrix (Galois <=> Fibonacci)
---  constant TMAT : std_logic_vector_array := get_transform_matrix(taplist=>TAPS);
+  -- transform matrix (Galois <=> Fibonacci)
+  constant TMAT : std_logic_vector_array := get_transform_matrix(W=>N, taplist=>TAPS);
 
   -- offset matrix (fast-forward)
   constant OMAT : std_logic_vector_array := pow(CMAT,I);
@@ -230,11 +225,19 @@ architecture rtl of lfsr is
   -- shift matrix
   constant SMAT : std_logic_vector_array := pow(CMAT,SHIFTS_PER_CYCLE);
 
-  signal shift : std_logic := '0';
+  -- shift register
+  signal sr, sr_i : std_logic_vector(N downto 1);
   
   -- first shift register value after loading
   signal sr_first : std_logic := '0';
 
+  -- seed after offset/transform logic
+  signal seed_i : std_logic_vector(N downto 1);
+
+  signal dout_vld_i : std_logic;
+  
+  signal shift : std_logic := '0';
+  
 begin
 
   -- Input offset/transform logic 
