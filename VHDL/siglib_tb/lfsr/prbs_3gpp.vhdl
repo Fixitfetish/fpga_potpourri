@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       prbs_3gpp.vhdl
 --! @author     Fixitfetish
---! @date       28/Apr/2019
---! @version    0.30
+--! @date       30/Apr/2019
+--! @version    0.31
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -19,14 +19,15 @@ entity prbs_3gpp is
 generic (
   --! @brief Number of bit shifts per cycle.
   SHIFTS_PER_CYCLE : positive := 1;
-  --! @brief In the default request mode one valid value is output one cycle after the request.
-  --! In acknowledge mode the output always shows the next value which must be acknowledged to
-  --! get a new value in next cycle.
+  --! @brief In the default request mode a valid value is output with a fixed delay after the request.
+  --! In acknowledge mode the output always shows a valid next value 
+  --! which must be acknowledged to get a new value in next cycle.
   ACKNOWLEDGE_MODE : boolean := false;
   --! @brief Number required output bits.
   OUTPUT_WIDTH : positive := 1;
-  --! Enable additional output register
-  OUTPUT_REG : boolean := false
+  --! @brief Enable additional output register. Recommended default is true.
+  --! When enabled the load to output delay and request to output delay is 2 cycles.
+  OUTPUT_REG : boolean := true
 );
 port (
   --! Clock
@@ -50,6 +51,11 @@ end entity;
 
 architecture rtl of prbs_3gpp is
 
+  constant X1_TAPS : integer_vector := (31,28);
+  constant X2_TAPS : integer_vector := (31,30,29,28);
+
+  constant X1_SEED : std_logic_vector(30 downto 0) := (0=>'1', others=>'0');
+
   -- shift registers
   signal x1, x2, dout_i : std_logic_vector(OUTPUT_WIDTH-1 downto 0);
   signal x1_vld, x2_vld, dout_vld_i : std_logic;
@@ -60,7 +66,7 @@ begin
 
   i_x1 : entity siglib.lfsr
   generic map(
-    TAPS             => (31,28),
+    TAPS             => X1_TAPS,
     FIBONACCI        => true,
     SHIFTS_PER_CYCLE => SHIFTS_PER_CYCLE,
     ACKNOWLEDGE_MODE => ACKNOWLEDGE_MODE,
@@ -73,8 +79,8 @@ begin
   port map (
     clk        => clk,
     load       => load,
-    req_ack    => req_ack,
-    seed       => (0=>'1', others=>'0'), -- constant seed
+    req_ack    => req_ack_i,
+    seed       => X1_SEED, -- constant seed
     dout       => x1,
     dout_vld   => x1_vld,
     dout_first => x1_first
@@ -82,7 +88,7 @@ begin
 
   i_x2 : entity siglib.lfsr
   generic map(
-    TAPS             => (31,30,29,28),
+    TAPS             => X2_TAPS,
     FIBONACCI        => true,
     SHIFTS_PER_CYCLE => SHIFTS_PER_CYCLE,
     ACKNOWLEDGE_MODE => ACKNOWLEDGE_MODE,
@@ -95,7 +101,7 @@ begin
   port map (
     clk        => clk,
     load       => load,
-    req_ack    => req_ack,
+    req_ack    => req_ack_i,
     seed       => seed,
     dout       => x2,
     dout_vld   => x2_vld,

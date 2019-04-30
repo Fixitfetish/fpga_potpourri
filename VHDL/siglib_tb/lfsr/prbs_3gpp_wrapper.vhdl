@@ -14,15 +14,15 @@ library ieee;
 
 entity prbs_3gpp_wrapper is
 generic (
-  SHIFTS_PER_CYCLE : positive := 1;
+  SHIFTS_PER_CYCLE : positive := 64;
   --! @brief In the default request mode one valid value is output one cycle after the request.
   --! In acknowledge mode the output always shows the next value which must be acknowledged to
   --! get a new value in next cycle.
-  ACKNOWLEDGE_MODE : boolean := false;
+  ACKNOWLEDGE_MODE : boolean := true;
   --! @brief Number required output bits.
-  OUTPUT_WIDTH : positive := 31;
+  OUTPUT_WIDTH : positive := 64;
   --! Enable additional output register
-  OUTPUT_REG : boolean := false
+  OUTPUT_REG : boolean := true
 );
 port (
   --! Synchronous reset
@@ -42,7 +42,8 @@ end entity;
 
 architecture rtl of prbs_3gpp_wrapper is
 
-  signal seed_q, dout_3gpp : std_logic_vector(30 downto 0);
+  signal seed_q : std_logic_vector(30 downto 0);
+  signal dout_3gpp : std_logic_vector(OUTPUT_WIDTH-1 downto 0);
 
 begin
 
