@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       prbs_3gpp.vhdl
 --! @author     Fixitfetish
---! @date       30/Apr/2019
---! @version    0.31
+--! @date       01/May/2019
+--! @version    0.35
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -77,13 +77,13 @@ begin
 --    OUTPUT_REG       => OUTPUT_REG
   )
   port map (
-    clk        => clk,
-    load       => load,
-    req_ack    => req_ack_i,
-    seed       => X1_SEED, -- constant seed
-    dout       => x1,
-    dout_vld   => x1_vld,
-    dout_first => x1_first
+    clk          => clk,
+    load         => load,
+    req_ack      => req_ack_i,
+    seed         => X1_SEED, -- constant seed
+    dout         => x1,
+    dout_vld_rdy => x1_vld,
+    dout_first   => x1_first
   );
 
   i_x2 : entity siglib.lfsr
@@ -99,13 +99,13 @@ begin
 --    OUTPUT_REG       => OUTPUT_REG
   )
   port map (
-    clk        => clk,
-    load       => load,
-    req_ack    => req_ack_i,
-    seed       => seed,
-    dout       => x2,
-    dout_vld   => x2_vld,
-    dout_first => x2_first
+    clk          => clk,
+    load         => load,
+    req_ack      => req_ack_i,
+    seed         => seed,
+    dout         => x2,
+    dout_vld_rdy => x2_vld,
+    dout_first   => x2_first
   );
 
   dout_i <= x1 xor x2;

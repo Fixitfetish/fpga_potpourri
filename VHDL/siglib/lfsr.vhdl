@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       lfsr.vhdl
 --! @author     Fixitfetish
---! @date       30/Apr/2019
---! @version    0.62
+--! @date       01/May/2019
+--! @version    0.65
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -25,13 +25,12 @@ library siglib;
 --! D is larger than M. In this case the SR is extended by X=D-M bits to the
 --! length N=M+X.
 --! Furthermore, the number of bit shifts per cycle S can be defined independent
---! of the shift register length. S and N determine the shift logic.
+--! of the SR length. S and N determine the shift logic.
 --!
 --! **Offset logic** is required when the number of initial offset bit shifts I is
---! greater than 0 or when D>M (because X pre-shifts are needed). 
+--! greater than 0 , or when D>M (because X initial shifts are needed to fill the extension bits). 
 --! The offset logic can be applied to either the input (before SR) or the output (after SR).
 --! For efficiency reasons always apply the offset logic to the input when a constant seed is used.
---!
 --! Since the required constant offset and shift matrices are derived from generic
 --! parameters, the calculation of matrices does not require any logic resources.
 --! Just the shift and offset logic related multiplications require logic resources which
@@ -41,14 +40,18 @@ library siglib;
 --! Typically the Galois implementation is more efficient than the Fibonacci implementation
 --! because only a single XOR operation is needed between two shift register bits,
 --! hence higher frequencies can be achieved.
---! Nevertheless, if multiple bits are shifted in one cycle then the Galois implementation
---! only works correctly when the number of shifts does not exceed the lowest numbered exponent.
---! This limitation does not apply to the Fibonacci implementation since the number of shifts
---! per cycle is just limited by the number of shift register bits.
---! Note that if just a pseudo random values are required but not the exact bit sequence also
---! the Galois implementation allows shifting the full M bits in a single cycle. 
+--! Nevertheless, if multiple bits of the Galois SR are output in one cycle then
+--! only the bits right of the smallest tap (lowest numbered exponent) are valid
+--! while the bits left of the smallest tap are still variable.
+--! This limitation does not apply to the Fibonacci implementation since the 
+--! SR bits are just shifted without modification.
+--! Note that if just a pseudo random values are required but not the exact bit
+--! sequence also the Galois implementation allows the full M or more bits in a
+--! single cycle.
 --!
 --! @image html lfsr.svg "" width=800px
+--!
+--! @image html lfsr_wave.svg "" width=1200px
 --!
 --! **Examples** with parameters TAPS=(16,14,13,11) , FIBONACCI , SHIFTS_PER_CYCLE=8 , OFFSET=0, default seed
 --!
@@ -97,9 +100,12 @@ generic (
   --! In acknowledge mode (first word fall through) the output always shows the next value 
   --! which must be acknowledged to get a new value in next cycle.
   ACKNOWLEDGE_MODE : boolean := false;
-  --! @brief Offset (fast-forward) in number of bit shifts (default is 0).
-  --! If OFFSET>0 then the shift register is initialized with the corresponding offset seed.
-  --! In case the seed input is not constant additional logic is required which can cause timing issues. 
+  --! @brief Offset (fast-forward) in number of bit shifts I (default is I=0).
+  --! If I>0 then additional I shifts are implemented, either as input offset
+  --! logic (seed fast-forward) or as output offset logic (SR fast-forward).
+  --! The offset logic can significantly increase the complexity and therefore cause timing issues.
+  --! Furthermore, an additional offset X is automatically implemented to fill the X extensions bits,
+  --! i.e. when the number of output bits D is greater than M.
   OFFSET : natural := 0;
   --! @brief By default the offset is applied at the input, i.e. the seed is transformed before it
   --! is loaded into the shift register. This is preferred especially when the seed is constant since
@@ -119,20 +125,20 @@ generic (
 );
 port (
   --! Clock
-  clk        : in  std_logic;
+  clk          : in  std_logic;
   --! Initialize/load shift register with seed
-  load       : in  std_logic;
+  load         : in  std_logic;
   --! Request or Acknowledge according to selected mode
-  req_ack    : in  std_logic := '1';
+  req_ack      : in  std_logic := '1';
   --! Initial shift register contents after reset. By default only the rightmost bit is set.
-  seed       : in  std_logic_vector(TAPS(TAPS'left)-1 downto 0) := (0=>'1', others=>'0');
+  seed         : in  std_logic_vector(TAPS(TAPS'left)-1 downto 0) := (0=>'1', others=>'0');
   --! @brief Shift register output, right aligned. Is shifted right by SHIFTS_PER_CYCLE bits in each cycle.
   --! Width depends on the generic OUTPUT_WIDTH.
-  dout       : out std_logic_vector;
+  dout         : out std_logic_vector;
   --! Shift register output valid (request mode) or ready (acknowledge mode)
-  dout_vld   : out std_logic;
+  dout_vld_rdy : out std_logic;
   --! First output value after loading
-  dout_first : out std_logic
+  dout_first   : out std_logic
 );
 end entity;
 
@@ -302,13 +308,13 @@ begin
     
     g_oreg_off : if not OUTPUT_REG generate
       dout <= sr_i(D downto 1);
-      dout_vld <= dout_vld_i;
+      dout_vld_rdy <= dout_vld_i;
       dout_first <= sr_first;
     end generate;
 
     g_oreg_on : if OUTPUT_REG generate
       dout <= sr_i(D downto 1) when rising_edge(clk);
-      dout_vld <= dout_vld_i when rising_edge(clk);
+      dout_vld_rdy <= dout_vld_i when rising_edge(clk);
       dout_first <= sr_first when rising_edge(clk);
     end generate;
     
@@ -319,7 +325,7 @@ begin
   g_ack : if ACKNOWLEDGE_MODE generate
 
     g_oreg_off : if not OUTPUT_REG generate
-      dout_vld <= not load;
+      dout_vld_rdy <= not load;
       dout_first <= sr_first;
       dout <= sr_i(D downto 1);
       shift <= req_ack and not load;
@@ -342,7 +348,7 @@ begin
           end if;
         end if;
       end process;
-      dout_vld <= rdy;
+      dout_vld_rdy <= rdy;
     end generate;
     
   end generate; -- Acknowledge Mode

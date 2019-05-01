@@ -18,7 +18,7 @@ architecture sim of lfsr_tb is
   signal req_dout_vld, ack_dout_vld : std_logic;
   signal req_dout_first, ack_dout_first : std_logic;
 
-  signal dout_3gpp : std_logic_vector(31 downto 0);
+  signal dout_3gpp : std_logic_vector(7 downto 0);
   signal dout_vld_3gpp : std_logic;
   signal dout_first_3gpp : std_logic;
 
@@ -75,13 +75,13 @@ begin
     OUTPUT_REG       => false
   )
   port map (
-    clk        => clk,
-    load       => load,
-    req_ack    => req_ack,
-    seed       => open,
-    dout       => req_dout,
-    dout_vld   => req_dout_vld,
-    dout_first => req_dout_first
+    clk          => clk,
+    load         => load,
+    req_ack      => req_ack,
+    seed         => open,
+    dout         => req_dout,
+    dout_vld_rdy => req_dout_vld,
+    dout_first   => req_dout_first
   );
 
   i_lfsr_ack : entity siglib.lfsr
@@ -95,19 +95,19 @@ begin
     OUTPUT_REG       => false
   )
   port map (
-    clk        => clk,
-    load       => load,
-    req_ack    => req_ack,
-    seed       => open,
-    dout       => ack_dout,
-    dout_vld   => ack_dout_vld,
-    dout_first => ack_dout_first
+    clk          => clk,
+    load         => load,
+    req_ack      => req_ack,
+    seed         => open,
+    dout         => ack_dout,
+    dout_vld_rdy => ack_dout_vld,
+    dout_first   => ack_dout_first
   );
 
   i_3gpp : entity work.prbs_3gpp
   generic map(
-    SHIFTS_PER_CYCLE => 32,
-    ACKNOWLEDGE_MODE => false,
+    SHIFTS_PER_CYCLE => dout_3gpp'length,
+    ACKNOWLEDGE_MODE => true,
     OUTPUT_WIDTH     => dout_3gpp'length,
     OUTPUT_REG       => true
   )
@@ -116,6 +116,7 @@ begin
     load       => load,
     req_ack    => req_ack,
     seed       => (0=>'1', others=>'0'),
+--    seed       => 31x"12345678",
     dout       => dout_3gpp,
     dout_vld   => dout_vld_3gpp,
     dout_first => dout_first_3gpp
