@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       lfsr.vhdl
 --! @author     Fixitfetish
---! @date       01/May/2019
---! @version    0.65
+--! @date       03/May/2019
+--! @version    0.70
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -174,8 +174,8 @@ architecture rtl of lfsr is
     constant taplist : integer_vector;
     fibo : boolean := false -- false=Galois, true=Fibonacci
   ) return std_logic_vector_array is
-    constant L : positive := taplist(taplist'left); -- leftmost tap defines the polynomial length
-    constant XX : natural := W-L;
+    constant MM : positive := taplist(taplist'left); -- leftmost tap defines the polynomial length
+    constant XX : natural := W-MM;
     variable res : std_logic_vector_array(W downto 1)(W downto 1);
   begin
     res := (others=>(others=>'0'));
@@ -185,8 +185,8 @@ architecture rtl of lfsr is
       -- Fibonacci : mirrored polynomial top-aligned into first column
       for t in taplist'range loop res(W-taplist(t)+1)(W):='1'; end loop;
     else
-      -- Galois : polynomial left-aligned in last row
-      for t in taplist'range loop res(1)(XX+taplist(t)):='1'; end loop;
+      -- Galois : polynomial left-aligned into M-th row
+      for t in taplist'range loop res(XX+1)(XX+taplist(t)):='1'; end loop;
     end if;
     return res;
   end function;
