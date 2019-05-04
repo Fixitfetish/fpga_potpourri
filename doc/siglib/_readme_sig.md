@@ -17,7 +17,7 @@ Packages
 Modules
 * @link sincos sincos @endlink
 * @link lfsr lfsr @endlink
-
+* @link prbs_3gpp prbs_3gpp @endlink
 
 ---
 MIT License : Copyright (c) 2017-2018 Fixitfetish
