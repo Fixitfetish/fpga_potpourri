@@ -13,8 +13,18 @@ library ieee;
   use ieee.std_logic_1164.all;
 library siglib;
 
---! @brief Generation of Pseudo Random Bit Sequence (Gold) according to 3GPP TS 36.211
+--! @brief Generation of Pseudo Random Bit Sequence (Gold) according to 3GPP 
 --!
+--! This implementation is based on the 3GPP specifications
+--! * 3GPP TS 36.211, Paragraph 7.2
+--! * 3GPP TS 38.211, Paragraph 5.2.1
+--! 
+--! The outputs of two Fibonacci-LFSRs are merged to a Gold sequence.
+--! The implementation already includes the initial offset of 1600 bit shifts.
+--!
+--! The acknowledge mode the generator is AXI compatible and
+--! can act as AXI-Stream source.
+--! 
 entity prbs_3gpp is
 generic (
   --! @brief Number of bit shifts per cycle.
@@ -32,15 +42,15 @@ generic (
 port (
   --! Clock
   clk        : in  std_logic;
-  --! Initialize/load shift register with seed
+  --! Initialize/load/reset shift register with seed
   load       : in  std_logic;
+  --! Initial contents of X2 shift register
+  seed       : in  std_logic_vector(30 downto 0);
   --! Request / Acknowledge
   req_ack    : in  std_logic := '1';
-  --! Initial contents of X2 shift register after reset.
-  seed       : in  std_logic_vector(30 downto 0);
-  --! Shift register output, right aligned. Is shifted right by BITS_PER_CYCLE bits in each cycle.
+  --! Output right aligned. Is shifted right by SHIFTS_PER_CYCLE bits in each cycle.
   dout       : out std_logic_vector(OUTPUT_WIDTH-1 downto 0);
-  --! Shift register output valid
+  --! Output valid
   dout_vld   : out std_logic;
   --! First output value after loading
   dout_first : out std_logic
@@ -77,13 +87,13 @@ begin
     OUTPUT_REG       => false -- local output register, see below
   )
   port map (
-    clk          => clk,
-    load         => load,
-    req_ack      => req_ack_i,
-    seed         => X1_SEED, -- constant seed
-    dout         => x1,
-    dout_vld_rdy => x1_vld,
-    dout_first   => x1_first
+    clk        => clk,
+    load       => load,
+    seed       => X1_SEED, -- constant seed
+    req_ack    => req_ack_i,
+    dout       => x1,
+    dout_vld   => x1_vld,
+    dout_first => x1_first
   );
 
   i_x2 : entity siglib.lfsr
@@ -99,13 +109,13 @@ begin
     OUTPUT_REG       => false -- local output register, see below
   )
   port map (
-    clk          => clk,
-    load         => load,
-    req_ack      => req_ack_i,
-    seed         => seed,
-    dout         => x2,
-    dout_vld_rdy => x2_vld,
-    dout_first   => x2_first
+    clk        => clk,
+    load       => load,
+    seed       => seed,
+    req_ack    => req_ack_i,
+    dout       => x2,
+    dout_vld   => x2_vld,
+    dout_first => x2_first
   );
 
   dout_i <= x1 xor x2;

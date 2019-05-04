@@ -143,20 +143,20 @@ generic (
 );
 port (
   --! Clock
-  clk          : in  std_logic;
-  --! Initialize/load shift register with seed
-  load         : in  std_logic;
-  --! Request or Acknowledge according to selected mode
-  req_ack      : in  std_logic := '1';
+  clk        : in  std_logic;
+  --! Initialize/load/reset shift register with seed
+  load       : in  std_logic;
   --! Initial shift register contents after reset. By default only the rightmost bit is set.
-  seed         : in  std_logic_vector(TAPS(TAPS'left)-1 downto 0) := (0=>'1', others=>'0');
+  seed       : in  std_logic_vector(TAPS(TAPS'left)-1 downto 0) := (0=>'1', others=>'0');
+  --! Request or Acknowledge according to selected mode
+  req_ack    : in  std_logic := '1';
   --! @brief Shift register output, right aligned. Is shifted right by SHIFTS_PER_CYCLE bits in each cycle.
   --! Width depends on the generic OUTPUT_WIDTH.
-  dout         : out std_logic_vector;
-  --! Shift register output valid (request mode) or ready (acknowledge mode)
-  dout_vld_rdy : out std_logic;
+  dout       : out std_logic_vector;
+  --! Shift register output valid
+  dout_vld   : out std_logic;
   --! First output value after loading
-  dout_first   : out std_logic
+  dout_first : out std_logic
 );
 begin
 
@@ -341,13 +341,13 @@ begin
     
     g_oreg_off : if not OUTPUT_REG generate
       dout <= sr_i(D downto 1);
-      dout_vld_rdy <= dout_vld_i;
+      dout_vld <= dout_vld_i;
       dout_first <= sr_first;
     end generate;
 
     g_oreg_on : if OUTPUT_REG generate
       dout <= sr_i(D downto 1) when rising_edge(clk);
-      dout_vld_rdy <= dout_vld_i when rising_edge(clk);
+      dout_vld <= dout_vld_i when rising_edge(clk);
       dout_first <= sr_first when rising_edge(clk);
     end generate;
     
@@ -358,7 +358,7 @@ begin
   g_ack : if ACKNOWLEDGE_MODE generate
 
     g_oreg_off : if not OUTPUT_REG generate
-      dout_vld_rdy <= not load;
+      dout_vld <= not load;
       dout_first <= sr_first;
       dout <= sr_i(D downto 1);
       shift <= req_ack and not load;
@@ -381,7 +381,7 @@ begin
           end if;
         end if;
       end process;
-      dout_vld_rdy <= rdy;
+      dout_vld <= rdy;
     end generate;
     
   end generate; -- Acknowledge Mode

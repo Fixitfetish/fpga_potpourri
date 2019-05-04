@@ -12,7 +12,6 @@ set files [list]
 lappend files ieee_extension_types_2008.vhdl
 #lappend files ieee_extension_types_1993.vhdl
 lappend files ieee_extension.vhdl
-lappend files bitpotpourri.vhdl
 lappend files counter.vhdl
 lappend files enable_burst_generator.vhdl
 lappend files gray_code.vhdl

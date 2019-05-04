@@ -15,6 +15,7 @@ library ieee;
 entity lfsr_wrapper is
 generic (
   TAPS : integer_vector := (40,38,21,19);
+  --! @brief Number of bit shifts per cycle.
   SHIFTS_PER_CYCLE : positive := 64;
   --! @brief In the default request mode one valid value is output one cycle after the request.
   --! In acknowledge mode the output always shows the next value which must be acknowledged to
@@ -30,10 +31,10 @@ port (
   rst       : in  std_logic;
   --! Clock
   clk       : in  std_logic;
-  --! Clock enable
-  req_ack   : in  std_logic := '1';
   --! Initial contents of X2 shift register after reset.
   seed      : in  std_logic_vector(TAPS(TAPS'left)-1 downto 0);
+  --! Clock enable
+  req_ack   : in  std_logic := '1';
   --! Shift register output, right aligned. Is shifted right by BITS_PER_CYCLE bits in each cycle.
   dout      : out std_logic_vector(OUTPUT_WIDTH-1 downto 0)
 );
@@ -63,13 +64,13 @@ begin
     OUTPUT_REG       => OUTPUT_REG 
   )
   port map (
-    clk          => clk,
-    load         => rst,
-    req_ack      => req_ack,
-    seed         => seed_q,
-    dout         => dout_i,
-    dout_vld_rdy => open,
-    dout_first   => open
+    clk        => clk,
+    load       => rst,
+    seed       => seed_q,
+    req_ack    => req_ack,
+    dout       => dout_i,
+    dout_vld   => open,
+    dout_first => open
   );
 
   dout <= dout_i(dout'range) when rising_edge(clk);

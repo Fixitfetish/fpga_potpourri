@@ -29,11 +29,11 @@ port (
   rst       : in  std_logic;
   --! Clock
   clk       : in  std_logic;
-  --! Clock enable
-  req_ack   : in  std_logic := '1';
   --! Initial contents of X2 shift register after reset.
   seed      : in  std_logic_vector(30 downto 0);
-  --! Shift register output, right aligned. Is shifted right by BITS_PER_CYCLE bits in each cycle.
+  --! Clock enable
+  req_ack   : in  std_logic := '1';
+  --! Shift register output, right aligned. Is shifted right by SHIFTS_PER_CYCLE bits in each cycle.
   dout      : out std_logic_vector(OUTPUT_WIDTH-1 downto 0)
 );
 end entity;
@@ -59,9 +59,11 @@ begin
   port map (
     clk        => clk,
     load       => rst,
-    req_ack    => req_ack,
     seed       => seed_q,
-    dout       => dout_3gpp
+    req_ack    => req_ack,
+    dout       => dout_3gpp,
+    dout_vld   => open,
+    dout_first => open
   );
 
   dout <= dout_3gpp(dout'range) when rising_edge(clk);

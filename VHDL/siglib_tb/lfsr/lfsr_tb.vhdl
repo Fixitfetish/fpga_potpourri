@@ -33,10 +33,6 @@ architecture sim of lfsr_tb is
   signal gal1_dout_vld : std_logic;
   signal gal1_dout_first : std_logic;
 
-  signal dout_3gpp : std_logic_vector(7 downto 0);
-  signal dout_vld_3gpp : std_logic;
-  signal dout_first_3gpp : std_logic;
-
 begin
 
   p_clk : process
@@ -87,13 +83,13 @@ begin
     OUTPUT_REG       => false
   )
   port map (
-    clk          => clk,
-    load         => load,
-    req_ack      => req_ack,
-    seed         => open,
-    dout         => fib0_dout,
-    dout_vld_rdy => fib0_dout_vld,
-    dout_first   => fib0_dout_first
+    clk        => clk,
+    load       => load,
+    seed       => open,
+    req_ack    => req_ack,
+    dout       => fib0_dout,
+    dout_vld   => fib0_dout_vld,
+    dout_first => fib0_dout_first
   );
 
 
@@ -110,13 +106,13 @@ begin
     OUTPUT_REG       => false
   )
   port map (
-    clk          => clk,
-    load         => load,
-    req_ack      => req_ack,
-    seed         => open,
-    dout         => fib1_dout,
-    dout_vld_rdy => fib1_dout_vld,
-    dout_first   => fib1_dout_first
+    clk        => clk,
+    load       => load,
+    seed       => open,
+    req_ack    => req_ack,
+    dout       => fib1_dout,
+    dout_vld   => fib1_dout_vld,
+    dout_first => fib1_dout_first
   );
 
 
@@ -133,13 +129,13 @@ begin
     OUTPUT_REG       => false
   )
   port map (
-    clk          => clk,
-    load         => load,
-    req_ack      => req_ack,
-    seed         => open,
-    dout         => gal0_dout,
-    dout_vld_rdy => gal0_dout_vld,
-    dout_first   => gal0_dout_first
+    clk        => clk,
+    load       => load,
+    seed       => open,
+    req_ack    => req_ack,
+    dout       => gal0_dout,
+    dout_vld   => gal0_dout_vld,
+    dout_first => gal0_dout_first
   );
 
 
@@ -156,32 +152,13 @@ begin
     OUTPUT_REG       => false
   )
   port map (
-    clk          => clk,
-    load         => load,
-    req_ack      => req_ack,
-    seed         => open,
-    dout         => gal1_dout,
-    dout_vld_rdy => gal1_dout_vld,
-    dout_first   => gal1_dout_first
-  );
-
-
-  i_3gpp : entity siglib.prbs_3gpp
-  generic map(
-    SHIFTS_PER_CYCLE => dout_3gpp'length,
-    ACKNOWLEDGE_MODE => true,
-    OUTPUT_WIDTH     => dout_3gpp'length,
-    OUTPUT_REG       => true
-  )
-  port map (
     clk        => clk,
     load       => load,
+    seed       => open,
     req_ack    => req_ack,
-    seed       => (0=>'1', others=>'0'),
---    seed       => 31x"12345678",
-    dout       => dout_3gpp,
-    dout_vld   => dout_vld_3gpp,
-    dout_first => dout_first_3gpp
+    dout       => gal1_dout,
+    dout_vld   => gal1_dout_vld,
+    dout_first => gal1_dout_first
   );
 
 
