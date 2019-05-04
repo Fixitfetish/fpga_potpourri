@@ -10,8 +10,11 @@ set SCRIPTPATH [ file dirname [dict get [ info frame 0 ] file ] ]
 
 # create file list
 set filelist [list]
+lappend filelist $SCRIPTPATH/lfsr_pkg.vhdl
+lappend filelist $SCRIPTPATH/lfsr.vhdl
+lappend filelist $SCRIPTPATH/prbs_3gpp.vhdl
 lappend filelist $SCRIPTPATH/sincos.vhdl
 
 # compile file list
-set SWITCHES "-93 -explicit -dbg"
+set SWITCHES "-08 -explicit -dbg"
 vcom $SWITCHES -work $LIB $filelist

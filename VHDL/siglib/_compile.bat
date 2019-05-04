@@ -64,6 +64,9 @@ if "%VCOM_EXE%"=="" (
 :: analyze/compile files
 set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 @echo on
+%COMPILE% %SCRIPTPATH%\lfsr_pkg.vhdl
+%COMPILE% %SCRIPTPATH%\lfsr.vhdl
+%COMPILE% %SCRIPTPATH%\prbs_3gpp.vhdl
 %COMPILE% %SCRIPTPATH%\sincos.vhdl
 
 :END

@@ -3,10 +3,11 @@
 #project files
 add_file -vhdl -lib siglib  "../../siglib/lfsr_pkg.vhdl"
 add_file -vhdl -lib siglib  "../../siglib/lfsr.vhdl"
-add_file -vhdl -lib work    "lfsr_wrapper.vhdl"
-
-#implementation: "lfsr"
-impl -add lfsr -type fpga
+add_file -vhdl -lib siglib  "../../siglib/prbs_3gpp.vhdl"
+add_file -vhdl -lib work    "prbs_3gpp_wrapper.vhdl"
+ 
+#implementation: "prbs_3gpp"
+impl -add prbs_3gpp -type fpga
 
 #implementation attributes
 set_option -vlog_std sysv
@@ -21,7 +22,7 @@ set_option -part_companion ""
 
 #compilation/mapping options
 set_option -use_fsm_explorer 0
-set_option -top_module "lfsr_wrapper"
+set_option -top_module "prbs_3gpp_wrapper"
 
 # hdl_compiler_options
 set_option -distributed_compile 1
@@ -82,4 +83,4 @@ project -result_file "./output/test.edf"
 set_option log_file "./output/test.log"
 
 #design plan options
-impl -active "lfsr"
+impl -active "prbs_3gpp"

@@ -1,0 +1,28 @@
+[*]
+[*] GTKWave Analyzer v3.3.87 (w)1999-2017 BSI
+[*] Sat May 04 15:54:33 2019
+[*]
+[dumpfile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\siglib_tb\prbs_3gpp\work\sim.vcd"
+[dumpfile_mtime] "Sat May 04 15:53:28 2019"
+[dumpfile_size] 426396
+[savefile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\siglib_tb\prbs_3gpp\sim.gtkw"
+[timestart] 0
+[size] 1739 745
+[pos] -1 -1
+*-51.185787 1080000000000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 211
+[signals_width] 219
+[sst_expanded] 1
+[sst_vpaned_height] 205
+@28
+prbs_3gpp_tb.clk
+prbs_3gpp_tb.finish
+prbs_3gpp_tb.load
+prbs_3gpp_tb.req_ack
+prbs_3gpp_tb.dout_vld
+@29
+prbs_3gpp_tb.dout_first
+@22
+prbs_3gpp_tb.dout[7:0]
+[pattern_trace] 1
+[pattern_trace] 0
