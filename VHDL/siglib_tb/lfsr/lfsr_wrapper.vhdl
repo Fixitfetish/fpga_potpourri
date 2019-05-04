@@ -35,7 +35,7 @@ port (
   seed      : in  std_logic_vector(TAPS(TAPS'left)-1 downto 0);
   --! Clock enable
   req_ack   : in  std_logic := '1';
-  --! Shift register output, right aligned. Is shifted right by BITS_PER_CYCLE bits in each cycle.
+  --! Shift register output, right aligned. Is shifted right by SHIFTS_PER_CYCLE bits in each cycle.
   dout      : out std_logic_vector(OUTPUT_WIDTH-1 downto 0)
 );
 end entity;
