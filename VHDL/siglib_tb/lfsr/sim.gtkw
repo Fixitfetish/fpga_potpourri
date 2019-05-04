@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.87 (w)1999-2017 BSI
-[*] Sun Apr 28 20:04:29 2019
+[*] Sat May 04 15:26:27 2019
 [*]
 [dumpfile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\siglib_tb\lfsr\work\sim.vcd"
-[dumpfile_mtime] "Sun Apr 28 19:42:46 2019"
-[dumpfile_size] 877959
+[dumpfile_mtime] "Sat May 04 15:17:37 2019"
+[dumpfile_size] 806922
 [savefile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\siglib_tb\lfsr\sim.gtkw"
-[timestart] 0
+[timestart] 4840000000000000
 [size] 1739 745
-[pos] -1 -1
-*-51.185787 500000000000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] -95 -11
+*-51.185787 1080000000000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [sst_width] 211
 [signals_width] 219
 [sst_expanded] 1
@@ -19,20 +19,37 @@ lfsr_tb.finish
 lfsr_tb.clk
 lfsr_tb.load
 lfsr_tb.req_ack
-[color] 3
-lfsr_tb.req_dout_vld
-[color] 3
-lfsr_tb.req_dout_first
 @22
-[color] 3
-lfsr_tb.req_dout[15:0]
+[color] 5
+lfsr_tb.gal0_dout[7:0]
+@28
+[color] 5
+lfsr_tb.gal0_dout_first
+[color] 5
+lfsr_tb.gal0_dout_vld
+@22
+[color] 2
+lfsr_tb.fib1_dout[7:0]
 @28
 [color] 2
-lfsr_tb.ack_dout_vld
+lfsr_tb.fib1_dout_first
 [color] 2
-lfsr_tb.ack_dout_first
+lfsr_tb.fib1_dout_vld
 @22
-[color] 2
-lfsr_tb.ack_dout[15:0]
+[color] 3
+lfsr_tb.fib0_dout[7:0]
+@28
+[color] 3
+lfsr_tb.fib0_dout_first
+[color] 3
+lfsr_tb.fib0_dout_vld
+@23
+[color] 7
+lfsr_tb.gal1_dout[7:0]
+@28
+[color] 7
+lfsr_tb.gal1_dout_first
+[color] 7
+lfsr_tb.gal1_dout_vld
 [pattern_trace] 1
 [pattern_trace] 0

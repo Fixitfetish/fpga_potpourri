@@ -1,25 +1,37 @@
-A = lfsr([16,14,13,11],false);
-A.shiftsPerCycle = 8;
-A.offset = 199;
+% parameters
+taps = [3,5];
+shiftsPerCycle = 4;
+cycles = 20;
+offset = 0;
+outputWidth = 8;
 
+% Galois
+G1 = lfsr(taps,false);
+G1.shiftsPerCycle = shiftsPerCycle;
+G1.cycles = cycles;
+G1.offset = offset;
+G1.outputWidth = outputWidth;
 
-% 3GPP
-shiftsPerCycle3GPP = 16;
-outputWidth3GPP = 32;
-offset3GPP = 1600;
+% Fibonacci
+F1 = lfsr(taps,true);
+F1.shiftsPerCycle = shiftsPerCycle;
+F1.cycles = cycles;
+F1.offset = offset;
+F1.outputWidth = outputWidth;
 
-x1 = lfsr([31,28],true);
-x1.shiftsPerCycle = shiftsPerCycle3GPP;
-x1.outputWidth = outputWidth3GPP;
-x1.offset = offset3GPP;
-% x1.seed = [1 0 1 1 1 1 0 0 1 0 0 1 0 0 0 0 1 0 1 1 0 0 0 0 1 0 0 0 0 0 0];
+% Fibonacci (with seed offset compensation, i.e. input transform matrix)
+F2 = lfsr(taps,true);
+F2.shiftsPerCycle = shiftsPerCycle;
+F2.cycles = cycles;
+F2.offset = offset;
+F2.outputWidth = outputWidth;
+F2.transformSeed = true;
+%F2.seed = [0 1 0 0 1];
 
-x2 = lfsr([31,30,29,28],true);
-x2.shiftsPerCycle = shiftsPerCycle3GPP;
-x2.outputWidth = outputWidth3GPP;
-x2.offset = offset3GPP;
+disp('Galois (left) and Fibonacci (right) - direct comparision with same settings');
+disp([G1.outAll , F1.outAll ]);
 
-seq = xor(x1.seq,x2.seq);
-out = xor(x1.out,x2.out);
-outDec = bitxor(x1.outDec,x2.outDec);
-outHex = dec2hex(outDec)
+disp(' ');
+disp('Galois (left) and Fibonacci (right) - Fibonacci with input transform matrix');
+disp([G1.outAll , F2.outAll ]);
+

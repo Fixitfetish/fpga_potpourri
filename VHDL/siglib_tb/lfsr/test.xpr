@@ -75,8 +75,9 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/prbs_3gpp.vhdl">
+      <File Path="$PPRDIR/../../siglib/prbs_3gpp.vhdl">
         <FileInfo SFType="VHDL2008">
+          <Attr Name="Library" Val="siglib"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>

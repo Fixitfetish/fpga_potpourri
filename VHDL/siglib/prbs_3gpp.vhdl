@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       prbs_3gpp.vhdl
 --! @author     Fixitfetish
---! @date       01/May/2019
---! @version    0.35
+--! @date       04/May/2019
+--! @version    0.40
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -71,10 +71,10 @@ begin
     SHIFTS_PER_CYCLE => SHIFTS_PER_CYCLE,
     ACKNOWLEDGE_MODE => ACKNOWLEDGE_MODE,
     OFFSET           => 1600, -- Nc
-    OFFSET_AT_OUTPUT => false, -- note: constant seed!
+    OFFSET_LOGIC     => "input", -- note: constant seed!
+    TRANSFORM_SEED   => false,
     OUTPUT_WIDTH     => OUTPUT_WIDTH,
     OUTPUT_REG       => false -- local output register, see below
---    OUTPUT_REG       => OUTPUT_REG
   )
   port map (
     clk          => clk,
@@ -93,10 +93,10 @@ begin
     SHIFTS_PER_CYCLE => SHIFTS_PER_CYCLE,
     ACKNOWLEDGE_MODE => ACKNOWLEDGE_MODE,
     OFFSET           => 1600, -- Nc
-    OFFSET_AT_OUTPUT => true,
+    OFFSET_LOGIC     => "output",
+    TRANSFORM_SEED   => false,
     OUTPUT_WIDTH     => OUTPUT_WIDTH,
     OUTPUT_REG       => false -- local output register, see below
---    OUTPUT_REG       => OUTPUT_REG
   )
   port map (
     clk          => clk,

@@ -1,9 +1,9 @@
 #Synplify Project
 
 #project files
-add_file -vhdl -lib baselib "../../siglib/lfsr_pkg.vhdl"
+add_file -vhdl -lib siglib  "../../siglib/lfsr_pkg.vhdl"
 add_file -vhdl -lib siglib  "../../siglib/lfsr.vhdl"
-add_file -vhdl -lib work    "prbs_3gpp.vhdl"
+add_file -vhdl -lib siglib  "../../siglib/prbs_3gpp.vhdl"
 add_file -vhdl -lib work    "prbs_3gpp_wrapper.vhdl"
  
 #implementation: "lfsr"

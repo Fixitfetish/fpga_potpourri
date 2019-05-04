@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       lfsr.vhdl
 --! @author     Fixitfetish
---! @date       03/May/2019
---! @version    0.70
+--! @date       04/May/2019
+--! @version    0.80
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -19,8 +19,8 @@ library siglib;
 --! Generation of pseudo random bit sequences.
 --!
 --! This implementation is based on vector/matrix multiplications.
---! The highest numbered exponent M defines the vector length N of the default
---! shift register (SR) and the seed. However, the implemented right shift
+--! The highest numbered exponent M defines the standard shift register (SR)
+--! length N and the seed. However, the implemented right shift
 --! register length can be larger when the number of required output data bits
 --! D is larger than M. In this case the SR is extended by X=D-M bits to the
 --! length N=M+X.
@@ -51,17 +51,28 @@ library siglib;
 --!
 --! @image html lfsr.svg "" width=800px
 --!
---! @image html lfsr_wave.svg "" width=1200px
+--! @image html lfsr_wave.svg "" width=1000px
 --!
---! **Examples** with parameters TAPS=(16,14,13,11) , FIBONACCI , SHIFTS_PER_CYCLE=8 , OFFSET=0, default seed
+--! **Example** with parameters TAPS=(5,3) , OFFSET=0, default seed=00001
 --!
---! Example 1 : Request and Acknowledge Mode, disabled output register
---! @image html lfsr_wave_without_output_reg.jpg "" width=1500px
+--! Sequence of first 48 bits (right bit first), repeating after 2^5-1=31 bits
+--!  MODE      |     Output BIN (right first)                                | Output HEX (right first) | Note
+--! :---------:|:-----------------------------------------------------------:|:------------------------:|:------------
+--!  GALOIS    | 0001 1111 0011 0100 1000 0101 0111 0110 0011 1110 0110 1001 | 1 F 3 4 8 5 7 6 3 E 6 9  | offset 5 relative to FIBONACCI
+--!  FIBONACCI | 1110 0110 1001 0000 1010 1110 1100 0111 1100 1101 0010 0001 | E 6 9 0 A E C 7 C D 2 1  | offset 31-5=26 relative to GALOIS
 --!
---! Example 2 : Request and Acknowledge Mode, enabled output register
---! @image html lfsr_wave_with_output_reg.jpg "" width=1500px
+--! With OUTPUT_WIDTH=8 and SHIFTS_PER_CYCLE=4 the output of the first 12 cycles is
+--!  MODE                       |     Output HEX (right first)
+--! :--------------------------:|:-------------------------------------:
+--!  GALOIS (standard)          | 31 DF 73 B4 08 85 D7 F6 63 FE E6 29 
+--!  FIBONACCI (seed transform) | B1 1F F3 34 48 85 57 76 63 3E E6 69 
+--!  FIBONACCI (standard)       | 3E E6 69 90 0A AE EC C7 7C CD D2 21  
+--!  GALOIS (seed transform)    | FE E6 29 10 4A EE AC C7 BC 8D 52 21  
 --!
---! Example of maximal-length polynomials :
+--! This example shows that in contrast to the FIBONACCI implementation the GALOIS implementation
+--! does not necessarily output the exact bit sequence in the MSBs for all configurations.
+--!
+--! **Example of maximal-length polynomials**
 --!
 --! Length | Exponents/Taps      | Length | Exponents/Taps   
 --! :-----:|:-------------------:|:------:|:---------------: 
@@ -107,13 +118,20 @@ generic (
   --! Furthermore, an additional offset X is automatically implemented to fill the X extensions bits,
   --! i.e. when the number of output bits D is greater than M.
   OFFSET : natural := 0;
-  --! @brief By default the offset is applied at the input, i.e. the seed is transformed before it
-  --! is loaded into the shift register. This is preferred especially when the seed is constant since
-  --! only the constant is transformed and additional logic is not implemented.
-  --! If the offset is applied to the output then the offset logic is moved behind the shift register.
+  --! @brief By default the offset is applied at the "input", i.e. if OFFSET>0 then the seed is 
+  --! transformed before it is loaded into the shift register.
+  --! This is preferred especially when the seed is constant since only the constant is transformed
+  --! and additional logic is not implemented.
+  --! If the offset is applied to the "output" then the offset logic is moved behind the shift register.
   --! Moving the offset logic to the output can be beneficial for timing,
   --! e.g. when the output is followed by pipeline registers anyway.
-  OFFSET_AT_OUTPUT : boolean := false;
+  OFFSET_LOGIC : string := "input";
+  --! @brief Transform seed between Galois and Fibonacci representation to compensate the offset
+  --! between both. By default the transformation is switched off.
+  --! If the transform logic is enabled then the given seed is transformed.
+  --! This is useful when e.g. the Galois implementation shall be used though the seed
+  --! is defined based on the Fibonacci implementation.
+  TRANSFORM_SEED : boolean := false;
   --! @brief Number required output bits D.
   --! The default D=0 means that output width is equal to the standard shift register width M (see TAPS).
   --! For 0 < D < M the number of output bits is limited to D.
@@ -140,6 +158,16 @@ port (
   --! First output value after loading
   dout_first   : out std_logic
 );
+begin
+
+  -- synthesis translate_off (Altera Quartus)
+  -- pragma translate_off (Xilinx Vivado , Synopsys)
+  assert (OFFSET_LOGIC="input" or OFFSET_LOGIC="output")
+    report "ERROR in " & lfsr'INSTANCE_NAME & " Offset logic can be either at 'input' or 'output' ."
+    severity failure;
+  -- synthesis translate_on (Altera Quartus)
+  -- pragma translate_on (Xilinx Vivado , Synopsys)
+
 end entity;
 
 -------------------------------------------------------------------------------
@@ -245,17 +273,22 @@ architecture rtl of lfsr is
 begin
 
   -- Input offset/transform logic 
-  -- (does not require any logic resources when seed input is constant)
+  -- (does not require any FPGA logic resources when seed input is constant)
   p_in_logic : process(seed)
     variable v_seed : std_logic_vector(N-1 downto 0);
   begin
     -- seed left-aligned, bit extension right-aligned
     v_seed := (others=>'-');
     v_seed(N-1 downto X) := seed;
-    if OFFSET_AT_OUTPUT then
-      seed_i <= v_seed; -- without offset logic
+    -- optional transform logic
+    if TRANSFORM_SEED then
+      v_seed := mult(v_seed,TMAT);
+    end if;
+    -- optional offset logic
+    if OFFSET_LOGIC="input" then
+      seed_i <= mult(v_seed,OMAT);
     else
-      seed_i <= mult(v_seed,OMAT); -- including offset logic
+      seed_i <= v_seed;
     end if;
   end process;
 
@@ -277,10 +310,10 @@ begin
   end process;
 
 
-  -- Output offset/transform logic 
+  -- Output offset logic 
   p_out_logic : process(sr)
   begin
-    if OFFSET_AT_OUTPUT then
+    if OFFSET_LOGIC="output" then
       sr_i <= mult(sr,OMAT);
     else
       sr_i <= sr;

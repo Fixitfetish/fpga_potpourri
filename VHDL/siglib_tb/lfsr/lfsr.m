@@ -1,15 +1,24 @@
+% Author     Fixitfetish
+% Date       04/May/2019
+% Version    0.50
+% Note       Matlab / GNU Octave
+% Copyright  <https://en.wikipedia.org/wiki/MIT_License>
+%            <https://opensource.org/licenses/MIT>
+
 classdef lfsr
 % Linear Feedback Shift Register based on XOR primitive function with
 % shift right register (row vector) and matrix multiplication.
+% VHDL reference implementation
 
   properties
-    exponents; % Feedback polynomial exponents (taps). List of positive integers in descending order.
+    taps; % Feedback polynomial exponents (taps). List of positive integers in descending order.
     fibonacci = false; % false=Galois, true=Fibonacci
     shiftsPerCycle = 1; % number of shifts/bits per cycle
     cycles = 20;
     offset = 0; % fast-forward bit shifts
     outputWidth = 0;
-    seed = []; % Initial shift register contents, default is [0,..,0,1]
+    transformSeed = false; % Galois<=>Fibonacci transform 
+    seed = []; % Initial shift register contents, logical vector of length M, default is [0,..,0,1]
   end
 
   properties (Dependent)
@@ -19,8 +28,8 @@ classdef lfsr
     I; % resulting offset
     D; % resulting output width
     polynom; % logical row vector
+    seedExt; % left-aligned seed with extension bits and optional Galois<=>Fibonacci transformation
     seedFF; % seed fast-forward, including offset
-    seedTransformed; % transformed seed, Galois<=>Fibonacci
     sr; % shift (right) register, logical row vector
     srDec; % shift register decimal
     srBin; % shift register binary (char)
@@ -29,6 +38,7 @@ classdef lfsr
     outDec; % output per cycle, decimal
     outBin; % output per cycle, binary (char)
     outHex; % output per cycle, hexadecimal (char)
+    outAll; % output per cycle, binary + hexadecimal + decimal (char)
     seq; % complete bit sequence as logical vector
     cMat; % companion matrix (logical)
     oMat; % offset matrix (logical)
@@ -38,19 +48,19 @@ classdef lfsr
  
  methods
 
-  function obj = lfsr(exp,fibo)
+  function obj = lfsr(tap,fibo)
   % class constructor
-    if (nargin>=1), obj.exponents = exp; end
+    if (nargin>=1), obj.taps = tap; end
     if (nargin>=2), obj.fibonacci = fibo; end
   end
 
-  function obj = set.exponents(obj,exp)
-    obj.exponents = sort(unique(round(exp)),'descend');
+  function obj = set.taps(obj,tap)
+    obj.taps = sort(unique(round(tap)),'descend');
   end
 
   function obj = set.seed(obj,s)
-    % seed incl. right-aligned extension bits
-    obj.seed = false(1,obj.N);
+    % seed
+    obj.seed = false(1,obj.M);
     obj.seed(1:numel(s)) = logical(s(1:numel(s))); % convert to logical row vector
   end
 
@@ -58,22 +68,29 @@ classdef lfsr
     s = obj.seed;
     if isempty(s)
       % seed incl. right-aligned extension bits
-      s = false(1,obj.N);
+      s = false(1,obj.M);
       s(obj.M) = true;
     end
   end
 
-  function s = get.seedFF(obj)
-    s = logical(mod(obj.seed*obj.oMat,2));
+  function s = get.seedExt(obj)
+    % extended seed including ...
+    % right-aligned extension bits
+    s = false(1,obj.N);
+    s(1:numel(obj.seed)) = obj.seed;
+    % optional input transform logic
+    if obj.transformSeed
+      s = logical(mod(s*obj.tMat,2));
+    end
   end
 
-  function s = get.seedTransformed(obj)
-    s = logical(mod(obj.seed*obj.tMat,2));
+  function s = get.seedFF(obj)
+    s = logical(mod(obj.seedExt*obj.oMat,2));
   end
-  
+
   function s = get.sr(obj)
    s = false(obj.cycles+1,obj.N);
-   s(1,:) = logical(mod(obj.seed*obj.oMat,2));
+   s(1,:) = logical(mod(obj.seedExt*obj.oMat,2));
    if obj.cycles>=1
     for c=1:obj.cycles
       s(c+1,:) = logical(mod(s(c,:)*obj.sMat,2));
@@ -112,20 +129,26 @@ classdef lfsr
     s = dec2bin(obj.outDec,obj.D);
   end
 
+  function s = get.outAll(obj)
+    s = [obj.outBin , repmat(' ',obj.cycles,1), ...
+         obj.outHex , repmat(' ',obj.cycles,1), ...
+         num2str(obj.outDec) , repmat('   ',obj.cycles,1) ];
+  end
+
   function s = get.seq(obj)
     s = reshape(fliplr(obj.out)',1,[]);
   end
   
   function m = get.M(obj)
-    m = obj.exponents(1);
+    m = obj.taps(1);
   end
   
   function n = get.N(obj)
-    n = max(obj.exponents(1),obj.outputWidth);
+    n = max(obj.taps(1),obj.outputWidth);
   end
 
   function x = get.X(obj)
-    x = max(obj.exponents(1),obj.outputWidth) - obj.exponents(1);
+    x = max(obj.taps(1),obj.outputWidth) - obj.taps(1);
   end
 
   function n = get.I(obj)
@@ -138,9 +161,9 @@ classdef lfsr
   end
 
   function p = get.polynom(obj)
-    L = obj.exponents(1);
+    L = obj.taps(1);
     p = false(1,L);
-    for t=obj.exponents
+    for t=obj.taps
       p(L-t+1) = true;
     end
   end
@@ -171,7 +194,7 @@ classdef lfsr
   % Considered are also shift registers which are extended by X bits to the right.
   % The R bits right of the smallest tap are the same for Galois and Fibonacci,
   % i.e. only the L bits left of the smallest tap must be transformed.
-    R = obj.exponents(end); % smallest tap
+    R = obj.taps(end); % smallest tap
     L = obj.M - R;
     cm = obj.companionMatrixGalois();
     tm = logical(eye(obj.N));

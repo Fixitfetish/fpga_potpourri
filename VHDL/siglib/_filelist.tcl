@@ -11,6 +11,7 @@ set files [list]
 # entities
 lappend files lfsr_pkg.vhdl
 lappend files lfsr.vhdl
+lappend files prbs_3gpp.vhdl
 lappend files sincos.vhdl
 
 # create final file list with absolute path

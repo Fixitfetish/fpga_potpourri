@@ -23,7 +23,6 @@ puts "INFO: Testbench"
 set top lfsr_tb
 
 set files [list]
-lappend files [ file normalize prbs_3gpp.vhdl ]
 lappend files [ file normalize ${top}.vhdl ]
 
 compile $WORK $files

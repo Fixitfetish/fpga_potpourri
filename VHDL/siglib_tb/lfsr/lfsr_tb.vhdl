@@ -14,9 +14,24 @@ architecture sim of lfsr_tb is
   signal finish : std_logic := '0';
 
   signal req_ack: std_logic := '1';
-  signal req_dout, ack_dout : std_logic_vector(15 downto 0);
-  signal req_dout_vld, ack_dout_vld : std_logic;
-  signal req_dout_first, ack_dout_first : std_logic;
+
+  constant OUTPUT_WIDTH : positive := 8;
+  
+  signal fib0_dout : std_logic_vector(OUTPUT_WIDTH-1 downto 0);
+  signal fib0_dout_vld : std_logic;
+  signal fib0_dout_first : std_logic;
+
+  signal fib1_dout : std_logic_vector(OUTPUT_WIDTH-1 downto 0);
+  signal fib1_dout_vld : std_logic;
+  signal fib1_dout_first : std_logic;
+
+  signal gal0_dout : std_logic_vector(OUTPUT_WIDTH-1 downto 0);
+  signal gal0_dout_vld : std_logic;
+  signal gal0_dout_first : std_logic;
+
+  signal gal1_dout : std_logic_vector(OUTPUT_WIDTH-1 downto 0);
+  signal gal1_dout_vld : std_logic;
+  signal gal1_dout_first : std_logic;
 
   signal dout_3gpp : std_logic_vector(7 downto 0);
   signal dout_vld_3gpp : std_logic;
@@ -39,12 +54,6 @@ begin
     wait; -- stop clock
   end process;
 
---  -- release reset
---  load <= '0' after  3*PERIOD+PERIOD/100 ,
---          '1' after  9*PERIOD ,
---          '0' after 10*PERIOD ,
---          '1' after 16*PERIOD ,
---          '0' after 17*PERIOD ;
 
   p_load: process
   begin
@@ -64,14 +73,17 @@ begin
     wait; -- end of process
   end process;
 
-  i_lfsr_req : entity siglib.lfsr
+
+  i_lfsr_fib0 : entity siglib.lfsr
   generic map(
-    TAPS             => (16,14,13,11),
+    TAPS             => (5,3),
     FIBONACCI        => true,
-    SHIFTS_PER_CYCLE => 8,
+    SHIFTS_PER_CYCLE => 4,
     ACKNOWLEDGE_MODE => false,
     OFFSET           => 0,
-    OFFSET_AT_OUTPUT => false,
+    OFFSET_LOGIC     => "input",
+    TRANSFORM_SEED   => false,
+    OUTPUT_WIDTH     => OUTPUT_WIDTH,
     OUTPUT_REG       => false
   )
   port map (
@@ -79,19 +91,22 @@ begin
     load         => load,
     req_ack      => req_ack,
     seed         => open,
-    dout         => req_dout,
-    dout_vld_rdy => req_dout_vld,
-    dout_first   => req_dout_first
+    dout         => fib0_dout,
+    dout_vld_rdy => fib0_dout_vld,
+    dout_first   => fib0_dout_first
   );
 
-  i_lfsr_ack : entity siglib.lfsr
+
+  i_lfsr_fib1 : entity siglib.lfsr
   generic map(
-    TAPS             => (16,14,13,11),
+    TAPS             => (5,3),
     FIBONACCI        => true,
-    SHIFTS_PER_CYCLE => 8,
-    ACKNOWLEDGE_MODE => true,
+    SHIFTS_PER_CYCLE => 4,
+    ACKNOWLEDGE_MODE => false,
     OFFSET           => 0,
-    OFFSET_AT_OUTPUT => false,
+    OFFSET_LOGIC     => "input",
+    TRANSFORM_SEED   => true,
+    OUTPUT_WIDTH     => OUTPUT_WIDTH,
     OUTPUT_REG       => false
   )
   port map (
@@ -99,12 +114,59 @@ begin
     load         => load,
     req_ack      => req_ack,
     seed         => open,
-    dout         => ack_dout,
-    dout_vld_rdy => ack_dout_vld,
-    dout_first   => ack_dout_first
+    dout         => fib1_dout,
+    dout_vld_rdy => fib1_dout_vld,
+    dout_first   => fib1_dout_first
   );
 
-  i_3gpp : entity work.prbs_3gpp
+
+  i_lfsr_gal0 : entity siglib.lfsr
+  generic map(
+    TAPS             => (5,3),
+    FIBONACCI        => false,
+    SHIFTS_PER_CYCLE => 4,
+    ACKNOWLEDGE_MODE => false,
+    OFFSET           => 0,
+    OFFSET_LOGIC     => "input",
+    TRANSFORM_SEED   => false,
+    OUTPUT_WIDTH     => OUTPUT_WIDTH,
+    OUTPUT_REG       => false
+  )
+  port map (
+    clk          => clk,
+    load         => load,
+    req_ack      => req_ack,
+    seed         => open,
+    dout         => gal0_dout,
+    dout_vld_rdy => gal0_dout_vld,
+    dout_first   => gal0_dout_first
+  );
+
+
+  i_lfsr_gal1 : entity siglib.lfsr
+  generic map(
+    TAPS             => (5,3),
+    FIBONACCI        => false,
+    SHIFTS_PER_CYCLE => 4,
+    ACKNOWLEDGE_MODE => false,
+    OFFSET           => 0,
+    OFFSET_LOGIC     => "input",
+    TRANSFORM_SEED   => true,
+    OUTPUT_WIDTH     => OUTPUT_WIDTH,
+    OUTPUT_REG       => false
+  )
+  port map (
+    clk          => clk,
+    load         => load,
+    req_ack      => req_ack,
+    seed         => open,
+    dout         => gal1_dout,
+    dout_vld_rdy => gal1_dout_vld,
+    dout_first   => gal1_dout_first
+  );
+
+
+  i_3gpp : entity siglib.prbs_3gpp
   generic map(
     SHIFTS_PER_CYCLE => dout_3gpp'length,
     ACKNOWLEDGE_MODE => true,

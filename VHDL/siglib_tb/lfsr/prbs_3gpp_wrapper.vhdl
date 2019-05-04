@@ -49,7 +49,7 @@ begin
 
   seed_q <= seed when rising_edge(clk);
 
-  i_3gpp : entity work.prbs_3gpp
+  i_3gpp : entity siglib.prbs_3gpp
   generic map(
     SHIFTS_PER_CYCLE => SHIFTS_PER_CYCLE,
     ACKNOWLEDGE_MODE => ACKNOWLEDGE_MODE,
