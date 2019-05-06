@@ -11,6 +11,7 @@
 -------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
+library siglib;
 
 entity lfsr_wrapper is
 generic (
