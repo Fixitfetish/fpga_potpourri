@@ -58,7 +58,7 @@ library baselib;
 --! port PIPESTAGES. The pipeline stages are calculated as follows:
 --! * PHASE_MINOR_WIDTH=0   =>  PIPESTAGES=3
 --! * PHASE_MINOR_WIDTH>=1  =>  PIPESTAGES=4+PHASE_MINOR_WIDTH
-
+--!
 entity sincos is
 generic (
   --! @brief Major phase resolution in bits (MSBs of the phase input).

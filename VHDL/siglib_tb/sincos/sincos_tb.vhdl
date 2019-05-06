@@ -34,7 +34,7 @@ architecture sim of sincos_tb is
 
   constant PHASE_MAX : positive := 2**PHASE_WIDTH-1;
   signal phase_vld : std_logic := '0';
-  signal phase : unsigned(PHASE_WIDTH-1 downto 0);
+  signal phase : unsigned(PHASE_WIDTH-1 downto 0) := (others=>'-');
 
   signal dout_vld : std_logic;
   signal dout_sin : signed(OUTPUT_WIDTH-1 downto 0);

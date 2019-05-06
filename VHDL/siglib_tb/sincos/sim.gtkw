@@ -1,0 +1,33 @@
+[*]
+[*] GTKWave Analyzer v3.3.87 (w)1999-2017 BSI
+[*] Mon May 06 20:33:14 2019
+[*]
+[dumpfile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\siglib_tb\sincos\work\sim.vcd"
+[dumpfile_mtime] "Mon May 06 20:21:35 2019"
+[dumpfile_size] 2106554
+[savefile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\siglib_tb\sincos\sim.gtkw"
+[timestart] 0
+[size] 1842 1057
+[pos] -87 -87
+*-22.089834 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] sincos_tb.
+[sst_width] 211
+[signals_width] 142
+[sst_expanded] 1
+[sst_vpaned_height] 315
+@420
+sincos_tb.pipestages
+@28
+sincos_tb.rst
+sincos_tb.finish
+sincos_tb.clk
+sincos_tb.phase_vld
+@22
+sincos_tb.phase[12:0]
+@29
+sincos_tb.dout_vld
+@22
+sincos_tb.dout_cos[17:0]
+sincos_tb.dout_sin[17:0]
+[pattern_trace] 1
+[pattern_trace] 0
