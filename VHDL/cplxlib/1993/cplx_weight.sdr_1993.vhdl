@@ -20,7 +20,7 @@ library cplxlib;
 library dsplib;
 
 --! @brief Single Data Rate implementation of the entity cplx_weight .
---! N complex values are weighted (scaled) with one scalar or N scalar values.
+--! N complex values are weighted (signed scaling) with one scalar or N scalar values.
 --! Can be used for scalar multiplication.
 --!
 --! This implementation requires the entity signed_mult .
@@ -30,7 +30,7 @@ library dsplib;
 --! the standard system clock. 
 --!
 --! NOTE: The double rate clock 'clk2' is irrelevant and unused here.
-
+--!
 architecture sdr_1993 of cplx_weight is
 
   -- The number of pipeline stages is reported as constant at the output port
@@ -82,14 +82,14 @@ architecture sdr_1993 of cplx_weight is
   signal PIPE_DSP : natural;
 
   -- dummy sink to avoid warnings
-  procedure std_logic_sink(x:in std_logic) is
-    variable y : std_logic := '1';
-  begin y:=y or x; end procedure;
+  procedure dummy_sink(si:in std_logic) is
+    variable sv : std_logic := '1';
+  begin sv:=sv or si; end procedure;
 
 begin
 
   -- dummy sink for unused clock
-  std_logic_sink(clk2);
+  dummy_sink(clk2);
 
   g_merge : for n in 0 to NUM_MULT-1 generate
     -- merge input control signals

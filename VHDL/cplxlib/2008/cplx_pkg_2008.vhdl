@@ -22,7 +22,7 @@ library baselib;
 --! package since they typically make use of hardware specific DSP cells and
 --! require registers in addition. Corresponding entities have been (or can be)
 --! developed based on this package.
-
+--!
 package cplx_pkg is
 
   ------------------------------------------

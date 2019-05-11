@@ -2,7 +2,7 @@
 --! @file       cplx_vectorization.rtl.vhdl
 --! @author     Fixitfetish
 --! @date       17/Feb/2018
---! @version    0.40
+--! @version    0.41
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -17,7 +17,7 @@ library cplxlib;
 
 --! @brief Parallelize a complex data stream of N consecutive cycles into a complex
 --! vector of length N.
-
+--!
 architecture rtl of cplx_vectorization is
   
   constant N : natural := vec_out'length;
@@ -53,9 +53,9 @@ begin
           next_idx <= next_idx + 1;
         end if;
         -- set output vector invalid while assembling input data
-        for n in vec_out'range loop
-          vec_out(n).vld<='0';
-          vec_out(n).ovf<='0';
+        for i in vec_out'range loop
+          vec_out(i).vld<='0';
+          vec_out(i).ovf<='0';
         end loop;
       end if;
     end if;

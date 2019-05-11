@@ -39,7 +39,7 @@ library cplxlib;
 --!   ser_out    => out cplx -- complex output
 --! );
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+--!
 entity cplx_vector_serialization is
 port (
   clk     : in  std_logic; --! Standard system clock

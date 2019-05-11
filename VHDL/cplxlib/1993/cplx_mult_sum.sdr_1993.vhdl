@@ -2,7 +2,7 @@
 --! @file       cplx_mult_sum.sdr_1993.vhdl
 --! @author     Fixitfetish
 --! @date       16/Jun/2017
---! @version    0.50
+--! @version    0.51
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -32,7 +32,7 @@ library dsplib;
 --! | Stratix V  | Input factor pairs with even index 0,2,4,6,etc. cannot be negated
 --!
 --! NOTE: The double rate clock 'clk2' is irrelevant and unused here.
-
+--!
 architecture sdr_1993 of cplx_mult_sum is
 
   -- The number of pipeline stages is reported as constant at the output port
@@ -83,14 +83,14 @@ architecture sdr_1993 of cplx_mult_sum is
   signal PIPE_DSP : natural;
 
   -- dummy sink to avoid warnings
-  procedure std_logic_sink(x:in std_logic) is
-    variable y : std_logic := '1';
-  begin y:=y or x; end procedure;
+  procedure dummy_sink(si:in std_logic) is
+    variable sv : std_logic := '1';
+  begin sv:=sv or si; end procedure;
 
 begin
 
   -- dummy sink for unused clock
-  std_logic_sink(clk2);
+  dummy_sink(clk2);
 
   g_merge : for n in 0 to NUM_MULT-1 generate
     rst_x(n) <= x(n).rst; rst_y(n) <= y_i(n).rst;

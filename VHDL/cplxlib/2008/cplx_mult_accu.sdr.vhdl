@@ -2,7 +2,7 @@
 --! @file       cplx_mult_accu.sdr.vhdl
 --! @author     Fixitfetish
 --! @date       17/Feb/2018
---! @version    0.60
+--! @version    0.61
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -32,7 +32,7 @@ library dsplib;
 --! The number of overall pipeline stages is typically NUM_INPUT_REG + 1 + NUM_OUTPUT_REG.
 --!
 --! NOTE: The double rate clock 'clk2' is irrelevant and unused here.
-
+--!
 architecture sdr of cplx_mult_accu is
 
   -- The number of pipeline stages is reported as constant at the output port
@@ -74,14 +74,14 @@ architecture sdr of cplx_mult_accu is
   signal PIPE_DSP : natural; -- pipeline stages of used DSP cell
 
   -- dummy sink to avoid warnings
-  procedure std_logic_sink(x:in std_logic) is
-    variable y : std_logic := '1';
-  begin y:=y or x; end procedure;
+  procedure dummy_sink(si:in std_logic) is
+    variable sv : std_logic := '1';
+  begin sv:=sv or si; end procedure;
 
 begin
 
   -- dummy sink for unused clock
-  std_logic_sink(clk2);
+  dummy_sink(clk2);
 
   g_merge : for n in 0 to NUM_MULT-1 generate
     rst_x(n) <= x(n).rst; rst_y(n) <= y_i(n).rst;

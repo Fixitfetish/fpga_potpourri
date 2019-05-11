@@ -69,6 +69,7 @@ set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 :: General
 %COMPILE% %SCRIPTPATH%\%VHDL%\cplx_pkg_%VHDL%.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_pipeline.vhdl
+%COMPILE% %SCRIPTPATH%\cplx_fifo_sync.vhdl
 :: Entities
 %COMPILE% %SCRIPTPATH%\cplx_vector_serialization.vhdl
 %COMPILE% %SCRIPTPATH%\cplx_vectorization.vhdl

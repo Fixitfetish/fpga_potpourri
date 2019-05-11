@@ -15,6 +15,7 @@ set filelist [list]
 # General
 lappend filelist $SCRIPTPATH/${VHDL}/cplx_pkg_${VHDL}.vhdl
 lappend filelist $SCRIPTPATH/cplx_pipeline.vhdl
+lappend filelist $SCRIPTPATH/cplx_fifo_sync.vhdl
 
 # Entities
 lappend filelist $SCRIPTPATH/cplx_vector_serialization.vhdl

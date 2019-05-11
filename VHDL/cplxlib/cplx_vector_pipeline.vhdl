@@ -33,7 +33,7 @@ library cplxlib;
 --!   dout       => out cplx_vector  -- complex vector output
 --! );
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+--!
 entity cplx_vector_pipeline is
 generic (
   --! @brief The number of pipeline stages (mandatory!). 

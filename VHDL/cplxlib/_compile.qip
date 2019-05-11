@@ -6,6 +6,7 @@
 # General
 set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "1993/cplx_pkg_1993.vhdl"]
 set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_pipeline.vhdl"]
+set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_fifo_sync.vhdl"]
 
 # Entities
 set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "1993/cplx_vector_serialization.vhdl"]

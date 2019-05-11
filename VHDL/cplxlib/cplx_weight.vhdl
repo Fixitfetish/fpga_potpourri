@@ -82,7 +82,6 @@ library cplxlib;
 --! );
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 --!
-
 entity cplx_weight is
 generic (
   --! Number of parallel multiplications - mandatory generic!

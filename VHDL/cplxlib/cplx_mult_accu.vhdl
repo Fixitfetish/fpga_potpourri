@@ -93,7 +93,6 @@ library cplxlib;
 --! );
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 --!
-
 entity cplx_mult_accu is
 generic (
   --! Number of parallel multiplications - mandatory generic!

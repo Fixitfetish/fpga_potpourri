@@ -33,7 +33,7 @@ library cplxlib;
 --!   dout       => out cplx  -- complex output
 --! );
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+--!
 entity cplx_pipeline is
 generic (
   --! @brief The number of pipeline stages (mandatory!). 

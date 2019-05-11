@@ -2,7 +2,7 @@
 --! @file       cplx_mult.sdr_1993.vhdl
 --! @author     Fixitfetish
 --! @date       16/Jun/2017
---! @version    0.40
+--! @version    0.41
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -28,7 +28,7 @@ library dsplib;
 --! the standard system clock. 
 --!
 --! NOTE: The double rate clock 'clk2' is irrelevant and unused here.
-
+--!
 architecture sdr_1993 of cplx_mult is
 
   -- The number of pipeline stages is reported as constant at the output port
@@ -79,14 +79,14 @@ architecture sdr_1993 of cplx_mult is
   signal PIPE_DSP : t_pipe(0 to NUM_MULT-1);
 
   -- dummy sink to avoid warnings
-  procedure std_logic_sink(x:in std_logic) is
-    variable y : std_logic := '1';
-  begin y:=y or x; end procedure;
+  procedure dummy_sink(si:in std_logic) is
+    variable sv : std_logic := '1';
+  begin sv:=sv or si; end procedure;
 
 begin
 
   -- dummy sink for unused clock
-  std_logic_sink(clk2);
+  dummy_sink(clk2);
 
   g_merge : for n in 0 to NUM_MULT-1 generate
     g1 : if NUM_FACTOR=1 generate

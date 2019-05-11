@@ -17,7 +17,7 @@ library cplxlib;
 
 --! @brief Serialize a complex vector of length N into a complex data stream of
 --! N consecutive cycles.
-
+--!
 architecture rtl of cplx_vector_serialization is
   
   constant N : natural := vec_in'length;

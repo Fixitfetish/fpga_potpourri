@@ -28,7 +28,7 @@ library baselib;
 --! is not required to such an extent as it is for VHDL-1993. For that reason this 
 --! VHDL-1993 version only provides a subset of bit widths. But this package can be
 --! easily extended to any needed bit width.
-
+--!
 package cplx_pkg is
 
   ------------------------------------------

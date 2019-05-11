@@ -96,7 +96,6 @@ library cplxlib;
 --! );
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 --!
-
 entity cplx_mult_sum is
 generic (
   --! Number of parallel multiplications - mandatory generic!

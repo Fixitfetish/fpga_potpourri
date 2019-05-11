@@ -1,7 +1,7 @@
 # Create file list of the CPLXLIB Library.
 # It is required to compile the DSPLIB library first !
 
-set VHDL 1993
+set VHDL 2008
 set LIB cplxlib
 
 # path/location of this script
@@ -12,8 +12,10 @@ set files [list]
 
 # General
 lappend files ${VHDL}/cplx_pkg_${VHDL}.vhdl
+lappend files ${VHDL}/cplx_pkg_m.vhdl
 lappend files cplx_pipeline.vhdl
 lappend files cplx_vector_pipeline.vhdl
+lappend files cplx_fifo_sync.vhdl
 
 # Entities
 lappend files cplx_vector_serialization.vhdl
