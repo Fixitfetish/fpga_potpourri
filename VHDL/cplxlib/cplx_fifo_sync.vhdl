@@ -98,8 +98,6 @@ architecture rtl of cplx_fifo_sync is
     if MODE='X' then return (WRE+WIM); else return (WRE+WIM+1); end if;
   end function;
 
---  constant FIFO_WIDTH : integer := WRE + WIM + 1;
-
   signal rst_i : std_logic;
   signal wr_ena_i : std_logic;
 

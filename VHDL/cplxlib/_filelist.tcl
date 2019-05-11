@@ -16,6 +16,7 @@ lappend files ${VHDL}/cplx_pkg_m.vhdl
 lappend files cplx_pipeline.vhdl
 lappend files cplx_vector_pipeline.vhdl
 lappend files cplx_fifo_sync.vhdl
+lappend files cplx_noise_uniform.vhdl
 
 # Entities
 lappend files cplx_vector_serialization.vhdl
