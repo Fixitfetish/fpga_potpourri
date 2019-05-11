@@ -1,5 +1,5 @@
 # Create file list of the CPLXLIB Library.
-# It is required to compile the DSPLIB library first !
+# It is required to compile the DSP, RAM and SIG library first !
 
 set VHDL 2008
 set LIB cplxlib

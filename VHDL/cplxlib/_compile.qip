@@ -1,12 +1,15 @@
 # +++ FOR ALTERA QUARTUS SYNTHESIS +++
 # This script compiles the CPLXLIB Library.
-# The CPLX library is based on the device specific DSP library.
-# Hence, the DSP library need to be compiled first.
+# The CPLX library is based on the device specific DSP and RAM library.
+# Some entities also refer to the SIG library.
+# Hence, the DSP, RAM and SIG library need to be compiled first.
 
 # General
 set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "1993/cplx_pkg_1993.vhdl"]
 set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_pipeline.vhdl"]
+set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_exp.vhdl"]
 set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_fifo_sync.vhdl"]
+set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "cplx_noise_uniform.vhdl"]
 
 # Entities
 set_global_assignment -library cplxlib -name VHDL_FILE [file join $::quartus(qip_path) "1993/cplx_vector_serialization.vhdl"]

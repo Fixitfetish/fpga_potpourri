@@ -1,6 +1,6 @@
 # +++ FOR VHDL SIMULATORS ONLY +++ #
 # This script compiles the CPLXLIB Library for VHDL-1993.
-# It is required to compile the DSPLIB library first !
+# It is required to compile the DSP, RAM and SIG library first !
 
 # path/location of this script
 set SCRIPTPATH [ file dirname [dict get [ info frame 0 ] file ] ]
@@ -15,7 +15,9 @@ set filelist [list]
 # General
 lappend filelist $SCRIPTPATH/${VHDL}/cplx_pkg_${VHDL}.vhdl
 lappend filelist $SCRIPTPATH/cplx_pipeline.vhdl
+lappend filelist $SCRIPTPATH/cplx_exp.vhdl
 lappend filelist $SCRIPTPATH/cplx_fifo_sync.vhdl
+lappend filelist $SCRIPTPATH/cplx_noise_uniform.vhdl
 
 # Entities
 lappend filelist $SCRIPTPATH/cplx_vector_serialization.vhdl
