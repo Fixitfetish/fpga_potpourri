@@ -20,7 +20,7 @@ library ieee;
 --! * ACKNOWLEDGE MODE = If the FIFO is not empty then valid data is present at
 --!   the data output port and must be acknowledged before the next data is passed
 --!   to the output. This mode is also known First-Word-Fall-Through (FWFT).
-
+--!
 entity fifo_sync is
 generic (
   --! Data width in bits (mandatory!)

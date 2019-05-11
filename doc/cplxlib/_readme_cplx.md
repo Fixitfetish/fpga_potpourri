@@ -23,9 +23,12 @@ Contents
 
 |Entity Name               | Feature 1 | Feature 2  | Description
 |:-------------------------|:---------:|:----------:|:-----------------
+|cplx_exp                  | ---       | ---        | Complex exponential function
+|cplx_fifo_sync            | ---       | ---        | Synchronous FIFO for CPLX type
 |cplx_mult                 | ---       | ---        | N parallel and synchronous complex multiplications
 |cplx_mult_accu            | ---       | ---        | N complex multiplications and accumulation of all results
 |cplx_mult_sum             | ---       | ---        | N complex multiplications and summation of all results
+|cplx_noise_uniform        | ---       | ---        | Complex uniform noise generator
 |cplx_pipeline             | ---       | ---        | Delay pipeline with N stages
 |cplx_vector_pipeline      | ---       | ---        | Delay vector pipeline with N stages
 |cplx_vector_serialization | ---       | ---        | Serialize length N vector into data stream of N consecutive cycles
@@ -254,6 +257,6 @@ CONVERSION FUNCTIONS
 todo
 
 ---
-MIT License : Copyright (c) 2017-2018 Fixitfetish
+MIT License : Copyright (c) 2017-2019 Fixitfetish
  - <https://opensource.org/licenses/MIT>
  - <https://en.wikipedia.org/wiki/MIT_License>

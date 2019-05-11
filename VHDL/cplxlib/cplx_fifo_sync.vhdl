@@ -26,6 +26,34 @@ library cplxlib;
 --! * WRITE FIFO : only when wr_din.vld='1' and wr_ena='1' .
 --!   Optional wr_ena can be used as additional write (clock) enable.
 --! 
+--! VHDL Instantiation Template:
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
+--! I1 : cplx_fifo_sync
+--! generic map (
+--!   FIFO_DEPTH           => positive, -- FIFO depth in number of data words
+--!   USE_BLOCK_RAM        => boolean,  -- block ram or logic
+--!   ACKNOWLEDGE_MODE     => boolean,  -- read request or acknowledge
+--!   PROG_FULL_THRESHOLD  => natural,
+--!   PROG_EMPTY_THRESHOLD => natural,
+--!   MODE                 => cplx_mode -- options
+--! )
+--! port map (
+--!   clock         => in  std_logic, -- clock
+--!   reset         => in  std_logic, -- synchronous reset
+--!   level         => out integer,
+--!   wr_ena        => in  std_logic, 
+--!   wr_din        => in  cplx, 
+--!   wr_full       => out std_logic, 
+--!   wr_prog_full  => out std_logic, 
+--!   wr_overflow   => out std_logic, 
+--!   rd_req_ack    => in  std_logic, 
+--!   rd_dout       => out cplx, 
+--!   rd_empty      => out std_logic, 
+--!   rd_prog_empty => out std_logic, 
+--!   rd_underflow  => out std_logic
+--! );
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--!
 entity cplx_fifo_sync is
 generic (
   --! FIFO depth in number of data words (mandatory!)

@@ -21,6 +21,21 @@ library cplxlib;
 --! The noise is generated based on two maximum-length LFSRs,
 --! one 40-bit LFSR and one 41-bit LFSR. 
 --!
+--! VHDL Instantiation Template:
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
+--! I1 : cplx_noise_uniform
+--! generic map (
+--!   RESOLUTION       => integer, -- Resolution of real and imaginary component in number of bits
+--!   ACKNOWLEDGE_MODE => boolean
+--! )
+--! port map (
+--!   clk      => in  std_logic, -- clock
+--!   rst      => in  std_logic, -- synchronous reset
+--!   req_ack  => in  std_logic, 
+--!   dout     => out cplx
+--! );
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--!
 entity cplx_noise_uniform is
 generic (
   --! Resolution of real and imaginary component in number of bits
