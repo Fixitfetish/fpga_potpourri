@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       lfsr_pkg.vhdl
 --! @author     Fixitfetish
---! @date       23/Apr/2019
---! @version    0.20
+--! @date       12/May/2019
+--! @version    0.30
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -56,10 +56,21 @@ package lfsr_pkg is
     mr : std_logic_vector_array  -- right matrix of size N x C
   ) return std_logic_vector_array;
 
+  -- left/right concatenation of two matrices with same number of rows
+  function cat_lr(
+    ml : std_logic_vector_array; -- left
+    mr : std_logic_vector_array  -- right
+  ) return std_logic_vector_array;
+
   -- power of binary square matrix
   function pow(
      base : std_logic_vector_array; -- square matrix 
      exp : natural                  -- exponent
+  ) return std_logic_vector_array;
+
+  -- inverse of binary square matrix
+  function inv(
+     m : std_logic_vector_array -- square matrix
   ) return std_logic_vector_array;
 
 end package;
@@ -158,6 +169,29 @@ package body lfsr_pkg is
     return res; -- result is a R x C matrix 
   end function;
 
+  -- left/right concatenation of two matrices with same number of rows
+  function cat_lr(
+    ml : std_logic_vector_array; -- left
+    mr : std_logic_vector_array  -- right
+  ) return std_logic_vector_array is
+    constant RL : positive := ml'length;
+    constant CL : positive := ml(ml'left)'length;
+    constant RR : positive := mr'length;
+    constant CR : positive := mr(mr'left)'length;
+    alias xml : std_logic_vector_array(RL downto 1)(CL downto 1) is ml; -- default range
+    alias xmr : std_logic_vector_array(RR downto 1)(CR downto 1) is mr; -- default range
+    variable res : std_logic_vector_array(RL downto 1)(CL+CR downto 1);
+  begin
+    assert (RL=RR)
+      report "ERROR : For left/right concatenation of two matrices both must have the same number of rows."
+      severity failure;
+    for r in res'range loop
+      res(r)(CR downto 1) := xmr(r);
+      res(r)(CL+CR downto CR+1) := xml(r);
+    end loop;
+    return res; 
+  end function;
+
   -- power of binary square matrix
   function pow(
      base : std_logic_vector_array; -- square matrix 
@@ -174,6 +208,35 @@ package body lfsr_pkg is
     for n in 0 to uexp'length-1 loop
       if uexp(n)='1' then res:=mult(res,fac); end if;
       fac := mult(fac,fac);
+    end loop;
+    return res;
+  end function;
+
+  -- inverse of binary square matrix
+  function inv(
+     m : std_logic_vector_array -- square matrix
+  ) return std_logic_vector_array is
+    constant W : positive := m'length;
+    variable temp : std_logic_vector_array(1 to W)(1 to 2*W);
+    variable res : std_logic_vector_array(1 to W)(1 to W);
+  begin
+    -- Gauss-Jordan elimination algorithm
+    temp := cat_lr(m,eye(W));
+    -- convert left halve to upper/right triangular matrix
+    for c in 1 to W-1 loop
+      for r in c+1 to W loop
+        if temp(r)(c)='1' then temp(r):=temp(r) xor temp(c); end if; 
+      end loop;
+    end loop;
+    -- convert left halve to lower/left triangular matrix
+    for c in W downto 2 loop
+      for r in c-1 downto 1 loop
+        if temp(r)(c)='1' then temp(r):=temp(r) xor temp(c); end if; 
+      end loop;
+    end loop;
+    -- final result is the right halve
+    for r in 1 to W loop
+      res(r) := temp(r)(W+1 to 2*W);
     end loop;
     return res;
   end function;

@@ -15,6 +15,7 @@ architecture sim of lfsr_tb is
 
   signal req_ack: std_logic := '1';
 
+  constant TAPS : integer_vector := (5,3);
   constant OUTPUT_WIDTH : positive := 8;
   
   signal fib0_dout : std_logic_vector(OUTPUT_WIDTH-1 downto 0);
@@ -72,7 +73,7 @@ begin
 
   i_lfsr_fib0 : entity siglib.lfsr
   generic map(
-    TAPS             => (5,3),
+    TAPS             => TAPS,
     FIBONACCI        => true,
     SHIFTS_PER_CYCLE => 4,
     ACKNOWLEDGE_MODE => false,
@@ -95,7 +96,7 @@ begin
 
   i_lfsr_fib1 : entity siglib.lfsr
   generic map(
-    TAPS             => (5,3),
+    TAPS             => TAPS,
     FIBONACCI        => true,
     SHIFTS_PER_CYCLE => 4,
     ACKNOWLEDGE_MODE => false,
@@ -118,7 +119,7 @@ begin
 
   i_lfsr_gal0 : entity siglib.lfsr
   generic map(
-    TAPS             => (5,3),
+    TAPS             => TAPS,
     FIBONACCI        => false,
     SHIFTS_PER_CYCLE => 4,
     ACKNOWLEDGE_MODE => false,
@@ -141,7 +142,7 @@ begin
 
   i_lfsr_gal1 : entity siglib.lfsr
   generic map(
-    TAPS             => (5,3),
+    TAPS             => TAPS,
     FIBONACCI        => false,
     SHIFTS_PER_CYCLE => 4,
     ACKNOWLEDGE_MODE => false,

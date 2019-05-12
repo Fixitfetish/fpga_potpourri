@@ -1,15 +1,16 @@
 [*]
 [*] GTKWave Analyzer v3.3.87 (w)1999-2017 BSI
-[*] Sat May 04 15:26:27 2019
+[*] Sun May 12 11:28:44 2019
 [*]
-[dumpfile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\siglib_tb\lfsr\work\sim.vcd"
-[dumpfile_mtime] "Sat May 04 15:17:37 2019"
-[dumpfile_size] 806922
-[savefile] "C:\Users\Knut\git\fpga_potpourri_master\VHDL\siglib_tb\lfsr\sim.gtkw"
-[timestart] 4840000000000000
+[dumpfile] ""
+[dumpfile_mtime] "Sun May 12 11:26:49 2019"
+[dumpfile_size] 477135
+[savefile] ""
+[timestart] 0
 [size] 1739 745
-[pos] -95 -11
-*-51.185787 1080000000000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] 1824 -92
+*-51.185787 4870000000000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] lfsr_tb.
 [sst_width] 211
 [signals_width] 219
 [sst_expanded] 1
@@ -43,7 +44,7 @@ lfsr_tb.fib0_dout[7:0]
 lfsr_tb.fib0_dout_first
 [color] 3
 lfsr_tb.fib0_dout_vld
-@23
+@22
 [color] 7
 lfsr_tb.gal1_dout[7:0]
 @28

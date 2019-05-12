@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       lfsr.vhdl
 --! @author     Fixitfetish
---! @date       04/May/2019
---! @version    0.80
+--! @date       12/May/2019
+--! @version    0.90
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -66,8 +66,8 @@ library siglib;
 --! :--------------------------:|:-------------------------------------:
 --!  GALOIS (standard)          | 31 DF 73 B4 08 85 D7 F6 63 FE E6 29 
 --!  FIBONACCI (seed transform) | B1 1F F3 34 48 85 57 76 63 3E E6 69 
---!  FIBONACCI (standard)       | 3E E6 69 90 0A AE EC C7 7C CD D2 21  
---!  GALOIS (seed transform)    | FE E6 29 10 4A EE AC C7 BC 8D 52 21  
+--!  FIBONACCI (standard)       | 3E E6 69 90 0A AE EC C7 7C CD D2 21 
+--!  GALOIS (seed transform)    | FE E6 29 10 4A EE AC C7 BC 8D 52 21 
 --!
 --! This example shows that in contrast to the FIBONACCI implementation the GALOIS implementation
 --! does not necessarily output the exact bit sequence in the MSBs for all configurations.
@@ -128,7 +128,8 @@ generic (
   OFFSET_LOGIC : string := "input";
   --! @brief Transform seed between Galois and Fibonacci representation to compensate the offset
   --! between both. By default the transformation is switched off.
-  --! If the transform logic is enabled then the given seed is transformed.
+  --! If the transform logic is enabled then the given seed is assumed to be based
+  --! on the opposite implementation and requires transformation.
   --! This is useful when e.g. the Galois implementation shall be used though the seed
   --! is defined based on the Fibonacci implementation.
   TRANSFORM_SEED : boolean := false;
@@ -137,8 +138,9 @@ generic (
   --! For 0 < D < M the number of output bits is limited to D.
   --! For D >= M the full (extended) shift register contents is provided at the output. 
   OUTPUT_WIDTH : natural := 0;
-  --! @brief Enable additional output register. When enabled the load to output delay and
-  --! request to output delay is 2 cycles.
+  --! @brief Enable additional output register.
+  --! When enabled the load to output delay and request to output delay is 2 cycles.
+  --! The output register is recommended when offset logic is applied at the "output" .
   OUTPUT_REG : boolean := false
 );
 port (
@@ -225,25 +227,33 @@ architecture rtl of lfsr is
   -- Considered are also shift registers which are extended by X bits to the right.
   -- The R bits right of the smallest tap are the same for Galois and Fibonacci,
   -- i.e. only the L bits left of the smallest tap must be transformed.
+  -- Note: If L > M/2 and 2*L > W then an additional local extension is required
+  -- to obtain the correct transform matrix.   
   function get_transform_matrix(
-    constant W : positive; -- shift register width
+    constant W : positive; -- shift register width (including extension bits)
     constant taplist : integer_vector
   ) return std_logic_vector_array is
-    constant R : positive := taplist(taplist'right); -- leftmost tap defines the polynomial length
+    constant R : positive := taplist(taplist'right);
     constant L : natural := taplist(taplist'left) - R;
-    variable cm : std_logic_vector_array(W downto 1)(W downto 1);
-    variable tm : std_logic_vector_array(W downto 1)(W downto 1);
+    constant WW : positive := MAX(W,2*L);
+    variable cm : std_logic_vector_array(WW downto 1)(WW downto 1);
+    variable tm : std_logic_vector_array(WW downto 1)(WW downto 1);
     variable res : std_logic_vector_array(W downto 1)(W downto 1);
   begin
-    cm := get_companion_matrix(W=>W, taplist=>taplist, fibo=>false);
+    -- transform from Galois to Fibonacci
+    cm := get_companion_matrix(W=>WW, taplist=>taplist, fibo=>false);
     tm := pow(cm,L);
     res := eye(W);
     -- replace first L columns
-    for col in W downto W-L+1 loop
-      for row in W downto 1 loop
-        res(row)(col) := tm(row)(col-L);
+    for col in 0 to L-1 loop
+      for row in 0 to W-1 loop
+        res(W-row)(W-col) := tm(WW-row)(WW-col-L);
       end loop;
     end loop;
+    if not FIBONACCI then
+      -- transform from Fibonacci to Galois
+      res := inv(res);
+    end if;
     return res;
   end function;
 
@@ -269,7 +279,7 @@ architecture rtl of lfsr is
   signal seed_i : std_logic_vector(N downto 1);
 
   signal shift : std_logic := '0';
-  
+
 begin
 
   -- Input offset/transform logic 

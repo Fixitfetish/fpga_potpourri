@@ -1,6 +1,6 @@
 % Author     Fixitfetish
-% Date       04/May/2019
-% Version    0.50
+% Date       12/May/2019
+% Version    0.60
 % Note       Matlab / GNU Octave
 % Copyright  <https://en.wikipedia.org/wiki/MIT_License>
 %            <https://opensource.org/licenses/MIT>
@@ -194,23 +194,30 @@ classdef lfsr
   % Considered are also shift registers which are extended by X bits to the right.
   % The R bits right of the smallest tap are the same for Galois and Fibonacci,
   % i.e. only the L bits left of the smallest tap must be transformed.
+  % Note: If L > M/2 and 2*L > N then an additional local extension to W is required
+  % to obtain the correct transform matrix.   
     R = obj.taps(end); % smallest tap
     L = obj.M - R;
-    cm = obj.companionMatrixGalois();
-    tm = logical(eye(obj.N));
+    W = max(obj.N,2*L);
+    % transform from Galois to Fibonacci (default)
+    cm = obj.companionMatrixGalois(W);
+    tm = logical(eye(W));
     for n=1:L, tm=logical(mod(tm*cm,2)); end % shift L times
     m = logical(eye(obj.N));
-    m(:,1:L) = tm(:,L+1:2*L); % replace first L columns  
+    m(:,1:L) = tm(1:obj.N,L+1:2*L); % replace first L columns
+    % transform from Fibonacci to Galois (additional inversion)
+    if ~obj.fibonacci, m=obj.inv(m); end; 
   end
 
  end % methods
 
  methods (Access=private)
    
-  function m = companionMatrixGalois(obj)
-    m = false(obj.N,obj.N);
-    % first N-1 rows have right-aligned identity matrix
-    m(1:end-1,2:end) = logical(eye(obj.N-1));
+  function m = companionMatrixGalois(obj,W)
+    if ~exist('W','var'), W=obj.N; end
+    m = false(W,W);
+    % first W-1 rows have right-aligned identity matrix
+    m(1:end-1,2:end) = logical(eye(W-1));
     % Galois : polynomial left-aligned into M-th row
     m(obj.M,1:obj.M) = obj.polynom;
   end
@@ -232,6 +239,27 @@ classdef lfsr
       if nBin(b)=='1', m=logical(mod(m*f,2)); end
       f = logical(mod(f*f,2));
     end
+  end
+
+  % inverse of binary square matrix
+  % VHDL reference implementation
+  function m = inv(obj,mi)
+    % Gauss-Jordan elimination algorithm
+    T = logical([mi,eye(obj.N)]);
+    % convert left halve of matrix to upper/right triangular matrix
+    for c=1:obj.N-1
+      for r=c+1:obj.N
+        if T(r,c), T(r,:) = bitxor(T(r,:),T(c,:)); end
+      end
+    end
+    % convert left halve of matrix to lower/left triangular matrix
+    for c=obj.N:-1:2
+      for r=c-1:-1:1
+        if T(r,c), T(r,:) = bitxor(T(r,:),T(c,:)); end
+      end
+    end
+    % final result is the right halve
+    m = T(:,obj.N+1:2*obj.N);
   end
 
  end % methods private

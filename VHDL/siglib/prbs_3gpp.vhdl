@@ -21,6 +21,7 @@ library siglib;
 --! 
 --! The outputs of two Fibonacci-LFSRs are merged to a Gold sequence.
 --! The implementation already includes the initial offset of 1600 bit shifts.
+--! For more LFSR details please refer to @link lfsr siglib.lfsr @endlink .
 --!
 --! The acknowledge mode the generator is AXI compatible and
 --! can act as AXI-Stream source.

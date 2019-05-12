@@ -1,5 +1,5 @@
 % parameters
-taps = [3,5];
+taps = [5,3];
 shiftsPerCycle = 4;
 cycles = 20;
 offset = 0;
@@ -11,6 +11,14 @@ G1.shiftsPerCycle = shiftsPerCycle;
 G1.cycles = cycles;
 G1.offset = offset;
 G1.outputWidth = outputWidth;
+
+% Galois (with seed offset compensation, i.e. input transform matrix)
+G2 = lfsr(taps,false);
+G2.shiftsPerCycle = shiftsPerCycle;
+G2.cycles = cycles;
+G2.offset = offset;
+G2.outputWidth = outputWidth;
+G2.transformSeed = true;
 
 % Fibonacci
 F1 = lfsr(taps,true);
@@ -32,6 +40,9 @@ disp('Galois (left) and Fibonacci (right) - direct comparision with same setting
 disp([G1.outAll , F1.outAll ]);
 
 disp(' ');
-disp('Galois (left) and Fibonacci (right) - Fibonacci with input transform matrix');
+disp('Galois (left) and Fibonacci (right) - Fibonacci with seed transform matrix');
 disp([G1.outAll , F2.outAll ]);
 
+disp(' ');
+disp('Galois (left) and Fibonacci (right) - Galois with seed transform matrix');
+disp([G2.outAll , F1.outAll ]);
