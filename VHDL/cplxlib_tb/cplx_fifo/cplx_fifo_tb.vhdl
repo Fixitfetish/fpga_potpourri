@@ -99,13 +99,15 @@ begin
   i_noise : entity cplxlib.cplx_noise_uniform
   generic map (
     RESOLUTION => RESOLUTION,
-    ACKNOWLEDGE_MODE => false
+    ACKNOWLEDGE_MODE => false,
+    INSTANCE_IDX => open
   )
   port map (
-    clk      => clk, -- clock
-    rst      => rst, -- synchronous reset
-    req_ack  => wr_ack, 
-    dout     => wr_din
+    clk        => clk, -- clock
+    rst        => rst, -- synchronous reset
+    req_ack    => wr_ack, 
+    dout       => wr_din,
+    PIPESTAGES => open
   );
 
   wr_ack <= not wr_prog_full;
