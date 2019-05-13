@@ -1,3 +1,6 @@
+baselib
+- dummy_sink for SL, SLV, unsigned, ...
+
 - complete review of reset concept ... and remove variable initialization if possible
 
 cplx_vectorization
@@ -14,3 +17,13 @@ Ultrascale:
   * NUM_SUMMAND=> 1, -- irrelevant because only chain output is used
   * check implementation
 - always use MREG for timing !?
+
+Arbiter ... prio, RR, FCFS, ...
+
+FIFO Logic async
+
+CRC
+
+Noise generator
+
+DFT with radix 2,3,4,5,7,...

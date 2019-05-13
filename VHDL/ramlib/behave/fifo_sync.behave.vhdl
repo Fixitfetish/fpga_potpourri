@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       fifo_sync.behave.vhdl
 --! @author     Fixitfetish
---! @date       07/June/2018
---! @version    1.10
+--! @date       13/May/2019
+--! @version    1.20
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -17,7 +17,7 @@ library ieee;
 --! 
 --! For synthesis please use a FPGA specific implementation which is typically
 --! more efficient in terms of resources and timing.
-
+--!
 architecture behave of fifo_sync is
 
   -- FIFO
@@ -83,7 +83,7 @@ begin
     end if;  
   end process;
 
-  wr_full <= full;
+  wr_full <= FULL_RESET_VALUE when (reset='1') else full;
   wr_prog_full <= '0' when (PROG_FULL_THRESHOLD=0) else
                   '1' when (level_i>=PROG_FULL_THRESHOLD or reset='1') else '0';
   

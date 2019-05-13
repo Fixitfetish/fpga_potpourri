@@ -18,7 +18,7 @@ library ieee;
 --! 
 --! For synthesis please use a FPGA specific implementation which is typically
 --! more efficient in terms of resources and timing.
-
+--!
 architecture behave of fifo_async is
 
   type ram_type is array (1 to FIFO_DEPTH) of std_logic_vector(FIFO_WIDTH-1 downto 0);

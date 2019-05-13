@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       fifo_sync.vhdl
 --! @author     Fixitfetish
---! @date       07/Jun/2018
---! @version    1.10
+--! @date       13/May/2018
+--! @version    1.20
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -21,6 +21,35 @@ library ieee;
 --!   the data output port and must be acknowledged before the next data is passed
 --!   to the output. This mode is also known First-Word-Fall-Through (FWFT).
 --!
+--! VHDL Instantiation Template:
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
+--! I1 : fifo_sync
+--! generic map (
+--!   FIFO_WIDTH           => positive, -- Data width in bits
+--!   FIFO_DEPTH           => positive, -- FIFO depth in number of data words
+--!   USE_BLOCK_RAM        => boolean,  -- block ram or logic
+--!   ACKNOWLEDGE_MODE     => boolean,  -- read request or acknowledge
+--!   PROG_FULL_THRESHOLD  => natural,
+--!   PROG_EMPTY_THRESHOLD => natural,
+--!   FULL_RESET_VALUE     => std_logic
+--! )
+--! port map (
+--!   clock         => in  std_logic, -- clock
+--!   reset         => in  std_logic, -- synchronous reset
+--!   level         => out integer,
+--!   wr_ena        => in  std_logic, 
+--!   wr_din        => in  std_logic_vector, 
+--!   wr_full       => out std_logic, 
+--!   wr_prog_full  => out std_logic, 
+--!   wr_overflow   => out std_logic, 
+--!   rd_req_ack    => in  std_logic, 
+--!   rd_dout       => out std_logic_vector, 
+--!   rd_empty      => out std_logic, 
+--!   rd_prog_empty => out std_logic, 
+--!   rd_underflow  => out std_logic
+--! );
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--!
 entity fifo_sync is
 generic (
   --! Data width in bits (mandatory!)
@@ -34,7 +63,9 @@ generic (
   --! 0(unused) < prog full threshold < FIFO_DEPTH
   PROG_FULL_THRESHOLD : natural := 0;
   --! 0(unused) < prog empty threshold < FIFO_DEPTH
-  PROG_EMPTY_THRESHOLD : natural := 0
+  PROG_EMPTY_THRESHOLD : natural := 0;
+  --! @brief Reset value of the flags wr_full and wr_prog_full
+  FULL_RESET_VALUE : std_logic := '1'
 );
 port (
   --! Clock for read and write port
