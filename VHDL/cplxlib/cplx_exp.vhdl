@@ -108,7 +108,7 @@ begin
   port map (
     clk        => clk,
     rst        => rst,
-    clkena     => '1',
+    clkena     => clkena,
     phase_vld  => phase_vld,
     phase      => phase,
     dout_vld   => dout_i.vld,

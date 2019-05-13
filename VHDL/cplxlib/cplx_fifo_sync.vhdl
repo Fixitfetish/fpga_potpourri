@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_fifo_sync.vhdl
 --! @author     Fixitfetish
---! @date       11/May/2019
---! @version    0.10
+--! @date       13/May/2019
+--! @version    0.20
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -35,6 +35,7 @@ library cplxlib;
 --!   ACKNOWLEDGE_MODE     => boolean,  -- read request or acknowledge
 --!   PROG_FULL_THRESHOLD  => natural,
 --!   PROG_EMPTY_THRESHOLD => natural,
+--!   FULL_RESET_VALUE     => std_logic,
 --!   MODE                 => cplx_mode -- options
 --! )
 --! port map (
@@ -66,6 +67,8 @@ generic (
   PROG_FULL_THRESHOLD : natural := FIFO_DEPTH/2;
   --! 0(unused) < prog empty threshold < FIFO_DEPTH
   PROG_EMPTY_THRESHOLD : natural := FIFO_DEPTH/2;
+  --! @brief Reset value of the flags wr_full and wr_prog_full
+  FULL_RESET_VALUE : std_logic := '1';
   --! Supported operation modes 'R' and 'X'
   MODE : cplx_mode := "-"
 );
@@ -98,19 +101,6 @@ port (
   --! FIFO underflow (rd_req_ack=1 and rd_empty=1)
   rd_underflow  : out std_logic
 );
-begin
-
-  -- synthesis translate_off (Altera Quartus)
-  -- pragma translate_off (Xilinx Vivado , Synopsys)
-  ASSERT PROG_FULL_THRESHOLD<FIFO_DEPTH
-    REPORT "Prog full threshold must be smaller than FIFO depth."
-    SEVERITY Error;
-  ASSERT PROG_EMPTY_THRESHOLD<FIFO_DEPTH
-    REPORT "Prog empty threshold must be smaller than FIFO depth."
-    SEVERITY Error;
-  -- synthesis translate_on (Altera Quartus)
-  -- pragma translate_on (Xilinx Vivado , Synopsys)
-
 end entity;
 
 -------------------------------------------------------------------------------
@@ -126,7 +116,6 @@ architecture rtl of cplx_fifo_sync is
     if MODE='X' then return (WRE+WIM); else return (WRE+WIM+1); end if;
   end function;
 
-  signal rst_i : std_logic;
   signal wr_ena_i : std_logic;
 
   signal wr_slv, rd_slv : std_logic_vector(FIFO_WIDTH-1 downto 0);
@@ -134,8 +123,6 @@ architecture rtl of cplx_fifo_sync is
   signal rd_empty_i : std_logic;
 
 begin
-
-  rst_i <= reset or wr_din.rst;
 
   wr_ena_i <= wr_ena and wr_din.vld;
 
@@ -153,11 +140,12 @@ begin
       USE_BLOCK_RAM        => USE_BLOCK_RAM,
       ACKNOWLEDGE_MODE     => ACKNOWLEDGE_MODE,
       PROG_FULL_THRESHOLD  => PROG_FULL_THRESHOLD,
-      PROG_EMPTY_THRESHOLD => PROG_EMPTY_THRESHOLD
+      PROG_EMPTY_THRESHOLD => PROG_EMPTY_THRESHOLD,
+      FULL_RESET_VALUE     => FULL_RESET_VALUE
     )
     port map(
       clock         => clock,
-      reset         => rst_i,
+      reset         => reset,
       level         => level,
       wr_ena        => wr_ena_i,
       wr_din        => wr_slv,
@@ -171,7 +159,7 @@ begin
       rd_underflow  => rd_underflow
     );
 
-  rd_dout_i.rst <= rst_i;
+  rd_dout_i.rst <= reset;
   rd_dout_i.vld <= not rd_empty_i;
   rd_dout_i.re  <= signed(rd_slv(WRE-1 downto 0));
   rd_dout_i.im  <= signed(rd_slv(WRE+WIM-1 downto WRE));
