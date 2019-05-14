@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       fifo_logic_sync2.vhdl
 --! @author     Fixitfetish
---! @date       21/Mar/2019
---! @version    0.31
+--! @date       14/May/2019
+--! @version    0.32
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -14,6 +14,7 @@
 -- 0.20 : 18/Mar/2019  FIFO depth and thresholds reconfigurable during reset
 -- 0.30 : 20/Mar/2019  New generic to define reset value of FIFO full and prog_full flags
 -- 0.31 : 21/Mar/2019  Report errors also during reset.  Minor changes and improved comments.
+-- 0.32 : 14/May/2019  Minor changes, further comments and instantiation template
 -------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
@@ -53,9 +54,9 @@ library baselib;
 --! port map (
 --!   clk                      => in  std_logic, -- clock
 --!   rst                      => in  std_logic, -- synchronous reset
---!   cfg_fifo_depth_minus1    => unsigned,
---!   cfg_prog_full_threshold  => unsigned,
---!   cfg_prog_empty_threshold => unsigned,
+--!   cfg_fifo_depth_minus1    => in  unsigned,
+--!   cfg_prog_full_threshold  => in  unsigned,
+--!   cfg_prog_empty_threshold => in  unsigned,
 --!   wr_ena                   => in  std_logic, 
 --!   wr_ptr                   => out unsigned, 
 --!   wr_full                  => out std_logic, 
@@ -85,13 +86,13 @@ port (
   rst                      : in  std_logic;
   --! @brief FIFO depth in number of data words minus 1 (mandatory!). (2**N)-1 is recommended for efficiency.
   --! Can only be changed during reset.
-  cfg_fifo_depth_minus1    : unsigned(MAX_FIFO_DEPTH_LOG2-1 downto 0);
+  cfg_fifo_depth_minus1    : in  unsigned(MAX_FIFO_DEPTH_LOG2-1 downto 0);
   --! @brief 0(unused) < prog full threshold <= cfg_fifo_depth_minus1 .
   --! Can only be changed during reset. Optional, by default unused.
-  cfg_prog_full_threshold  : unsigned(MAX_FIFO_DEPTH_LOG2-1 downto 0) := (others=>'0');
+  cfg_prog_full_threshold  : in  unsigned(MAX_FIFO_DEPTH_LOG2-1 downto 0) := (others=>'0');
   --! @brief 0(unused) < prog empty threshold <= cfg_fifo_depth_minus1 .
   --! Can only be changed during reset. Optional, by default unused.
-  cfg_prog_empty_threshold : unsigned(MAX_FIFO_DEPTH_LOG2-1 downto 0) := (others=>'0');
+  cfg_prog_empty_threshold : in  unsigned(MAX_FIFO_DEPTH_LOG2-1 downto 0) := (others=>'0');
   --! Write data enable
   wr_ena                   : in  std_logic;
   --! Write pointer for RAM based FIFOs with range 0 to cfg_fifo_depth_minus1
