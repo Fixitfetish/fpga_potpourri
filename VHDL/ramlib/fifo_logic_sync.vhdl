@@ -57,8 +57,8 @@ library baselib;
 --!   rd_ptr        => out unsigned, 
 --!   rd_empty      => out std_logic, 
 --!   rd_prog_empty => out std_logic, 
---!   rd_underflow  => out std_logic
---!   level         => out integer,
+--!   rd_underflow  => out std_logic,
+--!   level         => out integer
 --! );
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 --!
