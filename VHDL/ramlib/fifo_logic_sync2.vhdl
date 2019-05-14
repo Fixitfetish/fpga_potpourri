@@ -43,6 +43,33 @@ library baselib;
 --! Writing to a full FIFO will cause an overflow flag in the next cycle.
 --! Reading from an empty FIFO  will cause an underflow flag in the next cycle.
 --!
+--! VHDL Instantiation Template:
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
+--! I1 : fifo_logic_sync2
+--! generic map (
+--!   MAX_FIFO_DEPTH_LOG2 => positive, 
+--!   FULL_RESET_VALUE    => std_logic
+--! )
+--! port map (
+--!   clk                      => in  std_logic, -- clock
+--!   rst                      => in  std_logic, -- synchronous reset
+--!   cfg_fifo_depth_minus1    => unsigned,
+--!   cfg_prog_full_threshold  => unsigned,
+--!   cfg_prog_empty_threshold => unsigned,
+--!   wr_ena                   => in  std_logic, 
+--!   wr_ptr                   => out unsigned, 
+--!   wr_full                  => out std_logic, 
+--!   wr_prog_full             => out std_logic, 
+--!   wr_overflow              => out std_logic, 
+--!   rd_ena                   => in  std_logic, 
+--!   rd_ptr                   => out unsigned, 
+--!   rd_empty                 => out std_logic, 
+--!   rd_prog_empty            => out std_logic, 
+--!   rd_underflow             => out std_logic
+--!   level                    => out integer,
+--! );
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--!
 entity fifo_logic_sync2 is
 generic (
   --! @brief Maximum allowed FIFO depth in number of data words, LOG2 to enforce power 2 (mandatory!).
