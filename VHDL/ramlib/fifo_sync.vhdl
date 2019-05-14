@@ -80,7 +80,7 @@ port (
   wr_din        : in  std_logic_vector(FIFO_WIDTH-1 downto 0);
   --! FIFO full
   wr_full       : out std_logic;
-  --! FIFO almost full
+  --! FIFO programmable full
   wr_prog_full  : out std_logic;
   --! FIFO overflow (wr_ena=1 and wr_full=1)
   wr_overflow   : out std_logic;
@@ -90,7 +90,7 @@ port (
   rd_dout       : out std_logic_vector(FIFO_WIDTH-1 downto 0);
   --! FIFO empty
   rd_empty      : out std_logic;
-  --! FIFO almost empty
+  --! FIFO programmable empty
   rd_prog_empty : out std_logic;
   --! FIFO underflow (rd_req_ack=1 and rd_empty=1)
   rd_underflow  : out std_logic

@@ -21,8 +21,8 @@ library ieee;
 architecture behave of fifo_sync is
 
   -- FIFO
-  type ram_type is array (1 to FIFO_DEPTH) of std_logic_vector(FIFO_WIDTH-1 downto 0);
-  signal fifo : ram_type := (others=>(others=>'0'));
+  type ramtype is array (1 to FIFO_DEPTH) of std_logic_vector(FIFO_WIDTH-1 downto 0);
+  signal fifo : ramtype := (others=>(others=>'0'));
   signal fifo_dout : std_logic_vector(FIFO_WIDTH-1 downto 0);
   signal level_i : integer range 0 to FIFO_DEPTH;
   
