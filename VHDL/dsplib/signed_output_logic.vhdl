@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_output_logic.vhdl
 --! @author     Fixitfetish
---! @date       31/Jan/2018
---! @version    0.12
+--! @date       14/May/2019
+--! @version    0.20
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -31,6 +31,7 @@ library baselib;
 --! port map (
 --!   clk         => in  std_logic, -- clock
 --!   rst         => in  std_logic, -- reset
+--!   clkena      => in  std_logic, -- clock enable
 --!   dsp_out     => in  signed,    -- input data
 --!   dsp_out_vld => in  std_logic, -- input valid 
 --!   result      => out signed,    -- output data
@@ -39,7 +40,6 @@ library baselib;
 --! );
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 --!
-
 entity signed_output_logic is
 generic (
   --! @brief Number of additional logic pipeline registers after DSP cell output
@@ -65,6 +65,8 @@ port (
   clk         : in  std_logic;
   --! Reset result output (optional)
   rst         : in  std_logic := '0';
+  --! Clock enable
+  clkena      : in  std_logic := '1';
   --! DSP cell output data
   dsp_out     : in  signed;
   --! Valid signal for DSP output data, high-active
@@ -147,12 +149,24 @@ begin
 
   -- pipeline registers always in logic
   g_out : if PIPELINE_REGS>=1 generate
-    g_loop : for n in 1 to PIPELINE_REGS generate
-      rslt(n).vld <= (rslt(n-1).vld and (not rst)) when rising_edge(clk);
-      rslt(n).ovf <= (rslt(n-1).ovf and (not rst)) when rising_edge(clk);
-      -- data is not reset to keep reset fan-out low
-      rslt(n).dat <=  rslt(n-1).dat when rising_edge(clk);
-    end generate;
+  begin
+    p_pipe : process(clk)
+    begin
+      if rising_edge(clk) then
+        if rst/='0' then
+          -- data is not reset to keep reset fan-out low
+          rslt(1 to PIPELINE_REGS) <= (others=>(dat=>(others=>'-'),vld|ovf=>'0'));
+        elsif clkena='1' then
+          rslt(1 to PIPELINE_REGS) <= rslt(0 to PIPELINE_REGS-1);
+        end if;
+      end if;
+    end process;
+--    g_loop : for n in 1 to PIPELINE_REGS generate
+--      rslt(n).vld <= (rslt(n-1).vld and (not rst)) when rising_edge(clk);
+--      rslt(n).ovf <= (rslt(n-1).ovf and (not rst)) when rising_edge(clk);
+--      -- data is not reset to keep reset fan-out low
+--      rslt(n).dat <=  rslt(n-1).dat when rising_edge(clk);
+--    end generate;
   end generate;
 
   -- map result to output port

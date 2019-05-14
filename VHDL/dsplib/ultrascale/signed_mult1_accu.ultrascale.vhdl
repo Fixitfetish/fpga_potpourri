@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult1_accu.ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       03/Feb/2018
---! @version    0.91
+--! @date       14/May/2019
+--! @version    0.92
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -42,7 +42,7 @@ library unisim;
 --!
 --! This implementation can be chained multiple times.
 --! @image html signed_mult1_accu.ultrascale.svg "" width=1000px
-
+--!
 architecture ultrascale of signed_mult1_accu is
 
   -- identifier for reports of warnings and errors
@@ -374,8 +374,20 @@ begin
 
   -- pipelined valid signal
   g_dspreg_on : if NUM_OUTPUT_REG>=1 generate
-    accu_vld <= ireg(0).vld when rising_edge(clk);
+  begin
+    p_clk : process(clk)
+    begin
+      if rising_edge(clk) then
+        if reset/='0' then
+          accu_vld <= '0';
+        elsif clkena='1' then
+          accu_vld <= ireg(0).vld;
+        end if; --reset
+      end if; --clock
+    end process;
+--    accu_vld <= ireg(0).vld when rising_edge(clk);
   end generate;
+
   g_dspreg_off : if NUM_OUTPUT_REG<=0 generate
     accu_vld <= ireg(0).vld;
   end generate;
@@ -397,6 +409,7 @@ begin
   port map (
     clk         => clk,
     rst         => rst,
+    clkena      => clkena,
     dsp_out     => accu_used,
     dsp_out_vld => accu_vld,
     result      => result,

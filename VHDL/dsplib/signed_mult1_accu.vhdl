@@ -51,11 +51,11 @@ library ieee;
 --!
 --! The delay depends on the configuration and the underlying hardware.
 --! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
-
---
--- Optimal settings for overflow detection and/or saturation/clipping :
--- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH
-
+--!
+--! TODO:
+--! Optimal settings for overflow detection and/or saturation/clipping :
+--! GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH
+--!
 entity signed_mult1_accu is
 generic (
   --! @brief The number of summands is important to determine the number of additional
