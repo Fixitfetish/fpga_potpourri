@@ -225,11 +225,11 @@ begin
 --    ireg(2).opmode_w <= ireg(3).opmode_w when rising_edge(clk);
 --    ireg(2).opmode_xy <= ireg(3).opmode_xy when rising_edge(clk);
 --    ireg(2).opmode_z <= ireg(3).opmode_z when rising_edge(clk);
-    pipereg(xfb=>ireg(2).rst, xin=>ireg(3).rst, c=>clk, ce=>clkena);
-    pipereg(xfb=>ireg(2).vld, xin=>ireg(3).vld, c=>clk, ce=>clkena);
-    pipereg(xfb=>ireg(2).opmode_w, xin=>ireg(3).opmode_w, c=>clk, ce=>clkena);
-    pipereg(xfb=>ireg(2).opmode_xy, xin=>ireg(3).opmode_xy, c=>clk, ce=>clkena);
-    pipereg(xfb=>ireg(2).opmode_z, xin=>ireg(3).opmode_z, c=>clk, ce=>clkena);
+    pipereg(xout=>ireg(2).rst, xin=>ireg(3).rst, clk=>clk, ce=>clkena);
+    pipereg(xout=>ireg(2).vld, xin=>ireg(3).vld, clk=>clk, ce=>clkena);
+    pipereg(xout=>ireg(2).opmode_w, xin=>ireg(3).opmode_w, clk=>clk, ce=>clkena);
+    pipereg(xout=>ireg(2).opmode_xy, xin=>ireg(3).opmode_xy, clk=>clk, ce=>clkena);
+    pipereg(xout=>ireg(2).opmode_z, xin=>ireg(3).opmode_z, clk=>clk, ce=>clkena);
     -- for INMODE the third register delay stage is irrelevant
     ireg(2).inmode <= ireg(3).inmode;
     -- the following register are located within the DSP cell
@@ -246,11 +246,11 @@ begin
 --    ireg(1).opmode_w <= ireg(2).opmode_w when rising_edge(clk);
 --    ireg(1).opmode_xy <= ireg(2).opmode_xy when rising_edge(clk);
 --    ireg(1).opmode_z <= ireg(2).opmode_z when rising_edge(clk);
-    pipereg(xfb=>ireg(1).rst, xin=>ireg(2).rst, c=>clk, ce=>clkena);
-    pipereg(xfb=>ireg(1).vld, xin=>ireg(2).vld, c=>clk, ce=>clkena);
-    pipereg(xfb=>ireg(1).opmode_w, xin=>ireg(2).opmode_w, c=>clk, ce=>clkena);
-    pipereg(xfb=>ireg(1).opmode_xy, xin=>ireg(2).opmode_xy, c=>clk, ce=>clkena);
-    pipereg(xfb=>ireg(1).opmode_z, xin=>ireg(2).opmode_z, c=>clk, ce=>clkena);
+    pipereg(xout=>ireg(1).rst, xin=>ireg(2).rst, clk=>clk, ce=>clkena);
+    pipereg(xout=>ireg(1).vld, xin=>ireg(2).vld, clk=>clk, ce=>clkena);
+    pipereg(xout=>ireg(1).opmode_w, xin=>ireg(2).opmode_w, clk=>clk, ce=>clkena);
+    pipereg(xout=>ireg(1).opmode_xy, xin=>ireg(2).opmode_xy, clk=>clk, ce=>clkena);
+    pipereg(xout=>ireg(1).opmode_z, xin=>ireg(2).opmode_z, clk=>clk, ce=>clkena);
     -- for INMODE the second register delay stage is irrelevant
     ireg(1).inmode <= ireg(2).inmode;
     -- the following register are located within the DSP cell
@@ -264,8 +264,8 @@ begin
   begin
 --    ireg(0).rst <= ireg(1).rst when rising_edge(clk);
 --    ireg(0).vld <= ireg(1).vld when rising_edge(clk);
-    pipereg(xfb=>ireg(0).rst, xin=>ireg(1).rst, c=>clk, ce=>clkena);
-    pipereg(xfb=>ireg(0).vld, xin=>ireg(1).vld, c=>clk, ce=>clkena);
+    pipereg(xout=>ireg(0).rst, xin=>ireg(1).rst, clk=>clk, ce=>clkena);
+    pipereg(xout=>ireg(0).vld, xin=>ireg(1).vld, clk=>clk, ce=>clkena);
     -- DSP cell registers are used for first input register stage
     ireg(0).inmode <= ireg(1).inmode;
     ireg(0).opmode_w <= ireg(1).opmode_w;
