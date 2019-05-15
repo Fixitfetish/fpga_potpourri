@@ -88,7 +88,7 @@ package body pipereg_pkg is
   begin 
     xout <= xout;
     if rising_edge(clk) then
-      if rst='1' then xout<=rstval; elsif ce='1' then xout<=xin; end if;
+      if rst/='0' then xout<=rstval; elsif ce='1' then xout<=xin; end if;
     end if;
   end procedure;
 
@@ -103,7 +103,7 @@ package body pipereg_pkg is
   begin 
     xout <= xout;
     if rising_edge(clk) then
-      if rst='1' then xout<=rstval; elsif ce='1' then xout<=xin; end if;
+      if rst/='0' then xout<=rstval; elsif ce='1' then xout<=xin; end if;
     end if;
   end procedure;
 
@@ -118,7 +118,7 @@ package body pipereg_pkg is
   begin 
     xout <= xout;
     if rising_edge(clk) then
-      if rst='1' then xout<=(xout'range=>rstval); elsif ce='1' then xout<=xin; end if;
+      if rst/='0' then xout<=(xout'range=>rstval); elsif ce='1' then xout<=xin; end if;
     end if;
   end procedure;
 
@@ -133,7 +133,7 @@ package body pipereg_pkg is
   begin 
     xout <= xout;
     if rising_edge(clk) then
-      if rst='1' then xout<=(xout'range=>rstval); elsif ce='1' then xout<=xin; end if;
+      if rst/='0' then xout<=(xout'range=>rstval); elsif ce='1' then xout<=xin; end if;
     end if;
   end procedure;
 
@@ -148,7 +148,7 @@ package body pipereg_pkg is
   begin 
     xout <= xout;
     if rising_edge(clk) then
-      if rst='1' then xout<=(xout'range=>rstval); elsif ce='1' then xout<=xin; end if;
+      if rst/='0' then xout<=(xout'range=>rstval); elsif ce='1' then xout<=xin; end if;
     end if;
   end procedure;
 
