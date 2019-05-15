@@ -39,8 +39,8 @@ library cplxlib;
 --!   MODE                 => cplx_mode -- options
 --! )
 --! port map (
---!   clock         => in  std_logic, -- clock
---!   reset         => in  std_logic, -- synchronous reset
+--!   clk           => in  std_logic, -- clock
+--!   rst           => in  std_logic, -- synchronous reset
 --!   level         => out integer,
 --!   wr_ena        => in  std_logic, 
 --!   wr_din        => in  cplx, 
@@ -74,9 +74,9 @@ generic (
 );
 port (
   --! Clock for read and write port
-  clock         : in  std_logic;
+  clk           : in  std_logic;
   --! Synchronous reset
-  reset         : in  std_logic := '0';
+  rst           : in  std_logic := '0';
   --! FIFO fill level
   level         : out integer range 0 to 2*FIFO_DEPTH-1;
   --! Write enable, optional, by default '1'
@@ -144,8 +144,8 @@ begin
       FULL_RESET_VALUE     => FULL_RESET_VALUE
     )
     port map(
-      clock         => clock,
-      reset         => reset,
+      clock         => clk,
+      reset         => rst,
       level         => level,
       wr_ena        => wr_ena_i,
       wr_din        => wr_slv,
@@ -159,7 +159,7 @@ begin
       rd_underflow  => rd_underflow
     );
 
-  rd_dout_i.rst <= reset;
+  rd_dout_i.rst <= rst;
   rd_dout_i.vld <= not rd_empty_i;
   rd_dout_i.re  <= signed(rd_slv(WRE-1 downto 0));
   rd_dout_i.im  <= signed(rd_slv(WRE+WIM-1 downto WRE));
