@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult.ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       01/Jul/2017
---! @version    0.40
+--! @date       15/May/2019
+--! @version    0.41
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -30,7 +30,6 @@ library dsplib;
 --! |:-----:|:-----:|:-------:|:----------:|-----------------------|-----------
 --! | <=27  | <=18  | <=45    | N          | signed_mult1_accu  | 27x18 Full
 --!
-
 architecture ultrascale of signed_mult is
 
   -- identifier for reports of warnings and errors
@@ -111,6 +110,7 @@ begin
     port map (
       clk        => clk,
       rst        => rst,
+      clkena     => clkena,
       clr        => '1', -- disable accumulation
       vld        => vld,
       neg        => neg_i(n),

@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult.vhdl
 --! @author     Fixitfetish
---! @date       23/Feb/2017
---! @version    0.30
+--! @date       15/May/2019
+--! @version    0.31
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -54,6 +54,7 @@ library baselib;
 --! port map(
 --!   clk        => in  std_logic, -- clock
 --!   rst        => in  std_logic, -- reset
+--!   clkena     => in  std_logic, -- clock enable
 --!   vld        => in  std_logic, -- valid
 --!   neg        => in  std_logic_vector(0 to NUM_MULT-1), -- negation
 --!   x          => in  signed_vector(0 to NUM_MULT-1), -- first factors
@@ -64,7 +65,7 @@ library baselib;
 --!   PIPESTAGES => out natural -- constant number of pipeline stages
 --! );
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+--!
 entity signed_mult is
 generic (
   --! Number of parallel multiplications - mandatory generic!
@@ -103,6 +104,8 @@ port (
   clk        : in  std_logic;
   --! Reset result output (optional)
   rst        : in  std_logic := '0';
+  --! Clock enable
+  clkena     : in  std_logic := '1';
   --! Valid signal for input factors, high-active
   vld        : in  std_logic;
   --! Negation , '0' -> +(x*y), '1' -> -(x*y). Negation is disabled by default.
@@ -137,4 +140,3 @@ begin
   -- pragma translate_on (Xilinx Vivado , Synopsys)
 
 end entity;
-

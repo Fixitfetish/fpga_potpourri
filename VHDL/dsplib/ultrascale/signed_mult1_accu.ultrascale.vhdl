@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult1_accu.ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       14/May/2019
---! @version    0.92
+--! @date       15/May/2019
+--! @version    0.93
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -14,6 +14,7 @@ library ieee;
   use ieee.numeric_std.all;
 library baselib;
   use baselib.ieee_extension.all;
+  use baselib.pipereg_pkg.all;
 library dsplib;
   use dsplib.dsp_pkg_ultrascale.all;
 
@@ -113,7 +114,6 @@ architecture ultrascale of signed_mult1_accu is
   type array_dsp_ireg is array(integer range <>) of r_dsp_ireg;
   signal ireg : array_dsp_ireg(NUM_IREG_DSP downto 0);
 
-  constant clkena : std_logic := '1'; -- clock enable
   constant reset : std_logic := '0';
 
   signal clr_q, clr_i : std_logic;
@@ -154,21 +154,36 @@ begin
 
   g_ireg_logic : if NUM_IREG_LOGIC>=1 generate
   begin
-    g_1 : for n in 1 to NUM_IREG_LOGIC generate
+    p_ce : process(clk)
     begin
-      logic_ireg(n-1) <= logic_ireg(n) when rising_edge(clk);
-    end generate;
+      if rising_edge(clk) then
+        for n in 1 to NUM_IREG_LOGIC loop
+          if reset='1' then
+            logic_ireg(n-1).vld <= '0';
+            logic_ireg(n-1).clr <= '1';
+          elsif clkena='1' then
+            logic_ireg(n-1) <= logic_ireg(n);
+          end if;
+        end loop;
+      end if;
+    end process;
+--    g_1 : for n in 1 to NUM_IREG_LOGIC generate
+--    begin
+--      logic_ireg(n-1) <= logic_ireg(n) when rising_edge(clk);
+--    end generate;
   end generate;
 
   -- support clr='1' when vld='0'
   p_clr : process(clk)
   begin
     if rising_edge(clk) then
+     if clkena='1' then
       if logic_ireg(0).clr='1' and logic_ireg(0).vld='0' then
         clr_q<='1';
       elsif logic_ireg(0).vld='1' then
         clr_q<='0';
       end if;
+     end if;
     end if;
   end process;
   clr_i <= logic_ireg(0).clr or clr_q;
@@ -205,12 +220,18 @@ begin
   -- DSP cell data input registers AD/B2 are used as third input register stage.
   g_dsp_ireg3 : if NUM_IREG_DSP>=3 generate
   begin
-    ireg(2).rst <= ireg(3).rst when rising_edge(clk);
-    ireg(2).vld <= ireg(3).vld when rising_edge(clk);
-    ireg(2).inmode <= ireg(3).inmode; -- for INMODE the third register delay stage is irrelevant
-    ireg(2).opmode_w <= ireg(3).opmode_w when rising_edge(clk);
-    ireg(2).opmode_xy <= ireg(3).opmode_xy when rising_edge(clk);
-    ireg(2).opmode_z <= ireg(3).opmode_z when rising_edge(clk);
+--    ireg(2).rst <= ireg(3).rst when rising_edge(clk);
+--    ireg(2).vld <= ireg(3).vld when rising_edge(clk);
+--    ireg(2).opmode_w <= ireg(3).opmode_w when rising_edge(clk);
+--    ireg(2).opmode_xy <= ireg(3).opmode_xy when rising_edge(clk);
+--    ireg(2).opmode_z <= ireg(3).opmode_z when rising_edge(clk);
+    pipereg(xfb=>ireg(2).rst, xin=>ireg(3).rst, c=>clk, ce=>clkena);
+    pipereg(xfb=>ireg(2).vld, xin=>ireg(3).vld, c=>clk, ce=>clkena);
+    pipereg(xfb=>ireg(2).opmode_w, xin=>ireg(3).opmode_w, c=>clk, ce=>clkena);
+    pipereg(xfb=>ireg(2).opmode_xy, xin=>ireg(3).opmode_xy, c=>clk, ce=>clkena);
+    pipereg(xfb=>ireg(2).opmode_z, xin=>ireg(3).opmode_z, c=>clk, ce=>clkena);
+    -- for INMODE the third register delay stage is irrelevant
+    ireg(2).inmode <= ireg(3).inmode;
     -- the following register are located within the DSP cell
     ireg(2).a <= ireg(3).a;
     ireg(2).b <= ireg(3).b;
@@ -220,12 +241,18 @@ begin
   -- DSP cell MREG register is used as second data input register stage
   g_dsp_ireg2 : if NUM_IREG_DSP>=2 generate
   begin
-    ireg(1).rst <= ireg(2).rst when rising_edge(clk);
-    ireg(1).vld <= ireg(2).vld when rising_edge(clk);
-    ireg(1).inmode <= ireg(2).inmode; -- for INMODE the second register delay stage is irrelevant
-    ireg(1).opmode_w <= ireg(2).opmode_w when rising_edge(clk);
-    ireg(1).opmode_xy <= ireg(2).opmode_xy when rising_edge(clk);
-    ireg(1).opmode_z <= ireg(2).opmode_z when rising_edge(clk);
+--    ireg(1).rst <= ireg(2).rst when rising_edge(clk);
+--    ireg(1).vld <= ireg(2).vld when rising_edge(clk);
+--    ireg(1).opmode_w <= ireg(2).opmode_w when rising_edge(clk);
+--    ireg(1).opmode_xy <= ireg(2).opmode_xy when rising_edge(clk);
+--    ireg(1).opmode_z <= ireg(2).opmode_z when rising_edge(clk);
+    pipereg(xfb=>ireg(1).rst, xin=>ireg(2).rst, c=>clk, ce=>clkena);
+    pipereg(xfb=>ireg(1).vld, xin=>ireg(2).vld, c=>clk, ce=>clkena);
+    pipereg(xfb=>ireg(1).opmode_w, xin=>ireg(2).opmode_w, c=>clk, ce=>clkena);
+    pipereg(xfb=>ireg(1).opmode_xy, xin=>ireg(2).opmode_xy, c=>clk, ce=>clkena);
+    pipereg(xfb=>ireg(1).opmode_z, xin=>ireg(2).opmode_z, c=>clk, ce=>clkena);
+    -- for INMODE the second register delay stage is irrelevant
+    ireg(1).inmode <= ireg(2).inmode;
     -- the following register are located within the DSP cell
     ireg(1).a <= ireg(2).a;
     ireg(1).b <= ireg(2).b;
@@ -235,8 +262,10 @@ begin
   -- DSP cell data input registers A1/B1/D are used as first input register stage.
   g_dsp_ireg1 : if NUM_IREG_DSP>=1 generate
   begin
-    ireg(0).rst <= ireg(1).rst when rising_edge(clk);
-    ireg(0).vld <= ireg(1).vld when rising_edge(clk);
+--    ireg(0).rst <= ireg(1).rst when rising_edge(clk);
+--    ireg(0).vld <= ireg(1).vld when rising_edge(clk);
+    pipereg(xfb=>ireg(0).rst, xin=>ireg(1).rst, c=>clk, ce=>clkena);
+    pipereg(xfb=>ireg(0).vld, xin=>ireg(1).vld, c=>clk, ce=>clkena);
     -- DSP cell registers are used for first input register stage
     ireg(0).inmode <= ireg(1).inmode;
     ireg(0).opmode_w <= ireg(1).opmode_w;
@@ -352,7 +381,7 @@ begin
     CED                => clkena,
     CEINMODE           => clkena,
     CEM                => CEM(clkena,NUM_INPUT_REG),
-    CEP                => ireg(0).vld,
+    CEP                => (clkena and ireg(0).vld),
     -- Reset: 1-bit (each) input: Reset
     RSTA               => reset, -- TODO
     RSTALLCARRYIN      => '1', -- unused

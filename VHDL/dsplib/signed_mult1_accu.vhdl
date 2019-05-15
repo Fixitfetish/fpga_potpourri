@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult1_accu.vhdl
 --! @author     Fixitfetish
---! @date       14/Feb/2017
---! @version    0.86
+--! @date       15/May/2019
+--! @version    0.87
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -101,6 +101,8 @@ port (
   clk        : in  std_logic;
   --! Reset result output (optional)
   rst        : in  std_logic := '0';
+  --! Clock enable
+  clkena     : in  std_logic := '1';
   --! @brief Clear accumulator (mark first valid input factors of accumulation sequence).
   --! If accumulation is not wanted then set constant '1'.
   clr        : in  std_logic;
