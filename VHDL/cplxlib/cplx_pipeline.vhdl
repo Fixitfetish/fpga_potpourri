@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_pipeline.vhdl
 --! @author     Fixitfetish
---! @date       17/Feb/2018
---! @version    0.30
+--! @date       15/May/2019
+--! @version    0.40
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -29,6 +29,7 @@ library cplxlib;
 --! port map(
 --!   clk        => in  std_logic, -- clock
 --!   rst        => in  std_logic, -- optional global reset
+--!   clkena     => in  std_logic, -- clock enable
 --!   din        => in  cplx, -- complex input
 --!   dout       => out cplx  -- complex output
 --! );
@@ -48,6 +49,8 @@ port (
   --! @brief Optional global reset of complete pipeline and output. Set OPEN or '0'
   --! to reduce global reset fanout and to only use the pipelined reset din.rst instead.  
   rst        : in  std_logic := '0';
+  --! Clock enable
+  clkena     : in  std_logic := '1';
   --! Complex data input of delay pipeline. Must have same data width as output.
   din        : in  cplx;
   --! Complex data output of delay pipeline. Must have same data width as input.
@@ -74,6 +77,7 @@ end entity;
 
 architecture rtl of cplx_pipeline is
 
+  -- This approach ensures that also a negative number of pipeline stages is allowed.
   function N return natural is
   begin
     if NUM_PIPELINE_STAGES>0 then return NUM_PIPELINE_STAGES; else return 0; end if;
@@ -110,7 +114,7 @@ begin
           pipe_rst(1 to N) <= (others=>'1');
           pipe_vld(1 to N) <= (others=>'0');
           pipe_ovf(1 to N) <= (others=>'0');
-        else
+        elsif clkena='1' then
           pipe_rst(1 to N) <= pipe_rst(0 to N-1);
           pipe_vld(1 to N) <= pipe_vld(0 to N-1);
           pipe_ovf(1 to N) <= pipe_ovf(0 to N-1);
@@ -119,7 +123,7 @@ begin
         if MODE='R' and rst='1' then
           pipe_re(1 to N) <= (others=>(others=>'0'));
           pipe_im(1 to N) <= (others=>(others=>'0'));
-        else
+        elsif clkena='1' then
           pipe_re(1 to N) <= pipe_re(0 to N-1);
           pipe_im(1 to N) <= pipe_im(0 to N-1);
         end if;

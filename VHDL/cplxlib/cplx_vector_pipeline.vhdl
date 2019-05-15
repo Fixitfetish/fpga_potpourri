@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_vector_pipeline.vhdl
 --! @author     Fixitfetish
---! @date       17/Feb/2018
---! @version    0.10
+--! @date       15/May/2019
+--! @version    0.20
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -29,6 +29,7 @@ library cplxlib;
 --! port map(
 --!   clk        => in  std_logic, -- clock
 --!   rst        => in  std_logic, -- optional global reset
+--!   clkena     => in  std_logic, -- clock enable
 --!   din        => in  cplx_vector, -- complex vector input
 --!   dout       => out cplx_vector  -- complex vector output
 --! );
@@ -48,6 +49,8 @@ port (
   --! @brief Optional global reset of complete pipeline and output. Set OPEN or '0'
   --! to reduce global reset fanout and to only use the pipelined reset din.rst instead.  
   rst        : in  std_logic := '0';
+  --! Clock enable
+  clkena     : in  std_logic := '1';
   --! Complex data vector input of delay pipeline. Must have same length as output.
   din        : in  cplx_vector;
   --! Complex data vector output of delay pipeline. Must have same length as input.
@@ -89,6 +92,7 @@ begin
     port map(
       clk        => clk,
       rst        => rst,
+      clkena     => clkena,
       din        => din(din'left+n),
       dout       => dout(dout'left+n)
     );

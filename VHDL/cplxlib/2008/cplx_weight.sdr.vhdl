@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_weight.sdr.vhdl
 --! @author     Fixitfetish
---! @date       17/Feb/2018
---! @version    0.51
+--! @date       15/May/2019
+--! @version    0.60
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -15,6 +15,7 @@ library ieee;
 library baselib;
   use baselib.ieee_extension_types.all;
   use baselib.ieee_extension.all;
+  use baselib.pipereg_pkg.all;
 library cplxlib;
   use cplxlib.cplx_pkg.all;
 library dsplib;
@@ -116,8 +117,11 @@ begin
 
   -- accumulator delay compensation (DSP bypassed!)
   g_delay : for n in 1 to MAX_NUM_PIPE_DSP generate
-    rst(n) <= rst(n-1) when rising_edge(clk);
-    ovf(n) <= ovf(n-1) when rising_edge(clk);
+  begin
+--    rst(n) <= rst(n-1) when rising_edge(clk);
+--    ovf(n) <= ovf(n-1) when rising_edge(clk);
+    pipereg(xout=>rst(n), xin=>rst(n-1), clk=>clk, ce=>clkena);
+    pipereg(xout=>ovf(n), xin=>ovf(n-1), clk=>clk, ce=>clkena);
   end generate;
 
   -- weighting
@@ -135,6 +139,7 @@ begin
   port map (
     clk           => clk,
     rst           => data_reset,
+    clkena        => clkena,
     vld           => vld_dsp,
     neg           => neg_dsp,
     x             => x_dsp,
@@ -163,6 +168,7 @@ begin
   port map(
     clk        => clk,
     rst        => open, -- TODO
+    clkena     => clkena,
     din        => rslt,
     dout       => result
   );

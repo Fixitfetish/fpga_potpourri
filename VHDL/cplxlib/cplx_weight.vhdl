@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_weight.vhdl
 --! @author     Fixitfetish
---! @date       16/Jun/2017
---! @version    0.40
+--! @date       15/May/2019
+--! @version    0.50
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -74,6 +74,7 @@ library cplxlib;
 --! port map(
 --!   clk        => in  std_logic, -- clock
 --!   clk2       => in  std_logic, -- clock x2
+--!   clkena     => in  std_logic, -- clock enable
 --!   neg        => in  std_logic_vector(0 to NUM_MULT-1), -- negation per input x
 --!   x          => in  cplx_vector(0 to NUM_MULT-1), -- complex values
 --!   w          => in  signed_vector, -- weighting factors
@@ -112,6 +113,8 @@ port (
   clk        : in  std_logic;
   --! Optional double rate clock (only relevant when a DDR implementation is used)
   clk2       : in  std_logic := '0';
+  --! Clock enable
+  clkena     : in  std_logic := '1';
   --! @brief Negation of partial products , '0' -> +(x(n)*w(n)), '1' -> -(x(n)*w(n)).
   --! Negation is disabled by default.
   --! Dependent on the DSP cell type some implementations might not fully support
