@@ -158,7 +158,7 @@ begin
     begin
       if rising_edge(clk) then
         for n in 1 to NUM_IREG_LOGIC loop
-          if reset='1' then
+          if rst='1' then
             logic_ireg(n-1).vld <= '0';
             logic_ireg(n-1).clr <= '1';
           elsif clkena='1' then
@@ -177,7 +177,9 @@ begin
   p_clr : process(clk)
   begin
     if rising_edge(clk) then
-     if clkena='1' then
+     if rst='1' then
+       clr_q<='1';
+     elsif clkena='1' then
       if logic_ireg(0).clr='1' and logic_ireg(0).vld='0' then
         clr_q<='1';
       elsif logic_ireg(0).vld='1' then
@@ -225,8 +227,8 @@ begin
 --    ireg(2).opmode_w <= ireg(3).opmode_w when rising_edge(clk);
 --    ireg(2).opmode_xy <= ireg(3).opmode_xy when rising_edge(clk);
 --    ireg(2).opmode_z <= ireg(3).opmode_z when rising_edge(clk);
-    pipereg(xout=>ireg(2).rst, xin=>ireg(3).rst, clk=>clk, ce=>clkena);
-    pipereg(xout=>ireg(2).vld, xin=>ireg(3).vld, clk=>clk, ce=>clkena);
+    pipereg(xout=>ireg(2).rst, xin=>ireg(3).rst, clk=>clk, ce=>clkena, rst=>rst, rstval=>'1');
+    pipereg(xout=>ireg(2).vld, xin=>ireg(3).vld, clk=>clk, ce=>clkena, rst=>rst);
     pipereg(xout=>ireg(2).opmode_w, xin=>ireg(3).opmode_w, clk=>clk, ce=>clkena);
     pipereg(xout=>ireg(2).opmode_xy, xin=>ireg(3).opmode_xy, clk=>clk, ce=>clkena);
     pipereg(xout=>ireg(2).opmode_z, xin=>ireg(3).opmode_z, clk=>clk, ce=>clkena);
@@ -246,8 +248,8 @@ begin
 --    ireg(1).opmode_w <= ireg(2).opmode_w when rising_edge(clk);
 --    ireg(1).opmode_xy <= ireg(2).opmode_xy when rising_edge(clk);
 --    ireg(1).opmode_z <= ireg(2).opmode_z when rising_edge(clk);
-    pipereg(xout=>ireg(1).rst, xin=>ireg(2).rst, clk=>clk, ce=>clkena);
-    pipereg(xout=>ireg(1).vld, xin=>ireg(2).vld, clk=>clk, ce=>clkena);
+    pipereg(xout=>ireg(1).rst, xin=>ireg(2).rst, clk=>clk, ce=>clkena, rst=>rst, rstval=>'1');
+    pipereg(xout=>ireg(1).vld, xin=>ireg(2).vld, clk=>clk, ce=>clkena, rst=>rst);
     pipereg(xout=>ireg(1).opmode_w, xin=>ireg(2).opmode_w, clk=>clk, ce=>clkena);
     pipereg(xout=>ireg(1).opmode_xy, xin=>ireg(2).opmode_xy, clk=>clk, ce=>clkena);
     pipereg(xout=>ireg(1).opmode_z, xin=>ireg(2).opmode_z, clk=>clk, ce=>clkena);
@@ -264,8 +266,8 @@ begin
   begin
 --    ireg(0).rst <= ireg(1).rst when rising_edge(clk);
 --    ireg(0).vld <= ireg(1).vld when rising_edge(clk);
-    pipereg(xout=>ireg(0).rst, xin=>ireg(1).rst, clk=>clk, ce=>clkena);
-    pipereg(xout=>ireg(0).vld, xin=>ireg(1).vld, clk=>clk, ce=>clkena);
+    pipereg(xout=>ireg(0).rst, xin=>ireg(1).rst, clk=>clk, ce=>clkena, rst=>rst, rstval=>'1');
+    pipereg(xout=>ireg(0).vld, xin=>ireg(1).vld, clk=>clk, ce=>clkena, rst=>rst);
     -- DSP cell registers are used for first input register stage
     ireg(0).inmode <= ireg(1).inmode;
     ireg(0).opmode_w <= ireg(1).opmode_w;
@@ -407,7 +409,7 @@ begin
     p_clk : process(clk)
     begin
       if rising_edge(clk) then
-        if reset/='0' then
+        if rst/='0' then
           accu_vld <= '0';
         elsif clkena='1' then
           accu_vld <= ireg(0).vld;
@@ -450,4 +452,3 @@ begin
   PIPESTAGES <= NUM_INPUT_REG + NUM_OUTPUT_REG;
 
 end architecture;
-

@@ -28,7 +28,7 @@ library dsplib;
 --!
 --! | X Len | Y Len | X+Y Len | DSP Slices | Entity Used           | Comment
 --! |:-----:|:-----:|:-------:|:----------:|-----------------------|-----------
---! | <=27  | <=18  | <=45    | N          | signed_mult1_accu  | 27x18 Full
+--! | <=27  | <=18  | <=45    | N          | signed_mult1_accu     | 27x18 Full
 --!
 architecture ultrascale of signed_mult is
 
