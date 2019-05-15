@@ -25,7 +25,7 @@ library xpm;
 --! Ultra-RAM supports up to 2 internal input and output registers.
 --! For speed it is recommended to use all Ultra-RAM internal input and output registers.
 --! Further input and output registers are implemented in logic.
-
+--!
 architecture ultrascale of ram_sdp is
 
   --! Xilinx UltraScale+ specific RAM type for macro xpm_memory_sdpram
@@ -41,8 +41,8 @@ architecture ultrascale of ram_sdp is
       -- pragma translate_off (Xilinx Vivado , Synopsys)
       report "Error " & ram_sdp'instance_name & ": Xilinx UltraScale+ only supports the RAM types 'dist' , 'block' and 'ultra' "
       severity failure;
-      return "";
       -- pragma translate_on (Xilinx Vivado , Synopsys)
+      return "";
     end if;
   end function;
 
