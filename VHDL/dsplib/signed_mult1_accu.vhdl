@@ -99,9 +99,9 @@ generic (
 port (
   --! Standard system clock
   clk        : in  std_logic;
-  --! Reset result output (optional)
+  --! Global pipeline reset (optional)
   rst        : in  std_logic := '0';
-  --! Clock enable
+  --! Clock enable (optional)
   clkena     : in  std_logic := '1';
   --! @brief Clear accumulator (mark first valid input factors of accumulation sequence).
   --! If accumulation is not wanted then set constant '1'.

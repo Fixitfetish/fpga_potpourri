@@ -102,9 +102,9 @@ generic (
 port (
   --! Standard system clock
   clk        : in  std_logic;
-  --! Reset result output (optional)
+  --! Global pipeline reset (optional)
   rst        : in  std_logic := '0';
-  --! Clock enable
+  --! Clock enable (optional)
   clkena     : in  std_logic := '1';
   --! Valid signal for input factors, high-active
   vld        : in  std_logic;

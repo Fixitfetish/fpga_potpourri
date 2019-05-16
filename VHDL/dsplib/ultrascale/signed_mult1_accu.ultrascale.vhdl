@@ -158,7 +158,7 @@ begin
     begin
       if rising_edge(clk) then
         for n in 1 to NUM_IREG_LOGIC loop
-          if rst='1' then
+          if rst/='0' then
             logic_ireg(n-1).vld <= '0';
             logic_ireg(n-1).clr <= '1';
           elsif clkena='1' then
@@ -177,7 +177,7 @@ begin
   p_clr : process(clk)
   begin
     if rising_edge(clk) then
-     if rst='1' then
+     if rst/='0' then
        clr_q<='1';
      elsif clkena='1' then
       if logic_ireg(0).clr='1' and logic_ireg(0).vld='0' then
