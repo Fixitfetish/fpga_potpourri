@@ -74,6 +74,7 @@ library cplxlib;
 --! port map(
 --!   clk        => in  std_logic, -- clock
 --!   clk2       => in  std_logic, -- clock x2
+--!   rst        => in  std_logic, -- reset
 --!   clkena     => in  std_logic, -- clock enable
 --!   neg        => in  std_logic_vector(0 to NUM_MULT-1), -- negation per input x
 --!   x          => in  cplx_vector(0 to NUM_MULT-1), -- complex values
@@ -113,7 +114,9 @@ port (
   clk        : in  std_logic;
   --! Optional double rate clock (only relevant when a DDR implementation is used)
   clk2       : in  std_logic := '0';
-  --! Clock enable
+  --! Global pipeline reset (optional)
+  rst        : in  std_logic := '0';
+  --! Clock enable (optional)
   clkena     : in  std_logic := '1';
   --! @brief Negation of partial products , '0' -> +(x(n)*w(n)), '1' -> -(x(n)*w(n)).
   --! Negation is disabled by default.

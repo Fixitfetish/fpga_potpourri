@@ -60,12 +60,12 @@ architecture sdr of cplx_weight is
 
   -- merged input signals and compensate for multiplier pipeline stages
   type t_delay is array(integer range <>) of std_logic_vector(0 to NUM_MULT-1);
-  signal rst : t_delay(0 to MAX_NUM_PIPE_DSP) := (others=>(others=>'1'));
+  signal reset : t_delay(0 to MAX_NUM_PIPE_DSP) := (others=>(others=>'1'));
   signal ovf : t_delay(0 to MAX_NUM_PIPE_DSP) := (others=>(others=>'0'));
 
   -- auxiliary
   signal vld : std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
-  signal data_reset : std_logic := '0';
+  signal reset_mult : std_logic := '0';
 
   -- DSP output signals
   signal r_vld, r_ovf : std_logic_vector(0 to 2*NUM_MULT-1);
@@ -85,12 +85,12 @@ begin
 
   g_merge : for n in 0 to NUM_MULT-1 generate
     -- merge input control signals
-    rst(0)(n) <= x(n).rst;
-    vld(n) <= x(n).vld when rst(0)(n)='0' else '0';
+    reset(0)(n) <= x(n).rst;
+    vld(n) <= x(n).vld when reset(0)(n)='0' else '0';
     -- Consider overflow flags of all inputs.
     -- If the overflow flag of any input is set then also the result
     -- will have the overflow flag set.   
-    ovf(0)(n) <= '0' when (MODE='X' or rst(0)(n)='1') else x(n).ovf;
+    ovf(0)(n) <= '0' when (MODE='X' or reset(0)(n)='1') else x(n).ovf;
   end generate;
   vld_dsp <= ANY_ONES(vld);
 
@@ -112,15 +112,15 @@ begin
     end generate;
   end generate;
 
-  -- reset result data output to zero
-  data_reset <= rst(0)(0) when MODE='R' else '0';
+  -- reset multiplier pipeline (set invalid)
+  reset_mult <= rst or reset(0)(0);
 
   -- accumulator delay compensation (DSP bypassed!)
   g_delay : for n in 1 to MAX_NUM_PIPE_DSP generate
   begin
---    rst(n) <= rst(n-1) when rising_edge(clk);
+--    reset(n) <= reset(n-1) when rising_edge(clk);
 --    ovf(n) <= ovf(n-1) when rising_edge(clk);
-    pipereg(xout=>rst(n), xin=>rst(n-1), clk=>clk, ce=>clkena);
+    pipereg(xout=>reset(n), xin=>reset(n-1), clk=>clk, ce=>clkena);
     pipereg(xout=>ovf(n), xin=>ovf(n-1), clk=>clk, ce=>clkena);
   end generate;
 
@@ -138,7 +138,7 @@ begin
   )
   port map (
     clk           => clk,
-    rst           => data_reset,
+    rst           => reset_mult,
     clkena        => clkena,
     vld           => vld_dsp,
     neg           => neg_dsp,
@@ -151,12 +151,12 @@ begin
   );
 
   g_rslt : for n in 0 to NUM_MULT-1 generate
-    rslt(n).rst <= rst(PIPE_DSP)(n);
+    rslt(n).rst <= reset(PIPE_DSP)(n);
     rslt(n).ovf <= (r_ovf(2*n) or r_ovf(2*n+1)) when MODE='X' else
                    (r_ovf(2*n) or r_ovf(2*n+1) or ovf(PIPE_DSP)(n));
-    rslt(n).vld <= r_vld(2*n) and (not rst(PIPE_DSP)(n)); -- valid signal is the same for all product results
-    rslt(n).re <= r(2*n);
-    rslt(n).im <= r(2*n+1);
+    rslt(n).vld <= r_vld(2*n) and (not reset(PIPE_DSP)(n)); -- valid signal is the same for all product results
+    rslt(n).re  <= r(2*n);
+    rslt(n).im  <= r(2*n+1);
   end generate;
 
   -- result output pipeline
@@ -167,7 +167,7 @@ begin
   )
   port map(
     clk        => clk,
-    rst        => open, -- TODO
+    rst        => rst,
     clkena     => clkena,
     din        => rslt,
     dout       => result
