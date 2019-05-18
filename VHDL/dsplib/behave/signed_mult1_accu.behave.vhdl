@@ -64,9 +64,6 @@ architecture behave of signed_mult1_accu is
   signal accu_vld : std_logic := '0';
   signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
 
-  -- clock enable +++ TODO
-  constant clkena : std_logic := '1';
-
 begin
 
   -- check chain in/out length
