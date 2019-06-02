@@ -16,10 +16,14 @@ library siglib;
 library cplxlib;
   use cplxlib.cplx_pkg.all;
 
---! @brief Complex uniform noise generator
+--! @brief Complex noise generator with uniform distribution
 --!
 --! The noise is generated based on two maximum-length LFSRs,
---! one 40-bit LFSR and one 41-bit LFSR. 
+--! one 40-bit LFSR and one 41-bit LFSR.
+--!
+--! The noise power of each component is 10*log10(1/12) = -10.79 dBfs with a peak power of 0 dBfs.
+--! Hence, the overall complex noise power is -7.78 dBfs with a peak power of +3.01 dBfs.
+--! The mean is almost 0, i.e. -2^(-RESOLUTION) .
 --!
 --! VHDL Instantiation Template:
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
