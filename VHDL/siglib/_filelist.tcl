@@ -11,6 +11,7 @@ set files [list]
 # entities
 lappend files lfsr_pkg.vhdl
 lappend files lfsr.vhdl
+lappend files noise_normal.vhdl
 lappend files prbs_3gpp.vhdl
 lappend files sincos.vhdl
 

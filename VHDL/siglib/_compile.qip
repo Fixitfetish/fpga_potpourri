@@ -3,5 +3,6 @@
 
 set_global_assignment -library siglib -name VHDL_FILE [file join $::quartus(qip_path) "lfsr_pkg.vhdl"]
 set_global_assignment -library siglib -name VHDL_FILE [file join $::quartus(qip_path) "lfsr.vhdl"]
+set_global_assignment -library siglib -name VHDL_FILE [file join $::quartus(qip_path) "noise_normal.vhdl"]
 set_global_assignment -library siglib -name VHDL_FILE [file join $::quartus(qip_path) "prbs_3gpp.vhdl"]
 set_global_assignment -library siglib -name VHDL_FILE [file join $::quartus(qip_path) "sincos.vhdl"]

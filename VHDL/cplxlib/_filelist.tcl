@@ -17,6 +17,7 @@ lappend files cplx_pipeline.vhdl
 lappend files cplx_vector_pipeline.vhdl
 lappend files cplx_exp.vhdl
 lappend files cplx_fifo_sync.vhdl
+lappend files cplx_noise_normal.vhdl
 lappend files cplx_noise_uniform.vhdl
 
 # Entities

@@ -1,0 +1,7 @@
+@if exist .Xil         ( rd /s /q .Xil > nul )
+@if exist xilinx.cache ( rd /s /q xilinx.cache > nul )
+@if exist xilinx.hw    ( rd /s /q xilinx.hw > nul )
+@if exist xilinx.runs  ( rd /s /q xilinx.runs > nul )
+@if exist xilinx.sim   ( rd /s /q xilinx.sim > nul )
+@if exist log_*        ( del /F log_* > nul )
+@if exist vivado*      ( del /F vivado* > nul )

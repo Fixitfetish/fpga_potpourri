@@ -12,6 +12,7 @@ set SCRIPTPATH [ file dirname [dict get [ info frame 0 ] file ] ]
 set filelist [list]
 lappend filelist $SCRIPTPATH/lfsr_pkg.vhdl
 lappend filelist $SCRIPTPATH/lfsr.vhdl
+lappend filelist $SCRIPTPATH/noise_normal.vhdl
 lappend filelist $SCRIPTPATH/prbs_3gpp.vhdl
 lappend filelist $SCRIPTPATH/sincos.vhdl
 

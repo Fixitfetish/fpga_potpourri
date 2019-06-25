@@ -66,6 +66,7 @@ set COMPILE=%VCOM_EXE% %VCOM_FLAGS%
 @echo on
 %COMPILE% %SCRIPTPATH%\lfsr_pkg.vhdl
 %COMPILE% %SCRIPTPATH%\lfsr.vhdl
+%COMPILE% %SCRIPTPATH%\noise_normal.vhdl
 %COMPILE% %SCRIPTPATH%\prbs_3gpp.vhdl
 %COMPILE% %SCRIPTPATH%\sincos.vhdl
 
