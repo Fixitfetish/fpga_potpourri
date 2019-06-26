@@ -1,36 +1,26 @@
--------------------------------------------------------------------------------
--- FILE    : cplx_noise_tb.vhdl
--- AUTHOR  : Fixitfetish
--- DATE    : 24/Jun/2019
--- VERSION : 0.20
--- VHDL    : 1993
--- LICENSE : MIT License
--------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
 library cplxlib;
   use cplxlib.cplx_pkg.all;
 
-use std.textio.all;
-
 entity cplx_noise_tb is
 end entity;
 
 architecture sim of cplx_noise_tb is
-  
-  constant PERIOD : time := 1 ns; -- 1000MHz
-  constant NOUT : natural := 2; 
 
-  constant FILENAME_R : string := "result_log.txt"; -- result
-
-  signal rst : std_logic := '1';
+  constant PERIOD : time := 500 ms; -- 0.5 Hz
+  signal load : std_logic := '1';
   signal clk : std_logic := '1';
-  signal clkena : std_logic := '0';
   signal finish : std_logic := '0';
 
-  signal dout : cplx18_vector(0 to NOUT-1) := cplx_vector_reset(18,NOUT,"R");
-  
+  signal req_ack: std_logic := '1';
+
+  constant RESOLUTION : positive := 16;
+
+  signal n0_dout : cplx(re(RESOLUTION-1 downto 0),im(RESOLUTION-1 downto 0));
+  signal n1_dout : cplx(re(RESOLUTION-1 downto 0),im(RESOLUTION-1 downto 0));
+
   signal PIPESTAGES : natural;
 
 begin
@@ -50,60 +40,87 @@ begin
     wait; -- stop clock
   end process;
 
-  -- release reset
-  rst <= '0' after 2*PERIOD;
 
-  finish <= '1' after 1000*PERIOD;
-
-  p_start : process(clk)
+  p_load: process
   begin
-    if rising_edge(clk) then
-      if rst='1' then
-        clkena <= '0';
-      else
-        clkena <= not clkena;
-      end if;
-    end if;
+    wait until rising_edge(clk);
+    wait until rising_edge(clk);
+    wait until rising_edge(clk);
+    load <= '0'; 
+    for n in 1 to 6 loop wait until rising_edge(clk); end loop;
+    load <= '1'; 
+    for n in 1 to 1 loop wait until rising_edge(clk); end loop;
+    load <= '0'; 
+    for n in 1 to 6 loop wait until rising_edge(clk); end loop;
+    load <= '1'; 
+    for n in 1 to 1 loop wait until rising_edge(clk); end loop;
+    load <= '0'; 
+    wait until rising_edge(clk);
+    wait; -- end of process
   end process;
 
-  i_normal : entity cplxlib.cplx_noise_normal
-  generic map(
-    RESOLUTION       => 18
-  )
-  port map(
-    clk        => clk,
-    rst        => rst,
-    req_ack    => clkena,
-    dout       => dout(0),
-    PIPESTAGES => PIPESTAGES
-  );
 
-  i_uniform : entity cplxlib.cplx_noise_uniform
+  i_wgn0 : entity cplxlib.cplx_noise_normal
   generic map(
-    RESOLUTION       => 18
-  )
-  port map(
-    clk        => clk,
-    rst        => rst,
-    req_ack    => clkena,
-    dout       => dout(1),
-    PIPESTAGES => PIPESTAGES
-  );
-
-  i_log : entity work.cplx_logger
-  generic map(
-    NUM_CPLX => 1,
-    LOG_FILE => FILENAME_R,
-    LOG_DECIMAL => true,
-    LOG_INVALID => true,
-    STR_INVALID => open,
-    TITLE => "NOISE"
+    RESOLUTION       => RESOLUTION,
+    ACKNOWLEDGE_MODE => false,
+    INSTANCE_IDX     => 0
   )
   port map (
-    clk     => clk,
-    rst     => rst,
-    din     => dout,
-    finish  => finish
+    clk         => clk,
+    rst         => load,
+    req_ack     => req_ack,
+    dout        => n0_dout,
+    PIPESTAGES  => PIPESTAGES
   );
 
+  i_wgn1 : entity cplxlib.cplx_noise_normal
+  generic map(
+    RESOLUTION       => RESOLUTION,
+    ACKNOWLEDGE_MODE => true,
+    INSTANCE_IDX     => 0
+  )
+  port map (
+    clk         => clk,
+    rst         => load,
+    req_ack     => req_ack,
+    dout        => n1_dout,
+    PIPESTAGES  => open
+  );
+
+  p_stimuli: process
+  begin
+    while load='1' loop
+      wait until rising_edge(clk);
+    end loop;
+
+    -- time forward
+    for n in 0 to 256 loop
+       req_ack <= '1'; 
+       wait until rising_edge(clk);
+       req_ack <= '0'; 
+       wait until rising_edge(clk);
+       req_ack <= '1'; 
+       wait until rising_edge(clk);
+       req_ack <= '1'; 
+       wait until rising_edge(clk);
+       req_ack <= '1'; 
+       wait until rising_edge(clk);
+       req_ack <= '0'; 
+       wait until rising_edge(clk);
+       req_ack <= '0'; 
+       wait until rising_edge(clk);
+       req_ack <= '0'; 
+       wait until rising_edge(clk);
+    end loop;
+        
+    wait until rising_edge(clk);
+    req_ack <= '0'; 
+    wait until rising_edge(clk);
+    finish <= '1';
+    wait until rising_edge(clk);
+    wait; -- end of process
+  end process;
+
 end architecture;
+

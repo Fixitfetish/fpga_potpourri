@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       noise_normal.vhdl
 --! @author     Fixitfetish
---! @date       24/Jun/2019
---! @version    0.20
+--! @date       26/Jun/2019
+--! @version    0.30
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -12,8 +12,8 @@
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
-library baselib;
-  use baselib.pipereg_pkg.all;
+--library baselib;
+--  use baselib.pipereg_pkg.all;
 library siglib;
   use siglib.lfsr_pkg.all;
 
@@ -25,6 +25,25 @@ library siglib;
 --! In this preliminary first version the average noise power is -15dBfs.
 --! Some parameters are still fixed and/or the range is very limited.
 --! Further improvements are planned already.
+--!
+--! VHDL Instantiation Template:
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
+--! I1 : noise_normal
+--! generic map (
+--!   RESOLUTION       => integer, -- Output resolution in number of bits
+--!   ACKNOWLEDGE_MODE => boolean,
+--!   INSTANCE_IDX     => integer
+--! )
+--! port map (
+--!   clk        => in  std_logic, -- clock
+--!   rst        => in  std_logic, -- synchronous reset
+--!   req_ack    => in  std_logic, 
+--!   dout       => out signed,
+--!   dout_vld   => out std_logic,
+--!   dout_first => out std_logic,
+--!   PIPESTAGES => out natural -- constant number of pipeline stages
+--! );
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 --!
 entity noise_normal is
 generic (
@@ -43,8 +62,6 @@ port (
   clk        : in  std_logic;
   --! Synchronous reset
   rst        : in  std_logic;
-  --! Clock Enable
-  clkena     : in  std_logic := '1';
   --! Request or Acknowledge according to selected mode
   req_ack    : in  std_logic := '1';
   --! WGN output with mean=0. Width depends on the generic RESOLUTION.
@@ -52,13 +69,17 @@ port (
   --! Shift register output valid
   dout_vld   : out std_logic;
   --! First output value after loading
-  dout_first : out std_logic
+  dout_first : out std_logic;
+  --! Number of pipeline stages, constant
+  PIPESTAGES : out natural := 1
 );
 end entity;
 
 -------------------------------------------------------------------------------
 
 architecture rtl of noise_normal is
+
+  constant OUTPUT_REG : boolean := false;
 
   -- Gauss-CDF sample resolution, 2**BITS_GAUSS = overall number of PDF bins
   constant BITS_GAUSS : positive := 4;
@@ -99,6 +120,7 @@ architecture rtl of noise_normal is
     variable s : std_logic_vector(l-1 downto 0);
   begin s:=(others=>'0'); s(INSTANCE_IDX):='1'; return s; end function;
 
+  signal lfsr_req_ack : std_logic;
   signal lfsr_dout : std_logic_vector(LFSR1_WIDTH+LFSR2_WIDTH-1 downto 0);
   signal lfsr_dout_vld, lfsr_dout_first : std_logic;
 
@@ -136,9 +158,12 @@ architecture rtl of noise_normal is
 
   signal summand1, summand2 : signed(RESOLUTION-1 downto 0);
   signal summand_vld, summand_first : std_logic;
+  
+  -- Dither LSBs for all adders
   signal dither : signed(RESOLUTION-1 downto 0) := (others=>'0');
 
   signal dout_i : signed(RESOLUTION-1 downto 0);
+  signal dout_vld_i : std_logic;
 
 begin
 
@@ -152,13 +177,13 @@ begin
     OFFSET_LOGIC     => open, -- unused
     TRANSFORM_SEED   => open, -- unused
     OUTPUT_WIDTH     => LFSR1_WIDTH,
-    OUTPUT_REG       => false
+    OUTPUT_REG       => OUTPUT_REG
   )
   port map (
     clk        => clk,
     load       => rst,
     seed       => LFSR_SEED(LFSR1_WIDTH),
-    req_ack    => req_ack,
+    req_ack    => lfsr_req_ack,
     dout       => lfsr_dout(LFSR1_WIDTH-1 downto 0),
     dout_vld   => lfsr_dout_vld,
     dout_first => lfsr_dout_first
@@ -174,13 +199,13 @@ begin
     OFFSET_LOGIC     => open, -- unused
     TRANSFORM_SEED   => open, -- unused
     OUTPUT_WIDTH     => LFSR2_WIDTH,
-    OUTPUT_REG       => false
+    OUTPUT_REG       => OUTPUT_REG
   )
   port map (
     clk        => clk,
     load       => rst,
     seed       => LFSR_SEED(LFSR2_WIDTH),
-    req_ack    => req_ack,
+    req_ack    => lfsr_req_ack,
     dout       => lfsr_dout(LFSR1_WIDTH+LFSR2_WIDTH-1 downto LFSR1_WIDTH),
     dout_vld   => open,
     dout_first => open
@@ -194,7 +219,8 @@ begin
     signal gauss_level_q : std_logic_vector(BITS_GAUSS-1 downto 0);
   begin
     gauss_level <= get_gauss_level(gauss);
-    pipereg(gauss_level_q,gauss_level,clk,clkena);
+--    pipereg(gauss_level_q,gauss_level,clk,clkena);
+    gauss_level_q <= gauss_level;
     slv_summand(i)(BITS_UNIFORM-1 downto 0) <= uniform;
     slv_summand(i)(SUMMAND_WIDTH-1 downto BITS_UNIFORM) <= gauss_level_q;
   end generate;
@@ -209,9 +235,9 @@ begin
         summand_vld <= '0';
         summand_first <= '0';
         dout_i <= (others=>'-');
-        dout_vld <= '0';
+        dout_vld_i <= '0';
         dout_first <= '0';
-      elsif ACKNOWLEDGE_MODE=false or req_ack='1' then
+      elsif ACKNOWLEDGE_MODE=false or lfsr_req_ack='1' then
         -- first adder stage
         summand1 <= resize(signed(slv_summand(0)),RESOLUTION) + resize(signed(slv_summand(1)),RESOLUTION);
         summand2 <= resize(signed(slv_summand(2)),RESOLUTION) + resize(signed(slv_summand(3)),RESOLUTION);
@@ -222,12 +248,28 @@ begin
         end loop;
         -- second adder stage
         dout_i <= resize(summand1,dout_i'length) + resize(summand2,dout_i'length) + resize(dither,dout_i'length);
-        dout_vld <= summand_vld;
+        dout_vld_i <= summand_vld;
         dout_first <= summand_first;
       end if;
     end if;
   end process;
 
+  -- TODO A : add final dither LSB to avoid DC offset of -1/2 bit.
+  -- TODO B : is saturation with final dither LSB addition really required?
+
+  g_req_ack : if ACKNOWLEDGE_MODE generate
+    lfsr_req_ack <= (req_ack or (not dout_vld_i)) and (not rst);
+  else generate
+    lfsr_req_ack <= req_ack;
+  end generate;
+
   dout <= dout_i;
+  dout_vld <= dout_vld_i;
+
+  g_pipe : if OUTPUT_REG generate
+    PIPESTAGES <= 4;
+  else generate
+    PIPESTAGES <= 3;
+  end generate;
 
 end architecture;

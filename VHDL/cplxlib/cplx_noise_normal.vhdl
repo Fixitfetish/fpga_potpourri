@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_noise_normal.vhdl
 --! @author     Fixitfetish
---! @date       24/Jun/2019
---! @version    0.20
+--! @date       26/Jun/2019
+--! @version    0.30
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -17,6 +17,12 @@ library cplxlib;
   use cplxlib.cplx_pkg.all;
 
 --! @brief Complex noise generator with normal distribution
+--!
+--! The mean is zero and the peak power is always +3dBfs.
+--!
+--! In this preliminary first version the average complex noise power is -12dBfs.
+--! Some parameters are still fixed and/or the range is very limited.
+--! Further improvements are planned already.
 --!
 --! The noise is generated based on the entity siglib.noise_normal .
 --!
@@ -40,7 +46,7 @@ library cplxlib;
 entity cplx_noise_normal is
 generic (
   --! Resolution of real and imaginary component in number of bits
-  RESOLUTION : integer range 4 to 40;
+  RESOLUTION : integer range 12 to 20;
   --! @brief In the default request mode a valid value is output with a fixed delay after the request.
   --! In acknowledge mode (first word fall through) the output always shows the next value 
   --! which must be acknowledged to get a new value in next cycle.
@@ -82,11 +88,11 @@ begin
   port map (
     clk        => clk,
     rst        => rst,
-    clkena     => open, -- TODO
     req_ack    => req_ack,
     dout       => dout_re,
     dout_vld   => dout_vld,
-    dout_first => open
+    dout_first => open,
+    PIPESTAGES => PIPESTAGES -- same for both WGN instances
   );
 
   i_wgn_im : entity siglib.noise_normal
@@ -98,11 +104,11 @@ begin
   port map (
     clk        => clk,
     rst        => rst,
-    clkena     => open,
     req_ack    => req_ack,
     dout       => dout_im,
     dout_vld   => open,
-    dout_first => open
+    dout_first => open,
+    PIPESTAGES => open
   );
 
 
@@ -113,6 +119,5 @@ begin
   dout_i.im  <= dout_im;
 
   dout <= dout_i;
-  PIPESTAGES <= 1; -- TODO
 
 end architecture;

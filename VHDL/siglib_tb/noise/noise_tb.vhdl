@@ -73,7 +73,6 @@ begin
   port map(
     clk        => clk,
     rst        => load,
-    clkena     => open,
     req_ack    => req_ack,
     dout       => dout0,
     dout_vld   => dout0_vld,
@@ -87,7 +86,7 @@ begin
     end loop;
 
     -- time forward
-    for m in 1 to 40 loop
+    for m in 1 to 10 loop
      for n in 1 to 100000 loop
        req_ack <= '1'; 
        wait until rising_edge(clk);

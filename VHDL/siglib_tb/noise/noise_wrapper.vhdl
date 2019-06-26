@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       noise_wrapper.vhdl
 --! @author     Fixitfetish
---! @date       24/June/2019
---! @version    0.10
+--! @date       26/Jun/2019
+--! @version    0.30
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -28,8 +28,6 @@ port (
   rst       : in  std_logic;
   --! Clock
   clk       : in  std_logic;
-  --! clock enable
-  clkena    : in  std_logic;
   --! Clock enable
   req_ack   : in  std_logic := '1';
   --! Shift register output, right aligned. Is shifted right by SHIFTS_PER_CYCLE bits in each cycle.
@@ -60,11 +58,11 @@ begin
   port map (
     clk        => clk,
     rst        => rst,
-    clkena     => clkena,
     req_ack    => req_ack_q,
     dout       => dout_i,
     dout_vld   => dout_vld_i,
-    dout_first => open
+    dout_first => open,
+    PIPESTAGES => open
   );
 
   dout <= dout_i(dout'range) when rising_edge(clk);
