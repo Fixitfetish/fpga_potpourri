@@ -23,7 +23,7 @@ library siglib;
 --! The implementation already includes the initial offset of 1600 bit shifts.
 --! For more LFSR details please refer to @link lfsr siglib.lfsr @endlink .
 --!
---! The acknowledge mode the generator is AXI compatible and
+--! In acknowledge mode the generator is AXI compatible and
 --! can act as AXI-Stream source.
 --! 
 entity prbs_3gpp is
