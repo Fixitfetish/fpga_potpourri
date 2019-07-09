@@ -125,7 +125,7 @@ architecture rtl of noise_normal is
   signal lfsr_dout_vld, lfsr_dout_first : std_logic;
 
   -- Sampled Gauss-CDF, length=number of bins, because of symmetry only the left half.
-  -- Values must be unique and in range 1 to 2**(D-1), last value must be 2**(D-1)
+  -- Values must be unique and in range 1 to 2**(D-1), increasing order and last value must be 2**(D-1)
   constant GAUSS_CDF : integer_vector(2**(BITS_GAUSS-1)-1 downto 0) := (7,18,40,81,148,246,371,512); -- -8.98 dBfs
 --  constant GAUSS_CDF : integer_vector(2**(BITS_GAUSS-1)-1 downto 0) := (7,17,39,79,147,244,370,512); -- -9.03 dBfs ??
 
