@@ -13,7 +13,7 @@ library ieee;
  use ieee.std_logic_1164.all;
 
 --! @brief Gray code package with conversion functions
-
+--!
 package gray_code_pkg is
 
   --! create gray code from binary
@@ -60,7 +60,7 @@ library baselib;
  use baselib.gray_code_pkg.all;
 
 --! @brief Gray code counter
-
+--!
 entity gray_count is
 port (
   clock  : in  std_logic; -- clock
