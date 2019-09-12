@@ -259,7 +259,7 @@ begin
           elsif mux_bus_req_frame(n)='0' and mux_bus_req_frame_q(n)='1' then
             -- end of channel
             -- re-activate address increment after single-shot
-            -- (important for first user request of next frame)  
+            -- (important for first user request of next frame)
             addr_incr_active(n) <= '1';
 
           elsif mux_bus_req_ena='1' and mux_bus_req_id=n and addr_incr_active(n)='1' then
