@@ -26,7 +26,7 @@ library ieee;
 --! * Write and read data width must always have a ratio which is a power of 2.
 --! * When using byte enables the write data width must be a multiple of 8.
 --! * The address inputs are internally resized to the actually required address width.
-
+--!
 entity ram_sdp is
   generic(
     --! Write port RAM data width
@@ -81,8 +81,8 @@ entity ram_sdp is
   -- synthesis translate_off (Altera Quartus)
   -- pragma translate_off (Xilinx Vivado , Synopsys)
   constant REAL_RATIO_LOG2 : real := log2(real(WR_DATA_WIDTH)/real(RD_DATA_WIDTH));
-  
-  begin
+
+begin
 
   assert (not (WR_USE_BYTE_ENABLE and (WR_DATA_WIDTH mod 8)/=0))
     report "Error " & ram_sdp'instance_name & ": When using byte enables the DATA_WIDTH must be multiple of 8."

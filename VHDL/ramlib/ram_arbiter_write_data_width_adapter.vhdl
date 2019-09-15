@@ -24,7 +24,6 @@ library ramlib;
 --! Always N = 2**RATIO_LOG2 requests are collected before an arbiter request is generated.
 --! Hence, the resulting minimum arbiter request period is N cycles.
 --!
-
 entity ram_arbiter_write_data_width_adapter is
 generic(
   --! RAM Data Width must be a multiple of 2**USER_MAX_RATIO_LOG2

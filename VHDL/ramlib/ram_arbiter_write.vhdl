@@ -40,7 +40,6 @@ library ramlib;
 --!  
 --! @image html ram_arbiter_write.svg "" width=500px
 --!
-
 entity ram_arbiter_write is
 generic(
   --! Number of user input ports
