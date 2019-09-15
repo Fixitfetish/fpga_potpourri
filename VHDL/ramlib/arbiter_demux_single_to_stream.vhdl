@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       arbiter_demux_single_to_stream.vhdl
 --! @author     Fixitfetish
---! @date       17/Oct/2018
---! @version    0.30
+--! @date       18/Mar/2019
+--! @version    0.40
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -33,7 +33,7 @@ library ramlib;
 --! * The arbiter intentionally excludes RAM address handling or similar to keep it more flexible. 
 --! 
 --! This arbiter is a slightly simplified version of a general arbiter that efficiently uses FPGA
---! RAM resources. Instead of having seperate independent FIFOs per input port a shared RAM
+--! RAM resources. Instead of having separate independent FIFOs per input port a shared RAM
 --! is used to hold the FIFOs of all input ports. Hence, FPGA memory blocks can be used more
 --! efficiently when FIFOs with small depth but large data width are required.
 --!
@@ -52,7 +52,7 @@ library ramlib;
 --! * Setting din_frame(N)='0' closes the port N. Input data is not accepted anymore and
 --!   the FIFO is flushed. A final burst smaller than BURST_SIZE might be generated.
 --! * FIFO flushing is completed when dout_frame(N)='0'. 
-
+--!
 entity arbiter_demux_single_to_stream is
 generic(
   --! Number of user ports
@@ -219,26 +219,49 @@ begin
     cpl_fifo(n).rst <= rst; -- TODO also after frame when FIFO is empty
     cpl_fifo(n).wr_ena <= bus_out_cpl_data_vld when bus_out_cpl_usr_id=n else '0'; 
     
-    i_logic : entity ramlib.fifo_logic_sync
+--    i_logic : entity ramlib.fifo_logic_sync
+--    generic map(
+--      FIFO_DEPTH => 2**FIFO_DEPTH_LOG2,
+--      PROG_FULL_THRESHOLD => 0,
+--      PROG_EMPTY_THRESHOLD => 0
+--    )
+--    port map(
+--      clk           => clk,
+--      rst           => cpl_fifo(n).rst,
+--      wr_ena        => cpl_fifo(n).wr_ena,
+--      wr_ptr        => cpl_fifo(n).wr_ptr,
+--      wr_full       => cpl_fifo(n).wr_full,
+--      wr_prog_full  => open,
+--      wr_overflow   => cpl_fifo(n).wr_overflow,
+--      rd_ena        => cpl_fifo(n).rd_ena,
+--      rd_ptr        => cpl_fifo(n).rd_ptr,
+--      rd_empty      => cpl_fifo(n).rd_empty,
+--      rd_prog_empty => open,
+--      rd_underflow  => cpl_fifo(n).rd_underflow,
+--      level         => cpl_fifo(n).level
+--    );
+
+    i_logic : entity ramlib.fifo_logic_sync2
     generic map(
-      FIFO_DEPTH => 2**FIFO_DEPTH_LOG2,
-      PROG_FULL_THRESHOLD => 0,
-      PROG_EMPTY_THRESHOLD => 0
+      MAX_FIFO_DEPTH_LOG2 => FIFO_DEPTH_LOG2
     )
     port map(
-      clk           => clk,
-      rst           => cpl_fifo(n).rst,
-      wr_ena        => cpl_fifo(n).wr_ena,
-      wr_ptr        => cpl_fifo(n).wr_ptr,
-      wr_full       => cpl_fifo(n).wr_full,
-      wr_prog_full  => open,
-      wr_overflow   => cpl_fifo(n).wr_overflow,
-      rd_ena        => cpl_fifo(n).rd_ena,
-      rd_ptr        => cpl_fifo(n).rd_ptr,
-      rd_empty      => cpl_fifo(n).rd_empty,
-      rd_prog_empty => open,
-      rd_underflow  => cpl_fifo(n).rd_underflow,
-      level         => cpl_fifo(n).level
+      clk                      => clk,
+      rst                      => cpl_fifo(n).rst,
+      cfg_fifo_depth_minus1    => to_unsigned(2**FIFO_DEPTH_LOG2-1, FIFO_DEPTH_LOG2),
+      cfg_prog_full_threshold  => open,
+      cfg_prog_empty_threshold => open,
+      wr_ena                   => cpl_fifo(n).wr_ena,
+      wr_ptr                   => cpl_fifo(n).wr_ptr,
+      wr_full                  => cpl_fifo(n).wr_full,
+      wr_prog_full             => open,
+      wr_overflow              => cpl_fifo(n).wr_overflow,
+      rd_ena                   => cpl_fifo(n).rd_ena,
+      rd_ptr                   => cpl_fifo(n).rd_ptr,
+      rd_empty                 => cpl_fifo(n).rd_empty,
+      rd_prog_empty            => open,
+      rd_underflow             => cpl_fifo(n).rd_underflow,
+      level                    => cpl_fifo(n).level
     );
 
     usr_in_cpl_fifo_ovfl(n) <= cpl_fifo(n).wr_overflow;

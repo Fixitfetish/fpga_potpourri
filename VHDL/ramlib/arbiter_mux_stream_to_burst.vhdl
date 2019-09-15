@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       arbiter_mux_stream_to_burst.vhdl
 --! @author     Fixitfetish
---! @date       30/Oct/2018
---! @version    0.90
+--! @date       15/Sep/2019
+--! @version    0.96
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -64,7 +64,6 @@ library ramlib;
 --!     
 --! @image html arbiter_mux_stream_to_burst.svg "" width=500px
 --!
-
 entity arbiter_mux_stream_to_burst is
 generic(
   --! Number of user ports
@@ -81,6 +80,8 @@ generic(
   --! only read requests without data are allowed.
   --! If enabled then usr_out_req_wr_data is stored in the FIFO and more RAM resources are needed.
   WRITE_ENABLE : boolean := true;
+  --! RAM primitive type ("block" or "ultra")
+  RAM_TYPE : string := "block";
   --! @brief Add an idle gap of a few cycles after each burst, e.g. to allow header insertion in front of each burst.
   --! Note that additional gap cycles reduce the maximum possible arbiter throughput.
   POST_BURST_GAP_CYCLES : integer range 0 to 3 := 0
@@ -143,17 +144,36 @@ architecture shared_ram of arbiter_mux_stream_to_burst is
   -- Width of FIFO/Port select signal
   constant FIFO_SEL_WIDTH : positive := log2ceil(NUM_PORTS);
 
-  -- RAM read delay can be adjusted if another RAM/FIFO with more pipeline stages is used.
-  -- Note that the RAM is only implemented when write request support is needed.
-  function REQ_RAM_READ_DELAY return natural is
+  function REQ_RAM_INPUT_REGS return natural is
+    variable res : natural := 0; -- no RAM required/implemented => no extra pipeline registers
   begin
     if WRITE_ENABLE then
-      return 2; -- configure RAM delay here!
-    else
-      return 0; -- no RAM required => no extra delay
+      if RAM_TYPE="ultra" then 
+        res := 2; -- Xilinx Ultra-RAM
+      else
+        res := 1; -- standard Block-RAM
+      end if;
     end if;
+    return res;
   end function;
-  
+
+  function REQ_RAM_OUTPUT_REGS return natural is
+    variable res : natural := 0; -- no RAM required/implemented => no extra pipeline registers
+  begin
+    if WRITE_ENABLE then
+      if RAM_TYPE="ultra" then 
+        res := 2; -- Xilinx Ultra-RAM
+      else
+        res := 1; -- standard Block-RAM
+      end if;
+    end if;
+    return res;
+  end function;
+
+  -- RAM read delay can be adjusted if another RAM/FIFO with more pipeline stages is used.
+  -- Note that the RAM is only implemented when write request support is needed.
+  constant REQ_RAM_READ_DELAY : natural := REQ_RAM_INPUT_REGS + REQ_RAM_OUTPUT_REGS;
+
   constant REQ_RAM_ADDR_WIDTH : positive := FIFO_SEL_WIDTH + FIFO_DEPTH_LOG2;
   constant REQ_RAM_DATA_WIDTH : positive := DATA_WIDTH;
 
@@ -403,26 +423,50 @@ begin
     
     req_fifo(n).wr_ena <= usr_out(n).ena;
     
-    i_logic : entity ramlib.fifo_logic_sync
+--    i_logic : entity ramlib.fifo_logic_sync
+--    generic map(
+--      FIFO_DEPTH => 2**FIFO_DEPTH_LOG2,
+--      PROG_FULL_THRESHOLD => 2**FIFO_DEPTH_LOG2-2, -- TODO : some margin to give user time to react 
+--      PROG_EMPTY_THRESHOLD => BURST_SIZE -- ensures that at least one element remains for final flushing
+--    )
+--    port map(
+--      clk           => clk,
+--      rst           => req_fifo(n).rst,
+--      wr_ena        => req_fifo(n).wr_ena,
+--      wr_ptr        => req_fifo(n).wr_ptr,
+--      wr_full       => req_fifo(n).wr_full,
+--      wr_prog_full  => req_fifo(n).wr_prog_full,
+--      wr_overflow   => req_fifo(n).wr_overflow,
+--      rd_ena        => req_fifo(n).rd_ena,
+--      rd_ptr        => req_fifo(n).rd_ptr,
+--      rd_empty      => req_fifo(n).rd_empty,
+--      rd_prog_empty => req_fifo(n).rd_prog_empty,
+--      rd_underflow  => open,
+--      level         => req_fifo(n).level
+--    );
+--
+    i_logic : entity ramlib.fifo_logic_sync2
     generic map(
-      FIFO_DEPTH => 2**FIFO_DEPTH_LOG2,
-      PROG_FULL_THRESHOLD => 2**FIFO_DEPTH_LOG2-2, -- TODO : some margin to give user time to react 
-      PROG_EMPTY_THRESHOLD => BURST_SIZE -- ensures that at least one element remains for final flushing
+      MAX_FIFO_DEPTH_LOG2 => FIFO_DEPTH_LOG2,
+      FULL_RESET_VALUE => '0'
     )
     port map(
-      clk           => clk,
-      rst           => req_fifo(n).rst,
-      wr_ena        => req_fifo(n).wr_ena,
-      wr_ptr        => req_fifo(n).wr_ptr,
-      wr_full       => req_fifo(n).wr_full,
-      wr_prog_full  => req_fifo(n).wr_prog_full,
-      wr_overflow   => req_fifo(n).wr_overflow,
-      rd_ena        => req_fifo(n).rd_ena,
-      rd_ptr        => req_fifo(n).rd_ptr,
-      rd_empty      => req_fifo(n).rd_empty,
-      rd_prog_empty => req_fifo(n).rd_prog_empty,
-      rd_underflow  => open,
-      level         => req_fifo(n).level
+      clk                      => clk,
+      rst                      => req_fifo(n).rst,
+      cfg_fifo_depth_minus1    => to_unsigned(2**FIFO_DEPTH_LOG2-1, FIFO_DEPTH_LOG2),
+      cfg_prog_full_threshold  => to_unsigned(2**FIFO_DEPTH_LOG2-2, FIFO_DEPTH_LOG2), -- TODO : some margin to give user time to react
+      cfg_prog_empty_threshold => to_unsigned(BURST_SIZE, FIFO_DEPTH_LOG2), -- ensures that at least one element remains for final flushing
+      wr_ena                   => req_fifo(n).wr_ena,
+      wr_ptr                   => req_fifo(n).wr_ptr,
+      wr_full                  => req_fifo(n).wr_full,
+      wr_prog_full             => req_fifo(n).wr_prog_full,
+      wr_overflow              => req_fifo(n).wr_overflow,
+      rd_ena                   => req_fifo(n).rd_ena,
+      rd_ptr                   => req_fifo(n).rd_ptr,
+      rd_empty                 => req_fifo(n).rd_empty,
+      rd_prog_empty            => req_fifo(n).rd_prog_empty,
+      rd_underflow             => open,
+      level                    => req_fifo(n).level
     );
 
     i_last : entity ramlib.fifo_read_valid_last_logic
@@ -594,6 +638,64 @@ begin
     end if; --clock
   end process;
 
+  g_write_true : if WRITE_ENABLE generate
+
+    -- write port mux before RAM input register
+    req_ram_wr.addr_vld <= usr_out(to_integer(usr_out_sel)).ena and (not req_fifo(to_integer(usr_out_sel)).wr_full);
+    req_ram_wr.addr(REQ_RAM_ADDR_WIDTH-1 downto FIFO_DEPTH_LOG2) <= usr_out_sel;
+    req_ram_wr.addr(FIFO_DEPTH_LOG2-1 downto 0) <= req_fifo(to_integer(usr_out_sel)).wr_ptr;
+    req_ram_wr.data <= usr_out(to_integer(usr_out_sel)).data;
+    req_ram_wr.data_vld <= req_ram_wr.addr_vld;
+
+    -- read port mux before RAM input register
+    req_ram_rd.addr_vld <= rd(0).ena(to_integer(rd(0).sel));
+    req_ram_rd.addr(REQ_RAM_ADDR_WIDTH-1 downto FIFO_DEPTH_LOG2) <= rd(0).sel;
+    req_ram_rd.addr(FIFO_DEPTH_LOG2-1 downto 0) <= req_fifo(to_integer(rd(0).sel)).rd_ptr;
+
+    req_ram_wr_addr <= std_logic_vector(req_ram_wr.addr); -- GHDL work-around
+    req_ram_rd_addr <= std_logic_vector(req_ram_rd.addr); -- GHDL work-around
+
+    i_req_ram : entity ramlib.ram_sdp
+    generic map(
+      WR_DATA_WIDTH => REQ_RAM_DATA_WIDTH,
+      RD_DATA_WIDTH => REQ_RAM_DATA_WIDTH,
+      WR_DEPTH => 2**REQ_RAM_ADDR_WIDTH,
+      WR_USE_BYTE_ENABLE => false,
+      WR_INPUT_REGS => REQ_RAM_INPUT_REGS,
+      RD_INPUT_REGS => REQ_RAM_INPUT_REGS,
+      RD_OUTPUT_REGS => REQ_RAM_OUTPUT_REGS,
+      RAM_TYPE => RAM_TYPE,
+      INIT_FILE => open
+    )
+    port map(
+      wr_clk     => clk,
+      wr_rst     => rst,
+      wr_clk_en  => '1',
+      wr_en      => req_ram_wr.addr_vld,
+  --    wr_addr    => std_logic_vector(req_ram_wr.addr),
+      wr_addr    => req_ram_wr_addr, -- GHDL work-around
+      wr_be      => open, -- unused
+      wr_data    => req_ram_wr.data,
+      rd_clk     => clk,
+      rd_rst     => rst,
+      rd_clk_en  => '1',
+      rd_en      => req_ram_rd.addr_vld,
+  --    rd_addr    => std_logic_vector(req_ram_rd.addr),
+      rd_addr    => req_ram_rd_addr, -- GHDL work-around
+      rd_data    => req_ram_rd.data,
+      rd_data_en => req_ram_rd.data_vld
+    );
+
+    bus_in_req_data <= req_ram_rd.data;
+    bus_in_req_data_vld <= req_ram_rd.data_vld;
+
+  end generate;
+
+  g_write_false : if not WRITE_ENABLE generate
+    bus_in_req_data <= (others=>'0');
+    bus_in_req_data_vld <= '0';
+  end generate;
+
   -- map requests to bus 
   bus_in_req_ena <= rd(REQ_RAM_READ_DELAY).ena(to_integer(rd(REQ_RAM_READ_DELAY).sel));
   bus_in_req_sob <= rd(REQ_RAM_READ_DELAY).sob;
@@ -602,64 +704,6 @@ begin
   bus_in_req_usr_id <= resize(rd(REQ_RAM_READ_DELAY).sel, bus_in_req_usr_id'length);
   bus_in_req_usr_frame <= rd(REQ_RAM_READ_DELAY).frame;
 
-  g_write_false : if not WRITE_ENABLE generate
-    bus_in_req_data <= (others=>'0');
-    bus_in_req_data_vld <= '0';
-  end generate;
-  
-  g_write_true : if WRITE_ENABLE generate
-    
-  bus_in_req_data <= req_ram_rd.data;
-  bus_in_req_data_vld <= req_ram_rd.data_vld;
-  
-  -- write port mux before RAM input register
-  req_ram_wr.addr_vld <= usr_out(to_integer(usr_out_sel)).ena and (not req_fifo(to_integer(usr_out_sel)).wr_full);
-  req_ram_wr.addr(REQ_RAM_ADDR_WIDTH-1 downto FIFO_DEPTH_LOG2) <= usr_out_sel;
-  req_ram_wr.addr(FIFO_DEPTH_LOG2-1 downto 0) <= req_fifo(to_integer(usr_out_sel)).wr_ptr;
-  req_ram_wr.data <= usr_out(to_integer(usr_out_sel)).data;
-  req_ram_wr.data_vld <= req_ram_wr.addr_vld; 
-  
-  -- read port mux before RAM input register
-  req_ram_rd.addr_vld <= rd(0).ena(to_integer(rd(0).sel));
-  req_ram_rd.addr(REQ_RAM_ADDR_WIDTH-1 downto FIFO_DEPTH_LOG2) <= rd(0).sel;
-  req_ram_rd.addr(FIFO_DEPTH_LOG2-1 downto 0) <= req_fifo(to_integer(rd(0).sel)).rd_ptr;
-
-  req_ram_wr_addr <= std_logic_vector(req_ram_wr.addr); -- GHDL work-around
-  req_ram_rd_addr <= std_logic_vector(req_ram_rd.addr); -- GHDL work-around
-  
-  i_req_ram : entity ramlib.ram_sdp
-    generic map(
-    WR_DATA_WIDTH => REQ_RAM_DATA_WIDTH,
-    RD_DATA_WIDTH => REQ_RAM_DATA_WIDTH,
-    WR_DEPTH => 2**REQ_RAM_ADDR_WIDTH,
-    WR_USE_BYTE_ENABLE => false,
-    WR_INPUT_REGS => 1,
-    RD_INPUT_REGS => 1,
-    RD_OUTPUT_REGS => 1,
-    RAM_TYPE => open,
-    INIT_FILE => open
-  )
-  port map(
-    wr_clk     => clk,
-    wr_rst     => rst,
-    wr_clk_en  => '1',
-    wr_en      => req_ram_wr.addr_vld,
---    wr_addr    => std_logic_vector(req_ram_wr.addr),
-    wr_addr    => req_ram_wr_addr, -- GHDL work-around
-    wr_be      => open, -- unused
-    wr_data    => req_ram_wr.data,
-    rd_clk     => clk,
-    rd_rst     => rst,
-    rd_clk_en  => '1',
-    rd_en      => req_ram_rd.addr_vld,
---    rd_addr    => std_logic_vector(req_ram_rd.addr),
-    rd_addr    => req_ram_rd_addr, -- GHDL work-around
-    rd_data    => req_ram_rd.data,
-    rd_data_en => req_ram_rd.data_vld
-  );
-  
-  end generate;
-  
 end architecture;
 
 -------------------------------------------------------------------------------
