@@ -339,17 +339,17 @@ begin
     reset         => rst, -- synchronous reset
     level         => seq_fifo.level,
     -- write port
-    wr_ena        => seq_fifo.wr_ena, 
-    wr_din        => seq_fifo.wr_data, 
-    wr_full       => seq_fifo.wr_full, 
-    wr_prog_full  => open, 
-    wr_overflow   => seq_fifo.wr_overflow, 
+    wr_ena        => seq_fifo.wr_ena,
+    wr_din        => seq_fifo.wr_data,
+    wr_full       => seq_fifo.wr_full,
+    wr_prog_full  => open,
+    wr_overflow   => seq_fifo.wr_overflow,
     -- read port
-    rd_req_ack    => seq_fifo.rd_ack, 
-    rd_dout       => seq_fifo.rd_data, 
-    rd_empty      => seq_fifo.rd_empty, 
+    rd_req_ack    => seq_fifo.rd_ack,
+    rd_dout       => seq_fifo.rd_data,
+    rd_empty      => seq_fifo.rd_empty,
     rd_prog_empty => open, 
-    rd_underflow  => seq_fifo.rd_underflow 
+    rd_underflow  => seq_fifo.rd_underflow
   );
 
   seq_fifo.rd_ack <= ram_out_data_vld;
@@ -364,22 +364,23 @@ begin
   generic map(
     NUM_PORTS  => NUM_PORTS,
     DATA_WIDTH => DATA_WIDTH,
-    FIFO_DEPTH_LOG2 => FIFO_DEPTH_LOG2
+    FIFO_DEPTH_LOG2 => FIFO_DEPTH_LOG2,
+    RAM_TYPE => open
   )
   port map (
-    clk                     => clk,
-    rst                     => rst,
-    bus_out_cpl_eof         => seq_fifo_cpl_eof, 
-    bus_out_cpl_usr_id      => seq_fifo_cpl_id, 
-    bus_out_cpl_data        => ram_out_data, 
-    bus_out_cpl_data_vld    => ram_out_data_vld, 
-    usr_in_cpl_rdy          => usr_in_cpl_rdy, 
-    usr_out_cpl_ack         => usr_out_cpl_ack, 
-    usr_in_cpl_ack_ovfl     => usr_in_cpl_ack_ovfl, 
-    usr_in_cpl_data         => usr_in_cpl_data, 
-    usr_in_cpl_data_vld     => usr_in_cpl_data_vld, 
-    usr_in_cpl_data_eof     => usr_in_cpl_data_eof, 
-    usr_in_cpl_fifo_ovfl    => usr_in_cpl_fifo_ovfl
+    clk                 => clk,
+    rst                 => rst,
+    bus_out_eof         => seq_fifo_cpl_eof,
+    bus_out_usr_id      => seq_fifo_cpl_id,
+    bus_out_data        => ram_out_data, 
+    bus_out_data_vld    => ram_out_data_vld,
+    usr_in_rdy          => usr_in_cpl_rdy,
+    usr_out_ack         => usr_out_cpl_ack,
+    usr_in_ack_ovfl     => usr_in_cpl_ack_ovfl,
+    usr_in_data         => usr_in_cpl_data,
+    usr_in_data_vld     => usr_in_cpl_data_vld,
+    usr_in_data_eof     => usr_in_cpl_data_eof,
+    usr_in_fifo_ovfl    => usr_in_cpl_fifo_ovfl
   );
 
   g_usr_cpl : for n in 0 to NUM_PORTS-1 generate

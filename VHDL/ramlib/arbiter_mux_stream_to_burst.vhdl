@@ -24,6 +24,8 @@ library ramlib;
 --! The output port provides sequential bursts of data words for each input port.
 --! The burst size is configurable but the same for all.
 --! 
+--! @image html arbiter_mux_stream_to_burst.svg "" width=500px
+--!
 --! NOTES: 
 --! * Input port 0 has the highest priority and input port NUM_PORTS-1 has the lowest priority.
 --! * The data width of each input port, the output port and the RAM is DATA_WIDTH.
@@ -61,8 +63,6 @@ library ramlib;
 --!
 --! Further ideas for future development
 --! * do different priority modes like e.g. round-robin or first-come-first-serve make sense?
---!     
---! @image html arbiter_mux_stream_to_burst.svg "" width=500px
 --!
 entity arbiter_mux_stream_to_burst is
 generic(

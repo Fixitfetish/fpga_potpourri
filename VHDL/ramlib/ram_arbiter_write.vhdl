@@ -34,7 +34,7 @@ library ramlib;
 --! * ram_out : ram output port, signals that are orginated by the ram (e.g. status or read data)
 --! * ram_in : ram input port, signals that feed the bus (e.g. write/read requests)
 --!
---! For details refer to the entity arbiter_write_single_to_burst which is used for this implementation.
+--! For details refer to the entity arbiter_mux_stream_to_burst which is used for this implementation.
 --! Also consider using the optional entity ram_arbiter_write_data_width_adapter at the user interface
 --! to adapt different user data widths to the RAM width.
 --!  
