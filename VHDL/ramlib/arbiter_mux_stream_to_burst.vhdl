@@ -80,7 +80,7 @@ generic(
   --! only read requests without data are allowed.
   --! If enabled then usr_out_req_wr_data is stored in the FIFO and more RAM resources are needed.
   WRITE_ENABLE : boolean := true;
-  --! RAM primitive type ("block" or "ultra")
+  --! RAM primitive type ("block" or "ultra"). Only relevant when WRITE_ENABLE=true.
   RAM_TYPE : string := "block";
   --! @brief Add an idle gap of a few cycles after each burst, e.g. to allow header insertion in front of each burst.
   --! Note that additional gap cycles reduce the maximum possible arbiter throughput.

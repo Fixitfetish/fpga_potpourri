@@ -205,7 +205,8 @@ begin
     DATA_WIDTH => DATA_WIDTH, -- TODO # data unused
     BURST_SIZE => BURST_SIZE,
     FIFO_DEPTH_LOG2 => FIFO_DEPTH_LOG2,
-    WRITE_ENABLE => false
+    WRITE_ENABLE => false,
+    RAM_TYPE => open -- irrelevant because WRITE_ENABLE=false
   )
   port map (
     clk                     => clk,
