@@ -10,6 +10,8 @@ cplx_vectorization
 cplx_pkg
 - function for neagtive complex conjugate to avoid double negation ?
 
+cplx_power / cplx_power_sum / cplx_power_accu
+
 Ultrascale:
 - _vivado.tcl file list
 - testbenches and vivado projects 
