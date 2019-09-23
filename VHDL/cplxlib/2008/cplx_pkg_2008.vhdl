@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_pkg_2008.vhdl
 --! @author     Fixitfetish
---! @date       30/Jan/2018
---! @version    1.00
+--! @date       23/Sep/2019
+--! @version    1.20
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -12,6 +12,7 @@ library ieee;
   use ieee.numeric_std.all;
 library baselib;
   use baselib.ieee_extension.all;
+  use baselib.ieee_extension_types.all;
 
 --! @brief This package provides types, functions and procedures that allow basic
 --! operations with complex integer numbers. Only the most common signals are
@@ -39,6 +40,10 @@ package cplx_pkg is
     im  : signed; --! data imaginary component ("downto" direction assumed)
   end record;
 
+  subtype cplx4  is cplx(re( 3 downto 0), im( 3 downto 0));
+  subtype cplx5  is cplx(re( 4 downto 0), im( 4 downto 0));
+  subtype cplx6  is cplx(re( 5 downto 0), im( 5 downto 0));
+  subtype cplx7  is cplx(re( 6 downto 0), im( 6 downto 0));
   subtype cplx8  is cplx(re( 7 downto 0), im( 7 downto 0));
   subtype cplx9  is cplx(re( 8 downto 0), im( 8 downto 0));
   subtype cplx10 is cplx(re( 9 downto 0), im( 9 downto 0));
@@ -72,6 +77,10 @@ package cplx_pkg is
   --! General unconstrained complex vector type (preferably "to" direction)
   type cplx_vector is array(integer range <>) of cplx;
 
+  subtype cplx4_vector  is cplx_vector(open)(re( 3 downto 0), im( 3 downto 0));
+  subtype cplx5_vector  is cplx_vector(open)(re( 4 downto 0), im( 4 downto 0));
+  subtype cplx6_vector  is cplx_vector(open)(re( 5 downto 0), im( 5 downto 0));
+  subtype cplx7_vector  is cplx_vector(open)(re( 6 downto 0), im( 6 downto 0));
   subtype cplx8_vector  is cplx_vector(open)(re( 7 downto 0), im( 7 downto 0));
   subtype cplx9_vector  is cplx_vector(open)(re( 8 downto 0), im( 8 downto 0));
   subtype cplx10_vector is cplx_vector(open)(re( 9 downto 0), im( 9 downto 0));
@@ -406,6 +415,29 @@ package cplx_pkg is
     n    : natural; -- number of right shifts
     m    : cplx_mode:="-" -- mode
   ) return cplx_vector;
+
+  ------------------------------------------
+  -- Conversion
+  ------------------------------------------
+
+  --! @brief Merge separate vectors of signed real and imaginary values into one CPLX vector.
+  --! Input real and imaginary vectors must have same length.
+  function to_cplx (
+    re  : signed_vector; -- vector of real values (same length as imaginary)
+    im  : signed_vector; -- vector of imaginary values (same length as real)
+    vld : std_logic := '1'; -- data valid
+    rst : std_logic := '0' -- reset
+  ) return cplx;
+
+  --! @brief Extract all real components of a CPLX vector and output as signed vector.
+  function real (
+    din : cplx_vector
+  ) return signed_vector;
+
+  --! @brief Extract all imaginary components of a CPLX vector and output as signed vector.
+  function imag (
+    din : cplx_vector
+  ) return signed_vector;
 
   ------------------------------------------
   -- STD_LOGIC_VECTOR to CPLX
@@ -968,6 +1000,59 @@ package body cplx_pkg is
     for i in din'range loop 
       shift_right(din=>din(i), n=>n, dout=>dout(i), m=>m);
     end loop;
+    return dout;
+  end function;
+
+  ------------------------------------------
+  -- Conversion
+  ------------------------------------------
+
+  --! @brief Merge separate vectors of signed real and imaginary values into one CPLX vector.
+  --! Input real and imaginary vectors must have same length.
+  function to_cplx_vector (
+    re  : signed_vector; -- vector of real values (same length as imaginary)
+    im  : signed_vector; -- vector of imaginary values (same length as real)
+    vld : std_logic := '1'; -- data valid
+    rst : std_logic := '0' -- reset
+  ) return cplx_vector is
+    constant LRE : positive := re'length;
+    constant LIM : positive := im'length;
+    variable xre : signed_vector(0 to LRE-1)(re(re'left)'range);
+    variable xim : signed_vector(0 to LIM-1)(im(im'left)'range);
+    variable dout : cplx_vector(0 to LRE-1)(re(re(re'left)'range),im(im(im'left)'range));
+  begin
+    assert (LRE=LIM)
+      report "ERROR: to_cplx_vector(), both input signed_vector must have same length."
+      severity failure;
+    xre := re; -- conversion to default range
+    xim := im; -- conversion to default range
+    for i in 0 to LRE-1 loop 
+      dout(i).rst := rst;
+      dout(i).vld := vld;
+      dout(i).ovf := '0';
+      dout(i).re := xre(i);
+      dout(i).im := xim(i);
+    end loop;
+    return dout;
+  end function;
+
+  --! @brief Extract all real components of a CPLX vector and output as signed vector.
+  function real (
+    din : cplx_vector
+  ) return signed_vector is
+    variable dout : signed_vector(din'range)(din(din'left).re'range);
+  begin
+    for i in din'range loop dout(i):=din(i).re; end loop;
+    return dout;
+  end function;
+
+  --! @brief Extract all imaginary components of a CPLX vector and output as signed vector.
+  function imag (
+    din : cplx_vector
+  ) return signed_vector is
+    variable dout : signed_vector(din'range)(din(din'left).im'range);
+  begin
+    for i in din'range loop dout(i):=din(i).im; end loop;
     return dout;
   end function;
 

@@ -173,12 +173,12 @@ Resizing down supports saturation/clipping and overflow detection.
 
 ARITHMETIC FUNCTIONS
 ====================
-\b Basic functions
+**Basic** functions
 * Complex negation is supported, i.e. overloading of the minus operator. Note that overflow can occur when real or imaginary input is most-negative number.
-* Complex conjugate function conj() is available. Note that overflow can occur when imaginary input is most-negative number.
-* The function swap() supports swaps real and imaginary component.
+* Complex conjugate function **conj()** is available. CAUTION : overflow can occur when imaginary input is most-negative number.
+* The function **swap()** swaps the real and imaginary component.
 
-\b Addition (using FPGA logic not DSP !)
+**Addition** (using FPGA logic not DSP !)
 * addition of complex numbers of different length is always supported
 * supported for single complex numbers and complex vectors
 
@@ -194,7 +194,7 @@ ARITHMETIC FUNCTIONS
   add(a18,b16,r15,"SO"); -- variable output length with resize and options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-\b Summation of vector elements. This function is critical because many successive logic elements might be required.
+**Summation** of vector elements. This function is critical because many successive logic elements might be required.
 Hence, the function sum() is only recommended for vectors with a few elements and/or smaller bit widths.
 Note that pipeline registers cannot be added as part of the function. An adder tree pipeline could be used instead.
 
@@ -207,7 +207,7 @@ Note that pipeline registers cannot be added as part of the function. An adder t
   sum(vec_a18,r20,"SO"); -- variable output length with resize and options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-\b Subtraction (using FPGA logic not DSP !)
+**Subtraction** (using FPGA logic not DSP !)
 * subtraction of complex numbers of different length is always supported
 * supported for single complex numbers and complex vectors
 
@@ -226,7 +226,7 @@ Note that pipeline registers cannot be added as part of the function. An adder t
 
 SHIFT FUNCTIONS
 ===============
-Complex signed \b shift-left by n bits with optional clipping/saturation and overflow detection.
+**shift_left()** : Complex signed shift-left by n bits with optional clipping/saturation and overflow detection.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
   -- function
@@ -239,7 +239,7 @@ Complex signed \b shift-left by n bits with optional clipping/saturation and ove
   shift_left(a18,r20,4,"SO"); -- variable output length with resize
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Complex signed \b shift-right by n bits with optional rounding.
+**shift_right()** : Complex signed shift-right by n bits with optional rounding.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
   -- function
@@ -254,7 +254,26 @@ Complex signed \b shift-right by n bits with optional rounding.
 
 CONVERSION FUNCTIONS
 ====================
-todo
+**to_cplx_vector()** :
+Merge separate vectors of signed real and imaginary values into one CPLX vector.
+Input real and imaginary vectors must have same length.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
+  -- function (output vector length equals input vector length)
+  vec_r18 <= to_cplx_vector(re=>vec_re18, im=>vec_im18, vld=>valid, rst=>reset);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**real() / imag()** : 
+Extract all real or imaginary components of a CPLX vector and output as signed vector.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
+  -- function (output vector length equals input vector length)
+  vec_re <= real(cplx_vector);
+  vec_im <= imag(cplx_vector);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+More TODO ...
 
 ---
 MIT License : Copyright (c) 2017-2019 Fixitfetish
