@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       arbiter_demux_single_to_stream.vhdl
 --! @author     Fixitfetish
---! @date       17/Sep/2019
---! @version    0.50
+--! @date       24/Sep/2019
+--! @version    0.51
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -305,7 +305,7 @@ begin
     WR_INPUT_REGS => RAM_INPUT_REGS,
     RD_INPUT_REGS => RAM_INPUT_REGS,
     RD_OUTPUT_REGS => RAM_OUTPUT_REGS,
-    RAM_TYPE => open,
+    RAM_TYPE => RAM_TYPE,
     INIT_FILE => open
   )
   port map(
@@ -381,7 +381,7 @@ begin
 
   -- one data valid per user, only one user per cycle
   usr_in_data_vld <= cpl_ram_rd_ena(RAM_READ_DELAY);
-  
+
   -- completion data end of frame (EOF)
   g_eof : for n in 0 to NUM_PORTS-1 generate 
     usr_in_data_eof(n) <= cpl_ram_rd_ena(RAM_READ_DELAY)(n) and cpl_ram_rd.data(cpl_ram_rd.data'high);
