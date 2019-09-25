@@ -24,12 +24,12 @@ Contents
 |Entity Name               | Feature 1 | Feature 2  | Description
 |:-------------------------|:---------:|:----------:|:-----------------
 |cplx_exp                  | ---       | ---        | Complex exponential function
-|cplx_fifo_sync            | ---       | ---        | Synchronous FIFO for CPLX type
+|cplx_fifo_sync            | ---       | ---        | Synchronous FIFO for complex type
 |cplx_mult                 | ---       | ---        | N parallel and synchronous complex multiplications
 |cplx_mult_accu            | ---       | ---        | N complex multiplications and accumulation of all results
 |cplx_mult_sum             | ---       | ---        | N complex multiplications and summation of all results
-|cplx_noise_normal         | ---       | ---        | Complex normal(Gauss) noise generator
-|cplx_noise_uniform        | ---       | ---        | Complex uniform noise generator
+|cplx_noise_normal         | ---       | ---        | Complex noise generator with normal (Gauss) distribution
+|cplx_noise_uniform        | ---       | ---        | Complex noise generator with uniform distribution
 |cplx_pipeline             | ---       | ---        | Delay pipeline with N stages
 |cplx_vector_pipeline      | ---       | ---        | Delay vector pipeline with N stages
 |cplx_vector_serialization | ---       | ---        | Serialize length N vector into data stream of N consecutive cycles

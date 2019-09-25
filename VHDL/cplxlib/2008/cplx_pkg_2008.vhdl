@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_pkg_2008.vhdl
 --! @author     Fixitfetish
---! @date       23/Sep/2019
---! @version    1.20
+--! @date       25/Sep/2019
+--! @version    1.30
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -128,7 +128,7 @@ package cplx_pkg is
 --  'H'  -- hold last valid output data when invalid (toggle rate reduction)
   );
   
-  --! @brief Complex operations can be used with one or more the following options.
+  --! @brief Complex operations can be used with one or more of the following options.
   --! Note that some options can not be combined, e.g. different rounding options.
   --! Use options carefully and only when really required. Some options can have
   --! a negative influence on logic consumption and timing. @link cplx_mode More...
@@ -169,8 +169,8 @@ package cplx_pkg is
   --! @brief Get complex reset value.
   --! RE/IM data will be 0 with option 'R', otherwise data is do-not-care.
   function cplx_reset (
-    w : positive range 2 to integer'high; -- RE/IM data width in bits
-    m : cplx_mode:="-" -- mode, supported options: 'R'
+    constant w : positive range 2 to integer'high; -- RE/IM data width in bits
+    constant m : cplx_mode:="-" -- mode, supported options: 'R'
   ) return cplx;
 
   --! @brief Get complex vector reset value.
@@ -389,18 +389,8 @@ package cplx_pkg is
   ------------------------------------------
 
   --! @brief Complex signed shift right by n bits with optional rounding.
-  --! Result dout is resized to size of connected output.
-  --! Supported options: 'R', 'O', 'X', 'S' and/or ('D','N','U','Z' or 'I')
-  procedure shift_right (
-    din  : in  cplx; -- data input
-    n    : in  natural; -- number of right shifts
-    dout : out cplx; -- data output
-    m    : in  cplx_mode:="-" -- mode
-  );
-
-  --! @brief Complex signed shift right by n bits with optional rounding.
   --! The output bit width equals the input bit width.
-  --! Supported options: 'R', 'X' and/or ('D','N','U','Z' or 'I')
+  --! Supported options: 'R', 'X and/or ('D','N','U','Z' or 'I')
   function shift_right (
     din  : cplx; -- data input
     n    : natural; -- number of right shifts
@@ -416,18 +406,28 @@ package cplx_pkg is
     m    : cplx_mode:="-" -- mode
   ) return cplx_vector;
 
+  --! @brief Complex signed shift right by n bits with optional rounding.
+  --! Result dout is resized to size of connected output.
+  --! Supported options: 'R', 'O', 'X', 'S' and/or ('D','N','U','Z' or 'I')
+  procedure shift_right (
+    din  : in  cplx; -- data input
+    n    : in  natural; -- number of right shifts
+    dout : out cplx; -- data output
+    m    : in  cplx_mode:="-" -- mode
+  );
+
   ------------------------------------------
   -- Conversion
   ------------------------------------------
 
   --! @brief Merge separate vectors of signed real and imaginary values into one CPLX vector.
   --! Input real and imaginary vectors must have same length.
-  function to_cplx (
+  function to_cplx_vector (
     re  : signed_vector; -- vector of real values (same length as imaginary)
     im  : signed_vector; -- vector of imaginary values (same length as real)
     vld : std_logic := '1'; -- data valid
     rst : std_logic := '0' -- reset
-  ) return cplx;
+  ) return cplx_vector;
 
   --! @brief Extract all real components of a CPLX vector and output as signed vector.
   function real (
@@ -443,16 +443,18 @@ package cplx_pkg is
   -- STD_LOGIC_VECTOR to CPLX
   ------------------------------------------
 
-  --! @brief Convert SLV to cplx, L = SLV'length must be even
-  --! (real = L/2 LSBs, imaginary = L/2 MSBs)
+  --! @brief Convert SLV to cplx, L = SLV'length must be even.
+  --! real = L/2 LSBs, imaginary = L/2 MSBs.
+  --! Use swap() before conversion to have imaginary part in LSBs.
   function to_cplx (
     slv : std_logic_vector; -- data input
     vld : std_logic; -- data valid
     rst : std_logic := '0' -- reset
   ) return cplx;
 
-  --! @brief Convert SLV to cplx_vector, L = SLV'length must be a multiple of 2*n 
-  --! (L/n bits per vector element : real = L/n/2 LSBs, imaginary = L/n/2 MSBs)
+  --! @brief Convert SLV to cplx_vector, L = SLV'length must be a multiple of 2*n .
+  --! L/n bits per vector element : real = L/n/2 LSBs, imaginary = L/n/2 MSBs .
+  --! Use swap() before conversion to have imaginary part in LSBs.
   function to_cplx_vector (
     slv : std_logic_vector; -- data input vector
     n   : positive; -- number of required vector elements
@@ -464,21 +466,57 @@ package cplx_pkg is
   -- CPLX to STD_LOGIC_VECTOR
   ------------------------------------------
 
-  --! @brief Convert cplx to SLV, real=LSBs, imaginary=MSBs
-  --! (output length = din.re'length + din.im'length).
+  --! @brief Convert cplx to SLV, real=LSBs, imaginary=MSBs.
+  --! Output length = din.re'length + din.im'length .
+  --! Use swap() after conversion if imaginary part is in LSBs of SLV.
   --! Supported options: 'R'
   function to_slv(
     din : cplx;
     m   : cplx_mode:="-" -- mode, optional reset
   ) return std_logic_vector;
 
-  --! @brief Convert cplx_vector to SLV (real=LSBs, imaginary=MSBs per vector element)
-  --! output length = din'length * (din.re'length + din.im'length).
+  --! @brief Convert cplx_vector to SLV (real=LSBs, imaginary=MSBs per vector element).
+  --! Output length = din'length * (din.re'length + din.im'length).
+  --! Use swap() after conversion if imaginary part is in LSBs of SLV.
   --! Supported options: 'R'
   function to_slv(
     din : cplx_vector;
     m   : cplx_mode:="-" -- mode, optional reset
   ) return std_logic_vector;
+
+  ------------------------------------------
+  -- Convert CPLX record into STD_LOGIC_VECTOR
+  -- (useful for interfaces which do not support records)
+  ------------------------------------------
+
+  --! @brief Convert all elements of the cplx record to a single SLV.
+  function record_to_slv(
+    din : cplx
+  ) return std_logic_vector;
+
+  --! @brief Convert all elements of the cplx_vector record to a single SLV.
+  function record_to_slv(
+    din : cplx_vector
+  ) return std_logic_vector;
+
+  --! @brief Convert SLV to cplx record.
+  function slv_to_record(
+    slv : std_logic_vector
+  ) return cplx;
+
+  --! @brief Convert SLV to cplx_vector record.
+  --! The number of expected vector elements N must be provided.
+  function slv_to_record (
+    slv : std_logic_vector;
+    n   : positive
+  ) return cplx_vector;
+
+  --! @brief Convert SLV to cplx_vector record.
+  --! The number of expected vector elements N is derived from the connected cplx_vector output length.
+  procedure slv_to_record (
+    din  : in  std_logic_vector;
+    dout : out cplx_vector
+  );
 
 end package;
 
@@ -520,15 +558,18 @@ package body cplx_pkg is
   ------------------------------------------
 
   function cplx_reset (
-    w : positive range 2 to integer'high; -- data RE/IM width in bits
-    m : cplx_mode:="-" -- mode, supported options: 'R'
+    constant w : positive range 2 to integer'high; -- data RE/IM width in bits
+    constant m : cplx_mode:="-" -- mode, supported options: 'R'
   ) return cplx is
     variable dout : cplx(re(w-1 downto 0),im(w-1 downto 0));
   begin
+    dout.rst := '1'; dout.vld := '0'; dout.ovf := '0';
     if m='R' then
-      dout := (rst=>'1', vld|ovf=>'0', re|im=>(w-1 downto 0=>'0'));
+      dout.re := (others=>'0'); dout.im := (others=>'0');
+--      dout := (rst=>'1', vld|ovf=>'0', re|im=>(others=>'0')); -- not supported by all tools
     else
-      dout := (rst=>'1', vld|ovf=>'0', re|im=>(w-1 downto 0=>'-'));
+      dout.re := (others=>'-'); dout.im := (others=>'-');
+--      dout := (rst=>'1', vld|ovf=>'0', re|im=>(w-1 downto 0=>'-')); -- not supported by all tools
     end if;
     return dout;
   end function;
@@ -786,7 +827,7 @@ package body cplx_pkg is
     constant LVEC : positive := din'length; -- vector length
     constant LIN : positive := MAXIMUM(din(din'left).re'length,din(din'left).im'length); -- default output bit width
     constant LOUT : positive := default_if_zero(w, dflt=>LIN); -- final output bit width
-    alias xdin : cplx_vector(1 to LVEC) is din; -- default range
+    alias xdin : cplx_vector(1 to LVEC)(re(LIN-1 downto 0),im(LIN-1 downto 0)) is din; -- default range
     constant T : positive := LIN + LOG2CEIL(LVEC); -- width including additional accumulation bits
     variable temp : cplx(re(T-1 downto 0),im(T-1 downto 0));
   begin
@@ -941,38 +982,6 @@ package body cplx_pkg is
   -- SHIFT RIGHT and ROUND
   ------------------------------------------
 
-  procedure shift_right (
-    din  : in  cplx; -- data input
-    n    : in  natural; -- number of right shifts
-    dout : out cplx; -- data output
-    m    : in  cplx_mode:="-" -- mode
-  ) is
-    variable ovf_re, ovf_im : std_logic;
-  begin
-    dout.rst:=din.rst; dout.vld:=din.vld; -- just forward signals
-    if m='X' then dout.ovf:='0'; else dout.ovf:=din.ovf; end if; -- ignore input overflow ?
-    if m='N' then
-      SHIFT_RIGHT_ROUND(din=>din.re, n=>n, dout=>dout.re, ovfl=>ovf_re, rnd=>nearest, clip=>(m='S'));
-      SHIFT_RIGHT_ROUND(din=>din.im, n=>n, dout=>dout.im, ovfl=>ovf_im, rnd=>nearest, clip=>(m='S'));
-    elsif m='U' then
-      SHIFT_RIGHT_ROUND(din=>din.re, n=>n, dout=>dout.re, ovfl=>ovf_re, rnd=>ceil, clip=>(m='S'));
-      SHIFT_RIGHT_ROUND(din=>din.im, n=>n, dout=>dout.im, ovfl=>ovf_im, rnd=>ceil, clip=>(m='S'));
-    elsif m='Z' then
-      SHIFT_RIGHT_ROUND(din=>din.re, n=>n, dout=>dout.re, ovfl=>ovf_re, rnd=>truncate, clip=>(m='S'));
-      SHIFT_RIGHT_ROUND(din=>din.im, n=>n, dout=>dout.im, ovfl=>ovf_im, rnd=>truncate, clip=>(m='S'));
-    elsif m='I' then
-      SHIFT_RIGHT_ROUND(din=>din.re, n=>n, dout=>dout.re, ovfl=>ovf_re, rnd=>infinity, clip=>(m='S'));
-      SHIFT_RIGHT_ROUND(din=>din.im, n=>n, dout=>dout.im, ovfl=>ovf_im, rnd=>infinity, clip=>(m='S'));
-    else
-      -- by default standard rounding, i.e. floor
-      SHIFT_RIGHT_ROUND(din=>din.re, n=>n, dout=>dout.re, ovfl=>ovf_re, rnd=>floor, clip=>(m='S'));
-      SHIFT_RIGHT_ROUND(din=>din.im, n=>n, dout=>dout.im, ovfl=>ovf_im, rnd=>floor, clip=>(m='S'));
-    end if;
-    -- This function reports overflows only for valid data.
-    if m='O' then dout.ovf := dout.ovf or (dout.vld and (ovf_re or ovf_im)); end if;
-    dout := cplx_reset(din=>dout, m=>m);
-  end procedure;
-
   function shift_right (
     din  : cplx; -- data input
     n    : natural; -- number of right shifts
@@ -983,8 +992,26 @@ package body cplx_pkg is
     constant LOUT_IM : positive := din.im'length;
     variable dout : cplx(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
   begin
-    shift_right(din=>din, n=>n, dout=>dout, m=>m);
-    return dout;
+    dout.rst:=din.rst; dout.vld:=din.vld; dout.ovf:=din.ovf; -- just forward
+    if m='X' then dout.ovf:='0'; end if; -- ignore input overflow
+    if m='N' then
+      dout.re := SHIFT_RIGHT_ROUND(din=>din.re, n=>n, rnd=>nearest);
+      dout.im := SHIFT_RIGHT_ROUND(din=>din.im, n=>n, rnd=>nearest);
+    elsif m='U' then
+      dout.re := SHIFT_RIGHT_ROUND(din=>din.re, n=>n, rnd=>ceil);
+      dout.im := SHIFT_RIGHT_ROUND(din=>din.im, n=>n, rnd=>ceil);
+    elsif m='Z' then
+      dout.re := SHIFT_RIGHT_ROUND(din=>din.re, n=>n, rnd=>truncate);
+      dout.im := SHIFT_RIGHT_ROUND(din=>din.im, n=>n, rnd=>truncate);
+    elsif m='I' then
+      dout.re := SHIFT_RIGHT_ROUND(din=>din.re, n=>n, rnd=>infinity);
+      dout.im := SHIFT_RIGHT_ROUND(din=>din.im, n=>n, rnd=>infinity);
+    else
+      -- by default standard rounding, i.e. floor
+      dout.re := SHIFT_RIGHT_ROUND(din=>din.re, n=>n, rnd=>floor);
+      dout.im := SHIFT_RIGHT_ROUND(din=>din.im, n=>n, rnd=>floor);
+    end if;
+    return cplx_reset(din=>dout, m=>m);
   end function;
 
   function shift_right (
@@ -998,10 +1025,26 @@ package body cplx_pkg is
     variable dout : cplx_vector(din'range)(re(LOUT_RE-1 downto 0),im(LOUT_IM-1 downto 0));
   begin
     for i in din'range loop 
-      shift_right(din=>din(i), n=>n, dout=>dout(i), m=>m);
+      dout(i) := shift_right(din=>din(i), n=>n, m=>m);
     end loop;
     return dout;
   end function;
+
+  procedure shift_right (
+    din  : in  cplx; -- data input
+    n    : in  natural; -- number of right shifts
+    dout : out cplx; -- data output
+    m    : in  cplx_mode:="-" -- mode
+  ) is
+    constant LIN_RE : positive := din.re'length;
+    constant LIN_IM : positive := din.im'length;
+    constant LOUT : positive := dout.re'length;
+    variable temp : cplx(re(LIN_RE-1 downto 0),im(LIN_IM-1 downto 0));
+  begin
+    temp := shift_right(din=>din, n=>n, m=>m);
+    -- shift-right cannot cause overflow but only the following resize operation
+    dout := resize(din=>temp, w=>LOUT, m=>m);
+  end procedure;
 
   ------------------------------------------
   -- Conversion
@@ -1019,7 +1062,8 @@ package body cplx_pkg is
     constant LIM : positive := im'length;
     variable xre : signed_vector(0 to LRE-1)(re(re'left)'range);
     variable xim : signed_vector(0 to LIM-1)(im(im'left)'range);
-    variable dout : cplx_vector(0 to LRE-1)(re(re(re'left)'range),im(im(im'left)'range));
+    variable dout : cplx_vector(0 to LRE-1)(re(re(re'left)'length-1 downto 0),im(im(im'left)'length-1 downto 0));
+--    variable dout : cplx_vector(0 to LRE-1)(re(re(re'left)'range),im(im(im'left)'range)); -- not working with Vivado 2019.1 !
   begin
     assert (LRE=LIM)
       report "ERROR: to_cplx_vector(), both input signed_vector must have same length."
@@ -1131,5 +1175,85 @@ package body cplx_pkg is
     end loop;
     return slv;
   end function;
+
+  ------------------------------------------
+  -- Convert CPLX record into STD_LOGIC_VECTOR
+  -- (useful for interfaces which do not support records)
+  ------------------------------------------
+
+  function record_to_slv(
+    din : cplx
+  ) return std_logic_vector is
+    constant LRE : positive := din.re'length;
+    constant LIM : positive := din.im'length;
+    variable slv : std_logic_vector(3+LIM+LRE-1 downto 0);
+  begin
+    slv(3+LIM+LRE-1) := din.rst; 
+    slv(2+LIM+LRE-1) := din.vld; 
+    slv(1+LIM+LRE-1) := din.ovf; 
+    slv(LIM+LRE-1 downto LRE) := std_logic_vector(din.im);
+    slv(LRE-1 downto 0) := std_logic_vector(din.re);
+    return slv;
+  end function;
+
+  function record_to_slv(
+    din : cplx_vector
+  ) return std_logic_vector is
+    constant N : positive := din'length;
+    constant LRE : positive := din(din'left).re'length;
+    constant LIM : positive := din(din'left).im'length;
+    alias xdin : cplx_vector(0 to N-1)(re(LRE-1 downto 0),im(LIM-1 downto 0)) is din;
+    variable slv : std_logic_vector(N*(3+LRE+LIM)-1 downto 0);
+  begin
+    for i in 0 to N-1 loop
+      slv((i+1)*(3+LRE+LIM)-1 downto i*(3+LRE+LIM)) := record_to_slv(din=>xdin(i));
+    end loop;
+    return slv;
+  end function;
+
+  function slv_to_record(
+    slv : std_logic_vector
+  ) return cplx is
+    -- assume that RE and IM have same length BITS
+    constant BITS : positive := (slv'length-3)/2;
+    alias x : std_logic_vector(slv'length-1 downto 0) is slv; -- default range
+    variable dout : cplx(re(BITS-1 downto 0),im(BITS-1 downto 0));
+  begin
+    assert ((slv'length mod 2)=1 and (slv'length>=7))
+      report "ERROR: slv_to_record(cplx), input std_logic_vector length must be odd and 7 or greater."
+      severity failure;
+    dout.rst := x(3+2*BITS-1); 
+    dout.vld := x(2+2*BITS-1); 
+    dout.ovf := x(1+2*BITS-1); 
+    dout.im  := signed(x(2*BITS-1 downto BITS));
+    dout.re  := signed(x(BITS-1 downto 0));
+    return dout;
+  end function;
+
+  function slv_to_record (
+    slv : std_logic_vector;
+    n   : positive
+  ) return cplx_vector is
+    -- assume that RE and IM have same length BITS
+    constant BITS : integer := (slv'length/n-3)/2;
+    variable res : cplx_vector(0 to n-1)(re(BITS-1 downto 0),im(BITS-1 downto 0));
+  begin
+    assert ((slv'length mod n)=0)
+      report "ERROR: slv_to_record(cplx_vector), input std_logic_vector is not a multiple of given n."
+      severity failure;
+    for i in 0 to n-1 loop
+      res(i) := slv_to_record(slv((i+1)*(3+2*BITS)-1 downto i*(3+2*BITS)));
+    end loop;
+    return res;
+  end function;
+
+  procedure slv_to_record (
+    din  : in  std_logic_vector; -- data input
+    dout : out cplx_vector -- data output
+  ) is
+    constant N : positive := dout'length;
+  begin
+    dout := slv_to_record(din,N);
+  end procedure;
 
 end package body;
