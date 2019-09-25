@@ -420,6 +420,10 @@ package cplx_pkg is
   -- Conversion
   ------------------------------------------
 
+  --! @brief Reverse order of vector elements without changing the index direction.
+  --! To reverse the index direction (to<=>downto) use reverse_range attribute instead.
+  function REVERSE(arg:cplx_vector) return cplx_vector;
+
   --! @brief Merge separate vectors of signed real and imaginary values into one CPLX vector.
   --! Input real and imaginary vectors must have same length.
   function to_cplx_vector (
@@ -1049,6 +1053,18 @@ package body cplx_pkg is
   ------------------------------------------
   -- Conversion
   ------------------------------------------
+
+  --! @brief Reverse order of vector elements without changing the index direction.
+  --! To reverse the index direction (to<=>downto) use reverse_range attribute instead.
+  function REVERSE(arg:cplx_vector) return cplx_vector is
+    constant WRE : positive := arg(arg'low).re'length;
+    constant WIM : positive := arg(arg'low).im'length;
+    variable res : cplx_vector(arg'range)(re(WRE-1 downto 0),im(WIM-1 downto 0));
+    alias xarg : cplx_vector(arg'reverse_range)(re(WRE-1 downto 0),im(WIM-1 downto 0)) is arg;
+  begin
+   for i in xarg'range loop res(i) := xarg(i); end loop;
+   return res;
+  end function;
 
   --! @brief Merge separate vectors of signed real and imaginary values into one CPLX vector.
   --! Input real and imaginary vectors must have same length.
