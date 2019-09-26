@@ -255,6 +255,14 @@ SHIFT FUNCTIONS
 
 CONVERSION FUNCTIONS
 ====================
+ **reverse()** :
+Reverse order of vector elements without changing the index direction.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
+  -- function (output vector length equals input vector length)
+  cplx_vector <= reverse(cplx_vector);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 **to_cplx_vector()** :
 Merge separate vectors of signed real and imaginary values into one CPLX vector.
 Input real and imaginary vectors must have same length.
