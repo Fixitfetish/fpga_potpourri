@@ -18,8 +18,8 @@ library baselib;
 
 --! @brief N parallel synchronous signed additions & accumulators.
 --!
---! 1.) LSB bound addition of A and Z
---! 2.) Accumulation of resulting sums
+--! 1. LSB bound addition of A and Z
+--! 2. Accumulation of resulting sums
 --!
 --! If only accumulation without addition is required then only use input A and
 --! set input Z to zero.
@@ -28,7 +28,7 @@ library baselib;
 --!
 --! | CLR | VLD | Operation                  | Comment
 --! |:---:|:---:|:---------------------------|:----------------------
---! |  1  |  0  | r(n) = undefined           | reset accumulator
+--! |  1  |  0  | r(n) = 0 (undefined)       | reset accumulator
 --! |  1  |  1  | r(n) = a(n) + z(n)         | restart accumulation
 --! |  0  |  0  | r(n) = r(n)                | hold accumulator
 --! |  0  |  1  | r(n) = r(n) + a(n) + z(n)  | proceed accumulation

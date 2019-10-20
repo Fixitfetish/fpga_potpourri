@@ -39,6 +39,7 @@ The following entities should not be instantiated in the design. They are used b
 
 |Entity Name               | Stratix V  | Arria 10  | UltraScale | Stratix 10 | Description
 |:-------------------------|:----------:|:---------:|:----------:|:----------:|:-----------------
+|signed_add_accu           | ---        | ---       | PRIMITIVE  | TODO       | add 2 logic inputs with full precision and accumulate (also SIMD support)
 |signed_add2_accu          | ---        | ---       | PRIMITIVE  | TODO       | add logic input and logic (or chain) input with full precision and accumulate
 |signed_add2_sum           | ---        | ---       | PRIMITIVE  | TODO       | add two logic inputs with full precision and sum with chain input
 |signed_mult1_accu         | PRIMITIVE  | PRIMITIVE | PRIMITIVE  | TODO       | one signed multiplication and accumulation of all results
