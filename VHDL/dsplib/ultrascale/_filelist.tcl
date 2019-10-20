@@ -12,6 +12,8 @@ set files [list]
 # ultrascale specific
 lappend files dsp_pkg.ultrascale.vhdl
 lappend files delay_dsp.ultrascale.vhdl
+lappend files signed_add_accu.ultrascale.vhdl
+lappend files signed_add2_accu.ultrascale.vhdl
 lappend files signed_mult1_accu.ultrascale.vhdl
 lappend files signed_preadd_mult1_accu.ultrascale.vhdl
 lappend files signed_mult1add1_accu.ultrascale.vhdl

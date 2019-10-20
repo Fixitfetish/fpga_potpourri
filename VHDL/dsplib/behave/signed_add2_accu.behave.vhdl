@@ -19,6 +19,7 @@ library dsplib;
 
 --! @brief This implementation is a behavioral model of the entity signed_add2_accu
 --! for simulation.
+--!
 --! A two signed values are added with full precision.
 --! The results of this operation can be accumulated over several cycles.
 --! The addition and accumulation of all inputs is LSB bound.
@@ -31,7 +32,7 @@ library dsplib;
 --! * Output Data     : 1x signed value, max 64 bits
 --! * Output Register : optional, after rounding, shift-right and saturation
 --! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG
-
+--!
 architecture behave of signed_add2_accu is
 
   -- identifier for reports of warnings and errors

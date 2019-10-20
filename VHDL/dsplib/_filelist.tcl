@@ -13,6 +13,7 @@ lappend files signed_output_logic.vhdl
 lappend files signed_adder_tree.vhdl
 
 # generic entities without architecture
+lappend files signed_add_accu.vhdl
 lappend files signed_add2_accu.vhdl
 lappend files signed_add2_sum.vhdl
 lappend files signed_mult1_accu.vhdl

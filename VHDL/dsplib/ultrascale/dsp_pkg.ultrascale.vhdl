@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       dsp_pkg.ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       19/Mar/2017
---! @version    0.10
+--! @date       19/Oct/2019
+--! @version    0.20
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -18,7 +18,7 @@ library baselib;
 --! @brief This package includes a Xilinx UltraScale specific collection of common
 --! parameters and functions. It helps to minimize code duplication in the
 --! different DSP implementations.
-
+--!
 package dsp_pkg_ultrascale is
 
   --! accumulator width in bits
@@ -42,7 +42,8 @@ package dsp_pkg_ultrascale is
   --! rounding bit generation (+0.5)
   function RND(
     ena : boolean; -- enable rounding
-    shift : natural -- number of right shifts
+    shift : natural; -- number of right shifts
+    simd : positive := 1  -- SIMD factor 1, 2 or 4
   ) return std_logic_vector;
 
   --! determine number of input registers within DSP cell and in LOGIC
@@ -75,6 +76,12 @@ package dsp_pkg_ultrascale is
   --! Register P is the first output register when NUM_OUTPUT_REG=>1 (strongly recommended!)
   function PREG(n:natural) return natural;
 
+  --! Determine possible number of parallel SIMD operations based on input and output(accumulator) width
+  function SIMD_FACTOR(wi,wo:positive) return natural;
+
+  --! DSP cell generic to configure the SIMD mode. Setting depends on the SIMD factor.
+  function USE_SIMD(factor:natural) return string;
+
 end package;
 
 -------------------------------------------------------------------------------
@@ -106,11 +113,21 @@ package body dsp_pkg_ultrascale is
   --! rounding bit generation (+0.5)
   function RND(
     ena : boolean; -- enable rounding
-    shift : natural -- number of right shifts
+    shift : natural; -- number of right shifts
+    simd : positive := 1  -- SIMD factor 1, 2 or 4
   ) return std_logic_vector is
     variable res : std_logic_vector(ACCU_WIDTH-1 downto 0) := (others=>'0');
   begin 
-    if ena and (shift>=1) then res(shift-1):='1'; end if;
+    if ena and (shift>=1) then 
+      res(shift-1):='1';
+      if simd>=2 then 
+        res(ACCU_WIDTH/2+shift-1):='1';
+      end if;
+      if simd>=4 then 
+        res(  ACCU_WIDTH/4+shift-1):='1';
+        res(3*ACCU_WIDTH/4+shift-1):='1';
+      end if;
+    end if;
     return res;
   end function;
 
@@ -189,5 +206,32 @@ package body dsp_pkg_ultrascale is
   --! Register P is the first output register when NUM_OUTPUT_REG=>1 (strongly recommended!)
   function PREG(n:natural) return natural is
   begin if n>=1 then return 1; else return 0; end if; end function;
+
+  --! Determine possible number of parallel SIMD operations based on input and output(accumulator) width
+  function SIMD_FACTOR(wi,wo:positive) return natural is
+    variable w : positive;
+  begin
+    w := MAXIMUM(wi,wo);
+    if w<=ACCU_WIDTH/4 then
+      return 4;
+    elsif w<=ACCU_WIDTH/2 then
+      return 2;
+    elsif w<=ACCU_WIDTH then
+      return 1;
+    else
+      return 0;
+    end if;
+  end function;
+
+  function USE_SIMD(factor:natural) return string is
+  begin
+    if factor=4 then
+      return "FOUR12";
+    elsif factor=2 then
+      return "TWO24";
+    else
+      return "ONE48";
+    end if;
+  end function;
 
 end package body;
