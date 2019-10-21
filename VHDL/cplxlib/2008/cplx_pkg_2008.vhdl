@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_pkg_2008.vhdl
 --! @author     Fixitfetish
---! @date       25/Sep/2019
---! @version    1.30
+--! @date       21/Oct/2019
+--! @version    1.40
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -169,15 +169,15 @@ package cplx_pkg is
   --! @brief Get complex reset value.
   --! RE/IM data will be 0 with option 'R', otherwise data is do-not-care.
   function cplx_reset (
-    constant w : positive range 2 to integer'high; -- RE/IM data width in bits
-    constant m : cplx_mode:="-" -- mode, supported options: 'R'
+    constant W : positive range 2 to integer'high; -- RE/IM data width in bits
+    m : cplx_mode:="-" -- mode, supported options: 'R'
   ) return cplx;
 
   --! @brief Get complex vector reset value.
   --! RE/IM data will be 0 with option 'R', otherwise data is do-not-care.
   function cplx_vector_reset (
-    w : positive range 2 to integer'high; -- RE/IM data width in bits
-    n : positive; -- number of vector elements
+    constant W : positive range 2 to integer'high; -- RE/IM data width in bits
+    constant N : positive; -- number of vector elements
     m : cplx_mode:="-" -- mode, supported options: 'R'
   ) return cplx_vector;
 
@@ -193,6 +193,17 @@ package cplx_pkg is
   function cplx_vector_reset (
     din : cplx_vector; -- data input
     m   : cplx_mode:="-" -- mode, supported options: 'R'
+  ) return cplx_vector;
+
+  --! @brief Get valid complex zero (reset and overflow are '0').
+  function cplx_zero (
+    constant W : positive range 2 to integer'high -- RE/IM data width in bits
+  ) return cplx;
+
+  --! @brief Get complex vector of all valid zeros (reset and overflow are '0').
+  function cplx_zeros (
+    constant W : positive range 2 to integer'high; -- RE/IM data width in bits
+    constant N : positive -- number of vector elements
   ) return cplx_vector;
 
   ------------------------------------------
@@ -562,10 +573,10 @@ package body cplx_pkg is
   ------------------------------------------
 
   function cplx_reset (
-    constant w : positive range 2 to integer'high; -- data RE/IM width in bits
-    constant m : cplx_mode:="-" -- mode, supported options: 'R'
+    constant W : positive range 2 to integer'high; -- data RE/IM width in bits
+    m : cplx_mode:="-" -- mode, supported options: 'R'
   ) return cplx is
-    variable dout : cplx(re(w-1 downto 0),im(w-1 downto 0));
+    variable dout : cplx(re(W-1 downto 0),im(W-1 downto 0));
   begin
     dout.rst := '1'; dout.vld := '0'; dout.ovf := '0';
     if m='R' then
@@ -579,13 +590,13 @@ package body cplx_pkg is
   end function;
 
   function cplx_vector_reset (
-    w : positive range 2 to integer'high; -- data RE/IM width in bits
-    n : positive; -- number of vector elements
+    constant W : positive range 2 to integer'high; -- data RE/IM width in bits
+    constant N : positive; -- number of vector elements
     m : cplx_mode:="-" -- mode, supported options: 'R'
   ) return cplx_vector is
-    variable dout : cplx_vector(1 to n)(re(w-1 downto 0),im(w-1 downto 0));
+    variable dout : cplx_vector(1 to N)(re(W-1 downto 0),im(W-1 downto 0));
   begin
-    for i in dout'range loop dout(i):=cplx_reset(w=>w, m=>m); end loop;
+    for i in dout'range loop dout(i):=cplx_reset(W=>W, m=>m); end loop;
     return dout;
   end function;
 
@@ -608,6 +619,27 @@ package body cplx_pkg is
     variable dout : cplx_vector(din'range)(re(din(din'left).re'range),im(din(din'left).im'range));
   begin
     for i in din'range loop dout(i):=cplx_reset(din=>din(i), m=>m); end loop; 
+    return dout;
+  end function;
+
+  function cplx_zero (
+    constant W : positive range 2 to integer'high -- RE/IM data width in bits
+  ) return cplx is
+    variable dout : cplx(re(W-1 downto 0),im(W-1 downto 0));
+  begin
+    dout.rst := '0'; dout.vld := '1'; dout.ovf := '0';
+    dout.re := (others=>'0'); dout.im := (others=>'0');
+--    dout := (vld=>'1', rst|ovf=>'0', re|im=>(others=>'0')); -- not supported by all tools
+    return dout;
+  end function;
+
+  function cplx_zeros (
+    constant W : positive range 2 to integer'high; -- RE/IM data width in bits
+    constant N : positive -- number of vector elements
+  ) return cplx_vector is
+    variable dout : cplx_vector(1 to N)(re(W-1 downto 0),im(W-1 downto 0));
+  begin
+    for i in dout'range loop dout(i):=cplx_zero(W=>W); end loop;
     return dout;
   end function;
 
