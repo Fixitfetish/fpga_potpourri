@@ -127,7 +127,7 @@ package cplx_pkg is
 --  'C'  -- clear, required/needed ?
 --  'H'  -- hold last valid output data when invalid (toggle rate reduction)
   );
-  
+
   --! @brief Complex operations can be used with one or more of the following options.
   --! Note that some options can not be combined, e.g. different rounding options.
   --! Use options carefully and only when really required. Some options can have
