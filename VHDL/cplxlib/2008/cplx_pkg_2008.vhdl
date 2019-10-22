@@ -196,14 +196,27 @@ package cplx_pkg is
   ) return cplx_vector;
 
   --! @brief Get valid complex zero (reset and overflow are '0').
-  function cplx_zero (
+  function zero (
     constant W : positive range 2 to integer'high -- RE/IM data width in bits
   ) return cplx;
 
   --! @brief Get complex vector of all valid zeros (reset and overflow are '0').
-  function cplx_zeros (
+  function zeros (
     constant W : positive range 2 to integer'high; -- RE/IM data width in bits
     constant N : positive -- number of vector elements
+  ) return cplx_vector;
+
+  --! @brief Get valid complex one, i.e. maximum positive real component (reset and overflow are '0').
+  function one (
+    constant W : positive range 2 to integer'high; -- RE/IM data width in bits
+    shift : natural := 0 -- optional right shifts
+  ) return cplx;
+
+  --! @brief Get complex vector of all valid ones, i.e. maximum positive real component (reset and overflow are '0').
+  function ones (
+    constant W : positive range 2 to integer'high; -- RE/IM data width in bits
+    constant N : positive; -- number of vector elements
+    shift : natural := 0 -- optional right shifts
   ) return cplx_vector;
 
   ------------------------------------------
@@ -622,7 +635,7 @@ package body cplx_pkg is
     return dout;
   end function;
 
-  function cplx_zero (
+  function zero (
     constant W : positive range 2 to integer'high -- RE/IM data width in bits
   ) return cplx is
     variable dout : cplx(re(W-1 downto 0),im(W-1 downto 0));
@@ -633,15 +646,43 @@ package body cplx_pkg is
     return dout;
   end function;
 
-  function cplx_zeros (
+  function zeros (
     constant W : positive range 2 to integer'high; -- RE/IM data width in bits
     constant N : positive -- number of vector elements
   ) return cplx_vector is
     variable dout : cplx_vector(1 to N)(re(W-1 downto 0),im(W-1 downto 0));
   begin
-    for i in dout'range loop dout(i):=cplx_zero(W=>W); end loop;
+    for i in dout'range loop dout(i):=zero(W=>W); end loop;
     return dout;
   end function;
+
+  function one (
+    constant W : positive range 2 to integer'high; -- RE/IM data width in bits
+    shift : natural := 0 -- optional right shift
+  ) return cplx is
+    variable dout : cplx(re(W-1 downto 0),im(W-1 downto 0));
+  begin
+    dout.rst := '0'; dout.vld := '1'; dout.ovf := '0'; dout.im := (others=>'0');
+    if shift=0 then
+      dout.re := (W-1=>'0', others=>'1');
+    else
+      dout.re := (others=>'0');
+      dout.re(W-1-shift) := '1';
+    end if;
+    return dout;
+  end function;
+
+  function ones (
+    constant W : positive range 2 to integer'high; -- RE/IM data width in bits
+    constant N : positive; -- number of vector elements
+    shift : natural := 0 -- optional right shift
+  ) return cplx_vector is
+    variable dout : cplx_vector(1 to N)(re(W-1 downto 0),im(W-1 downto 0));
+  begin
+    for i in dout'range loop dout(i):=one(W=>W, shift=>shift); end loop;
+    return dout;
+  end function;
+
 
   ------------------------------------------
   -- RESIZE
