@@ -11,7 +11,8 @@ For this reason all entities in this library do not directly include any device
 type or vendor specific code but use entities of the DSP library instead.
 
 The CPLX library includes
-* common complex record type 
+* common complex record type
+* reset values and standard constants
 * basic building blocks for complex arithmetic
 * support of rounding, clipping/saturation and overflow detection
 * abstraction layer to hide FPGA device specific DSP primitives
@@ -126,8 +127,8 @@ logic consumption and timing.
 Example: The mode "ROS" switches on data reset, overflow detection and saturation.
 
 
-RESET
-=====
+RESETS and CONSTANTS
+====================
 There are three ways of resetting.
 1. Disable reset - constantly force cplx.rst='0' in the beginning of the pipeline.
    RST will not be considered and will be optimized out.
@@ -136,22 +137,39 @@ There are three ways of resetting.
 3. Reset data and control signals -
    Same as 2.) but additionally use option 'R' to reset real and imaginary data to 0 when cplx.rst='1'.
 
-Note that the 'R' option typically increases the reset fanout since all data bit are resets. 
+Note that the 'R' option typically increases the reset fanout since all data bits are reset.
 Hence, it is recommended to use the 'R' option only if really needed.
    
-Furthermore manual resetting is always possible, i.e. not using cplx.rst but resetting the whole CPLX record.
-The functions cplx_reset() and cplx_vector_reset() are useful to generate a constant reset value. Examples:
+Furthermore, manual resetting is always possible, i.e. not using cplx.rst but resetting the whole CPLX record.
+The overloaded function reset() is useful to generate a constant reset value for the CPLX and CPLX_VECTOR types.
+Examples:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
-  signal b16 : cplx16 := cplx_reset(16,"R"); -- with RE/IM reset
-  signal vec_b16 : cplx16_vector(0 to 3) := cplx_vector_reset(16,4,"-"); -- without RE/IM reset
+  signal b16 : cplx16 := reset(16,"R"); -- with RE/IM reset
+  signal vec_b16 : cplx16_vector(0 to 3) := reset(16,4,"-"); -- without RE/IM reset
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Another possibility is to plug a reset block into the data pipeline.
+In this case the output type and length is derived from the input.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
-  dout <= cplx_reset(din,"R"); -- with RE/IM reset
-  vec_dout <= cplx_vector_reset(vec_din); -- without RE/IM reset
+  dout <= reset(din,"R"); -- with RE/IM reset
+  vec_dout <= reset(vec_din); -- without RE/IM reset
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+More functions are defined to provide standard constants.
+* **zero()** : generate CPLX type of valid (0+0j) value
+* **zeros()** : generate CPLX_VECTOR type of valid (0+0j) values
+* **one()** : generate CPLX type of valid (1+0j) value
+* **ones()** : generate CPLX_VECTOR type of valid (1+0j) values
+
+Examples:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
+  signal b16 : cplx16 := zero(16); -- RE=0x0000 and IM=0x0000
+  signal vec_b16 : cplx16_vector(0 to 3) := zeros(16,4); -- RE=0x0000 and IM=0x0000
+  b16 <= one(a16,2); -- RE=0x2000 and IM=0x0000
+  vec_b16 <= ones(vec_a16); -- RE=0x7FFF and IM=0x0000
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 

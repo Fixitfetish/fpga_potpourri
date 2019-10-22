@@ -161,21 +161,21 @@ package cplx_pkg is
   --! check if a certain option is disabled
   function "/=" (l:cplx_mode; r:cplx_option) return boolean;
 
+
   ------------------------------------------
   -- RESET and CONSTANTS
   ------------------------------------------
 
-
   --! @brief Get complex reset value.
   --! RE/IM data will be 0 with option 'R', otherwise data is do-not-care.
-  function cplx_reset (
+  function reset (
     constant W : positive range 2 to integer'high; -- RE/IM data width in bits
     m : cplx_mode:="-" -- mode, supported options: 'R'
   ) return cplx;
 
   --! @brief Get complex vector reset value.
   --! RE/IM data will be 0 with option 'R', otherwise data is do-not-care.
-  function cplx_vector_reset (
+  function reset (
     constant W : positive range 2 to integer'high; -- RE/IM data width in bits
     constant N : positive; -- number of vector elements
     m : cplx_mode:="-" -- mode, supported options: 'R'
@@ -183,14 +183,16 @@ package cplx_pkg is
 
   --! @brief Complex data reset on demand - to be placed into the data path.
   --! Forces VLD and OVF and with 'R' option also RE/IM to '0' when RST='1'.
-  function cplx_reset (
+  --! Output type and length is derived from input.
+  function reset (
     din : cplx; -- data input
     m   : cplx_mode:="-" -- mode, supported options: 'R'
   ) return cplx;
 
   --! @brief Complex data reset on demand - to be placed into the data path.
   --! Forces VLD and OVF and with 'R' option also RE/IM to '0' when RST='1'.
-  function cplx_vector_reset (
+  --! Output type and length is derived from input.
+  function reset (
     din : cplx_vector; -- data input
     m   : cplx_mode:="-" -- mode, supported options: 'R'
   ) return cplx_vector;
@@ -200,24 +202,83 @@ package cplx_pkg is
     constant W : positive range 2 to integer'high -- RE/IM data width in bits
   ) return cplx;
 
+  --! @brief Get valid complex zero (reset and overflow are '0').
+  --! Output type and length is derived from input.
+  function zero (
+    din : cplx -- data input
+  ) return cplx;
+
   --! @brief Get complex vector of all valid zeros (reset and overflow are '0').
   function zeros (
     constant W : positive range 2 to integer'high; -- RE/IM data width in bits
     constant N : positive -- number of vector elements
   ) return cplx_vector;
 
+  --! @brief Get complex vector of all valid zeros (reset and overflow are '0').
+  --! Output type and length is derived from input.
+  function zeros (
+    din : cplx_vector -- data input
+  ) return cplx_vector;
+
   --! @brief Get valid complex one, i.e. maximum positive real component (reset and overflow are '0').
+  --! Output power is P = shift * (-6.02dBfs).
   function one (
     constant W : positive range 2 to integer'high; -- RE/IM data width in bits
     shift : natural := 0 -- optional right shifts
   ) return cplx;
 
+  --! @brief Get valid complex one, i.e. maximum positive real component (reset and overflow are '0').
+  --! Output power is P = shift * (-6.02dBfs).
+  --! Output type and length is derived from input.
+  function one (
+    din : cplx; -- data input
+    shift : natural := 0 -- optional right shifts
+  ) return cplx;
+
   --! @brief Get complex vector of all valid ones, i.e. maximum positive real component (reset and overflow are '0').
+  --! Output power is P = shift * (-6.02dBfs).
   function ones (
     constant W : positive range 2 to integer'high; -- RE/IM data width in bits
     constant N : positive; -- number of vector elements
     shift : natural := 0 -- optional right shifts
   ) return cplx_vector;
+
+  --! @brief Get complex vector of all valid ones, i.e. maximum positive real component (reset and overflow are '0').
+  --! Output power is P = shift * (-6.02dBfs).
+  --! Output type and length is derived from input.
+  function ones (
+    din : cplx_vector; -- data input
+    shift : natural := 0 -- optional right shifts
+  ) return cplx_vector;
+
+
+  ---------- TODO : DELETE
+  --! @brief OBSOLETE : use cplx = reset(W,m) instead
+  function cplx_reset (
+    constant W : positive range 2 to integer'high; -- RE/IM data width in bits
+    m : cplx_mode:="-" -- mode, supported options: 'R'
+  ) return cplx;
+
+  --! @brief OBSOLETE : use cplx_vector = reset(W,N,m) instead
+  function cplx_vector_reset (
+    constant W : positive range 2 to integer'high; -- RE/IM data width in bits
+    constant N : positive; -- number of vector elements
+    m : cplx_mode:="-" -- mode, supported options: 'R'
+  ) return cplx_vector;
+
+  --! @brief OBSOLETE : use cplx = reset(cplx,m) instead
+  function cplx_reset (
+    din : cplx; -- data input
+    m   : cplx_mode:="-" -- mode, supported options: 'R'
+  ) return cplx;
+
+  --! @brief OBSOLETE : use cplx_vector = reset(cplx_vector,m) instead
+  function cplx_vector_reset (
+    din : cplx_vector; -- data input
+    m   : cplx_mode:="-" -- mode, supported options: 'R'
+  ) return cplx_vector;
+  ---------- end DELETE
+
 
   ------------------------------------------
   -- RESIZE
@@ -227,8 +288,8 @@ package cplx_pkg is
   --! Supported options: 'R', 'O', 'X' and/or 'S'
   function resize(
     din : cplx; -- data input
-    w   : positive range 2 to integer'high; -- output bit width
-    m   : cplx_mode:="-" -- mode, supported options: 'R', 'O', 'X' and/or 'S'
+    constant w : positive range 2 to integer'high; -- output bit width
+    m : cplx_mode:="-" -- mode, supported options: 'R', 'O', 'X' and/or 'S'
   ) return cplx;
 
   --! @brief Resize to size of connected output.
@@ -243,8 +304,8 @@ package cplx_pkg is
   --! Supported options: 'R', 'O', 'X' and/or 'S'
   function resize (
     din : cplx_vector; -- data input vector
-    w   : positive range 2 to integer'high; -- output bit width
-    m   : cplx_mode:="-" -- mode, supported options: 'R', 'O', 'X and/or 'S'
+    constant w : positive range 2 to integer'high; -- output bit width
+    m : cplx_mode:="-" -- mode, supported options: 'R', 'O', 'X and/or 'S'
   ) return cplx_vector;
 
   ------------------------------------------
@@ -266,16 +327,16 @@ package cplx_pkg is
   --! w>0 : output bit width is w (includes resize)
   -- supported options: 'R', 'O' and/or 'S'
   function conj (
-    din  : cplx; -- data input
-    w    : natural:=0; -- output bit width
-    m    : cplx_mode:="-" -- mode, supported options: 'R', 'O', 'X' and/or 'S'
+    din : cplx; -- data input
+    constant w : natural:=0; -- output bit width
+    m : cplx_mode:="-" -- mode, supported options: 'R', 'O', 'X' and/or 'S'
   ) return cplx;
 
   --! @brief Complex vector conjugate.
   function conj (
-    din  : cplx_vector; -- data input
-    w    : natural:=0; -- output bit width
-    m    : cplx_mode:="-" -- mode, supported options: 'R', 'O', 'X' and/or 'S'
+    din : cplx_vector; -- data input
+    constant w : natural:=0; -- output bit width
+    m : cplx_mode:="-" -- mode, supported options: 'R', 'O', 'X' and/or 'S'
   ) return cplx_vector;
 
   --! @brief Swap real and imaginary components.
@@ -585,7 +646,7 @@ package body cplx_pkg is
   -- RESET
   ------------------------------------------
 
-  function cplx_reset (
+  function reset (
     constant W : positive range 2 to integer'high; -- data RE/IM width in bits
     m : cplx_mode:="-" -- mode, supported options: 'R'
   ) return cplx is
@@ -602,7 +663,7 @@ package body cplx_pkg is
     return dout;
   end function;
 
-  function cplx_vector_reset (
+  function reset (
     constant W : positive range 2 to integer'high; -- data RE/IM width in bits
     constant N : positive; -- number of vector elements
     m : cplx_mode:="-" -- mode, supported options: 'R'
@@ -613,7 +674,7 @@ package body cplx_pkg is
     return dout;
   end function;
 
-  function cplx_reset (din:cplx; m:cplx_mode:="-") return cplx is
+  function reset (din:cplx; m:cplx_mode:="-") return cplx is
     variable dout : cplx(re(din.re'range),im(din.im'range));
   begin
     dout := din; -- by default output = input
@@ -625,7 +686,7 @@ package body cplx_pkg is
     return dout;
   end function;
 
-  function cplx_vector_reset (
+  function reset (
     din : cplx_vector; -- data input
     m   : cplx_mode:="-" -- mode, supported options: 'R'
   ) return cplx_vector is
@@ -658,13 +719,14 @@ package body cplx_pkg is
 
   function one (
     constant W : positive range 2 to integer'high; -- RE/IM data width in bits
-    shift : natural := 0 -- optional right shift
+    shift : natural := 0 -- optional right shifts
   ) return cplx is
     variable dout : cplx(re(W-1 downto 0),im(W-1 downto 0));
   begin
     dout.rst := '0'; dout.vld := '1'; dout.ovf := '0'; dout.im := (others=>'0');
     if shift=0 then
-      dout.re := (W-1=>'0', others=>'1');
+      dout.re := (others=>'1');
+      dout.re(W-1) := '0';
     else
       dout.re := (others=>'0');
       dout.re(W-1-shift) := '1';
@@ -675,13 +737,40 @@ package body cplx_pkg is
   function ones (
     constant W : positive range 2 to integer'high; -- RE/IM data width in bits
     constant N : positive; -- number of vector elements
-    shift : natural := 0 -- optional right shift
+    shift : natural := 0 -- optional right shifts
   ) return cplx_vector is
     variable dout : cplx_vector(1 to N)(re(W-1 downto 0),im(W-1 downto 0));
   begin
     for i in dout'range loop dout(i):=one(W=>W, shift=>shift); end loop;
     return dout;
   end function;
+
+  ---------- TODO : DELETE
+  function cplx_reset (
+    constant W : positive range 2 to integer'high; -- RE/IM data width in bits
+    m : cplx_mode:="-" -- mode, supported options: 'R'
+  ) return cplx is
+  begin  return reset(W,m);  end function;
+
+  function cplx_vector_reset (
+    constant W : positive range 2 to integer'high; -- RE/IM data width in bits
+    constant N : positive; -- number of vector elements
+    m : cplx_mode:="-" -- mode, supported options: 'R'
+  ) return cplx_vector is
+  begin  return reset(W,N,m);  end function;
+
+  function cplx_reset (
+    din : cplx; -- data input
+    m   : cplx_mode:="-" -- mode, supported options: 'R'
+  ) return cplx is
+  begin  return reset(din,m);  end function;
+
+  function cplx_vector_reset (
+    din : cplx_vector; -- data input
+    m   : cplx_mode:="-" -- mode, supported options: 'R'
+  ) return cplx_vector is
+  begin  return reset(din,m);  end function;
+  ---------- end DELETE
 
 
   ------------------------------------------
@@ -690,8 +779,8 @@ package body cplx_pkg is
 
   function resize (
     din : cplx; -- data input
-    w   : positive range 2 to integer'high; -- output bit width
-    m   : cplx_mode:="-" -- mode, supported options: 'R','O', 'X' and/or 'S'
+    constant w : positive range 2 to integer'high; -- output bit width
+    m : cplx_mode:="-" -- mode, supported options: 'R','O', 'X' and/or 'S'
   ) return cplx is
     variable ovf_re, ovf_im : std_logic;
     variable dout : cplx(re(w-1 downto 0),im(w-1 downto 0));
@@ -722,8 +811,8 @@ package body cplx_pkg is
 
   function resize (
     din : cplx_vector; -- data input vector
-    w   : positive range 2 to integer'high; -- output bit width
-    m   : cplx_mode:="-" -- mode, supported options: 'R','O', 'X' and/or 'S'
+    constant w : positive range 2 to integer'high; -- output bit width
+    m : cplx_mode:="-" -- mode, supported options: 'R','O', 'X' and/or 'S'
   ) return cplx_vector is
     variable dout : cplx_vector(din'range)(re(w-1 downto 0),im(w-1 downto 0));
   begin
@@ -763,9 +852,9 @@ package body cplx_pkg is
 
   -- complex conjugate
   function conj (
-    din  : cplx; -- data input
-    w    : natural:=0; -- output bit width 
-    m    : cplx_mode:="-" -- mode, supported options: 'R', 'O', 'X' and/or 'S'
+    din : cplx; -- data input
+    constant w : natural:=0; -- output bit width 
+    m : cplx_mode:="-" -- mode, supported options: 'R', 'O', 'X' and/or 'S'
   ) return cplx is
     variable ovf_re, ovf_im : std_logic;
     constant LIN_RE : positive := din.re'length;
@@ -788,8 +877,8 @@ package body cplx_pkg is
   -- complex conjugate (vector)
   function conj (
     din : cplx_vector; -- data input vector
-    w   : natural:=0; -- output bit width 
-    m   : cplx_mode:="-" -- mode, supported options: 'R','O' and/or 'S'
+    constant w : natural:=0; -- output bit width 
+    m : cplx_mode:="-" -- mode, supported options: 'R','O' and/or 'S'
   ) return cplx_vector is
     constant LIN_RE : positive := din(din'left).re'length;
     constant LIN_IM : positive := din(din'left).im'length;
