@@ -162,7 +162,7 @@ package cplx_pkg is
   function "/=" (l:cplx_mode; r:cplx_option) return boolean;
 
   ------------------------------------------
-  -- RESET
+  -- RESET and CONSTANTS
   ------------------------------------------
 
 
