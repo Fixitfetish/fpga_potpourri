@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_pkg_2008.vhdl
 --! @author     Fixitfetish
---! @date       21/Oct/2019
---! @version    1.40
+--! @date       23/Oct/2019
+--! @version    1.41
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -40,76 +40,8 @@ package cplx_pkg is
     im  : signed; --! data imaginary component ("downto" direction assumed)
   end record;
 
-  subtype cplx4  is cplx(re( 3 downto 0), im( 3 downto 0));
-  subtype cplx5  is cplx(re( 4 downto 0), im( 4 downto 0));
-  subtype cplx6  is cplx(re( 5 downto 0), im( 5 downto 0));
-  subtype cplx7  is cplx(re( 6 downto 0), im( 6 downto 0));
-  subtype cplx8  is cplx(re( 7 downto 0), im( 7 downto 0));
-  subtype cplx9  is cplx(re( 8 downto 0), im( 8 downto 0));
-  subtype cplx10 is cplx(re( 9 downto 0), im( 9 downto 0));
-  subtype cplx11 is cplx(re(10 downto 0), im(10 downto 0));
-  subtype cplx12 is cplx(re(11 downto 0), im(11 downto 0));
-  subtype cplx13 is cplx(re(12 downto 0), im(12 downto 0));
-  subtype cplx14 is cplx(re(13 downto 0), im(13 downto 0));
-  subtype cplx15 is cplx(re(14 downto 0), im(14 downto 0));
-  subtype cplx16 is cplx(re(15 downto 0), im(15 downto 0));
-  subtype cplx17 is cplx(re(16 downto 0), im(16 downto 0));
-  subtype cplx18 is cplx(re(17 downto 0), im(17 downto 0));
-  subtype cplx19 is cplx(re(18 downto 0), im(18 downto 0));
-  subtype cplx20 is cplx(re(19 downto 0), im(19 downto 0));
-  subtype cplx21 is cplx(re(20 downto 0), im(20 downto 0));
-  subtype cplx22 is cplx(re(21 downto 0), im(21 downto 0));
-  subtype cplx23 is cplx(re(22 downto 0), im(22 downto 0));
-  subtype cplx24 is cplx(re(23 downto 0), im(23 downto 0));
-  subtype cplx25 is cplx(re(24 downto 0), im(24 downto 0));
-  subtype cplx26 is cplx(re(25 downto 0), im(25 downto 0));
-  subtype cplx27 is cplx(re(26 downto 0), im(26 downto 0));
-  subtype cplx28 is cplx(re(27 downto 0), im(27 downto 0));
-  subtype cplx29 is cplx(re(28 downto 0), im(28 downto 0));
-  subtype cplx30 is cplx(re(29 downto 0), im(29 downto 0));
-  subtype cplx31 is cplx(re(30 downto 0), im(30 downto 0));
-  subtype cplx32 is cplx(re(31 downto 0), im(31 downto 0));
-  subtype cplx33 is cplx(re(32 downto 0), im(32 downto 0));
-  subtype cplx34 is cplx(re(33 downto 0), im(33 downto 0));
-  subtype cplx35 is cplx(re(34 downto 0), im(34 downto 0));
-  subtype cplx36 is cplx(re(35 downto 0), im(35 downto 0));
-
   --! General unconstrained complex vector type (preferably "to" direction)
   type cplx_vector is array(integer range <>) of cplx;
-
-  subtype cplx4_vector  is cplx_vector(open)(re( 3 downto 0), im( 3 downto 0));
-  subtype cplx5_vector  is cplx_vector(open)(re( 4 downto 0), im( 4 downto 0));
-  subtype cplx6_vector  is cplx_vector(open)(re( 5 downto 0), im( 5 downto 0));
-  subtype cplx7_vector  is cplx_vector(open)(re( 6 downto 0), im( 6 downto 0));
-  subtype cplx8_vector  is cplx_vector(open)(re( 7 downto 0), im( 7 downto 0));
-  subtype cplx9_vector  is cplx_vector(open)(re( 8 downto 0), im( 8 downto 0));
-  subtype cplx10_vector is cplx_vector(open)(re( 9 downto 0), im( 9 downto 0));
-  subtype cplx11_vector is cplx_vector(open)(re(10 downto 0), im(10 downto 0));
-  subtype cplx12_vector is cplx_vector(open)(re(11 downto 0), im(11 downto 0));
-  subtype cplx13_vector is cplx_vector(open)(re(12 downto 0), im(12 downto 0));
-  subtype cplx14_vector is cplx_vector(open)(re(13 downto 0), im(13 downto 0));
-  subtype cplx15_vector is cplx_vector(open)(re(14 downto 0), im(14 downto 0));
-  subtype cplx16_vector is cplx_vector(open)(re(15 downto 0), im(15 downto 0));
-  subtype cplx17_vector is cplx_vector(open)(re(16 downto 0), im(16 downto 0));
-  subtype cplx18_vector is cplx_vector(open)(re(17 downto 0), im(17 downto 0));
-  subtype cplx19_vector is cplx_vector(open)(re(18 downto 0), im(18 downto 0));
-  subtype cplx20_vector is cplx_vector(open)(re(19 downto 0), im(19 downto 0));
-  subtype cplx21_vector is cplx_vector(open)(re(20 downto 0), im(20 downto 0));
-  subtype cplx22_vector is cplx_vector(open)(re(21 downto 0), im(21 downto 0));
-  subtype cplx23_vector is cplx_vector(open)(re(22 downto 0), im(22 downto 0));
-  subtype cplx24_vector is cplx_vector(open)(re(23 downto 0), im(23 downto 0));
-  subtype cplx25_vector is cplx_vector(open)(re(24 downto 0), im(24 downto 0));
-  subtype cplx26_vector is cplx_vector(open)(re(25 downto 0), im(25 downto 0));
-  subtype cplx27_vector is cplx_vector(open)(re(26 downto 0), im(26 downto 0));
-  subtype cplx28_vector is cplx_vector(open)(re(27 downto 0), im(27 downto 0));
-  subtype cplx29_vector is cplx_vector(open)(re(28 downto 0), im(28 downto 0));
-  subtype cplx30_vector is cplx_vector(open)(re(29 downto 0), im(29 downto 0));
-  subtype cplx31_vector is cplx_vector(open)(re(30 downto 0), im(30 downto 0));
-  subtype cplx32_vector is cplx_vector(open)(re(31 downto 0), im(31 downto 0));
-  subtype cplx33_vector is cplx_vector(open)(re(32 downto 0), im(32 downto 0));
-  subtype cplx34_vector is cplx_vector(open)(re(33 downto 0), im(33 downto 0));
-  subtype cplx35_vector is cplx_vector(open)(re(34 downto 0), im(34 downto 0));
-  subtype cplx36_vector is cplx_vector(open)(re(35 downto 0), im(35 downto 0));
 
   --! Definition of options
   type cplx_option is (
@@ -150,6 +82,74 @@ package cplx_pkg is
   --! flag only reports overflows that occur within the module. Note that
   --! ignoring the input overflows can save a little bit of logic.
   type cplx_mode is array(integer range <>) of cplx_option;
+
+  subtype cplx4  is cplx(re( 3 downto 0), im( 3 downto 0));
+  subtype cplx5  is cplx(re( 4 downto 0), im( 4 downto 0));
+  subtype cplx6  is cplx(re( 5 downto 0), im( 5 downto 0));
+  subtype cplx7  is cplx(re( 6 downto 0), im( 6 downto 0));
+  subtype cplx8  is cplx(re( 7 downto 0), im( 7 downto 0));
+  subtype cplx9  is cplx(re( 8 downto 0), im( 8 downto 0));
+  subtype cplx10 is cplx(re( 9 downto 0), im( 9 downto 0));
+  subtype cplx11 is cplx(re(10 downto 0), im(10 downto 0));
+  subtype cplx12 is cplx(re(11 downto 0), im(11 downto 0));
+  subtype cplx13 is cplx(re(12 downto 0), im(12 downto 0));
+  subtype cplx14 is cplx(re(13 downto 0), im(13 downto 0));
+  subtype cplx15 is cplx(re(14 downto 0), im(14 downto 0));
+  subtype cplx16 is cplx(re(15 downto 0), im(15 downto 0));
+  subtype cplx17 is cplx(re(16 downto 0), im(16 downto 0));
+  subtype cplx18 is cplx(re(17 downto 0), im(17 downto 0));
+  subtype cplx19 is cplx(re(18 downto 0), im(18 downto 0));
+  subtype cplx20 is cplx(re(19 downto 0), im(19 downto 0));
+  subtype cplx21 is cplx(re(20 downto 0), im(20 downto 0));
+  subtype cplx22 is cplx(re(21 downto 0), im(21 downto 0));
+  subtype cplx23 is cplx(re(22 downto 0), im(22 downto 0));
+  subtype cplx24 is cplx(re(23 downto 0), im(23 downto 0));
+  subtype cplx25 is cplx(re(24 downto 0), im(24 downto 0));
+  subtype cplx26 is cplx(re(25 downto 0), im(25 downto 0));
+  subtype cplx27 is cplx(re(26 downto 0), im(26 downto 0));
+  subtype cplx28 is cplx(re(27 downto 0), im(27 downto 0));
+  subtype cplx29 is cplx(re(28 downto 0), im(28 downto 0));
+  subtype cplx30 is cplx(re(29 downto 0), im(29 downto 0));
+  subtype cplx31 is cplx(re(30 downto 0), im(30 downto 0));
+  subtype cplx32 is cplx(re(31 downto 0), im(31 downto 0));
+  subtype cplx33 is cplx(re(32 downto 0), im(32 downto 0));
+  subtype cplx34 is cplx(re(33 downto 0), im(33 downto 0));
+  subtype cplx35 is cplx(re(34 downto 0), im(34 downto 0));
+  subtype cplx36 is cplx(re(35 downto 0), im(35 downto 0));
+
+  subtype cplx4_vector  is cplx_vector(open)(re( 3 downto 0), im( 3 downto 0));
+  subtype cplx5_vector  is cplx_vector(open)(re( 4 downto 0), im( 4 downto 0));
+  subtype cplx6_vector  is cplx_vector(open)(re( 5 downto 0), im( 5 downto 0));
+  subtype cplx7_vector  is cplx_vector(open)(re( 6 downto 0), im( 6 downto 0));
+  subtype cplx8_vector  is cplx_vector(open)(re( 7 downto 0), im( 7 downto 0));
+  subtype cplx9_vector  is cplx_vector(open)(re( 8 downto 0), im( 8 downto 0));
+  subtype cplx10_vector is cplx_vector(open)(re( 9 downto 0), im( 9 downto 0));
+  subtype cplx11_vector is cplx_vector(open)(re(10 downto 0), im(10 downto 0));
+  subtype cplx12_vector is cplx_vector(open)(re(11 downto 0), im(11 downto 0));
+  subtype cplx13_vector is cplx_vector(open)(re(12 downto 0), im(12 downto 0));
+  subtype cplx14_vector is cplx_vector(open)(re(13 downto 0), im(13 downto 0));
+  subtype cplx15_vector is cplx_vector(open)(re(14 downto 0), im(14 downto 0));
+  subtype cplx16_vector is cplx_vector(open)(re(15 downto 0), im(15 downto 0));
+  subtype cplx17_vector is cplx_vector(open)(re(16 downto 0), im(16 downto 0));
+  subtype cplx18_vector is cplx_vector(open)(re(17 downto 0), im(17 downto 0));
+  subtype cplx19_vector is cplx_vector(open)(re(18 downto 0), im(18 downto 0));
+  subtype cplx20_vector is cplx_vector(open)(re(19 downto 0), im(19 downto 0));
+  subtype cplx21_vector is cplx_vector(open)(re(20 downto 0), im(20 downto 0));
+  subtype cplx22_vector is cplx_vector(open)(re(21 downto 0), im(21 downto 0));
+  subtype cplx23_vector is cplx_vector(open)(re(22 downto 0), im(22 downto 0));
+  subtype cplx24_vector is cplx_vector(open)(re(23 downto 0), im(23 downto 0));
+  subtype cplx25_vector is cplx_vector(open)(re(24 downto 0), im(24 downto 0));
+  subtype cplx26_vector is cplx_vector(open)(re(25 downto 0), im(25 downto 0));
+  subtype cplx27_vector is cplx_vector(open)(re(26 downto 0), im(26 downto 0));
+  subtype cplx28_vector is cplx_vector(open)(re(27 downto 0), im(27 downto 0));
+  subtype cplx29_vector is cplx_vector(open)(re(28 downto 0), im(28 downto 0));
+  subtype cplx30_vector is cplx_vector(open)(re(29 downto 0), im(29 downto 0));
+  subtype cplx31_vector is cplx_vector(open)(re(30 downto 0), im(30 downto 0));
+  subtype cplx32_vector is cplx_vector(open)(re(31 downto 0), im(31 downto 0));
+  subtype cplx33_vector is cplx_vector(open)(re(32 downto 0), im(32 downto 0));
+  subtype cplx34_vector is cplx_vector(open)(re(33 downto 0), im(33 downto 0));
+  subtype cplx35_vector is cplx_vector(open)(re(34 downto 0), im(34 downto 0));
+  subtype cplx36_vector is cplx_vector(open)(re(35 downto 0), im(35 downto 0));
 
   ------------------------------------------
   -- auxiliary
@@ -198,21 +198,15 @@ package cplx_pkg is
   ) return cplx_vector;
 
   --! @brief Get valid complex zero (reset and overflow are '0').
-  function zero (
-    constant W : positive range 2 to integer'high -- RE/IM data width in bits
-  ) return cplx;
-
-  --! @brief Get valid complex zero (reset and overflow are '0').
   --! Output type and length is derived from input.
   function zero (
     din : cplx -- data input
   ) return cplx;
 
-  --! @brief Get complex vector of all valid zeros (reset and overflow are '0').
-  function zeros (
-    constant W : positive range 2 to integer'high; -- RE/IM data width in bits
-    constant N : positive -- number of vector elements
-  ) return cplx_vector;
+  --! @brief Get valid complex zero (reset and overflow are '0').
+  function zero (
+    constant W : positive range 2 to integer'high -- RE/IM data width in bits
+  ) return cplx;
 
   --! @brief Get complex vector of all valid zeros (reset and overflow are '0').
   --! Output type and length is derived from input.
@@ -220,12 +214,11 @@ package cplx_pkg is
     din : cplx_vector -- data input
   ) return cplx_vector;
 
-  --! @brief Get valid complex one, i.e. maximum positive real component (reset and overflow are '0').
-  --! Output power is P = shift * (-6.02dBfs).
-  function one (
+  --! @brief Get complex vector of all valid zeros (reset and overflow are '0').
+  function zeros (
     constant W : positive range 2 to integer'high; -- RE/IM data width in bits
-    shift : natural := 0 -- optional right shifts
-  ) return cplx;
+    constant N : positive -- number of vector elements
+  ) return cplx_vector;
 
   --! @brief Get valid complex one, i.e. maximum positive real component (reset and overflow are '0').
   --! Output power is P = shift * (-6.02dBfs).
@@ -235,19 +228,26 @@ package cplx_pkg is
     shift : natural := 0 -- optional right shifts
   ) return cplx;
 
-  --! @brief Get complex vector of all valid ones, i.e. maximum positive real component (reset and overflow are '0').
+  --! @brief Get valid complex one, i.e. maximum positive real component (reset and overflow are '0').
   --! Output power is P = shift * (-6.02dBfs).
-  function ones (
+  function one (
     constant W : positive range 2 to integer'high; -- RE/IM data width in bits
-    constant N : positive; -- number of vector elements
     shift : natural := 0 -- optional right shifts
-  ) return cplx_vector;
+  ) return cplx;
 
   --! @brief Get complex vector of all valid ones, i.e. maximum positive real component (reset and overflow are '0').
   --! Output power is P = shift * (-6.02dBfs).
   --! Output type and length is derived from input.
   function ones (
     din : cplx_vector; -- data input
+    shift : natural := 0 -- optional right shifts
+  ) return cplx_vector;
+
+  --! @brief Get complex vector of all valid ones, i.e. maximum positive real component (reset and overflow are '0').
+  --! Output power is P = shift * (-6.02dBfs).
+  function ones (
+    constant W : positive range 2 to integer'high; -- RE/IM data width in bits
+    constant N : positive; -- number of vector elements
     shift : natural := 0 -- optional right shifts
   ) return cplx_vector;
 
@@ -697,13 +697,32 @@ package body cplx_pkg is
   end function;
 
   function zero (
-    constant W : positive range 2 to integer'high -- RE/IM data width in bits
+    din : cplx -- data input
   ) return cplx is
-    variable dout : cplx(re(W-1 downto 0),im(W-1 downto 0));
+--    variable dout : din'subtype; -- does not work with "others" below - why?
+    variable dout : cplx(re(din.re'range),im(din.im'range));
   begin
     dout.rst := '0'; dout.vld := '1'; dout.ovf := '0';
     dout.re := (others=>'0'); dout.im := (others=>'0');
 --    dout := (vld=>'1', rst|ovf=>'0', re|im=>(others=>'0')); -- not supported by all tools
+    return dout;
+  end function;
+
+  function zero (
+    constant W : positive range 2 to integer'high -- RE/IM data width in bits
+  ) return cplx is
+    variable dout : cplx(re(W-1 downto 0),im(W-1 downto 0));
+  begin
+    dout := zero(din=>dout);
+    return dout;
+  end function;
+
+  function zeros (
+    din : cplx_vector -- data input
+  ) return cplx_vector is
+    variable dout : cplx_vector(din'range)(re(din(din'left).re'range),im(din(din'left).im'range));
+  begin
+    for i in din'range loop dout(i):=zero(din(i)); end loop;
     return dout;
   end function;
 
@@ -713,7 +732,25 @@ package body cplx_pkg is
   ) return cplx_vector is
     variable dout : cplx_vector(1 to N)(re(W-1 downto 0),im(W-1 downto 0));
   begin
-    for i in dout'range loop dout(i):=zero(W=>W); end loop;
+    dout := zeros(din=>dout);
+    return dout;
+  end function;
+
+  function one (
+    din : cplx; -- data input
+    shift : natural := 0 -- optional right shifts
+  ) return cplx is
+    constant MSB : integer := din.re'left;
+    variable dout : cplx(re(din.re'range),im(din.im'range));
+  begin
+    dout.rst := '0'; dout.vld := '1'; dout.ovf := '0'; dout.im := (others=>'0');
+    if shift=0 then
+      dout.re := (others=>'1');
+      dout.re(MSB) := '0';
+    else
+      dout.re := (others=>'0');
+      dout.re(MSB-shift) := '1';
+    end if;
     return dout;
   end function;
 
@@ -723,14 +760,17 @@ package body cplx_pkg is
   ) return cplx is
     variable dout : cplx(re(W-1 downto 0),im(W-1 downto 0));
   begin
-    dout.rst := '0'; dout.vld := '1'; dout.ovf := '0'; dout.im := (others=>'0');
-    if shift=0 then
-      dout.re := (others=>'1');
-      dout.re(W-1) := '0';
-    else
-      dout.re := (others=>'0');
-      dout.re(W-1-shift) := '1';
-    end if;
+    dout := one(din=>dout, shift=>shift);
+    return dout;
+  end function;
+
+  function ones (
+    din : cplx_vector; -- data input
+    shift : natural := 0 -- optional right shifts
+  ) return cplx_vector is
+    variable dout : cplx_vector(din'range)(re(din(din'left).re'range),im(din(din'left).im'range));
+  begin
+    for i in din'range loop dout(i):=one(din(i),shift); end loop;
     return dout;
   end function;
 
@@ -741,9 +781,10 @@ package body cplx_pkg is
   ) return cplx_vector is
     variable dout : cplx_vector(1 to N)(re(W-1 downto 0),im(W-1 downto 0));
   begin
-    for i in dout'range loop dout(i):=one(W=>W, shift=>shift); end loop;
+    dout := ones(din=>dout, shift=>shift);
     return dout;
   end function;
+
 
   ---------- TODO : DELETE
   function cplx_reset (
@@ -993,14 +1034,12 @@ package body cplx_pkg is
     constant LVEC : positive := din'length; -- vector length
     constant LIN : positive := MAXIMUM(din(din'left).re'length,din(din'left).im'length); -- default output bit width
     constant LOUT : positive := default_if_zero(w, dflt=>LIN); -- final output bit width
-    alias xdin : cplx_vector(1 to LVEC)(re(LIN-1 downto 0),im(LIN-1 downto 0)) is din; -- default range
     constant T : positive := LIN + LOG2CEIL(LVEC); -- width including additional accumulation bits
-    variable temp : cplx(re(T-1 downto 0),im(T-1 downto 0));
+    variable temp : cplx(re(T-1 downto 0),im(T-1 downto 0)) := zero(T);
   begin
-    temp := resize(din=>xdin(1), w=>LIN); -- mode irrelevant, do not set any options here! 
-    if LVEC>1 then
-      for i in 2 to LVEC loop temp:=temp+xdin(i); end loop;
-    end if;
+    for i in din'range loop 
+      temp := temp + din(i);
+    end loop;
     return resize(din=>temp, w=>LOUT, m=>m);
   end function;
 
