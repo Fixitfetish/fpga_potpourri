@@ -255,8 +255,8 @@ package cplx_pkg is
   --! @brief Convert polar into cartesian (complex) coordinates.
   function polar_to_cplx (
     constant W : positive range 2 to integer'high; -- required RE/IM data width in bits
-    constant R : std.standard.real; -- radial coordinate / amplitude, range 0.0 to 1.0 (0 dBfs)
-    constant PHI : std.standard.real -- angular coordinate / angle in degrees
+    constant R : std.standard.real := 1.0; -- radial coordinate / amplitude, range 0.0 to 1.0 (0 dBfs)
+    constant PHI : std.standard.real := 0.0 -- angular coordinate / angle in degrees
   ) return cplx;
 
 
@@ -795,8 +795,8 @@ package body cplx_pkg is
 
   function polar_to_cplx (
     constant W : positive range 2 to integer'high; -- required RE/IM data width in bits
-    constant R : std.standard.real; -- radial coordinate / amplitude, range 0.0 to 1.0 (0 dBfs)
-    constant PHI : std.standard.real -- angular coordinate / angle in degrees
+    constant R : std.standard.real := 1.0; -- radial coordinate / amplitude, range 0.0 to 1.0 (0 dBfs)
+    constant PHI : std.standard.real := 0.0 -- angular coordinate / angle in degrees
   ) return cplx is
     constant RMAX : std.standard.real := R * std.standard.real(2**(W-1));
     variable temp : cplx(re(W downto 0),im(W downto 0)) := zero(W+1);
