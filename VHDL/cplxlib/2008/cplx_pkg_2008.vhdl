@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_pkg_2008.vhdl
 --! @author     Fixitfetish
---! @date       23/Oct/2019
---! @version    1.41
+--! @date       24/Oct/2019
+--! @version    1.42
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -10,6 +10,7 @@
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
+  use ieee.math_real.all;
 library baselib;
   use baselib.ieee_extension.all;
   use baselib.ieee_extension_types.all;
@@ -250,6 +251,13 @@ package cplx_pkg is
     constant N : positive; -- number of vector elements
     shift : natural := 0 -- optional right shifts
   ) return cplx_vector;
+
+  --! @brief Convert polar into cartesian (complex) coordinates.
+  function polar_to_cplx (
+    constant W : positive range 2 to integer'high; -- required RE/IM data width in bits
+    constant R : std.standard.real; -- radial coordinate / amplitude, range 0.0 to 1.0 (0 dBfs)
+    constant PHI : std.standard.real -- angular coordinate / angle in degrees
+  ) return cplx;
 
 
   ---------- TODO : DELETE
@@ -534,7 +542,7 @@ package cplx_pkg is
 
   --! @brief Convert SLV to cplx, L = SLV'length must be even.
   --! real = L/2 LSBs, imaginary = L/2 MSBs.
-  --! Use swap() before conversion to have imaginary part in LSBs.
+  --! Use swap() after conversion if imaginary part is in LSBs of SLV : swap(to_cplx(slv,vld,rst)) .
   function to_cplx (
     slv : std_logic_vector; -- data input
     vld : std_logic; -- data valid
@@ -543,7 +551,7 @@ package cplx_pkg is
 
   --! @brief Convert SLV to cplx_vector, L = SLV'length must be a multiple of 2*n .
   --! L/n bits per vector element : real = L/n/2 LSBs, imaginary = L/n/2 MSBs .
-  --! Use swap() before conversion to have imaginary part in LSBs.
+  --! Use swap() after conversion if imaginary part is in LSBs of SLV : swap(to_cplx_vector(slv,n,vld,rst)) .
   function to_cplx_vector (
     slv : std_logic_vector; -- data input vector
     n   : positive; -- number of required vector elements
@@ -557,7 +565,7 @@ package cplx_pkg is
 
   --! @brief Convert cplx to SLV, real=LSBs, imaginary=MSBs.
   --! Output length = din.re'length + din.im'length .
-  --! Use swap() after conversion if imaginary part is in LSBs of SLV.
+  --! Use swap() before conversion to have imaginary part in LSBs of SLV : to_slv(swap(din),m) .
   --! Supported options: 'R'
   function to_slv(
     din : cplx;
@@ -566,7 +574,7 @@ package cplx_pkg is
 
   --! @brief Convert cplx_vector to SLV (real=LSBs, imaginary=MSBs per vector element).
   --! Output length = din'length * (din.re'length + din.im'length).
-  --! Use swap() after conversion if imaginary part is in LSBs of SLV.
+  --! Use swap() before conversion to have imaginary part in LSBs of SLV : to_slv(swap(din),m) .
   --! Supported options: 'R'
   function to_slv(
     din : cplx_vector;
@@ -783,6 +791,22 @@ package body cplx_pkg is
   begin
     dout := ones(din=>dout, shift=>shift);
     return dout;
+  end function;
+
+  function polar_to_cplx (
+    constant W : positive range 2 to integer'high; -- required RE/IM data width in bits
+    constant R : std.standard.real; -- radial coordinate / amplitude, range 0.0 to 1.0 (0 dBfs)
+    constant PHI : std.standard.real -- angular coordinate / angle in degrees
+  ) return cplx is
+    constant RMAX : std.standard.real := R * std.standard.real(2**(W-1));
+    variable temp : cplx(re(W downto 0),im(W downto 0)) := zero(W+1);
+  begin
+    assert (R>=0.0 and R<=1.0)
+      report "polar_to_cplx : Input radial coordinate R must be in range 0.0 to 1.0 ."
+      severity failure;
+    temp.re := to_signed(integer(RMAX*cos(PHI*MATH_DEG_TO_RAD)),W+1);
+    temp.im := to_signed(integer(RMAX*sin(PHI*MATH_DEG_TO_RAD)),W+1);
+    return resize(temp,W,"S");
   end function;
 
 
