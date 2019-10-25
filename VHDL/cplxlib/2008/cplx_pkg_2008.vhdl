@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_pkg_2008.vhdl
 --! @author     Fixitfetish
---! @date       24/Oct/2019
---! @version    1.42
+--! @date       25/Oct/2019
+--! @version    1.43
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -252,13 +252,37 @@ package cplx_pkg is
     shift : natural := 0 -- optional right shifts
   ) return cplx_vector;
 
-  --! @brief Convert polar into cartesian (complex) coordinates.
+  --! @brief Generate complex constant by converting polar into cartesian (complex) coordinates.
+  --! * Example 1: cplx8  = polar_to_cplx(8) generates (1+0j) or (32767+0j)
+  --! * Example 2: cplx12 = polar_to_cplx(12,0.0) generates (0+0j) or (0+0j)
+  --! * Example 3: cplx16 = polar_to_cplx(16,0.5,90.0) generates (0+0.5j) or (0+16384j)
   function polar_to_cplx (
     constant W : positive range 2 to integer'high; -- required RE/IM data width in bits
     constant R : std.standard.real := 1.0; -- radial coordinate / amplitude, range 0.0 to 1.0 (0 dBfs)
-    constant PHI : std.standard.real := 0.0 -- angular coordinate / angle in degrees
+    constant PHI : std.standard.real := 0.0; -- angular coordinate / angle in degree or radian
+    constant DEG : boolean := true -- by default angle PHI is given in degrees, otherwise in radian
   ) return cplx;
 
+  function polar_to_cplx (
+    constant W : positive range 2 to integer'high; -- required RE/IM data width in bits
+    constant R : std.standard.real := 1.0; -- radial coordinate / amplitude, range 0.0 to 1.0 (0 dBfs)
+    constant PHI : std.standard.real_vector; -- vector of angular coordinates / angle in degree or radian
+    constant DEG : boolean := true -- by default angle PHI is given in degrees, otherwise in radian
+  ) return cplx_vector;
+
+  function polar_to_cplx (
+    constant W : positive range 2 to integer'high; -- required RE/IM data width in bits
+    constant R : std.standard.real_vector; -- vector of radial coordinates / amplitude, range 0.0 to 1.0 (0 dBfs)
+    constant PHI : std.standard.real := 0.0; -- angular coordinate / angle in degree or radian
+    constant DEG : boolean := true -- by default angle PHI is given in degrees, otherwise in radian
+  ) return cplx_vector;
+
+  function polar_to_cplx (
+    constant W : positive range 2 to integer'high; -- required RE/IM data width in bits
+    constant R : std.standard.real_vector; -- vector of radial coordinates / amplitude, range 0.0 to 1.0 (0 dBfs)
+    constant PHI : std.standard.real_vector; -- vector of angular coordinates / angle in degree or radian
+    constant DEG : boolean := true -- by default angle PHI is given in degrees, otherwise in radian
+  ) return cplx_vector;
 
   ---------- TODO : DELETE
   --! @brief OBSOLETE : use cplx = reset(W,m) instead
@@ -796,7 +820,8 @@ package body cplx_pkg is
   function polar_to_cplx (
     constant W : positive range 2 to integer'high; -- required RE/IM data width in bits
     constant R : std.standard.real := 1.0; -- radial coordinate / amplitude, range 0.0 to 1.0 (0 dBfs)
-    constant PHI : std.standard.real := 0.0 -- angular coordinate / angle in degrees
+    constant PHI : std.standard.real := 0.0; -- angular coordinate / angle in degree or radian
+    constant DEG : boolean := true -- by default angle PHI is given in degrees, otherwise in radian
   ) return cplx is
     constant RMAX : std.standard.real := R * std.standard.real(2**(W-1));
     variable temp : cplx(re(W downto 0),im(W downto 0)) := zero(W+1);
@@ -804,9 +829,61 @@ package body cplx_pkg is
     assert (R>=0.0 and R<=1.0)
       report "polar_to_cplx : Input radial coordinate R must be in range 0.0 to 1.0 ."
       severity failure;
-    temp.re := to_signed(integer(RMAX*cos(PHI*MATH_DEG_TO_RAD)),W+1);
-    temp.im := to_signed(integer(RMAX*sin(PHI*MATH_DEG_TO_RAD)),W+1);
+    if DEG then
+      temp.re := to_signed(integer(RMAX*cos(PHI*MATH_DEG_TO_RAD)),W+1);
+      temp.im := to_signed(integer(RMAX*sin(PHI*MATH_DEG_TO_RAD)),W+1);
+    else
+      temp.re := to_signed(integer(RMAX*cos(PHI)),W+1);
+      temp.im := to_signed(integer(RMAX*sin(PHI)),W+1);
+    end if;
     return resize(temp,W,"S");
+  end function;
+
+  function polar_to_cplx (
+    constant W : positive range 2 to integer'high; -- required RE/IM data width in bits
+    constant R : std.standard.real := 1.0; -- radial coordinate / amplitude, range 0.0 to 1.0 (0 dBfs)
+    constant PHI : std.standard.real_vector; -- vector of angular coordinates / angle in degree or radian
+    constant DEG : boolean := true -- by default angle PHI is given in degrees, otherwise in radian
+  ) return cplx_vector is
+    variable dout : cplx_vector(PHI'range)(re(W-1 downto 0),im(W-1 downto 0));
+  begin
+    for i in PHI'range loop
+      dout(i) := polar_to_cplx(W,R,PHI(i),DEG);
+    end loop;
+    return dout;
+  end function;
+
+  function polar_to_cplx (
+    constant W : positive range 2 to integer'high; -- required RE/IM data width in bits
+    constant R : std.standard.real_vector; -- vector of radial coordinates / amplitude, range 0.0 to 1.0 (0 dBfs)
+    constant PHI : std.standard.real := 0.0; -- angular coordinate / angle in degree or radian
+    constant DEG : boolean := true -- by default angle PHI is given in degrees, otherwise in radian
+  ) return cplx_vector is
+    variable dout : cplx_vector(R'range)(re(W-1 downto 0),im(W-1 downto 0));
+  begin
+    for i in R'range loop
+      dout(i) := polar_to_cplx(W,R(i),PHI,DEG);
+    end loop;
+    return dout;
+  end function;
+
+  function polar_to_cplx (
+    constant W : positive range 2 to integer'high; -- required RE/IM data width in bits
+    constant R : std.standard.real_vector; -- vector of radial coordinates / amplitude, range 0.0 to 1.0 (0 dBfs)
+    constant PHI : std.standard.real_vector; -- vector of angular coordinates / angle in degree or radian
+    constant DEG : boolean := true -- by default angle PHI is given in degrees, otherwise in radian
+  ) return cplx_vector is
+    variable dout : cplx_vector(R'range)(re(W-1 downto 0),im(W-1 downto 0));
+    variable XPHI : real_vector(R'range); -- for range conversion and alignment
+  begin
+    assert (R'length=PHI'length)
+      report "polar_to_cplx : Input vectors R and PHI must have same length."
+      severity error;
+    XPHI := PHI; -- local for range conversion and alignment
+    for i in R'range loop
+      dout(i) := polar_to_cplx(W,R(i),XPHI(i),DEG);
+    end loop;
+    return dout;
   end function;
 
 
