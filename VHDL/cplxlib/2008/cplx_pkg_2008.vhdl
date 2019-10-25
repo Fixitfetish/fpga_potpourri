@@ -256,6 +256,7 @@ package cplx_pkg is
   --! * Example 1: cplx8  = polar_to_cplx(8) generates (1+0j) or (32767+0j)
   --! * Example 2: cplx12 = polar_to_cplx(12,0.0) generates (0+0j) or (0+0j)
   --! * Example 3: cplx16 = polar_to_cplx(16,0.5,90.0) generates (0+0.5j) or (0+16384j)
+  --! * Example 4: cplx16 = polar_to_cplx(16,0.5,MATH_PI,false) generates (-0.5+0j) or (-16384+0j)
   function polar_to_cplx (
     constant W : positive range 2 to integer'high; -- required RE/IM data width in bits
     constant R : std.standard.real := 1.0; -- radial coordinate / amplitude, range 0.0 to 1.0 (0 dBfs)
