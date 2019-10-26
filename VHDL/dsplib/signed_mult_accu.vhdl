@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult_accu.vhdl
 --! @author     Fixitfetish
---! @date       23/Feb/2017
---! @version    0.20
+--! @date       26/Oct/2019
+--! @version    0.30
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -81,6 +81,7 @@ library baselib;
 --! port map(
 --!   clk        => in  std_logic, -- clock
 --!   rst        => in  std_logic, -- reset
+--!   clkena     => in  std_logic, -- clock enable
 --!   clr        => in  std_logic, -- clear accu
 --!   vld        => in  std_logic, -- valid
 --!   neg        => in  std_logic_vector(0 to NUM_MULT-1), -- negation
@@ -94,11 +95,7 @@ library baselib;
 --!   PIPESTAGES => out natural -- constant number of pipeline stages
 --! );
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
---
--- Optimal settings for overflow detection and/or saturation/clipping :
--- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH
-
+--!
 entity signed_mult_accu is
 generic (
   --! Number of parallel multiplications - mandatory generic!
@@ -155,6 +152,8 @@ port (
   clk        : in  std_logic;
   --! Reset result output (optional)
   rst        : in  std_logic := '0';
+  --! Clock enable (optional)
+  clkena     : in  std_logic := '1';
   --! @brief Clear accumulator (mark first valid input factors of accumulation sequence).
   --! If accumulation is not wanted then set constant '1'.
   clr        : in  std_logic;
@@ -203,3 +202,6 @@ begin
 
 end entity;
 
+--
+-- Optimal settings for overflow detection and/or saturation/clipping :
+-- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH

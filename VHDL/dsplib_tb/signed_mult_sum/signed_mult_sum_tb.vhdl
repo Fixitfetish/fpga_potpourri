@@ -26,6 +26,7 @@ architecture rtl of signed_mult_sum_tb is
   constant PERIOD : time := 10 ns; -- 100 MHz
   signal clk : std_logic := '1';
   signal rst : std_logic := '1';
+  signal clkena : std_logic := '1';
   signal finish : std_logic := '0';
 
   signal vld : std_logic := '0';
@@ -45,12 +46,20 @@ architecture rtl of signed_mult_sum_tb is
   signal us_result_ovf : std_logic; -- output overflow
   signal us_pipestages : natural;
 
-  procedure run_clk_cycles(signal clk:in std_logic; n:in integer) is
+  procedure run_clk_cycles(signal clkin:in std_logic; n:in integer) is
   begin
-    for i in 1 to n loop wait until rising_edge(clk); end loop;
+    for i in 1 to n loop wait until rising_edge(clkin); end loop;
   end procedure;
 
+  -- debug
+  signal x0,x1 : signed(17 downto 0);
+  signal y0,y1 : signed(17 downto 0);
+
 begin
+
+  -- debug
+  x0 <= x(0); x1 <= x(1);
+  y0 <= y(0); y1 <= y(1);
 
   p_clk : process
   begin
@@ -113,6 +122,7 @@ begin
   port map(
     clk        => clk, -- clock
     rst        => rst, -- reset
+    clkena     => clkena, -- clock enable
     vld        => vld, -- valid
     neg        => neg, -- negation
     x          => x, -- first factors
@@ -138,6 +148,7 @@ begin
 --  port map(
 --    clk        => clk, -- clock
 --    rst        => rst, -- reset
+--    clkena     => clkena, -- clock enable
 --    vld        => vld, -- valid
 --    neg        => neg, -- negation
 --    x          => x, -- first factors

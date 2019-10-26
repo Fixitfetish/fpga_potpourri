@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult_sum.vhdl
 --! @author     Fixitfetish
---! @date       05/Mar/2017
---! @version    0.10
+--! @date       26/Oct/2019
+--! @version    0.20
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -51,13 +51,13 @@ library baselib;
 --! * ACCU USED SHIFTED WIDTH = ACCU USED WIDTH - OUTPUT SHIFT RIGHT
 --! * OUTPUT WIDTH = length of result output <= ACCU USED SHIFTED WIDTH
 --!
---! \b Example: The input lengths are x'length=18 and y'length=16, hence PRODUCT_WIDTH=34.
+--! **Example:** The input lengths are x'length=18 and y'length=16, hence PRODUCT_WIDTH=34.
 --! With NUM_SUMMAND=30 the number of additional guard bits is GUARD_BITS=5.
 --! If the output length is 22 then the standard shift-right setting (conservative,
 --! without risk of overflow) would be OUTPUT_SHIFT_RIGHT = 34 + 5 - 22 = 17.
 --!
 --! The delay depends on the configuration and the underlying hardware.
---! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
+--! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink.
 --!
 --! @image html signed_mult_sum.svg "" width=600px
 --!
@@ -82,6 +82,7 @@ library baselib;
 --! port map(
 --!   clk        => in  std_logic, -- clock
 --!   rst        => in  std_logic, -- reset
+--!   clkena     => in  std_logic, -- clock enable
 --!   vld        => in  std_logic, -- valid
 --!   neg        => in  std_logic_vector(0 to NUM_MULT-1), -- negation
 --!   x          => in  signed_vector(0 to NUM_MULT-1), -- first factors
@@ -92,11 +93,7 @@ library baselib;
 --!   PIPESTAGES => out natural -- constant number of pipeline stages
 --! );
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
---
--- Optimal settings for overflow detection and/or saturation/clipping :
--- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH
-
+--!
 entity signed_mult_sum is
 generic (
   --! Number of parallel multiplications - mandatory generic!
@@ -137,6 +134,8 @@ port (
   clk        : in  std_logic;
   --! Reset result output (optional)
   rst        : in  std_logic := '0';
+  --! Clock enable (optional)
+  clkena     : in  std_logic := '1';
   --! Valid signal for input factors, high-active
   vld        : in  std_logic;
   --! @brief Negation of partial products , '0' -> +(x(n)*y(n)), '1' -> -(x(n)*y(n)).
@@ -174,3 +173,6 @@ begin
 
 end entity;
 
+--
+-- Optimal settings for overflow detection and/or saturation/clipping :
+-- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH

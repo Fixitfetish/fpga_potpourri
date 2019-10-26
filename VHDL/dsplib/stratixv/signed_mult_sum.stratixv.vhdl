@@ -25,6 +25,8 @@ library dsplib;
 --! and N2 = ceil(N/2)-2*N4 instances of signed_mult2_accu
 --! Overall 2*N4 + N2 Altera Stratix-V DSP blocks are required.
 --!
+--! **TODO** : clock enable support !!!
+--!
 --! * Input Data      : Nx2 signed values, each max 18 bits
 --! * Input Register  : optional, at least one is strongly recommended
 --! * Accu Register   : just pipeline register, accumulation not supported
@@ -34,7 +36,7 @@ library dsplib;
 --! * Pipeline stages : NUM_INPUT_REG + NUM_PIPELINE_REG + NUM_OUTPUT_REG
 --!
 --! @image html signed_mult_sum.stratixv.svg "" width=1000px
-
+--!
 architecture stratixv of signed_mult_sum is
 
   constant NY : integer := y'length; -- number vector elements

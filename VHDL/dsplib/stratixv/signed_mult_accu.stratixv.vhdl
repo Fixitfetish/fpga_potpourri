@@ -27,6 +27,8 @@ library dsplib;
 --! +++ TODO +++ This implementation requires ceil(N/2) Variable Precision DSP Blocks of mode 'm18x18_sumof2'.
 --! +++ TODO +++ For details please refer to the Altera Stratix V Device Handbook.
 --!
+--! +++ TODO +++ clock enable support !!!
+--!
 --! * Input Data      : Nx2 signed values, each max 18 bits
 --! * Input Register  : optional, at least one is strongly recommended
 --! * Input Chain     : optional, 64 bits
@@ -39,7 +41,7 @@ library dsplib;
 --!
 --! This implementation can be chained multiple times.
 --! @image html signed_mult_accu.stratixv.svg "" width=800px
-
+--!
 architecture stratixv of signed_mult_accu is
 
   -- derived constants

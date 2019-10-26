@@ -28,6 +28,8 @@ library dsplib;
 --! This implementation requires N Xilinx Ultrascale DSP blocks.
 --! +++ TODO +++
 --!
+--! **TODO** : clock enable support !!!
+--!
 --! * Input Data      : Nx2 signed values, x<=27 bits, y<=18 bits
 --! * Input Register  : optional, at least one is strongly recommended
 --! * Input Chain     : optional, 48 bits
@@ -40,7 +42,7 @@ library dsplib;
 --!
 --! This implementation can be chained multiple times.
 --! @image html signed_mult_accu.ultrascale.svg "" width=800px
-
+--!
 architecture ultrascale of signed_mult_accu is
 
   -- derived constants

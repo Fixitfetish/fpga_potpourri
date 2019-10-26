@@ -13,6 +13,7 @@ entity signed_mult_sum_wrapper is
   port (
     clk             : in  std_logic;
     rst_ipin        : in  std_logic;
+    clkena_ipin     : in  std_logic;
     vld_ipin        : in  std_logic;
     neg_ipin        : in  std_logic_vector(0 to NUM_MULT-1);
     x_ipin          : in  std_logic_vector(18*NUM_MULT-1 downto 0);
@@ -26,6 +27,7 @@ end entity;
 architecture rtl of signed_mult_sum_wrapper is
 
   signal rst, rst_ioreg : std_logic;
+  signal clkena, clkena_ioreg : std_logic;
   signal vld, vld_ioreg : std_logic;
   signal neg, neg_ioreg : std_logic_vector(0 to NUM_MULT-1);
   signal x, x_ioreg : signed18_vector(0 to NUM_MULT-1);
@@ -38,6 +40,7 @@ architecture rtl of signed_mult_sum_wrapper is
 begin
 
  rst_ioreg <= rst_ipin when rising_edge(clk);
+ clkena_ioreg <= ckena_ipin when rising_edge(clk);
  vld_ioreg <= vld_ipin when rising_edge(clk);
  neg_ioreg <= neg_ipin when rising_edge(clk);
  result_opin <= result_ioreg when rising_edge(clk);
@@ -45,6 +48,7 @@ begin
  result_ovf_opin <= result_ovf_ioreg when rising_edge(clk);
  
  rst <= rst_ioreg when rising_edge(clk);
+ clkena <= clkena_ioreg when rising_edge(clk);
  vld <= vld_ioreg when rising_edge(clk);
  neg <= neg_ioreg when rising_edge(clk);
  result_ioreg <= result when rising_edge(clk);
@@ -77,6 +81,7 @@ begin
  port map(
    clk        => clk, -- clock
    rst        => rst, -- reset
+   clkena     => clkena, -- clock enable
    vld        => vld, -- valid
    neg        => neg, -- negation
    x          => x, -- first factors

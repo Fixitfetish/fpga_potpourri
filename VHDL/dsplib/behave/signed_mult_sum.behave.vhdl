@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult_sum.behave.vhdl
 --! @author     Fixitfetish
---! @date       05/Feb/2018
---! @version    0.95
+--! @date       26/Oct/2019
+--! @version    0.96
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -28,7 +28,7 @@ library dsplib;
 --! * Output Data     : 1x signed value, max 64 bits
 --! * Output Register : optional, after rounding, shift-right and saturation
 --! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG + PIPELINE_REG
-
+--!
 architecture behave of signed_mult_sum is
 
   -- identifier for reports of warnings and errors
@@ -66,8 +66,8 @@ architecture behave of signed_mult_sum is
 begin
 
   -- !Caution!
-  --  - consider VHDL 1993 and 2008 compatibility
-  --  - consider y range NOT starting with 0
+  --  a) consider VHDL 1993 and 2008 compatibility
+  --  b) consider y range NOT starting with 0
 
   -- same factor y for all vector elements of x
   gin_1 : if NUM_FACTOR=1 generate
@@ -76,7 +76,7 @@ begin
     variable v_accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
    begin
     if rising_edge(clk) then
-      v_accu_used := accu_used;
+     if clkena='1' then
       if vld='1' then
         v_accu_used := (others=>'0');
         for n in 0 to NUM_MULT-1 loop
@@ -87,9 +87,10 @@ begin
           end if;
         end loop;
         accu_used <= v_accu_used;
-      end if;
+      end if; -- valid
       accu_vld <= vld; -- same for all
-    end if;
+     end if; -- clock enable
+    end if; -- clock
    end process;
   end generate;
 
@@ -100,7 +101,7 @@ begin
     variable v_accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
    begin
     if rising_edge(clk) then
-      v_accu_used := accu_used;
+     if clkena='1' then
       if vld='1' then
         v_accu_used := (others=>'0');
         for n in 0 to NUM_MULT-1 loop
@@ -111,9 +112,10 @@ begin
           end if;
         end loop;
         accu_used <= v_accu_used;
-      end if;
+      end if; -- valid
       accu_vld <= vld; -- same for all
-    end if;
+     end if; -- clock enable
+    end if; -- clock
    end process;
   end generate;
 
@@ -129,6 +131,7 @@ begin
   port map (
     clk         => clk,
     rst         => rst,
+    clkena      => clkena,
     dsp_out     => accu_used,
     dsp_out_vld => accu_vld,
     result      => result,

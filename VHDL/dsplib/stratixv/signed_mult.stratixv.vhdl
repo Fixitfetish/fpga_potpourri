@@ -27,6 +27,8 @@ library dsplib;
 --! * N x 27x27 FULL    (1 multiplication  within 1 DSP block)  with x'length<=27, y'length<=27
 --! * N x 36x18 FULL    (1 multiplication  within 1 DSP block)  with x'length<=36, y'length<=18
 --!
+--! **TODO** : clock enable support !!!
+--!
 --! This implementation does not instantiate primitives directly but uses Stratix-V specific architectures instead.
 --!
 --! | X Len | Y Len | X+Y Len | DSP Blocks  | Entity Type Used   | Comment
@@ -36,7 +38,6 @@ library dsplib;
 --! | <=27  | <=27  | <=54    | N           | signed_mult1_accu  | 27x27 Full
 --! | <=36  | <=18  | <=54    | N           | signed_mult1_accu  | 36x18 Full
 --!
-
 architecture stratixv of signed_mult is
 
   -- identifier for reports of warnings and errors

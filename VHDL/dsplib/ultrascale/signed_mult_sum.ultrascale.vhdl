@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult_sum.ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       17/Sep/2017
---! @version    0.20
+--! @date       26/Oct/2019
+--! @version    0.30
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -25,6 +25,8 @@ library dsplib;
 --! and N2 = ceil(N/2)-2*N4 instances of signed_mult2_accu.ultrascale
 --! Overall 4*N4 + 2*N2 Xilinx Ultrascale DSP blocks are required.
 --!
+--! **TODO** : clock enable support !!!
+--!
 --! * Input Data      : Nx2 signed values, x<=27 bits, y<=18 bits
 --! * Input Register  : optional, at least one is strongly recommended
 --! * Accu Register   : just pipeline register, accumulation not supported
@@ -34,7 +36,7 @@ library dsplib;
 --! * Pipeline stages : NUM_INPUT_REG + NUM_PIPELINE_REG + NUM_OUTPUT_REG
 --!
 --! @image html signed_mult_sum.ultrascale.svg "" width=1000px
-
+--!
 architecture ultrascale of signed_mult_sum is
 
   constant NY : integer := y'length; -- number vector elements

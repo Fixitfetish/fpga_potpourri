@@ -13,6 +13,7 @@ entity signed_mult_wrapper is
   port (
     clk             : in  std_logic;
     rst_ipin        : in  std_logic;
+    clkena_ipin     : in  std_logic;
     vld_ipin        : in  std_logic;
     neg_ipin        : in  std_logic_vector(0 to NUM_MULT-1);
     x_ipin          : in  std_logic_vector(18*NUM_MULT-1 downto 0);
@@ -26,6 +27,7 @@ end entity;
 architecture rtl of signed_mult_wrapper is
 
   signal rst : std_logic;
+  signal clkena : std_logic;
   signal vld : std_logic;
   signal neg : std_logic_vector(0 to NUM_MULT-1);
   signal x : signed_vector(0 to NUM_MULT-1);
@@ -38,6 +40,7 @@ architecture rtl of signed_mult_wrapper is
 begin
 
  rst <= rst_ipin when rising_edge(clk);
+ clkena <= clkena_ipin when rising_edge(clk);
  vld <= vld_ipin when rising_edge(clk);
  neg <= neg_ipin when rising_edge(clk);
  result_vld_opin <= result_vld when rising_edge(clk);
@@ -62,6 +65,7 @@ begin
  port map(
    clk        => clk, -- clock
    rst        => rst, -- reset
+   clkena     => clkena, -- clock enable
    vld        => vld, -- valid
    neg        => neg, -- negation
    x          => x, -- first factors

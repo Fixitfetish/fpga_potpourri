@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult.behave.vhdl
 --! @author     Fixitfetish
---! @date       02/Jul/2017
---! @version    0.20
+--! @date       26/Oct/2019
+--! @version    0.30
 --! @note       VHDL-1993, VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -26,7 +26,7 @@ library dsplib;
 --! * Output Data     : N signed values, max 64 bits
 --! * Output Register : optional, after rounding, shift-right and saturation
 --! * Pipeline stages : NUM_INPUT_REG + NUM_OUTPUT_REG
-
+--!
 architecture behave of signed_mult is
 
   -- bit resolution of input data
@@ -51,8 +51,8 @@ architecture behave of signed_mult is
 begin
 
   -- !Caution!
-  --  - consider VHDL 1993 and 2008 compatibility
-  --  - consider y range NOT starting with 0
+  --  a) consider VHDL 1993 and 2008 compatibility
+  --  b) consider y range NOT starting with 0
 
   -- same factor y for all vector elements of x
   gin_1 : if NUM_FACTOR=1 generate
@@ -60,6 +60,7 @@ begin
    p_sum : process(clk)
    begin
     if rising_edge(clk) then
+     if clkena='1' then
       if vld='1' then
         for n in 0 to NUM_MULT-1 loop
           if neg(n)='1' and USE_NEGATION then
@@ -71,7 +72,8 @@ begin
       end if;
       -- valid is the same for all
       vld_q <= vld;
-    end if;
+     end if; -- clock enable
+    end if; -- clock
    end process;
   end generate;
 
@@ -81,6 +83,7 @@ begin
    p_sum : process(clk)
    begin
     if rising_edge(clk) then
+     if clkena='1' then
       if vld='1' then
         for n in 0 to NUM_MULT-1 loop
           if neg(n)='1' and USE_NEGATION then
@@ -92,7 +95,8 @@ begin
       end if;
       -- valid is the same for all
       vld_q <= vld;
-    end if;
+     end if; -- clock enable
+    end if; -- clock
    end process;
   end generate;
 
@@ -109,6 +113,7 @@ begin
     port map (
       clk         => clk,
       rst         => rst,
+      clkena      => clkena,
       dsp_out     => prod(n),
       dsp_out_vld => vld_q,
       result      => result(n),
