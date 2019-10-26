@@ -40,7 +40,6 @@ library ieee;
 --!
 --! @image html slv_pack.svg "" width=1000px
 --!
-
 entity slv_pack is
 generic (
   --! Output data width must be a multiple of 2**MAX_RATIO_LOG2

@@ -21,7 +21,7 @@ library ieee;
 --! With decr='1' and incr='0' the counter output is decremented with the next cycle.
 --! When load_min (count_min='1') is already reached the counter wraps to load_max.
 --! When incr=decr the counter output does not change.
-
+--!
 entity counter is
 generic (
   --! Counter width in bits (mandatory!)

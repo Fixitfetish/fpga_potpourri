@@ -25,7 +25,7 @@ library ieee;
 --! Please consider standard functions like to_unsigned(), to_signed(), 
 --! to_integer(), std_logic_vector(), unsigned() and signed() in addition to the
 --! functions below.
-
+--!
 package string_conversion_pkg is
 
  -- Conversion of a decimal string to standard types.

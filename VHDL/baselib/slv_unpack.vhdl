@@ -40,7 +40,6 @@ library ieee;
 --!
 --! TODO : MSB_BOUND_OUTPUT not yet supported by slv_unpack
 --!
-
 entity slv_unpack is
 generic (
   --! Input data width must be a multiple of 2**MAX_RATIO_LOG2
