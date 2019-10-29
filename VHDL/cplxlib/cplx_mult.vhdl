@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_mult.vhdl
 --! @author     Fixitfetish
---! @date       16/Jun/2017
---! @version    0.40
+--! @date       29/Oct/2019
+--! @version    0.50
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -70,15 +70,18 @@ library cplxlib;
 --!   NUM_INPUT_REG      => natural,  -- number of input registers
 --!   NUM_OUTPUT_REG     => natural,  -- number of output registers
 --!   OUTPUT_SHIFT_RIGHT => natural,  -- number of right shifts
+--!   AUX_DEFAULT        => std_logic_vector, -- auxiliary default/reset value
 --!   MODE               => cplx_mode -- options
 --! )
 --! port map(
 --!   clk        => in  std_logic, -- clock
 --!   clk2       => in  std_logic, -- clock x2
 --!   neg        => in  std_logic_vector(0 to NUM_MULT-1), -- negation per input x
+--!   aux        => in  std_logic_vector, -- optional auxiliary input
 --!   x          => in  cplx_vector(0 to NUM_MULT-1), -- first factors
 --!   y          => in  cplx_vector, -- second factors
 --!   result     => out cplx_vector(0 to NUM_MULT-1), -- product results
+--!   result_aux => out std_logic_vector, -- optional auxiliary output
 --!   PIPESTAGES => out natural -- constant number of pipeline stages
 --! );
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -105,6 +108,9 @@ generic (
   NUM_OUTPUT_REG : natural := 0;
   --! Number of bits by which the result output is shifted right
   OUTPUT_SHIFT_RIGHT : natural := 0;
+  --! @brief Default and reset value of the optional auxiliary signal.
+  --! Given range also defines width of auxiliary signal.
+  AUX_DEFAULT : std_logic_vector := (0 downto 0=>'-');
   --! Supported operation modes 'R','O','N','S' and 'X'
   MODE : cplx_mode := "-"
 );
@@ -120,12 +126,16 @@ port (
   --! of certain input indices is not supported. Please refer to the description of
   --! vendor specific implementation.
   neg        : in  std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
+  --! Optional input of user-defined auxiliary bits
+  aux        : in  std_logic_vector(AUX_DEFAULT'range) := AUX_DEFAULT;
   --! x(n) are the complex inputs of the N multiplications.
   x          : in  cplx_vector(0 to NUM_MULT-1);
   --! complex factor (either one for all elements of X or one per each element of X). Requires 'TO' range.
   y          : in  cplx_vector;
   --! Resulting product output vector (optionally rounded and clipped).
   result     : out cplx_vector(0 to NUM_MULT-1);
+  --! Optional output of delayed auxiliary user-defined bits (same length as auxiliary input)
+  result_aux : out std_logic_vector(AUX_DEFAULT'range);
   --! Number of pipeline stages, constant, depends on configuration and device specific implementation
   PIPESTAGES : out natural := 1
 );

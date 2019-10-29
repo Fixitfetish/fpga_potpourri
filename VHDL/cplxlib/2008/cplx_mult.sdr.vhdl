@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_mult.sdr.vhdl
 --! @author     Fixitfetish
---! @date       17/Feb/2018
---! @version    0.51
+--! @date       29/Oct/2019
+--! @version    0.60
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -14,6 +14,7 @@ library ieee;
   use ieee.numeric_std.all;
 library baselib;
   use baselib.ieee_extension_types.all;
+  use baselib.pipereg_pkg.all;
 library cplxlib;
   use cplxlib.cplx_pkg.all;
 library dsplib;
@@ -30,6 +31,8 @@ library dsplib;
 --! NOTE: The double rate clock 'clk2' is irrelevant and unused here.
 --!
 architecture sdr of cplx_mult is
+
+  constant clkena : std_logic := '1'; -- TODO
 
   -- The number of pipeline stages is reported as constant at the output port
   -- of the DSP implementation. PIPE_DSP is not a generic and it cannot be used
@@ -61,6 +64,8 @@ architecture sdr of cplx_mult is
   -- auxiliary
   signal vld : std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
   signal data_reset : std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
+  type t_aux_delay is array(integer range <>) of std_logic_vector(AUX_DEFAULT'range);
+  signal aux_q : t_aux_delay(0 to MAX_NUM_PIPE_DSP) := (others=>AUX_DEFAULT);
 
   -- DSP output signals
   signal r_ovf_re, r_ovf_im : std_logic_vector(0 to NUM_MULT-1);
@@ -135,10 +140,14 @@ begin
   -- reset result data output to zero
   data_reset <= rst(0) when MODE='R' else (others=>'0');
 
+  -- feed auxiliary signal pipeline
+  aux_q(0) <= aux;
+
   -- accumulator delay compensation (DSP bypassed!)
   g_delay : for n in 1 to MAX_NUM_PIPE_DSP generate
-    rst(n) <= rst(n-1) when rising_edge(clk);
-    ovf(n) <= ovf(n-1) when rising_edge(clk);
+    pipereg(xout=>rst(n), xin=>rst(n-1), clk=>clk, ce=>clkena);
+    pipereg(xout=>ovf(n), xin=>ovf(n-1), clk=>clk, ce=>clkena);
+    pipereg(xout=>aux_q(n), xin=>aux_q(n-1), clk=>clk, ce=>clkena);
   end generate;
 
   g_mult : for n in 0 to NUM_MULT-1 generate
@@ -209,11 +218,15 @@ begin
   port map(
     clk        => clk,
     rst        => open, -- TODO
+    clkena     => clkena,
     din        => rslt,
     dout       => result
   );
 
   -- report constant number of pipeline register stages (in 'clk' domain)
   PIPESTAGES <= PIPE_DSP(0) + NUM_OUTPUT_REG;
+
+  -- auxiliary signal output
+  result_aux <= aux_q(PIPE_DSP(0)+NUM_OUTPUT_REG);
 
 end architecture;
