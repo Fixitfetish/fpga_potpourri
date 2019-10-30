@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_mult.sdr.vhdl
 --! @author     Fixitfetish
---! @date       29/Oct/2019
---! @version    0.60
+--! @date       30/Oct/2019
+--! @version    0.61
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -32,7 +32,8 @@ library dsplib;
 --!
 architecture sdr of cplx_mult is
 
-  constant clkena : std_logic := '1'; -- TODO
+  constant rst : std_logic := '0'; -- TODO  global reset
+  constant clkena : std_logic := '1'; -- TODO  clock enable
 
   -- The number of pipeline stages is reported as constant at the output port
   -- of the DSP implementation. PIPE_DSP is not a generic and it cannot be used
@@ -58,7 +59,7 @@ architecture sdr of cplx_mult is
 
   -- merged input signals and compensate for multiplier pipeline stages
   type t_delay is array(integer range <>) of std_logic_vector(0 to NUM_MULT-1);
-  signal rst : t_delay(0 to MAX_NUM_PIPE_DSP) := (others=>(others=>'1'));
+  signal rst_i : t_delay(0 to MAX_NUM_PIPE_DSP) := (others=>(others=>'1'));
   signal ovf : t_delay(0 to MAX_NUM_PIPE_DSP) := (others=>(others=>'0'));
 
   -- auxiliary
@@ -88,22 +89,22 @@ begin
   g_merge : for n in 0 to NUM_MULT-1 generate
     g1 : if NUM_FACTOR=1 generate
       -- merge input control signals
-      rst(0)(n) <= (x(n).rst or y_i(0).rst);
-      vld(n) <= (x(n).vld and y_i(0).vld) when rst(0)(n)='0' else '0';
+      rst_i(0)(n) <= (x(n).rst or y_i(0).rst);
+      vld(n) <= (x(n).vld and y_i(0).vld) when rst_i(0)(n)='0' else '0';
       -- Consider overflow flags of all inputs.
       -- If the overflow flag of any input is set then also the result
       -- will have the overflow flag set.   
-      ovf(0)(n) <= '0' when (MODE='X' or rst(0)(n)='1') else
+      ovf(0)(n) <= '0' when (MODE='X' or rst_i(0)(n)='1') else
                    (x(n).ovf or y_i(0).ovf);
     end generate;
     gn : if NUM_FACTOR=NUM_MULT generate
       -- merge input control signals
-      rst(0)(n) <= (x(n).rst or y_i(n).rst);
-      vld(n) <= (x(n).vld and y_i(n).vld) when rst(0)(n)='0' else '0';
+      rst_i(0)(n) <= (x(n).rst or y_i(n).rst);
+      vld(n) <= (x(n).vld and y_i(n).vld) when rst_i(0)(n)='0' else '0';
       -- Consider overflow flags of all inputs.
       -- If the overflow flag of any input is set then also the result
       -- will have the overflow flag set.   
-      ovf(0)(n) <= '0' when (MODE='X' or rst(0)(n)='1') else
+      ovf(0)(n) <= '0' when (MODE='X' or rst_i(0)(n)='1') else
                    (x(n).ovf or y_i(n).ovf);
     end generate;
   end generate;
@@ -138,16 +139,16 @@ begin
   end generate;
 
   -- reset result data output to zero
-  data_reset <= rst(0) when MODE='R' else (others=>'0');
+  data_reset <= rst_i(0) when MODE='R' else (others=>'0');
 
   -- feed auxiliary signal pipeline
   aux_q(0) <= aux;
 
   -- accumulator delay compensation (DSP bypassed!)
   g_delay : for n in 1 to MAX_NUM_PIPE_DSP generate
-    pipereg(xout=>rst(n), xin=>rst(n-1), clk=>clk, ce=>clkena);
+    pipereg(xout=>rst_i(n), xin=>rst_i(n-1), clk=>clk, ce=>clkena);
     pipereg(xout=>ovf(n), xin=>ovf(n-1), clk=>clk, ce=>clkena);
-    pipereg(xout=>aux_q(n), xin=>aux_q(n-1), clk=>clk, ce=>clkena);
+    pipereg(xout=>aux_q(n), xin=>aux_q(n-1), clk=>clk, ce=>clkena, rst=>rst, rstval=>AUX_DEFAULT);
   end generate;
 
   g_mult : for n in 0 to NUM_MULT-1 generate
@@ -204,7 +205,7 @@ begin
     );
 
     -- pipeline delay is the same for all
-    rslt(n).rst <= rst(PIPE_DSP(0))(n);
+    rslt(n).rst <= rst_i(PIPE_DSP(0))(n);
     rslt(n).ovf <= (r_ovf_re(n) or r_ovf_im(n)) when MODE='X' else
                    (r_ovf_re(n) or r_ovf_im(n) or ovf(PIPE_DSP(0))(n));
   end generate;
