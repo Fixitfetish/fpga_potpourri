@@ -1,13 +1,13 @@
 -------------------------------------------------------------------------------
 --! @file       ieee_extension_types_1993.vhdl
 --! @author     Fixitfetish
---! @date       01/May/2017
---! @version    0.15
+--! @date       23/May/2019
+--! @version    0.20
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
--- Includes DOXYGEN support.
+-- Code comments are optimized for SIGASI and DOXYGEN.
 -------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
@@ -20,7 +20,7 @@ library ieee;
 --! is not required to such an extent as it is for VHDL-1993. For that reason this 
 --! VHDL-1993 version only provides a subset of bit widths. But this package can be
 --! easily extended to any needed bit width.
-
+--!
 package ieee_extension_types is
 
   -- predefined vector types that are introduced with VHDL-2008
@@ -79,6 +79,8 @@ package ieee_extension_types is
   type unsigned46_vector is array(integer range<>) of unsigned(45 downto 0);
   type unsigned47_vector is array(integer range<>) of unsigned(46 downto 0);
   type unsigned48_vector is array(integer range<>) of unsigned(47 downto 0);
+  type unsigned49_vector is array(integer range<>) of unsigned(48 downto 0);
+  type unsigned50_vector is array(integer range<>) of unsigned(49 downto 0);
 
   --! default standard unsigned vector type
   alias unsigned_vector is unsigned18_vector;
@@ -130,6 +132,8 @@ package ieee_extension_types is
   type signed46_vector is array(integer range<>) of signed(45 downto 0);
   type signed47_vector is array(integer range<>) of signed(46 downto 0);
   type signed48_vector is array(integer range<>) of signed(47 downto 0);
+  type signed49_vector is array(integer range<>) of signed(48 downto 0);
+  type signed50_vector is array(integer range<>) of signed(49 downto 0);
 
   --! default standard signed vector type
   alias signed_vector is signed18_vector;
