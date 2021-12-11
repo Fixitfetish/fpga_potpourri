@@ -1,13 +1,13 @@
 -------------------------------------------------------------------------------
 --! @file       sincos.vhdl
 --! @author     Fixitfetish
---! @date       02/May/2017
---! @version    0.21
+--! @date       27/Nov/2021
+--! @version    0.50
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
--- Includes DOXYGEN support.
+-- Code comments are optimized for SIGASI and DOXYGEN.
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
@@ -19,11 +19,16 @@ library baselib;
 --! @brief Configurable look-up based phase to sine and cosine generator.
 --! Optionally interpolation/approximation can be enabled.
 --! 
---! The phase input can be either signed or unsigned 
+--! The phase input can be either signed or unsigned
 --! * SIGNED with range -N/2 to N/2-1 (i.e. -pi to pi)
 --! * UNSIGNED with range 0 to N-1 (i.e. 0 to 2pi)
 --!
---! If PHASE_MINOR_WIDTH=0 then the sine and cosine values are precalculated
+--! The phase input is specified by two separate values
+--! * PHASE_WIDTH = PHASE_MAJOR_WIDTH + PHASE_MINOR_WIDTH
+--! * PHASE_MAJOR_WIDTH (MSBs, coarse) , the major phase step size is 2*pi/(2**PHASE_MAJOR_WIDTH)
+--! * PHASE_MINOR_WIDTH (LSBs, fine) , the minor phase step size is 2*pi/(2**PHASE_WIDTH)
+--!
+--! If **PHASE_MINOR_WIDTH=0** then the sine and cosine values are precalculated
 --! for all phases and stored in a look-up table ROM (LUT). The required ROM
 --! becomes larger when PHASE_MAJOR_WIDTH increases. In this case an additional
 --! interpolation/approximation is not needed.
@@ -33,31 +38,34 @@ library baselib;
 --! Note that the value 1.0 is mapped to highest possible unsigned number (others=>'1')
 --! and therefore is not exactly 1. This inaccuracy is needed to keep the symmetry
 --! of positive and negative integer values and to save an additional bit in the
---! LUT and at the output. The LUT will have the following size in bits: 
+--! LUT and at the output. The LUT will have the following size in bits:
 --!   2**(PHASE_MAJOR_WIDTH-2) * 2(OUTPUT_WIDTH-1). With e.g. PHASE_MAJOR_WIDTH=11
 --! and OUTUT_WIDTH=18 typically only a single 18k or 20k Block-RAM is required.
---! Note that the LUT always uses the address input and the data output register
+--! Note that the LUT-ROM always uses the address input and the data output register
 --! to attain higher frequencies. Therefore just the LUT has two cycles latency.
---! 
---! Interpolation/approximation is enabled when PHASE_MINOR_WIDTH>0 .
+--! Furthermore, with FRACTIONAL_SCALING the values in the LUT-ROM can be down-scaled
+--! if e.g. a static amplitude (or power) adjustment is required.
+--!
+--! Interpolation/approximation is enabled when **PHASE_MINOR_WIDTH>0**.
 --! This implementation uses the initial terms of the Taylor series with the
 --! derivatives of cos and sin which can be easily determined from the LUT values.
---! * lut_cos' = -lut_sin / LUT_DEPTH * (pi/2)
---! * lut_sin' =  lut_cos / LUT_DEPTH * (pi/2)
+--! * lut_cos' = -lut_sin / ROM_DEPTH * (pi/2)
+--! * lut_sin' =  lut_cos / ROM_DEPTH * (pi/2)
 --!
---! where pi/2 is roughly 25/16 = "11001".
---! To improve the accuracy the interpolation/approximation is performed either
+--! where pi/2 is roughly 201/128 = "11001001" (or 25/16 = "11001").
+--! To improve the accuracy the interpolation/approximation is performed
+--! based on the major phase +0.5 either
 --! forward or backward dependent on the value of the minor phase.
---! * Forward  : when minor phase is < 0.5 (look-up with major phase)
---! * Backward : when minor phase is >= 0.5 (look-up with major phase + 1 )
+--! * Backward : when 0.0 < minor phase < 0.5
+--! * Forward  : when 0.5 < minor phase < 1.0
 --!
---! That means, the slope at the closest LUT value is used to interpolate
---! between two LUT values.
+--! Note that PHASE_WIDTH <= OUTPUT_WIDTH+2 should apply because otherwise the
+--! required phase resolution at the input exceeds the feasible accuracy at the output.
 --!
 --! The overall number of pipeline stages is reported at the constant output
 --! port PIPESTAGES. The pipeline stages are calculated as follows:
 --! * PHASE_MINOR_WIDTH=0   =>  PIPESTAGES=3
---! * PHASE_MINOR_WIDTH>=1  =>  PIPESTAGES=4+PHASE_MINOR_WIDTH
+--! * PHASE_MINOR_WIDTH>=1  =>  PIPESTAGES=4 + ceil(PHASE_MINOR_WIDTH/2)
 --!
 entity sincos is
 generic (
@@ -67,12 +75,12 @@ generic (
   --! @brief Minor phase resolution in bits (LSBs of the phase input).
   --! This resolution defines the granularity of the interpolation/approximation.
   PHASE_MINOR_WIDTH : natural := 0;
-  --! @brief Output resolution in bits. 
+  --! @brief Output resolution in bits.
   --! This resolution influences the width of the generated look-up table ROM.
   OUTPUT_WIDTH : positive := 18;
-  --! @brief Divide output by 2 (-6.02dB), i.e. a MSB guard bit is added.  
-  --! The output resolution is one bit less but the amplitude is more accurate.
-  OUTPUT_SHIFT_RIGHT : boolean := false
+  --! @brief Static fractional down-scaling influences the values in the LUT-ROM.
+  --! For values below 0.5 consider reduction of OUTPUT_WIDTH with potential FPGA resource savings.
+  FRACTIONAL_SCALING : std.standard.real range 0.0 to 1.0 := 1.0
 );
 port (
   --! Standard system clock
@@ -101,24 +109,39 @@ end entity;
 architecture rtl of sincos is
 
   -- identifier for reports of warnings and errors
---  constant IMPLEMENTATION : string := signed_sincos'INSTANCE_NAME;
+--  constant IMPLEMENTATION : string := sincos'INSTANCE_NAME;
 
-  constant SINCOS_WIDTH : positive := (OUTPUT_WIDTH-1); -- without sign bit
-
-  function max_amplitude(is_shift_right:boolean) return real is
+  -- additional fractional bit in ROM to increase rounding accuracy
+  function ROM_FRAC_BITS return natural is
   begin
-    if is_shift_right then
-      return real(2**(SINCOS_WIDTH-1)); -- max value is 0.5
+    if PHASE_MINOR_WIDTH=0 then 
+      return 0;
+    elsif OUTPUT_WIDTH=19 or OUTPUT_WIDTH=37 then
+      return 0; -- avoid additional Block-RAM
     else
-      return real(2**SINCOS_WIDTH) - 0.6; -- max value is 0.9999..
+      return 1;
     end if;
-  end;
-  constant SINCOS_MAX : real := max_amplitude(OUTPUT_SHIFT_RIGHT);
+  end function;
 
-  constant LUT_WIDTH : positive := 2*SINCOS_WIDTH; -- cosine and sin combined in single LUT
-  constant LUT_DEPTH_LD : positive := PHASE_MAJOR_WIDTH-2; -- only first of the four quadrants
-  constant LUT_DEPTH : positive := 2**LUT_DEPTH_LD; -- only first of the four quadrants
-  type t_lut is array(0 to LUT_DEPTH-1) of std_logic_vector(LUT_WIDTH-1 downto 0);  
+  -- ROM cos/sin data width (without sign bit plus additional fractional bits)
+  constant SINCOS_WIDTH : positive := OUTPUT_WIDTH - 1 + ROM_FRAC_BITS;
+
+  function max_amplitude return real is
+    variable r : real;
+    constant rmax : real := real(2**SINCOS_WIDTH) - real(2**ROM_FRAC_BITS);
+  begin
+    r := round(FRACTIONAL_SCALING*real(2**(SINCOS_WIDTH)));
+    if r>(rmax) then
+      r := rmax;
+    end if;
+    return r;
+  end;
+  constant SINCOS_MAX : real := max_amplitude;
+
+  constant ROM_WIDTH : positive := 2*SINCOS_WIDTH; -- cosine and sin combined in single LUT
+  constant ROM_DEPTH_LD : positive := PHASE_MAJOR_WIDTH-2; -- only first of the four quadrants
+  constant ROM_DEPTH : positive := 2**ROM_DEPTH_LD; -- only first of the four quadrants
+  type t_lut is array(ROM_DEPTH-1 downto 0) of std_logic_vector(ROM_WIDTH-1 downto 0);
 
   -- The constant look-up table (LUT) holds the cosine and sine values of the
   -- 1st quadrant only. All values are positive, hence sign bit can be removed.
@@ -127,229 +150,231 @@ architecture rtl of sincos is
     variable x : real;
     variable cosx, sinx : unsigned(SINCOS_WIDTH-1 downto 0);
   begin
-    for i in 0 to LUT_DEPTH-1 loop
-      x := real(i) * MATH_PI_OVER_2 / real(LUT_DEPTH);
+    for i in 0 to ROM_DEPTH-1 loop
+      if PHASE_MINOR_WIDTH=0 then
+        x := (real(i)) * MATH_PI_OVER_2 / real(ROM_DEPTH);
+      else
+        x := (real(i)+0.5) * MATH_PI_OVER_2 / real(ROM_DEPTH);
+      end if;
       cosx := to_unsigned(integer(SINCOS_MAX*cos(x)),SINCOS_WIDTH);
       sinx := to_unsigned(integer(SINCOS_MAX*sin(x)),SINCOS_WIDTH);
-      lut(i)(LUT_WIDTH/2-1 downto 0) := std_logic_vector(cosx); 
-      lut(i)(LUT_WIDTH-1 downto LUT_WIDTH/2) := std_logic_vector(sinx); 
+      lut(i)(ROM_WIDTH/2-1 downto 0) := std_logic_vector(cosx);
+      lut(i)(ROM_WIDTH-1 downto ROM_WIDTH/2) := std_logic_vector(sinx);
     end loop;
     return lut;
   end;
 
   -- Look-up table ROM
-  constant LUT : t_lut := init_lut;
-  signal lut_in_quad, lut_in_quad_q : unsigned(1 downto 0);
-  signal lut_in_addr ,lut_in_addr_q : unsigned(PHASE_MAJOR_WIDTH-3 downto 0);
-  signal lut_in_frac, lut_in_frac_q : signed(PHASE_MINOR_WIDTH downto 0);
-  signal lut_in_vld, lut_in_vld_q : std_logic := '0';
+  constant ROM : t_lut := init_lut;
+--  attribute rom_style : string;
+--  attribute rom_style of LUT : constant is "block";
 
-  signal lut_out_quad : unsigned(1 downto 0) := (others=>'0');
-  signal lut_out_data : std_logic_vector(LUT_WIDTH-1 downto 0) := (others=>'0');
-  signal lut_out_frac : signed(PHASE_MINOR_WIDTH downto 0) := (others=>'0');
-  signal lut_out_vld : std_logic := '0';
+  type r_rom_in is
+  record
+    vld  : std_logic; -- valid
+    quad : unsigned(1 downto 0); -- quadrant, 0=1st, 3=4th
+    addr : unsigned(PHASE_MAJOR_WIDTH-3 downto 0); -- ROM addr
+    frac : unsigned(PHASE_MINOR_WIDTH-1 downto 0); -- fractional phase
+  end record;
+  signal rom_in, rom_in_q : r_rom_in;
 
-  -- major cos and sin values from LUT
-  signal cos_p, sin_p : signed(OUTPUT_WIDTH-1 downto 0) := (others=>'0');
-  signal cos_major, sin_major : signed(OUTPUT_WIDTH-1 downto 0) := (others=>'0');
-  signal vld_major : std_logic := '0';
+  -- additional fractional bits to increase accuracy, must be at least ROM_FRAC_BITS
+  constant OUTPUT_LSB_EXT : natural := maximum(maximum(PHASE_MINOR_WIDTH-4,4),ROM_FRAC_BITS);
 
-  type array_output is array(integer range <>) of signed(OUTPUT_WIDTH-1 downto 0);
-  type array_frac is array(integer range <>) of unsigned(PHASE_MINOR_WIDTH downto 0);
-  signal cos_interpol : array_output(0 to PHASE_MINOR_WIDTH);
-  signal sin_interpol : array_output(0 to PHASE_MINOR_WIDTH);
-  signal vld_interpol : std_logic_vector(0 to PHASE_MINOR_WIDTH);
-  signal frac_interpol : array_frac(-1 to PHASE_MINOR_WIDTH);
+  -- bit width of slope integer part
+  constant SLOPE_INT_WIDTH : positive := OUTPUT_WIDTH - ROM_DEPTH_LD;
 
-  constant SLOPE_WIDTH : positive := OUTPUT_WIDTH - LUT_DEPTH_LD + 2;
-  type array_slope is array(integer range <>) of signed(SLOPE_WIDTH-1 downto 0);
-  signal cos_slope : array_slope(-1 to PHASE_MINOR_WIDTH);
-  signal sin_slope : array_slope(-1 to PHASE_MINOR_WIDTH);
+  -- bit width of slope fractional part
+  constant SLOPE_FRAC_WIDTH : positive := OUTPUT_LSB_EXT;
+
+  -- overall slope bit width
+  constant SLOPE_WIDTH : positive := SLOPE_INT_WIDTH + SLOPE_FRAC_WIDTH;
+
+  type r_rom_out is
+  record
+    vld  : std_logic; -- valid
+    quad : unsigned(1 downto 0); -- quadrant
+    frac : unsigned(PHASE_MINOR_WIDTH-1 downto 0); -- fractional phase
+    data : std_logic_vector(ROM_WIDTH-1 downto 0); -- value from LUT-ROM
+    major_cos : signed(SINCOS_WIDTH downto 0); -- major cosine value from LUT-ROM
+    major_sin : signed(SINCOS_WIDTH downto 0); -- major sine value from LUT-ROM
+    deriv_cos : signed(SLOPE_WIDTH-1 downto 0); -- derivative of cosine
+    deriv_sin : signed(SLOPE_WIDTH-1 downto 0); -- derivative of sine
+  end record;
+  signal rom_out : r_rom_out;
+
+  type r_interpol is
+  record
+    vld  : std_logic; -- valid
+    cos  : signed(OUTPUT_LSB_EXT+OUTPUT_WIDTH-1 downto 0);
+    sin  : signed(OUTPUT_LSB_EXT+OUTPUT_WIDTH-1 downto 0);
+    frac : unsigned(PHASE_MINOR_WIDTH-1 downto 0);
+    slope_cos : signed(SLOPE_WIDTH-1 downto 0);
+    slope_sin : signed(SLOPE_WIDTH-1 downto 0);
+  end record;
+  constant DEFAULT_INTERPOL : r_interpol := (
+    vld  => '0',
+    cos  => (others=>'-'),
+    sin  => (others=>'-'),
+    frac => (others=>'0'),
+    slope_cos => (others=>'-'),
+    slope_sin => (others=>'-')
+  );
+  type a_interpol is array(integer range <>) of r_interpol;
+  signal interpol_in : a_interpol(1 to PHASE_MINOR_WIDTH);
+  signal interpol : a_interpol(0 to PHASE_MINOR_WIDTH);
+  signal interpol_pipe : a_interpol(0 to PHASE_MINOR_WIDTH-1);
 
 begin
 
-  -- derive LUT address from phase input
-  lut_in_vld <= phase_vld;
-  
-  g_frac_off : if PHASE_MINOR_WIDTH=0 generate
-    lut_in_quad <= unsigned(phase(phase'left downto phase'left-1));
-    lut_in_addr <= unsigned(phase(phase'left-2 downto PHASE_MINOR_WIDTH));
-    lut_in_frac <= (others=>'0');
-  end generate;   
+  -- derive ROM address from phase input
+  rom_in.vld <= phase_vld;
+  rom_in.quad <= unsigned(phase(phase'left downto phase'left-1));
+  rom_in.addr <= unsigned(phase(phase'left-2 downto PHASE_MINOR_WIDTH));
 
   g_frac_on : if PHASE_MINOR_WIDTH>=1 generate
-    signal addr1, addr2 : unsigned(PHASE_MAJOR_WIDTH-1 downto 0);
   begin
-    addr1 <= unsigned(phase(phase'left downto PHASE_MINOR_WIDTH));
-    -- switch between forward and backward interpolation
-    addr2 <= addr1 when phase(PHASE_MINOR_WIDTH-1)='0' else addr1+1;
-    lut_in_quad <= addr2(addr2'left downto addr2'left-1);
-    lut_in_addr <= addr2(addr2'left-2 downto 0);
-    lut_in_frac(PHASE_MINOR_WIDTH-1 downto 0) <= signed(phase(PHASE_MINOR_WIDTH-1 downto 0));
-    lut_in_frac(PHASE_MINOR_WIDTH) <= phase(PHASE_MINOR_WIDTH-1); -- sign extension
-  end generate;   
+    rom_in.frac <= unsigned(phase(PHASE_MINOR_WIDTH-1 downto 0)) - 2**(PHASE_MINOR_WIDTH-1);
+  end generate;
 
-  p_lut: process(clk)
+  p_rom: process(clk)
   begin
     if rising_edge(clk) then
       if clkena='1' then
         -- ROM with input and output register
-        lut_in_addr_q <= lut_in_addr;
-        lut_in_vld_q <= lut_in_vld;
-        lut_in_frac_q <= lut_in_frac;
-        lut_in_quad_q <= lut_in_quad;
-        lut_out_data <= LUT(to_integer(lut_in_addr_q));
-        lut_out_quad <= lut_in_quad_q;
-        lut_out_frac <= lut_in_frac_q;
-        lut_out_vld <= lut_in_vld_q;
+        rom_in_q <= rom_in;
+        rom_out.data <= ROM(to_integer(rom_in_q.addr));
+        rom_out.quad <= rom_in_q.quad;
+        rom_out.frac <= rom_in_q.frac;
+        rom_out.vld  <= rom_in_q.vld;
       end if;
     end if;
   end process;
 
-  -- add sign bit and convert to signed (i.e. add MSB '0')
-  cos_p <= signed(resize(unsigned(lut_out_data(LUT_WIDTH/2-1 downto 0)),OUTPUT_WIDTH));
-  sin_p <= signed(resize(unsigned(lut_out_data(LUT_WIDTH-1 downto LUT_WIDTH/2)),OUTPUT_WIDTH));
-
-  -- quadrant adjustment (before interpolation)
-  p_major: process(clk)
-    variable v_cos_p, v_sin_p : signed(OUTPUT_WIDTH-1 downto 0);
-    variable v_cos_n, v_sin_n : signed(OUTPUT_WIDTH-1 downto 0);
+  p_rom_out: process(rom_out.data, rom_out.quad)
+    variable cos_p, cos_n, sin_p, sin_n : signed(SINCOS_WIDTH downto 0);
   begin
-    if rising_edge(clk) then
-      v_cos_p := cos_p;
-      v_sin_p := sin_p;
-      v_cos_n := -cos_p;
-      v_sin_n := -sin_p;
-      if rst='1' then
-        vld_major <= '0';
-        cos_major <= (others=>'-');
-        sin_major <= (others=>'-');
-      elsif clkena='1' then
-        vld_major <= lut_out_vld;
-        if lut_out_quad=0 then -- 1st quadrant
-          cos_major <= v_cos_p;
-          sin_major <= v_sin_p;
-        elsif lut_out_quad=1 then -- 2nd quadrant
-          cos_major <= v_sin_n;
-          sin_major <= v_cos_p;
-        elsif lut_out_quad=2 then -- 3rd quadrant
-          cos_major <= v_cos_n;
-          sin_major <= v_sin_n;
-        else -- 4th quadrant
-          cos_major <= v_sin_p;
-          sin_major <= v_cos_n;
-        end if;
-      end if;
+    -- add sign bit and convert to signed (i.e. add MSB '0')
+    cos_p := signed(resize(unsigned(rom_out.data(ROM_WIDTH/2-1 downto 0)),SINCOS_WIDTH+1));
+    sin_p := signed(resize(unsigned(rom_out.data(ROM_WIDTH-1 downto ROM_WIDTH/2)),SINCOS_WIDTH+1));
+    -- negative cosine and sine values
+    cos_n := -cos_p;
+    sin_n := -sin_p;
+
+    -- major : final coarse cosine and sine values
+    -- deriv : temporary derivative for interpolation
+    if rom_out.quad=0 then    -- 1st quadrant
+      rom_out.major_cos <= cos_p;
+      rom_out.major_sin <= sin_p;
+      rom_out.deriv_cos <= resize(shift_right_round(sin_n,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS,floor),SLOPE_WIDTH);
+      rom_out.deriv_sin <= resize(shift_right_round(cos_p,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS,floor),SLOPE_WIDTH);
+    elsif rom_out.quad=1 then -- 2nd quadrant
+      rom_out.major_cos <= sin_n;
+      rom_out.major_sin <= cos_p;
+      rom_out.deriv_cos <= resize(shift_right_round(cos_n,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS,floor),SLOPE_WIDTH);
+      rom_out.deriv_sin <= resize(shift_right_round(sin_n,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS,floor),SLOPE_WIDTH);
+    elsif rom_out.quad=2 then -- 3rd quadrant
+      rom_out.major_cos <= cos_n;
+      rom_out.major_sin <= sin_n;
+      rom_out.deriv_cos <= resize(shift_right_round(sin_p,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS,floor),SLOPE_WIDTH);
+      rom_out.deriv_sin <= resize(shift_right_round(cos_n,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS,floor),SLOPE_WIDTH);
+    else -- 4th quadrant
+      rom_out.major_cos <= sin_p;
+      rom_out.major_sin <= cos_n;
+      rom_out.deriv_cos <= resize(shift_right_round(cos_p,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS,floor),SLOPE_WIDTH);
+      rom_out.deriv_sin <= resize(shift_right_round(sin_p,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS,floor),SLOPE_WIDTH);
     end if;
   end process;
-
-  g_interpolation_off : if PHASE_MINOR_WIDTH=0 generate
-  begin
-    PIPESTAGES <= 3;
-    vld_interpol(0) <= vld_major;
-    cos_interpol(0) <= cos_major;
-    sin_interpol(0) <= sin_major;
-    cos_slope <= (others=>(others=>'0')); -- irrelevant
-    sin_slope <= (others=>(others=>'0')); -- irrelevant
-    frac_interpol <= (others=>(others=>'0')); -- irrelevant
-  end generate;
 
   -- NOTE:
   -- Interpolation/Approximation is only enabled when PHASE_MINOR_WIDTH>0
-
   g_interpolation_on : if PHASE_MINOR_WIDTH>=1 generate
+    signal rom_out_q : r_rom_out;
   begin
-   PIPESTAGES <= 4 + PHASE_MINOR_WIDTH;
-   p_minor: process(clk)
-    variable v_cos_p, v_sin_p : signed(SLOPE_WIDTH-1 downto 0);
-    variable v_cos_n, v_sin_n : signed(SLOPE_WIDTH-1 downto 0);
-    variable v_cos_slope, v_sin_slope : signed(SLOPE_WIDTH-1 downto 0);
+   PIPESTAGES <= 4 + (PHASE_MINOR_WIDTH+1)/2;
+   rom_out_q <= rom_out when rising_edge(clk);
+
+   g_interpol_in : for n in 1 to PHASE_MINOR_WIDTH generate
+     -- The interpol(0) results is always registered, afterwards the result of every second interpolation stage is registered.
+     interpol_in(n) <= interpol_pipe(n-1) when ( n=1 or ((n+PHASE_MINOR_WIDTH) mod 2)=1 ) else
+                       interpol(n-1);
+   end generate;
+
+   p_interpol: process(interpol_in, rom_out_q)
+    variable v_slope_cos, v_slope_sin : signed(SLOPE_WIDTH-1 downto 0);
    begin
-    if rising_edge(clk) then
+     v_slope_cos := shift_right_round(rom_out_q.deriv_cos,1,nearest);
+     v_slope_sin := shift_right_round(rom_out_q.deriv_sin,1,nearest);
+     -- multiply with pi/2 ~ 201/128 = "11001001"
+     v_slope_cos := v_slope_cos + shift_right(v_slope_cos,1) + shift_right(v_slope_cos,4) + shift_right(v_slope_cos,7);
+     v_slope_sin := v_slope_sin + shift_right(v_slope_sin,1) + shift_right(v_slope_sin,4) + shift_right(v_slope_sin,7);
+     if rom_out_q.frac(rom_out_q.frac'left)='0' then
+       -- forward interpolation: standard derivative
+       interpol(0).slope_cos  <=  v_slope_cos;
+       interpol(0).slope_sin  <=  v_slope_sin;
+       interpol(0).frac <= rom_out_q.frac;
+     else
+       -- backward interpolation: negative derivative
+       interpol(0).slope_cos  <= -v_slope_cos;
+       interpol(0).slope_sin  <= -v_slope_sin;
+       interpol(0).frac <= 0 - rom_out_q.frac;
+     end if;
+     interpol(0).cos  <= shift_left(resize(rom_out_q.major_cos,OUTPUT_LSB_EXT+OUTPUT_WIDTH),OUTPUT_LSB_EXT-ROM_FRAC_BITS);
+     interpol(0).sin  <= shift_left(resize(rom_out_q.major_sin,OUTPUT_LSB_EXT+OUTPUT_WIDTH),OUTPUT_LSB_EXT-ROM_FRAC_BITS);
+     interpol(0).vld  <= rom_out_q.vld;
 
-      -- positive base slope with additional bit for accuracy (without factor pi/2)
-      v_cos_p := resize(shift_right_round(cos_p,LUT_DEPTH_LD-1,nearest),SLOPE_WIDTH);
-      v_sin_p := resize(shift_right_round(sin_p,LUT_DEPTH_LD-1,nearest),SLOPE_WIDTH);
-      -- negative base slope (without factor pi/2)
-      v_cos_n := -v_cos_p;
-      v_sin_n := -v_sin_p;
+     for n in 1 to PHASE_MINOR_WIDTH loop
+       if interpol_in(n).frac(PHASE_MINOR_WIDTH-n)='0' then
+         interpol(n).cos <= interpol_in(n).cos;
+         interpol(n).sin <= interpol_in(n).sin;
+       else
+         interpol(n).cos <= interpol_in(n).cos + interpol_in(n).slope_cos;
+         interpol(n).sin <= interpol_in(n).sin + interpol_in(n).slope_sin;
+       end if;
+       interpol(n).vld <= interpol_in(n).vld;
+       interpol(n).frac <= interpol_in(n).frac;
+       interpol(n).slope_cos <= shift_right_round(interpol_in(n).slope_cos,1,floor);
+       interpol(n).slope_sin <= shift_right_round(interpol_in(n).slope_sin,1,floor);
+     end loop;
+   end process;
 
+   p_pipe: process(clk)
+   begin
+     if rising_edge(clk) then
       if rst='1' then
-        cos_interpol <= (others=>(others=>'-'));
-        sin_interpol <= (others=>(others=>'-'));
-        cos_slope <= (others=>(others=>'-'));
-        sin_slope <= (others=>(others=>'-'));
-        frac_interpol <= (others=>(others=>'0'));
-        vld_interpol <= (others=>'0');
-
+        interpol_pipe <= (others=>DEFAULT_INTERPOL);
+        dout_vld <= '0';
+        dout_cos <= (others=>'-');
+        dout_sin <= (others=>'-');
       elsif clkena='1' then
-
-        if lut_out_frac(lut_out_frac'left)='0' then
-          -- forward interpolation: derivative and quadrant adjustment
-          frac_interpol(-1) <= unsigned(lut_out_frac);
-          if lut_out_quad=0 then -- 1st quadrant
-            cos_slope(-1) <= v_sin_n;
-            sin_slope(-1) <= v_cos_p;
-          elsif lut_out_quad=1 then -- 2nd quadrant
-            cos_slope(-1) <= v_cos_n;
-            sin_slope(-1) <= v_sin_n;
-          elsif lut_out_quad=2 then -- 3rd quadrant
-            cos_slope(-1) <= v_sin_p;
-            sin_slope(-1) <= v_cos_n;
-          else -- 4th quadrant
-            cos_slope(-1) <= v_cos_p;
-            sin_slope(-1) <= v_sin_p;
-          end if;
-        else
-          -- backward interpolation: derivative and quadrant adjustment
-          frac_interpol(-1) <= unsigned(-lut_out_frac);
-          if lut_out_quad=0 then -- 1st quadrant
-            cos_slope(-1) <= v_sin_p;
-            sin_slope(-1) <= v_cos_n;
-          elsif lut_out_quad=1 then -- 2nd quadrant
-            cos_slope(-1) <= v_cos_p;
-            sin_slope(-1) <= v_sin_p;
-          elsif lut_out_quad=2 then -- 3rd quadrant
-            cos_slope(-1) <= v_sin_n;
-            sin_slope(-1) <= v_cos_p;
-          else -- 4th quadrant
-            cos_slope(-1) <= v_cos_n;
-            sin_slope(-1) <= v_sin_n;
-          end if;
-        end if;
-
-        -- pipeline register, multiply with pi/2 ~ 25/16 = "11001"
-        v_cos_slope := cos_slope(-1) + shift_right(cos_slope(-1),1) + shift_right(cos_slope(-1),4);
-        v_sin_slope := sin_slope(-1) + shift_right(sin_slope(-1),1) + shift_right(sin_slope(-1),4);
-        cos_slope(0) <= shift_right_round(v_cos_slope,2,truncate);
-        sin_slope(0) <= shift_right_round(v_sin_slope,2,truncate);
-        frac_interpol(0) <= frac_interpol(-1);
-        cos_interpol(0) <= cos_major;
-        sin_interpol(0) <= sin_major;
-        vld_interpol(0) <= vld_major;
-
-        for n in 1 to PHASE_MINOR_WIDTH loop
-          vld_interpol(n) <= vld_interpol(n-1);
-          if frac_interpol(n-1)(PHASE_MINOR_WIDTH-n)='0' then
-            cos_interpol(n) <= cos_interpol(n-1);
-            sin_interpol(n) <= sin_interpol(n-1);
-          else
-            cos_interpol(n) <= cos_interpol(n-1) + cos_slope(n-1);
-            sin_interpol(n) <= sin_interpol(n-1) + sin_slope(n-1);
-          end if;
-          frac_interpol(n) <= frac_interpol(n-1);
-          cos_slope(n) <= shift_right_round(cos_slope(n-1),1,truncate);
-          sin_slope(n) <= shift_right_round(sin_slope(n-1),1,truncate);
-        end loop;
-
+        interpol_pipe(0 to PHASE_MINOR_WIDTH-1) <= interpol(0 to PHASE_MINOR_WIDTH-1);
+        dout_vld <= interpol(PHASE_MINOR_WIDTH).vld;
+        dout_cos <= resize(shift_right_round(interpol(PHASE_MINOR_WIDTH).cos,OUTPUT_LSB_EXT,nearest),OUTPUT_WIDTH);
+        dout_sin <= resize(shift_right_round(interpol(PHASE_MINOR_WIDTH).sin,OUTPUT_LSB_EXT,nearest),OUTPUT_WIDTH);
       end if;
     end if; -- clock
    end process;
+
   end generate;
 
-  -- final output
-  dout_cos <= cos_interpol(PHASE_MINOR_WIDTH);
-  dout_sin <= sin_interpol(PHASE_MINOR_WIDTH);
-  dout_vld <= vld_interpol(PHASE_MINOR_WIDTH);
+  g_interpol_off : if PHASE_MINOR_WIDTH=0 generate
+  begin
+    PIPESTAGES <= 3;
+    p_dout: process(clk)
+    begin
+     if rising_edge(clk) then
+      if rst='1' then
+        dout_vld <= '0';
+        dout_cos <= (others=>'-');
+        dout_sin <= (others=>'-');
+      elsif clkena='1' then
+        dout_vld <= rom_out.vld;
+        dout_cos <= rom_out.major_cos(OUTPUT_WIDTH+ROM_FRAC_BITS-1 downto ROM_FRAC_BITS);
+        dout_sin <= rom_out.major_sin(OUTPUT_WIDTH+ROM_FRAC_BITS-1 downto ROM_FRAC_BITS);
+      end if;
+     end if; -- clock
+    end process;
+
+  end generate;
 
 end architecture;

@@ -1,13 +1,13 @@
 -------------------------------------------------------------------------------
 --! @file       sincos_tb.vhdl
 --! @author     Fixitfetish
---! @date       01/May/2017
---! @version    0.20
+--! @date       27/Nov/2021
+--! @version    0.50
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
--- Includes DOXYGEN support.
+-- Code comments are optimized for SIGASI and DOXYGEN.
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
@@ -39,7 +39,8 @@ architecture sim of sincos_tb is
   signal dout_vld : std_logic;
   signal dout_sin : signed(OUTPUT_WIDTH-1 downto 0);
   signal dout_cos : signed(OUTPUT_WIDTH-1 downto 0);
-  signal dout_cplx : cplx;
+  signal dout_cplx : cplx18;
+--  signal dout_cplx : cplx(re(OUTPUT_WIDTH-1 downto 0),im(OUTPUT_WIDTH-1 downto 0));
 
   signal PIPESTAGES : natural;
 
@@ -87,7 +88,7 @@ begin
     PHASE_MAJOR_WIDTH => PHASE_MAJOR_WIDTH,
     PHASE_MINOR_WIDTH => PHASE_MINOR_WIDTH,
     OUTPUT_WIDTH => OUTPUT_WIDTH,
-    OUTPUT_SHIFT_RIGHT => false
+    FRACTIONAL_SCALING => 1.0
   )
   port map (
     clk        => clk,
