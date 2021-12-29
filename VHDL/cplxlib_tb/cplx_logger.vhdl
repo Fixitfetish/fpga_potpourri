@@ -53,21 +53,21 @@ architecture sim of cplx_logger is
   procedure cplx_write(
     constant DEC : in boolean;
     variable l : inout line;
-    variable din : in cplx
+    variable d : in cplx
   ) is
     variable v_val : integer;
   begin
-    write(l,hexstr_validate(hexstr_from_sl(din.rst),STR_INVALID),right,3);
-    write(l,hexstr_validate(hexstr_from_sl(din.vld),STR_INVALID),right,4);
-    write(l,hexstr_validate(hexstr_from_sl(din.ovf),STR_INVALID),right,4);
+    write(l,hexstr_validate(hexstr_from_sl(d.rst),STR_INVALID),right,3);
+    write(l,hexstr_validate(hexstr_from_sl(d.vld),STR_INVALID),right,4);
+    write(l,hexstr_validate(hexstr_from_sl(d.ovf),STR_INVALID),right,4);
     if DEC then
-      v_val := to_integer(din.re);
+      v_val := to_integer(d.re);
       write_str(l,integer'image(v_val),right,8);
-      v_val := to_integer(din.im);
+      v_val := to_integer(d.im);
       write_str(l,integer'image(v_val),right,8);
     else
-      write_str(l,hexstr_from_signed(din.re),right,8);
-      write_str(l,hexstr_from_signed(din.im),right,8);
+      write_str(l,hexstr_from_signed(d.re),right,8);
+      write_str(l,hexstr_from_signed(d.im),right,8);
     end if;
     write_str(l," ",right,3); -- trailing spaces
   end procedure;

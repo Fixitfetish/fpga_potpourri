@@ -7,6 +7,8 @@
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
+-- Code comments are optimized for SIGASI and DOXYGEN.
+-------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
@@ -117,6 +119,15 @@ package cplx_pkg is
   subtype cplx34 is cplx(re(33 downto 0), im(33 downto 0));
   subtype cplx35 is cplx(re(34 downto 0), im(34 downto 0));
   subtype cplx36 is cplx(re(35 downto 0), im(35 downto 0));
+  subtype cplx37 is cplx(re(36 downto 0), im(36 downto 0));
+  subtype cplx38 is cplx(re(37 downto 0), im(37 downto 0));
+  subtype cplx39 is cplx(re(38 downto 0), im(38 downto 0));
+  subtype cplx40 is cplx(re(39 downto 0), im(39 downto 0));
+  subtype cplx41 is cplx(re(40 downto 0), im(40 downto 0));
+  subtype cplx42 is cplx(re(41 downto 0), im(41 downto 0));
+  subtype cplx43 is cplx(re(42 downto 0), im(42 downto 0));
+  subtype cplx44 is cplx(re(43 downto 0), im(43 downto 0));
+  subtype cplx45 is cplx(re(44 downto 0), im(44 downto 0));
 
   subtype cplx4_vector  is cplx_vector(open)(re( 3 downto 0), im( 3 downto 0));
   subtype cplx5_vector  is cplx_vector(open)(re( 4 downto 0), im( 4 downto 0));
@@ -151,6 +162,15 @@ package cplx_pkg is
   subtype cplx34_vector is cplx_vector(open)(re(33 downto 0), im(33 downto 0));
   subtype cplx35_vector is cplx_vector(open)(re(34 downto 0), im(34 downto 0));
   subtype cplx36_vector is cplx_vector(open)(re(35 downto 0), im(35 downto 0));
+  subtype cplx37_vector is cplx_vector(open)(re(36 downto 0), im(36 downto 0));
+  subtype cplx38_vector is cplx_vector(open)(re(37 downto 0), im(37 downto 0));
+  subtype cplx39_vector is cplx_vector(open)(re(38 downto 0), im(38 downto 0));
+  subtype cplx40_vector is cplx_vector(open)(re(39 downto 0), im(39 downto 0));
+  subtype cplx41_vector is cplx_vector(open)(re(40 downto 0), im(40 downto 0));
+  subtype cplx42_vector is cplx_vector(open)(re(41 downto 0), im(41 downto 0));
+  subtype cplx43_vector is cplx_vector(open)(re(42 downto 0), im(42 downto 0));
+  subtype cplx44_vector is cplx_vector(open)(re(43 downto 0), im(43 downto 0));
+  subtype cplx45_vector is cplx_vector(open)(re(44 downto 0), im(44 downto 0));
 
   ------------------------------------------
   -- auxiliary

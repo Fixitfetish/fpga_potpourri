@@ -22,6 +22,7 @@ puts "INFO: CPLXLIB"
 set LIB cplxlib
 set filelist [list]
 lappend filelist [ file normalize ../../cplxlib/1993/cplx_pkg_1993.vhdl ]
+#lappend filelist [ file normalize ../../cplxlib/2008/cplx_pkg_2008.vhdl ]
 compile $LIB $filelist
 
 puts "--------------------------------------------------------------------------"
