@@ -20,7 +20,7 @@ library dsplib;
 library unisim;
   use unisim.vcomponents.all;
 
---! @brief This is an implementation of the entity signed_preadd_mult1_accu
+--! @brief This is an implementation of the entity signed_preadd_mult1add1
 --! for Xilinx UltraScale.
 --! Multiply a sum of two signed (+/-XA +/-XB) with a signed Y and accumulate results.
 --!
@@ -110,7 +110,6 @@ architecture ultrascale of signed_preadd_mult1add1 is
   constant OUTPUT_WIDTH : positive := result'length;
 
   constant clkena : std_logic := '1'; -- clock enable
-  constant reset : std_logic := '0';
 
   type r_pipe is
   record
@@ -181,7 +180,9 @@ begin
     process(clk)
     begin
       if rising_edge(clk) then
-        if clkena='1' then
+        if rst/='0' then
+          pipe <= (others=>PIPE_DEFAULT);
+        elsif clkena='1' then
           pipe(NUM_IREG_LOGIC-1 downto 0) <= pipe(NUM_IREG_LOGIC downto 1);
         end if;
       end if;
@@ -195,7 +196,9 @@ begin
     process(clk)
     begin
       if rising_edge(clk) then
-        if clkena='1' then
+        if rst/='0' then
+          pipe_c <= (others=>(others=>'-'));
+        elsif clkena='1' then
           pipe_c(NUM_IREG_C_LOGIC-1 downto 0) <= pipe_c(NUM_IREG_C_LOGIC downto 1);
         end if;
       end if;
@@ -217,7 +220,7 @@ begin
   )
   port map(
     clk        => clk,
-    rst        => open, -- TODO ?
+    rst        => rst,
     clkena     => clkena,
     sub_a      => sub_xa,
     sub_d      => sub_xb,
@@ -235,7 +238,9 @@ begin
   p_clr : process(clk)
   begin
     if rising_edge(clk) then
-      if dsp_in.clr='1' and dsp_in.vld='0' then
+      if rst/='0' then
+        clr_q<='1';
+      elsif dsp_in.clr='1' and dsp_in.vld='0' then
         clr_q<='1';
       elsif dsp_in.vld='1' then
         clr_q<='0';
@@ -386,16 +391,16 @@ begin
     CEM                => CEM(clkena,NUM_INPUT_REG),
     CEP                => dsp_feed.vld,
     -- Reset: 1-bit (each) input: Reset
-    RSTA               => reset, -- TODO
+    RSTA               => rst,
     RSTALLCARRYIN      => '1', -- unused
-    RSTALUMODE         => reset, -- TODO
-    RSTB               => reset, -- TODO
-    RSTC               => reset, -- TODO
-    RSTCTRL            => reset, -- TODO
-    RSTD               => reset, -- TODO
-    RSTINMODE          => reset, -- TODO
-    RSTM               => reset, -- TODO
-    RSTP               => reset  -- TODO
+    RSTALUMODE         => rst,
+    RSTB               => rst,
+    RSTC               => rst,
+    RSTCTRL            => rst,
+    RSTD               => rst,
+    RSTINMODE          => rst,
+    RSTM               => rst,
+    RSTP               => rst 
   );
 
   chainout(ACCU_WIDTH-1 downto 0) <= signed(chainout_i);
@@ -410,7 +415,9 @@ begin
     process(clk)
     begin
       if rising_edge(clk) then
-        if clkena='1' then
+        if rst/='0' then
+          accu_vld <= '0';
+        elsif clkena='1' then
           accu_vld <= dsp_feed.vld;
         end if;
       end if;
@@ -449,4 +456,3 @@ begin
   PIPESTAGES <= NUM_INPUT_REG + NUM_OUTPUT_REG;
 
 end architecture;
-

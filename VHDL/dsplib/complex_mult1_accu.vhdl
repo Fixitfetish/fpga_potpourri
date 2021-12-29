@@ -71,11 +71,8 @@ generic (
   --!
   --! Note that every single accumulated product result counts!
   NUM_SUMMAND : natural := 0;
-  --! Enable chain input from neighbor DSP cell, i.e. enable additional accumulator input
+  --! Enable chain input from neighbor DSP cell, i.e. enable additional accumulator input : TODO
   USE_CHAIN_INPUT : boolean := false;
-  --! @brief Enable chain output to neighbor DSP cell.
-  --! If chain input and output are disabled special non-chainable implementations might be feasible.
-  USE_CHAIN_OUTPUT : boolean := false;
   --! @brief Number of additional input registers. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
   NUM_INPUT_REG : natural := 1;
@@ -98,7 +95,7 @@ generic (
   OUTPUT_CLIP : boolean := true;
   --! Enable overflow/clipping detection 
   OUTPUT_OVERFLOW : boolean := true;
-  --! @brief OPTIMIZATION
+  --! @brief OPTIMIZATION : TODO
   --! * MAXIMUM_PERFORMANCE
   --! * MINIMUM_DSP_CELLS
   OPTIMIZATION : string := "MAXIMUM_PERFORMANCE"
@@ -106,7 +103,7 @@ generic (
 port (
   --! Standard system clock
   clk        : in  std_logic;
-  --! Global pipeline reset (optional)
+  --! Global pipeline reset (optional, only connect if really required!)
   rst        : in  std_logic := '0';
   --! Clock enable (optional)
   clkena     : in  std_logic := '1';
@@ -155,8 +152,11 @@ begin
     report "WARNING in complex_mult1_accu :" &
            " Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
+  assert (x_re'length=x_im'length) and (y_re'length=y_im'length)
+    report "ERROR in complex_mult1_accu :" &
+           " Real and imaginary components must have same size."
+    severity failure;
   -- synthesis translate_on (Altera Quartus)
   -- pragma translate_on (Xilinx Vivado , Synopsys)
 
 end entity;
-

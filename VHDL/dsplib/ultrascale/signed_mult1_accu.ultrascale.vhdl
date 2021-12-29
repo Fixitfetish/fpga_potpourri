@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult1_accu.ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       29/Dec/2021
---! @version    0.95
+--! @date       15/May/2019
+--! @version    0.93
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>

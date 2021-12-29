@@ -79,7 +79,7 @@ generic (
 port (
   --! Standard system clock
   clk        : in  std_logic;
-  --! Reset result output (optional, only connect if really required)
+  --! Reset result output (optional, only connect if really required!)
   rst        : in  std_logic := '0';
   --! Clock enable (optional)
   clkena     : in  std_logic := '1';

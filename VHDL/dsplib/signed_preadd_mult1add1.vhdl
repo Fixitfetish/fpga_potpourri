@@ -17,7 +17,7 @@ library ieee;
 --! and add result to the signed input Z.
 --! Optionally the chain input can be added as well.
 --! 
---! @image html signed_preadd_mult1add1_sum.svg "" width=600px
+--! @image html signed_preadd_mult1add1.svg "" width=600px
 --!
 --! The behavior is as follows
 --! * CLR=1  VLD=0  ->  r = undefined                # reset accumulator
@@ -121,7 +121,7 @@ generic (
 port (
   --! Standard system clock
   clk        : in  std_logic;
-  --! Reset result output (optional)
+  --! Reset result output (optional, only connect if really required!)
   rst        : in  std_logic := '0';
   --! @brief Clear accumulator (mark first valid input factors of accumulation sequence).
   --! This port might be ignored when USE_CHAIN_INPUT=true.
@@ -174,4 +174,3 @@ begin
   -- pragma translate_on (Xilinx Vivado , Synopsys)
 
 end entity;
-
