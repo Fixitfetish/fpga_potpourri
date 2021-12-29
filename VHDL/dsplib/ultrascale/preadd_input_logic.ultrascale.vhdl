@@ -46,7 +46,7 @@ library dsplib;
 --! generic map(
 --!   PREADDER_INPUT_A  => string,  -- a preadder mode
 --!   PREADDER_INPUT_D  => string,  -- d preadder mode
---!   NUM_INPUT_REG     => natural  -- number of input registers
+--!   NUM_INPUT_REG     => natural  -- number of input registers in logic
 --! )
 --! port map(
 --!   clk        => in  std_logic, -- clock
@@ -79,7 +79,7 @@ generic (
 port (
   --! Standard system clock
   clk        : in  std_logic;
-  --! Reset result output (optional)
+  --! Reset result output (optional, only connect if really required)
   rst        : in  std_logic := '0';
   --! Clock enable (optional)
   clkena     : in  std_logic := '1';
@@ -103,6 +103,22 @@ port (
   --! Number of pipeline stages, constant, depends on configuration and device specific implementation
   PIPESTAGES : out natural := 1
 );
+begin
+
+  -- synthesis translate_off (Altera Quartus)
+  -- pragma translate_off (Xilinx Vivado , Synopsys)
+  assert (PREADDER_INPUT_A="ADD") or (PREADDER_INPUT_A="SUBTRACT") or (PREADDER_INPUT_A="DYNAMIC")
+    report "WARNING in " & preadd_input_logic_ultrascale'INSTANCE_NAME & ": " & 
+           "Generic PREADDER_INPUT_A string must be ADD, SUBTRACT or DYNAMIC."
+    severity failure;
+
+  assert (PREADDER_INPUT_D="ADD") or (PREADDER_INPUT_D="SUBTRACT") or (PREADDER_INPUT_D="DYNAMIC")
+    report "WARNING in " & preadd_input_logic_ultrascale'INSTANCE_NAME & ": " & 
+           "Generic PREADDER_INPUT_D string must be ADD, SUBTRACT or DYNAMIC."
+    severity failure;
+  -- synthesis translate_on (Altera Quartus)
+  -- pragma translate_on (Xilinx Vivado , Synopsys)
+
 end entity;
 
 -------------------------------------------------------------------------------
@@ -115,18 +131,16 @@ architecture rtl of preadd_input_logic_ultrascale is
   -- max preadder input width
   constant LIM_WIDTH_AD : positive := MAX_WIDTH_D - 1;
 
-  -- number input registers in LOGIC
-  constant c_PIPESTAGES : natural := NUM_IREG(LOGIC,NUM_INPUT_REG);
-
   -- logic input register pipeline
-  type r_logic_ireg is
+  type r_ireg is
   record
     sub_a, sub_d : std_logic;
     a : signed(a'length-1 downto 0);
     d : signed(d'length-1 downto 0);
   end record;
-  type array_logic_ireg is array(integer range <>) of r_logic_ireg;
-  signal ireg : r_logic_ireg;
+  constant IREG_DEFAULT : r_ireg := ('0','0',(others=>'-'),(others=>'-'));
+  type array_ireg is array(integer range <>) of r_ireg;
+  signal ireg : array_ireg(NUM_INPUT_REG downto 0);
 
   -- preadder subtract control - more details in description above
   function preadder_subtract(sub_a,sub_d:std_logic; amode,bmode:string) return std_logic is
@@ -164,42 +178,36 @@ begin
            "Preadder input A and D width cannot exceed " & integer'image(LIM_WIDTH_AD)
     severity failure;
 
-  g_ireg_off : if c_PIPESTAGES=0 generate
-    ireg.sub_a <= sub_a;
-    ireg.sub_d <= sub_d;
-    ireg.a <= a;
-    ireg.d <= d;
-  end generate;
+  -- pipeline input
+  ireg(NUM_INPUT_REG).sub_a <= sub_a;
+  ireg(NUM_INPUT_REG).sub_d <= sub_d;
+  ireg(NUM_INPUT_REG).a <= a;
+  ireg(NUM_INPUT_REG).d <= d;
 
-  g_ireg_on : if c_PIPESTAGES>=1 generate
-    signal ireg_q : array_logic_ireg(c_PIPESTAGES downto 1);
-  begin
+  -- pipeline
+  g_ireg_on : if NUM_INPUT_REG>=1 generate
     process(clk)
     begin
       if rising_edge(clk) then
-        if clkena='1' then
-          ireg_q(c_PIPESTAGES).sub_a <= sub_a;
-          ireg_q(c_PIPESTAGES).sub_d <= sub_d;
-          ireg_q(c_PIPESTAGES).a <= a;
-          ireg_q(c_PIPESTAGES).d <= d;
-          for n in 2 to c_PIPESTAGES loop
-            ireg_q(n-1) <= ireg_q(n);
-          end loop;
+        if rst/='0' then
+          ireg(NUM_INPUT_REG-1 downto 0) <= (others=>IREG_DEFAULT);
+        elsif clkena='1' then
+          ireg(NUM_INPUT_REG-1 downto 0) <= ireg(NUM_INPUT_REG downto 1);
         end if;
       end if;
     end process;
-    ireg <= ireg_q(0);
   end generate;
 
+  -- preadder control signals
   inmode(0) <= '0'; -- AREG controlled input
   inmode(1) <= '0'; -- do not gate A/B
   inmode(2) <= '1'; -- D into preadder
-  inmode(3) <= preadder_subtract(ireg.sub_a,ireg.sub_d,PREADDER_INPUT_A,PREADDER_INPUT_D);
+  inmode(3) <= preadder_subtract(ireg(0).sub_a, ireg(0).sub_d, PREADDER_INPUT_A, PREADDER_INPUT_D);
 
   -- LSB bound data inputs
-  a_dsp <= get_a(ireg.a, ireg.d, PREADDER_INPUT_A,PREADDER_INPUT_D);
-  d_dsp <= get_d(ireg.a, ireg.d, ireg.sub_a, PREADDER_INPUT_A, PREADDER_INPUT_D);
+  a_dsp <= get_a(ireg(0).a, ireg(0).d, PREADDER_INPUT_A,PREADDER_INPUT_D);
+  d_dsp <= get_d(ireg(0).a, ireg(0).d, ireg(0).sub_a, PREADDER_INPUT_A, PREADDER_INPUT_D);
 
-  PIPESTAGES <= c_PIPESTAGES;
+  PIPESTAGES <= NUM_INPUT_REG;
 
 end architecture;

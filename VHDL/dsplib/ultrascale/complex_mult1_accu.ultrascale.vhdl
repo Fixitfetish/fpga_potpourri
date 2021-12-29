@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --! @file       complex_mult1_accu.ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       30/Jan/2021
+--! @date       12/Dec/2021
 --! @version    0.10
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
@@ -16,22 +16,24 @@ library baselib;
   use baselib.ieee_extension_types.all;
   use baselib.ieee_extension.all;
 library dsplib;
+  use dsplib.dsp_pkg_ultrascale.all;
 
 --! @brief This is an implementation of the entity complex_mult1_accu for Xilinx UltraScale.
 --! One complex multiplication is performed and results are accumulated.
 --!
 --! @image html complex_mult1_accu.ultrascale.svg "" width=600px
 --!
---! This implementation requires four instances of the entity signed_mult1_accu .
---! Chaining is supported.
+--! **MAXIMUM_PERFORMANCE**
+--! * This implementation requires four instances of the entity signed_mult1_accu .
+--! * Chaining is supported.
+--! * The number of overall pipeline stages is typically NUM_INPUT_REG + 1 + NUM_OUTPUT_REG.
 --! 
---! The number of overall pipeline stages is typically NUM_INPUT_REG + 1 + NUM_OUTPUT_REG.
+--! **MINIMUM_DSP_CELLS**
+--! * This implementation requires three instances of the entity signed_preadd_mult1add1 .
+--! * Chaining is supported.
+--! * The number of overall pipeline stages is typically NUM_INPUT_REG + 2 + NUM_OUTPUT_REG.
 --!
 architecture ultrascale of complex_mult1_accu is
-
-  -- MAXIMUM_PERFORMANCE
-  -- MINIMUM_DSP_CELLS
-  constant OPTIMIZATION : string := "MINIMUM_DSP_CELLS";
 
   signal r_ovf_re , r_ovf_im : std_logic;
 
@@ -45,6 +47,7 @@ begin
  G1 : if OPTIMIZATION="MAXIMUM_PERFORMANCE" generate
   signal chainout_re1 : signed(79 downto 0);
   signal chainout_im1 : signed(79 downto 0);
+  signal dummy_re, dummy_im : signed(ACCU_WIDTH-1 downto 0);
  begin
 
   -- operation: re1 = x_re*y_re
@@ -68,7 +71,7 @@ begin
     neg        => neg,
     x          => x_re,
     y          => y_re,
-    result     => open, -- unused
+    result     => dummy_re, -- unused
     result_vld => open, -- unused
     result_ovf => open, -- unused
     chainin    => chainin_re,
@@ -126,7 +129,7 @@ begin
     neg        => neg,
     x          => x_re,
     y          => y_im,
-    result     => open, -- unused
+    result     => dummy_im, -- unused
     result_vld => open, -- unused
     result_ovf => open, -- unused
     chainin    => chainin_im,
@@ -214,9 +217,9 @@ begin
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND,
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
-    PREADDER_INPUT_XA  => "SUB",
-    PREADDER_INPUT_XB  => "SUB",
-    NUM_INPUT_REG_XY   => NUM_INPUT_REG+2, -- for Z input 2 more pipeline stages 
+    PREADDER_INPUT_XA  => "SUBTRACT",
+    PREADDER_INPUT_XB  => "SUBTRACT",
+    NUM_INPUT_REG_XY   => NUM_INPUT_REG+2, -- 2 more pipeline stages to compensate Z input
     NUM_INPUT_REG_Z    => 1,
     NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -249,8 +252,8 @@ begin
     NUM_SUMMAND        => 2*NUM_SUMMAND,
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
     PREADDER_INPUT_XA  => "ADD",
-    PREADDER_INPUT_XB  => "SUB",
-    NUM_INPUT_REG_XY   => NUM_INPUT_REG+2, -- for Z input 2 more pipeline stages 
+    PREADDER_INPUT_XB  => "SUBTRACT",
+    NUM_INPUT_REG_XY   => NUM_INPUT_REG+2, -- 2 more pipeline stages to compensate Z input
     NUM_INPUT_REG_Z    => 1,
     NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,

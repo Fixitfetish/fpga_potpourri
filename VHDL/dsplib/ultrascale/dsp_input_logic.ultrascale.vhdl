@@ -31,7 +31,7 @@ port (
   --! Standard system clock
   clk         : in  std_logic;
   --! Clock enable (optional)
---  clkena      : in  std_logic := '1';
+  clkena      : in  std_logic := '1';
   src_rst     : in  std_logic := '0';
   src_vld     : in  std_logic;
   src_inmode  : in  std_logic_vector(4 downto 0);
@@ -114,10 +114,18 @@ begin
   -- DSP cell data input registers AD/B2 are used as third input register stage.
   g_dsp_ireg3 : if NUM_INPUT_REG>=3 generate
   begin
-    ireg(2).rst <= ireg(3).rst when rising_edge(clk);
-    ireg(2).vld <= ireg(3).vld when rising_edge(clk);
-    ireg(2).inmode <= ireg(3).inmode; -- for INMODE the third register delay stage is irrelevant
-    ireg(2).opmode <= ireg(3).opmode when rising_edge(clk);
+    process(clk)
+    begin
+      if rising_edge(clk) then
+        if clkena='1' then
+          ireg(2).rst <= ireg(3).rst;
+          ireg(2).vld <= ireg(3).vld;
+          ireg(2).opmode <= ireg(3).opmode;
+        end if;
+      end if;
+    end process;
+    -- for INMODE the third register delay stage is irrelevant
+    ireg(2).inmode <= ireg(3).inmode;
     -- the following register are located within the DSP cell
     ireg(2).a <= ireg(3).a;
     ireg(2).b <= ireg(3).b;
@@ -127,10 +135,18 @@ begin
   -- DSP cell MREG register is used as second data input register stage
   g_dsp_ireg2 : if NUM_INPUT_REG>=2 generate
   begin
-    ireg(1).rst <= ireg(2).rst when rising_edge(clk);
-    ireg(1).vld <= ireg(2).vld when rising_edge(clk);
-    ireg(1).inmode <= ireg(2).inmode; -- for INMODE the second register delay stage is irrelevant
-    ireg(1).opmode <= ireg(2).opmode when rising_edge(clk);
+    process(clk)
+    begin
+      if rising_edge(clk) then
+        if clkena='1' then
+          ireg(1).rst <= ireg(2).rst;
+          ireg(1).vld <= ireg(2).vld;
+          ireg(1).opmode <= ireg(2).opmode;
+        end if;
+      end if;
+    end process;
+    -- for INMODE the second register delay stage is irrelevant
+    ireg(1).inmode <= ireg(2).inmode;
     -- the following register are located within the DSP cell
     ireg(1).a <= ireg(2).a;
     ireg(1).b <= ireg(2).b;
@@ -140,8 +156,15 @@ begin
   -- DSP cell data input registers A1/B1/D are used as first input register stage.
   g_dsp_ireg1 : if NUM_INPUT_REG>=1 generate
   begin
-    ireg(0).rst <= ireg(1).rst when rising_edge(clk);
-    ireg(0).vld <= ireg(1).vld when rising_edge(clk);
+    process(clk)
+    begin
+      if rising_edge(clk) then
+        if clkena='1' then
+          ireg(0).rst <= ireg(1).rst;
+          ireg(0).vld <= ireg(1).vld;
+        end if;
+      end if;
+    end process;
     -- DSP cell registers are used for first input register stage
     ireg(0).inmode <= ireg(1).inmode;
     ireg(0).opmode <= ireg(1).opmode;
@@ -149,7 +172,6 @@ begin
     ireg(0).b <= ireg(1).b;
     ireg(0).d <= ireg(1).d;
   end generate;
-
 
   dest_rst <= ireg(0).rst;
   dest_vld <= ireg(0).vld;

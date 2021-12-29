@@ -7,7 +7,7 @@
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
--- Includes DOXYGEN support.
+-- Code comments are optimized for SIGASI and DOXYGEN.
 -------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
@@ -112,6 +112,23 @@ architecture ultrascale of signed_preadd_mult1add1 is
   constant clkena : std_logic := '1'; -- clock enable
   constant reset : std_logic := '0';
 
+  type r_pipe is
+  record
+    rst, clr, vld : std_logic;
+    y  : signed(y'length-1 downto 0);
+  end record;
+  constant PIPE_DEFAULT : r_pipe := (
+    rst => '1',
+    clr => '1',
+    vld => '0',
+    y => (others=>'-')
+  );
+  type array_pipe is array(integer range <>) of r_pipe;
+  signal pipe : array_pipe(NUM_IREG_LOGIC downto 0) := (others=>PIPE_DEFAULT);
+
+  type array_c is array(integer range <>) of signed(z'length-1 downto 0);
+  signal pipe_c : array_c(NUM_IREG_C_LOGIC downto 0) := (others=>(others=>'-'));
+
   type r_dsp_in is
   record
     rst, vld, clr : std_logic;
@@ -155,60 +172,41 @@ begin
     severity failure;
 
   -- Pipeline of factor Y and control signals
-  g_pipe : if NUM_IREG_LOGIC=0 generate
-    dsp_in.rst <= rst;
-    dsp_in.clr <= clr;
-    dsp_in.vld <= vld;
-    dsp_in.b   <= resize(y,MAX_WIDTH_B);
-  else generate
-    type r_pipe is
-    record
-      rst, clr, vld : std_logic;
-      y  : signed(y'length-1 downto 0);
-    end record;
-    type array_pipe is array(integer range <>) of r_pipe;
-    signal pipe : array_pipe(NUM_IREG_LOGIC downto 0);
+  pipe(NUM_IREG_LOGIC).rst <= rst;
+  pipe(NUM_IREG_LOGIC).clr <= clr;
+  pipe(NUM_IREG_LOGIC).vld <= vld;
+  pipe(NUM_IREG_LOGIC).y <= y;
+  g_pipe : if NUM_IREG_LOGIC>=1 generate
   begin
     process(clk)
     begin
       if rising_edge(clk) then
         if clkena='1' then
-          pipe(NUM_IREG_LOGIC).rst <= rst;
-          pipe(NUM_IREG_LOGIC).clr <= clr;
-          pipe(NUM_IREG_LOGIC).vld <= vld;
-          pipe(NUM_IREG_LOGIC).y <= y;
-          for n in 2 to NUM_IREG_LOGIC loop
-            pipe(n-1) <= pipe(n);
-          end loop;
+          pipe(NUM_IREG_LOGIC-1 downto 0) <= pipe(NUM_IREG_LOGIC downto 1);
         end if;
       end if;
     end process;
-    dsp_in.rst <= pipe(0).rst;
-    dsp_in.clr <= pipe(0).clr;
-    dsp_in.vld <= pipe(0).vld;
-    dsp_in.b   <= resize(pipe(0).y,MAX_WIDTH_B);
   end generate;
 
   -- Pipeline of input Z
-  g_pipe_c : if NUM_IREG_C_LOGIC=0 generate
-    dsp_in.c <= resize(z,MAX_WIDTH_C);
-  else generate
-    type array_c is array(integer range <>) of signed(z'length-1 downto 0);
-    signal pipe_c : array_c(NUM_IREG_C_LOGIC downto 1);
-   begin
+  pipe_c(NUM_IREG_C_LOGIC) <= z;
+  g_pipe_c : if NUM_IREG_C_LOGIC>=1 generate
+  begin
     process(clk)
     begin
       if rising_edge(clk) then
         if clkena='1' then
-          pipe_c(NUM_IREG_C_LOGIC) <= z;
-          for n in 2 to NUM_IREG_C_LOGIC loop
-            pipe_c(n-1) <= pipe_c(n);
-          end loop;
+          pipe_c(NUM_IREG_C_LOGIC-1 downto 0) <= pipe_c(NUM_IREG_C_LOGIC downto 1);
         end if;
       end if;
     end process;
-    dsp_in.c <= resize(pipe_c(1),MAX_WIDTH_C);
   end generate;
+
+  dsp_in.rst <= pipe(0).rst;
+  dsp_in.clr <= pipe(0).clr;
+  dsp_in.vld <= pipe(0).vld;
+  dsp_in.b   <= resize(pipe(0).y, MAX_WIDTH_B);
+  dsp_in.c   <= resize(pipe_c(0), MAX_WIDTH_C);
 
   -- Pipeline and control logic of inputs XA and XB
   i_preadd : entity work.preadd_input_logic_ultrascale
@@ -219,7 +217,7 @@ begin
   )
   port map(
     clk        => clk,
-    rst        => rst,
+    rst        => open, -- TODO ?
     clkena     => clkena,
     sub_a      => sub_xa,
     sub_d      => sub_xb,
@@ -263,7 +261,7 @@ begin
   )
   port map(
     clk         => clk,
---    clkena      => clkena,  -- TODO
+    clkena      => clkena,
     src_rst     => dsp_in.rst,
     src_vld     => dsp_in.vld,
     src_inmode  => dsp_in.inmode,
@@ -281,6 +279,7 @@ begin
     dest_c      => dsp_feed.c,
     dest_d      => dsp_feed.d
   );
+  dsp_feed.clr <= '-'; -- irrelevant
 
   -- use only LSBs of chain input
   chainin_i <= std_logic_vector(chainin(ACCU_WIDTH-1 downto 0));

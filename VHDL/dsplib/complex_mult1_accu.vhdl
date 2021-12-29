@@ -7,7 +7,7 @@
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
--- Includes DOXYGEN support.
+-- Code comments are optimized for SIGASI and DOXYGEN.
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
@@ -73,6 +73,9 @@ generic (
   NUM_SUMMAND : natural := 0;
   --! Enable chain input from neighbor DSP cell, i.e. enable additional accumulator input
   USE_CHAIN_INPUT : boolean := false;
+  --! @brief Enable chain output to neighbor DSP cell.
+  --! If chain input and output are disabled special non-chainable implementations might be feasible.
+  USE_CHAIN_OUTPUT : boolean := false;
   --! @brief Number of additional input registers. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
   NUM_INPUT_REG : natural := 1;
@@ -94,7 +97,11 @@ generic (
   --! Enable clipping when right shifted result exceeds output range.
   OUTPUT_CLIP : boolean := true;
   --! Enable overflow/clipping detection 
-  OUTPUT_OVERFLOW : boolean := true
+  OUTPUT_OVERFLOW : boolean := true;
+  --! @brief OPTIMIZATION
+  --! * MAXIMUM_PERFORMANCE
+  --! * MINIMUM_DSP_CELLS
+  OPTIMIZATION : string := "MAXIMUM_PERFORMANCE"
 );
 port (
   --! Standard system clock
@@ -117,7 +124,7 @@ port (
   x_im       : in  signed;
   --! 2nd factor input, real component
   y_re       : in  signed;
-  --! 1st factor input, imaginary component
+  --! 2nd factor input, imaginary component
   y_im       : in  signed;
   --! @brief Resulting product/accumulator output (optionally rounded and clipped).
   --! The standard result output might be unused when chain output is used instead.

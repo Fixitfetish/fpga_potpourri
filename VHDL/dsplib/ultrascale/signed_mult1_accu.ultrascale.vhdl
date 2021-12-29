@@ -1,13 +1,13 @@
 -------------------------------------------------------------------------------
 --! @file       signed_mult1_accu.ultrascale.vhdl
 --! @author     Fixitfetish
---! @date       15/May/2019
---! @version    0.93
+--! @date       29/Dec/2021
+--! @version    0.95
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
--- Includes DOXYGEN support.
+-- Code comments are optimized for SIGASI and DOXYGEN.
 -------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
@@ -96,8 +96,16 @@ architecture ultrascale of signed_mult1_accu is
     x : signed(x'length-1 downto 0);
     y : signed(y'length-1 downto 0);
   end record;
+  constant LOGIC_IREG_DEFAULT : r_logic_ireg := (
+    rst => '1',
+    vld => '0',
+    clr => '1',
+    sub => '-',
+    x => (others=>'-'),
+    y => (others=>'-')
+  );
   type array_logic_ireg is array(integer range <>) of r_logic_ireg;
-  signal logic_ireg : array_logic_ireg(NUM_IREG_LOGIC downto 0);
+  signal logic_ireg : array_logic_ireg(NUM_IREG_LOGIC downto 0) := (others=>LOGIC_IREG_DEFAULT);
 
   -- DSP input register pipeline
   type r_dsp_ireg is
@@ -157,20 +165,13 @@ begin
     p_ce : process(clk)
     begin
       if rising_edge(clk) then
-        for n in 1 to NUM_IREG_LOGIC loop
-          if rst/='0' then
-            logic_ireg(n-1).vld <= '0';
-            logic_ireg(n-1).clr <= '1';
-          elsif clkena='1' then
-            logic_ireg(n-1) <= logic_ireg(n);
-          end if;
-        end loop;
+        if rst/='0' then
+          logic_ireg(NUM_IREG_LOGIC-1 downto 0) <= (others=>LOGIC_IREG_DEFAULT);
+        elsif clkena='1' then
+          logic_ireg(NUM_IREG_LOGIC-1 downto 0) <= logic_ireg(NUM_IREG_LOGIC downto 1);
+        end if;
       end if;
     end process;
---    g_1 : for n in 1 to NUM_IREG_LOGIC generate
---    begin
---      logic_ireg(n-1) <= logic_ireg(n) when rising_edge(clk);
---    end generate;
   end generate;
 
   -- support clr='1' when vld='0'
