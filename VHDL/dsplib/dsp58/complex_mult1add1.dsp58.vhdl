@@ -58,20 +58,6 @@ architecture dsp58 of complex_mult1add1 is
   constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
   constant OUTPUT_WIDTH : positive := result_re'length;
 
-  type r_dsp_in is
-  record
-    rst, vld, clr : std_logic;
-    inmode : std_logic_vector(4 downto 0);
-    opmode : std_logic_vector(8 downto 0);
-    a_re : signed(17 downto 0);
-    a_im : signed(17 downto 0);
-    b_re : signed(17 downto 0);
-    b_im : signed(17 downto 0);
-    c_re : signed(MAX_WIDTH_C-1 downto 0);
-    c_im : signed(MAX_WIDTH_C-1 downto 0);
-  end record;
-  signal dsp_in : r_dsp_in;
-
   signal alumode : std_logic_vector(3 downto 0);
   signal opmode : std_logic_vector(8 downto 0);
 
@@ -122,7 +108,7 @@ begin
     PIPEREGS_VLD     => NUM_INPUT_REG_XY,
     PIPEREGS_ALUMODE => NUM_INPUT_REG_XY - INMODEREG(NUM_INPUT_REG_XY),
     PIPEREGS_INMODE  => open, -- unused
-    PIPEREGS_OPMODE  => NUM_INPUT_REG_XY - INMODEREG(NUM_INPUT_REG_XY),
+    PIPEREGS_OPMODE  => open, -- unused,
     PIPEREGS_A       => NUM_IREG(LOGIC,NUM_INPUT_REG_XY),
     PIPEREGS_B       => NUM_IREG(LOGIC,NUM_INPUT_REG_XY),
     PIPEREGS_C       => NUM_IREG_C(LOGIC,NUM_INPUT_REG_Z),
@@ -137,7 +123,7 @@ begin
     src_vld     => vld,
     src_alumode => alumode,
     src_inmode  => open, -- unused
-    src_opmode  => open,
+    src_opmode  => open, -- unused
     src_a       => x_re,
     src_b       => y_re,
     src_c       => z_re,
@@ -152,7 +138,7 @@ begin
     PIPEREGS_VLD     => NUM_INPUT_REG_XY,
     PIPEREGS_ALUMODE => NUM_INPUT_REG_XY - INMODEREG(NUM_INPUT_REG_XY),
     PIPEREGS_INMODE  => open, -- unused
-    PIPEREGS_OPMODE  => NUM_INPUT_REG_XY - INMODEREG(NUM_INPUT_REG_XY),
+    PIPEREGS_OPMODE  => open, -- unused
     PIPEREGS_A       => NUM_IREG(LOGIC,NUM_INPUT_REG_XY),
     PIPEREGS_B       => NUM_IREG(LOGIC,NUM_INPUT_REG_XY),
     PIPEREGS_C       => NUM_IREG_C(LOGIC,NUM_INPUT_REG_Z),
@@ -167,7 +153,7 @@ begin
     src_vld     => vld,
     src_alumode => alumode,
     src_inmode  => open, -- unused
-    src_opmode  => open,
+    src_opmode  => open, -- unused
     src_a       => x_im,
     src_b       => y_im,
     src_c       => z_im,
