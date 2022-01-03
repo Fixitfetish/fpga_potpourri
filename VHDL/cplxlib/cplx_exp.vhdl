@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_exp.vhdl
 --! @author     Fixitfetish
---! @date       11/May/2019
---! @version    0.10
+--! @date       27/Nov/2021
+--! @version    0.50
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
