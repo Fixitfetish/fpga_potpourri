@@ -176,7 +176,7 @@ begin
     report "ERROR in complex_mult1add1 :" &
            " Real and imaginary components of Y input must have same size."
     severity failure;
-  assert (z_re'length=z_im'length) and USE_Z_INPUT
+  assert (z_re'length=z_im'length) or not USE_Z_INPUT
     report "ERROR in complex_mult1add1 :" &
            " Real and imaginary components of Z input must have same size."
     severity failure;
