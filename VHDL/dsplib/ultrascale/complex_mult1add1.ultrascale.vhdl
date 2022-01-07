@@ -40,9 +40,13 @@ begin
  --------------------------------------------------------------------------------------------------
  -- Operation with 4 DSP cells and chaining
  -- *  Re1 = ReChain + Xre*Yre + Zre
- -- *  Im1 = ImChain + Xre*Yim + Zim 
- -- *  Re  = Re1     - Xim*Yim   (accumulation possible)
- -- *  Im  = Im1     + Xim*Yre   (accumulation possible)
+ -- *  Im1 = ImChain + Xre*Yim + Zim
+ -- *  Re2 = Re1     - Xim*Yim
+ -- *  Im2 = Im1     + Xim*Yre
+ --
+ -- Notes
+ -- * Re1/Im1 can add Z input in addition to chain input
+ -- * Re2/Im2 can add round bit and accumulate in addition to chain input
  --------------------------------------------------------------------------------------------------
  G1 : if OPTIMIZATION="MAXIMUM_PERFORMANCE" generate
   signal chainout_re1 : signed(79 downto 0);
@@ -51,10 +55,6 @@ begin
   -- identifier for reports of warnings and errors
   constant IMPLEMENTATION : string := "complex_mult1add1(ultrascale) with optimization=MAXIMUM_PERFORMANCE";
  begin
-
-  -- Notes
-  -- * Re1/Im1 can add Z input in addition to chain input
-  -- * Re2/Im2 can add round bit and accumulate in addition to chain input
 
   -- Operation:  Re1 = ReChain + Xre*Yre + Zre
   i_re1 : entity dsplib.signed_mult1add1(ultrascale)
@@ -89,7 +89,7 @@ begin
     PIPESTAGES => open  -- unused
   );
 
-  -- operation:  Re  = Re1 - Xim*Yim   (accumulation possible)
+  -- operation:  Re2 = Re1 - Xim*Yim   (accumulation possible)
   i_re2 : entity dsplib.signed_mult1add1(ultrascale)
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
@@ -155,7 +155,7 @@ begin
     PIPESTAGES => open  -- unused
   );
 
-  -- operation:  Im  = Im1 + Xim*Yre   (accumulation possible)
+  -- operation:  Im2 = Im1 + Xim*Yre   (accumulation possible)
   i_im2 : entity dsplib.signed_mult1add1(ultrascale)
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
@@ -192,10 +192,15 @@ begin
 
 
  --------------------------------------------------------------------------------------------------
- -- Operation with 3 DSP cells (Z input not supported)
+ -- Operation with 3 DSP cells  (Z input not supported !)
  -- *  Temp =           ( Yre + Yim) * Xre 
- -- *  Re   = ReChain + (-Xre - Xim) * Yim + Temp   (accumulation only when chain input unused)
- -- *  Im   = ImChain + ( Xim - Xre) * Yre + Temp   (accumulation only when chain input unused)
+ -- *  Re   = ReChain + (-Xre - Xim) * Yim + Temp
+ -- *  Im   = ImChain + ( Xim - Xre) * Yre + Temp
+ --
+ -- USE_CHAIN_INPUT=true
+ -- * accumulation not possible because P feedback must be disabled
+ -- * The rounding (i.e. +0.5) not possible within DSP.
+ --   But rounding bit can be injected at the first chain link where USE_CHAIN_INPUT=false
  --------------------------------------------------------------------------------------------------
  G2 : if OPTIMIZATION="MINIMUM_DSP_CELLS" generate
   constant TEMP_WIDTH : positive := x_re'length + y_re'length + 1;
@@ -254,10 +259,6 @@ begin
   -- synthesis translate_on (Altera Quartus)
   -- pragma translate_on (Xilinx Vivado , Synopsys)
 
- -- USE_CHAIN_INPUT=true
- -- * accumulation not possible because P feedback must be disabled
- -- * The rounding (i.e. +0.5) not possible within DSP.
- --   But rounding bit can be injected at the first chain link where USE_CHAIN_INPUT=false
 
   -- Operation:
   -- Temp = ( Yre + Yim) * Xre  ... raw with full resolution
