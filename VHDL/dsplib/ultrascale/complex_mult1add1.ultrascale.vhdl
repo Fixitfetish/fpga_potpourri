@@ -207,12 +207,33 @@ begin
 --  constant IM_PREADDER_XA   : string := "ADD";
 --  constant IM_PREADDER_XB   : string := "SUBTRACT";
 
-  constant TEMP_PREADDER_XA : string := "DYNAMIC";
-  constant TEMP_PREADDER_XB : string := "DYNAMIC";
-  constant RE_PREADDER_XA   : string := "DYNAMIC";
-  constant RE_PREADDER_XB   : string := "DYNAMIC";
-  constant IM_PREADDER_XA   : string := "DYNAMIC";
-  constant IM_PREADDER_XB   : string := "DYNAMIC";
+--  constant TEMP_PREADDER_XA : string := "DYNAMIC";
+--  constant TEMP_PREADDER_XB : string := "DYNAMIC";
+--  constant RE_PREADDER_XA   : string := "DYNAMIC";
+--  constant RE_PREADDER_XB   : string := "DYNAMIC";
+--  constant IM_PREADDER_XA   : string := "DYNAMIC";
+--  constant IM_PREADDER_XB   : string := "DYNAMIC";
+
+  function TEMP_PREADDER_XA return string is begin
+    if USE_NEGATION then return "DYNAMIC"; else return "ADD"; end if;
+  end function;
+  function TEMP_PREADDER_XB return string is begin
+    if USE_NEGATION then return "DYNAMIC"; else return "ADD"; end if;
+  end function;
+
+  function RE_PREADDER_XA return string is begin
+    if USE_NEGATION then return "DYNAMIC"; else return "SUBTRACT"; end if;
+  end function;
+  function RE_PREADDER_XB return string is begin
+    if USE_NEGATION then return "DYNAMIC"; else return "SUBTRACT"; end if;
+  end function;
+
+  function IM_PREADDER_XA return string is begin
+    if USE_NEGATION then return "DYNAMIC"; else return "ADD"; end if;
+  end function;
+  function IM_PREADDER_XB return string is begin
+    if USE_NEGATION then return "DYNAMIC"; else return "SUBTRACT"; end if;
+  end function;
 
  begin
 
@@ -224,7 +245,7 @@ begin
     severity failure;
   assert (not USE_CHAIN_INPUT)
     report "NOTE " & IMPLEMENTATION & " :" &
-           " Accumulation not possible when chain input is used. Ignoring CLR input port."
+           " Selected optimization does not allow accumulation when chain input is used. Ignoring CLR input port."
     severity note;
   -- synthesis translate_on (Altera Quartus)
   -- pragma translate_on (Xilinx Vivado , Synopsys)
