@@ -86,8 +86,6 @@ architecture ultrascale of signed_preadd_mult1add1 is
   constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
   constant OUTPUT_WIDTH : positive := result'length;
 
-  constant clkena : std_logic := '1'; -- clock enable
-
   signal neg : std_logic;
   signal a : signed(MAX_WIDTH_D-2 downto 0);
   signal d : signed(MAX_WIDTH_D-2 downto 0);

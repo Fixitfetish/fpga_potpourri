@@ -280,6 +280,7 @@ begin
   port map(
     clk        => clk, -- clock
     rst        => rst, -- reset
+    clkena     => clkena,
     clr        => open,
     vld        => vld, -- valid
     sub_xa     => neg, -- add (subtract)
@@ -316,6 +317,7 @@ begin
   port map(
     clk        => clk, -- clock
     rst        => rst, -- reset
+    clkena     => clkena,
     clr        => clr, -- clear
     vld        => vld, -- valid
     sub_xa     => not neg, -- subtract (add)
@@ -352,6 +354,7 @@ begin
   port map(
     clk        => clk, -- clock
     rst        => rst, -- reset
+    clkena     => clkena,
     clr        => clr, -- clear
     vld        => vld, -- valid
     sub_xa     => neg,     -- add (subtract)

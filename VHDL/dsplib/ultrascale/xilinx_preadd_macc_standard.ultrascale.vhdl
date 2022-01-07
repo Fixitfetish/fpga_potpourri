@@ -322,7 +322,7 @@ begin
     CED                => CE(clkena,NUM_DREG),
     CEINMODE           => CE(clkena,NUM_INMODE_REG),
     CEM                => CE(clkena,NUM_MREG),
-    CEP                => pipe_vld(0),
+    CEP                => CE(clkena and pipe_vld(0),NUM_OUTPUT_REG),
     -- Reset: 1-bit (each) input: Reset
     RSTA               => rst,
     RSTALLCARRYIN      => '1', -- unused

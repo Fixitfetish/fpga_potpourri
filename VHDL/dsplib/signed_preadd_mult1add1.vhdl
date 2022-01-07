@@ -52,6 +52,7 @@ library ieee;
 --! port map(
 --!   clk        => in  std_logic, -- clock
 --!   rst        => in  std_logic, -- reset
+--!   clkena     => in  std_logic, -- clock enable
 --!   clr        => in  std_logic, -- clear accu
 --!   vld        => in  std_logic, -- valid
 --!   sub_xa     => in  std_logic, -- add/subtract xa
@@ -123,6 +124,8 @@ port (
   clk        : in  std_logic;
   --! Reset result output (optional, only connect if really required!)
   rst        : in  std_logic := '0';
+  --! Clock enable (optional)
+  clkena     : in  std_logic := '1';
   --! @brief Clear accumulator (mark first valid input factors of accumulation sequence).
   --! This port might be ignored when USE_CHAIN_INPUT=true.
   --! If accumulation is not wanted then set constant '1' (default).

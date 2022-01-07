@@ -88,7 +88,8 @@ begin
 
   -- check input/output length
   assert (x'length<=MAX_WIDTH_D)
-    report "ERROR " & IMPLEMENTATION & ": Multiplier input X width cannot exceed " & integer'image(MAX_WIDTH_D)
+    report "ERROR " & IMPLEMENTATION & ": " &
+           "Multiplier input X width cannot exceed " & integer'image(MAX_WIDTH_D)
     severity failure;
   assert (y'length<=MAX_WIDTH_B)
     report "ERROR " & IMPLEMENTATION & ": " &
