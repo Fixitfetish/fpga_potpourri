@@ -37,11 +37,13 @@ architecture ultrascale of complex_mult1add1 is
 
 begin
 
+ --------------------------------------------------------------------------------------------------
  -- Operation with 4 DSP cells and chaining
- -- *  re1 = z_re + x_re*y_re
- -- *  im1 = z_im + x_re*y_im
- -- *  re  = re1  - x_im*y_im
- -- *  im  = im1  + x_im*y_re
+ -- *  Re1 = ReChain + Xre*Yre + Zre
+ -- *  Im1 = ImChain + Xre*Yim + Zim 
+ -- *  Re  = Re1     - Xim*Yim   (accumulation possible)
+ -- *  Im  = Im1     + Xim*Yre   (accumulation possible)
+ --------------------------------------------------------------------------------------------------
  G1 : if OPTIMIZATION="MAXIMUM_PERFORMANCE" generate
   signal chainout_re1 : signed(79 downto 0);
   signal chainout_im1 : signed(79 downto 0);
@@ -54,7 +56,7 @@ begin
   -- * Re1/Im1 can add Z input in addition to chain input
   -- * Re2/Im2 can add round bit and accumulate in addition to chain input
 
-  -- operation: re1 = x_re*y_re
+  -- Operation:  Re1 = ReChain + Xre*Yre + Zre
   i_re1 : entity dsplib.signed_mult1add1(ultrascale)
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND-1,
@@ -87,7 +89,7 @@ begin
     PIPESTAGES => open  -- unused
   );
 
-  -- operation: re = re1 - x_im*y_im
+  -- operation:  Re  = Re1 - Xim*Yim   (accumulation possible)
   i_re2 : entity dsplib.signed_mult1add1(ultrascale)
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
@@ -120,7 +122,7 @@ begin
     PIPESTAGES => PIPESTAGES
   );
 
-  -- operation: im1 = x_re*y_im
+  -- operation:  Im1 = ImChain + Xre*Yim + Zim 
   i_im1 : entity dsplib.signed_mult1add1(ultrascale)
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND-1,
@@ -153,7 +155,7 @@ begin
     PIPESTAGES => open  -- unused
   );
 
-  -- operation: im = im1 + x_im*y_re
+  -- operation:  Im  = Im1 + Xim*Yre   (accumulation possible)
   i_im2 : entity dsplib.signed_mult1add1(ultrascale)
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
@@ -189,10 +191,12 @@ begin
  end generate;
 
 
- -- Operation with 3 DSP cells
- -- *  temp = ( y_re + y_im) * x_re 
- -- *  re   = (-x_re - x_im) * y_im + temp
- -- *  im   = ( x_im - x_re) * y_re + temp
+ --------------------------------------------------------------------------------------------------
+ -- Operation with 3 DSP cells (Z input not supported)
+ -- *  Temp =           ( Yre + Yim) * Xre 
+ -- *  Re   = ReChain + (-Xre - Xim) * Yim + Temp   (accumulation only when chain input unused)
+ -- *  Im   = ImChain + ( Xim - Xre) * Yre + Temp   (accumulation only when chain input unused)
+ --------------------------------------------------------------------------------------------------
  G2 : if OPTIMIZATION="MINIMUM_DSP_CELLS" generate
   constant TEMP_WIDTH : positive := x_re'length + y_re'length + 1;
   signal temp : signed(TEMP_WIDTH-1 downto 0);
@@ -255,7 +259,8 @@ begin
  -- * The rounding (i.e. +0.5) not possible within DSP.
  --   But rounding bit can be injected at the first chain link where USE_CHAIN_INPUT=false
 
-  -- operation: temp = (y_re + y_im) * x_re  ... raw with full resolution
+  -- Operation:
+  -- Temp = ( Yre + Yim) * Xre  ... raw with full resolution
   i_temp : entity dsplib.signed_preadd_mult1add1(ultrascale)
   generic map(
     NUM_SUMMAND        => 2,
@@ -290,7 +295,8 @@ begin
     PIPESTAGES => open
   );
 
-  -- operation: re = (-x_re - x_im) * y_im + temp
+  -- Operation:
+  -- Re = ReChain + (-Xre - Xim) * Yim + Temp   (accumulation only when chain input unused)
   i_re : entity dsplib.signed_preadd_mult1add1(ultrascale)
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND,
@@ -325,7 +331,8 @@ begin
     PIPESTAGES => PIPESTAGES
   );
 
-  -- operation: im = (x_im - x_re) * y_re + temp
+  -- Operation:
+  -- Im = ImChain + ( Xim - Xre) * Yre + Temp   (accumulation only when chain input unused)
   i_im : entity dsplib.signed_preadd_mult1add1(ultrascale)
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND,
