@@ -198,6 +198,22 @@ begin
   signal temp : signed(TEMP_WIDTH-1 downto 0);
   -- identifier for reports of warnings and errors
   constant IMPLEMENTATION : string := "complex_mult1add1(ultrascale) with optimization=MINIMUM_DSP_CELLS";
+  constant USE_NEGATION : boolean := true;
+
+--  constant TEMP_PREADDER_XA : string := "ADD";
+--  constant TEMP_PREADDER_XB : string := "ADD";
+--  constant RE_PREADDER_XA   : string := "SUBTRACT";
+--  constant RE_PREADDER_XB   : string := "SUBTRACT";
+--  constant IM_PREADDER_XA   : string := "ADD";
+--  constant IM_PREADDER_XB   : string := "SUBTRACT";
+
+  constant TEMP_PREADDER_XA : string := "DYNAMIC";
+  constant TEMP_PREADDER_XB : string := "DYNAMIC";
+  constant RE_PREADDER_XA   : string := "DYNAMIC";
+  constant RE_PREADDER_XB   : string := "DYNAMIC";
+  constant IM_PREADDER_XA   : string := "DYNAMIC";
+  constant IM_PREADDER_XB   : string := "DYNAMIC";
+
  begin
 
   -- synthesis translate_off (Altera Quartus)
@@ -224,8 +240,8 @@ begin
     NUM_SUMMAND        => 2,
     USE_CHAIN_INPUT    => false,
     USE_Z_INPUT        => false,
-    PREADDER_INPUT_XA  => "ADD",
-    PREADDER_INPUT_XB  => "ADD",
+    PREADDER_INPUT_XA  => TEMP_PREADDER_XA,
+    PREADDER_INPUT_XB  => TEMP_PREADDER_XB,
     NUM_INPUT_REG_XY   => NUM_INPUT_REG_XY,
     NUM_INPUT_REG_Z    => open, -- unused
     NUM_OUTPUT_REG     => 1,
@@ -239,8 +255,8 @@ begin
     rst        => rst, -- reset
     clr        => open,
     vld        => vld, -- valid
-    sub_xa     => open, -- unused
-    sub_xb     => open, -- unused
+    sub_xa     => neg, -- add (subtract)
+    sub_xb     => neg, -- add (subtract)
     xa         => y_re, -- first factor
     xb         => y_im, -- first factor
     y          => x_re, -- second factor
@@ -259,8 +275,8 @@ begin
     NUM_SUMMAND        => 2*NUM_SUMMAND,
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
     USE_Z_INPUT        => true,
-    PREADDER_INPUT_XA  => "SUBTRACT",
-    PREADDER_INPUT_XB  => "SUBTRACT",
+    PREADDER_INPUT_XA  => RE_PREADDER_XA,
+    PREADDER_INPUT_XB  => RE_PREADDER_XB,
     NUM_INPUT_REG_XY   => NUM_INPUT_REG_XY+2, -- 2 more pipeline stages to compensate Z input
     NUM_INPUT_REG_Z    => 1,
     NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
@@ -274,8 +290,8 @@ begin
     rst        => rst, -- reset
     clr        => clr, -- clear
     vld        => vld, -- valid
-    sub_xa     => open, -- unused
-    sub_xb     => open, -- unused
+    sub_xa     => not neg, -- subtract (add)
+    sub_xb     => not neg, -- subtract (add)
     xa         => x_re,
     xb         => x_im,
     y          => y_im,
@@ -294,8 +310,8 @@ begin
     NUM_SUMMAND        => 2*NUM_SUMMAND,
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
     USE_Z_INPUT        => true,
-    PREADDER_INPUT_XA  => "ADD",
-    PREADDER_INPUT_XB  => "SUBTRACT",
+    PREADDER_INPUT_XA  => IM_PREADDER_XA,
+    PREADDER_INPUT_XB  => IM_PREADDER_XB,
     NUM_INPUT_REG_XY   => NUM_INPUT_REG_XY+2, -- 2 more pipeline stages to compensate Z input
     NUM_INPUT_REG_Z    => 1,
     NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
@@ -309,8 +325,8 @@ begin
     rst        => rst, -- reset
     clr        => clr, -- clear
     vld        => vld, -- valid
-    sub_xa     => open, -- unused
-    sub_xb     => open, -- unused
+    sub_xa     => neg,     -- add (subtract)
+    sub_xb     => not neg, -- subtract (add)
     xa         => x_im,
     xb         => x_re,
     y          => y_re,

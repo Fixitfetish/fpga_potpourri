@@ -65,10 +65,6 @@ architecture ultrascale of signed_mult1add1 is
   constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
   constant OUTPUT_WIDTH : positive := result'length;
 
-  signal accu : signed(ACCU_WIDTH-1 downto 0);
-  signal accu_vld : std_logic := '0';
-  signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
-
   signal dsp_rst : std_logic;
   signal dsp_clr : std_logic;
   signal dsp_vld : std_logic;
@@ -76,7 +72,11 @@ architecture ultrascale of signed_mult1add1 is
   signal dsp_a : signed(x'length-1 downto 0);
   signal dsp_b : signed(y'length-1 downto 0);
   signal dsp_c : signed(z'length-1 downto 0);
-  signal dsp_d : signed(1 downto 0);
+  signal dsp_d : signed(1 downto 0); -- dummy
+
+  signal accu : signed(ACCU_WIDTH-1 downto 0);
+  signal accu_vld : std_logic := '0';
+  signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
 
 begin
 
@@ -91,7 +91,8 @@ begin
     report "ERROR " & IMPLEMENTATION & ": Multiplier input X width cannot exceed " & integer'image(MAX_WIDTH_D)
     severity failure;
   assert (y'length<=MAX_WIDTH_B)
-    report "ERROR " & IMPLEMENTATION & ": Multiplier input Y width cannot exceed " & integer'image(MAX_WIDTH_B)
+    report "ERROR " & IMPLEMENTATION & ": " &
+           "Multiplier input Y width cannot exceed " & integer'image(MAX_WIDTH_B)
     severity failure;
   assert (z'length<=MAX_WIDTH_C)
     report "ERROR " & IMPLEMENTATION & ": Summand input Z width cannot exceed " & integer'image(MAX_WIDTH_C)
