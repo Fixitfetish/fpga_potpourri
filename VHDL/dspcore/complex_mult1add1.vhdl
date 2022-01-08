@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --! @file       complex_mult1add1.vhdl
 --! @author     Fixitfetish
---! @date       30/Jan/2021
+--! @date       01/Jan/2022
 --! @version    0.10
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,

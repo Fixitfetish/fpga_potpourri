@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --! @file       xilinx_preadd_macc_standard.vhdl
 --! @author     Fixitfetish
---! @date       06/Jan/2022
+--! @date       01/Jan/2022
 --! @version    0.10
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
@@ -13,7 +13,10 @@ library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
 
---! @brief Multiply the sum of two signed (D +/- A) with a signed B and accumulate results.
+--! @brief This entity abstracts and wraps Xilinx DSP cells for standard preadder,
+--! multiplication and accumulate operation.
+--!
+--! Multiply the sum of two signed (D +/- A) with a signed B and accumulate results.
 --! Optionally, the chain input and C input can be added to the product result as well.
 --!
 --! @image html xilinx_preadd_macc_standard.svg "" width=600px

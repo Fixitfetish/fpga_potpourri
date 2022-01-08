@@ -12,10 +12,6 @@
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
-library baselib;
-  use baselib.ieee_extension_types.all;
-library dsplib;
-  use dsplib.dsp_pkg_dsp58.all;
 
 --! @brief This entity implements a generic DSP input logic for Xilinx Versal.
 --!

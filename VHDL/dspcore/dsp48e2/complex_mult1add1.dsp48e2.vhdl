@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
---! @file       complex_mult1add1.ultrascale.vhdl
+--! @file       complex_mult1add1.dsp48e2.vhdl
 --! @author     Fixitfetish
---! @date       12/Dec/2021
+--! @date       01/Jan/2022
 --! @version    0.10
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
@@ -15,8 +15,8 @@ library ieee;
 library baselib;
   use baselib.ieee_extension_types.all;
   use baselib.ieee_extension.all;
-library dsplib;
-  use dsplib.dsp_pkg_ultrascale.all;
+
+use work.xilinx_dsp_pkg_dsp48e2.all;
 
 --! @brief This is an implementation of the entity complex_mult1add1 for Xilinx UltraScale.
 --! One complex multiplication is performed and results are accumulated.
@@ -33,7 +33,7 @@ library dsplib;
 --! * Chaining is supported.
 --! * The number of overall pipeline stages is typically NUM_INPUT_REG + 2 + NUM_OUTPUT_REG.
 --!
-architecture ultrascale of complex_mult1add1 is
+architecture dsp48e2 of complex_mult1add1 is
 
 begin
 
@@ -53,11 +53,11 @@ begin
   signal chainout_im1 : signed(79 downto 0);
   signal dummy_re, dummy_im : signed(ACCU_WIDTH-1 downto 0);
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "complex_mult1add1(ultrascale) with optimization=MAXIMUM_PERFORMANCE";
+  constant IMPLEMENTATION : string := "complex_mult1add1(dsp48e2) with optimization=MAXIMUM_PERFORMANCE";
  begin
 
   -- Operation:  Re1 = ReChain + Xre*Yre + Zre
-  i_re1 : entity dsplib.signed_mult1add1(ultrascale)
+  i_re1 : entity work.signed_mult1add1(dsp48e2)
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND-1,
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
@@ -90,7 +90,7 @@ begin
   );
 
   -- operation:  Re2 = Re1 - Xim*Yim   (accumulation possible)
-  i_re2 : entity dsplib.signed_mult1add1(ultrascale)
+  i_re2 : entity work.signed_mult1add1(dsp48e2)
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAIN_INPUT    => true,
@@ -123,7 +123,7 @@ begin
   );
 
   -- operation:  Im1 = ImChain + Xre*Yim + Zim 
-  i_im1 : entity dsplib.signed_mult1add1(ultrascale)
+  i_im1 : entity work.signed_mult1add1(dsp48e2)
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND-1,
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
@@ -156,7 +156,7 @@ begin
   );
 
   -- operation:  Im2 = Im1 + Xim*Yre   (accumulation possible)
-  i_im2 : entity dsplib.signed_mult1add1(ultrascale)
+  i_im2 : entity work.signed_mult1add1(dsp48e2)
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAIN_INPUT    => true,
@@ -206,7 +206,7 @@ begin
   constant TEMP_WIDTH : positive := x_re'length + y_re'length + 1;
   signal temp : signed(TEMP_WIDTH-1 downto 0);
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "complex_mult1add1(ultrascale) with optimization=MINIMUM_DSP_CELLS";
+  constant IMPLEMENTATION : string := "complex_mult1add1(dsp48e2) with optimization=MINIMUM_DSP_CELLS";
   constant USE_NEGATION : boolean := true;
 
 --  constant TEMP_PREADDER_XA : string := "ADD";
@@ -262,7 +262,7 @@ begin
 
   -- Operation:
   -- Temp = ( Yre + Yim) * Xre  ... raw with full resolution
-  i_temp : entity dsplib.signed_preadd_mult1add1(ultrascale)
+  i_temp : entity work.signed_preadd_mult1add1(dsp48e2)
   generic map(
     NUM_SUMMAND        => 2,
     USE_CHAIN_INPUT    => false,
@@ -299,7 +299,7 @@ begin
 
   -- Operation:
   -- Re = ReChain + (-Xre - Xim) * Yim + Temp   (accumulation only when chain input unused)
-  i_re : entity dsplib.signed_preadd_mult1add1(ultrascale)
+  i_re : entity work.signed_preadd_mult1add1(dsp48e2)
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND,
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
@@ -336,7 +336,7 @@ begin
 
   -- Operation:
   -- Im = ImChain + ( Xim - Xre) * Yre + Temp   (accumulation only when chain input unused)
-  i_im : entity dsplib.signed_preadd_mult1add1(ultrascale)
+  i_im : entity work.signed_preadd_mult1add1(dsp48e2)
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND,
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,

@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
---! @file       xilinx_preadd_macc_standard.ultrascale.vhdl
+--! @file       xilinx_preadd_macc_standard.dsp48e2.vhdl
 --! @author     Fixitfetish
---! @date       06/Jan/2022
+--! @date       01/Jan/2022
 --! @version    0.10
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
@@ -14,21 +14,18 @@ library ieee;
  use ieee.numeric_std.all;
 library baselib;
   use baselib.ieee_extension.all;
-library dsplib;
-  use dsplib.dsp_pkg_ultrascale.all;
-
 library unisim;
-  use unisim.vcomponents.all;
 
---! @brief This entity implements     TODO
---!  for Xilinx UltraScale
+use work.xilinx_dsp_pkg_dsp48e2.all;
+
+--! @brief Implementation of xilinx_preadd_macc_standard for Xilinx DSP48e2.
 --!
 --! Refer to Xilinx UltraScale Architecture DSP48E2 Slice, UG579 (v1.11) August 30, 2021
 --!
-architecture ultrascale of xilinx_preadd_macc_standard is
+architecture dsp48e2 of xilinx_preadd_macc_standard is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "preadd_macc_standard(ultrascale)";
+  constant IMPLEMENTATION : string := "xilinx_preadd_macc_standard(dsp48e2)";
 
   --! rounding bit generation (+0.5)
   function gRND return std_logic_vector is
@@ -37,10 +34,6 @@ architecture ultrascale of xilinx_preadd_macc_standard is
     if ROUND_ENABLE then res(ROUND_BIT):='1'; end if;
     return res;
   end function;
-
-  --! Pass clock enable only when at least one register is enabled
-  function CE(clkena:std_logic; n:natural) return std_logic is
-  begin if n>=1 then return clkena; else return '0'; end if; end function;
 
   --! rounding bit generation (+0.5)
   function nof_regs_clr return natural is
@@ -222,7 +215,7 @@ begin
   -- use only LSBs of chain input
   chainin_i <= std_logic_vector(chainin(ACCU_WIDTH-1 downto 0));
 
-  i_dsp : DSP48E2
+  i_dsp : unisim.vcomponents.DSP48E2
   generic map(
     -- Feature Control Attributes: Data Path Selection
     AMULTSEL                  => AMULTSEL, -- "A" or "AD"
@@ -322,7 +315,7 @@ begin
     CED                => CE(clkena,NUM_DREG),
     CEINMODE           => CE(clkena,NUM_INMODE_REG),
     CEM                => CE(clkena,NUM_MREG),
-    CEP                => CE(clkena and pipe_vld(0),NUM_OUTPUT_REG),
+    CEP                => CE(clkena and pipe_vld(0),NUM_OUTPUT_REG), -- accumulate only valid values
     -- Reset: 1-bit (each) input: Reset
     RSTA               => rst,
     RSTALLCARRYIN      => '1', -- unused

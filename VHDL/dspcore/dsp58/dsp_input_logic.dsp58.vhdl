@@ -14,8 +14,8 @@ library ieee;
   use ieee.numeric_std.all;
 library baselib;
   use baselib.ieee_extension_types.all;
-library dsplib;
-  use dsplib.dsp_pkg_dsp58.all;
+
+use work.xilinx_dsp_pkg_dsp58.all;
 
 --! @brief This entity implements a generic DSP input logic for Xilinx Versal.
 --!
@@ -38,23 +38,23 @@ generic (
 );
 port (
   --! Standard system clock
-  clk         : in  std_logic;
+  clk      : in  std_logic;
   --! Global synchronous reset (optional, only connect if really required!)
-  rst         : in  std_logic := '0';
+  srst     : in  std_logic := '0';
   --! Clock enable (optional)
-  clkena      : in  std_logic := '1';
+  clkena   : in  std_logic := '1';
 
-  src_rst     : in  std_logic := '0';
-  src_clr     : in  std_logic := '1';
-  src_vld     : in  std_logic := '1';
-  src_alumode : in  std_logic_vector(3 downto 0) := (others=>'0');
-  src_inmode  : in  std_logic_vector(4 downto 0) := (others=>'0');
-  src_opmode  : in  std_logic_vector(8 downto 0) := (others=>'0');
-  src_a       : in  signed;
-  src_b       : in  signed;
-  src_c       : in  signed;
-  src_d       : in  signed;
-  dsp_feed    : out r_dsp_feed
+  rst      : in  std_logic := '0';
+  clr      : in  std_logic := '1';
+  vld      : in  std_logic := '0';
+  alumode  : in  std_logic_vector(3 downto 0) := (others=>'0');
+  inmode   : in  std_logic_vector(4 downto 0) := (others=>'0');
+  opmode   : in  std_logic_vector(8 downto 0) := (others=>'0');
+  a        : in  signed;
+  b        : in  signed;
+  c        : in  signed;
+  d        : in  signed;
+  dsp_feed : out r_dsp_feed
 );
 end entity;
 
@@ -65,52 +65,52 @@ architecture rtl of dsp_input_logic_dsp58 is
   -- identifier for reports of warnings and errors
   constant IMPLEMENTATION : string := "dsp_input_logic_dsp58";
 
-  signal pipe_rst : std_logic_vector(PIPEREGS_RST downto 0);
-  signal pipe_clr : std_logic_vector(PIPEREGS_CLR downto 0);
-  signal pipe_vld : std_logic_vector(PIPEREGS_VLD downto 0);
+  signal pipe_rst : std_logic_vector(PIPEREGS_RST downto 0) := (others=>'1');
+  signal pipe_clr : std_logic_vector(PIPEREGS_CLR downto 0) := (others=>'1');
+  signal pipe_vld : std_logic_vector(PIPEREGS_VLD downto 0) := (others=>'0');
   signal pipe_alumode : slv4_array(PIPEREGS_ALUMODE downto 0);
   signal pipe_inmode : slv5_array(PIPEREGS_INMODE downto 0);
   signal pipe_opmode : slv9_array(PIPEREGS_OPMODE downto 0);
-  signal pipe_a : signed_vector(PIPEREGS_A downto 0)(src_a'length-1 downto 0);
-  signal pipe_b : signed_vector(PIPEREGS_B downto 0)(src_b'length-1 downto 0);
-  signal pipe_c : signed_vector(PIPEREGS_C downto 0)(src_c'length-1 downto 0);
-  signal pipe_d : signed_vector(PIPEREGS_D downto 0)(src_d'length-1 downto 0);
+  signal pipe_a : signed_vector(PIPEREGS_A downto 0)(a'length-1 downto 0);
+  signal pipe_b : signed_vector(PIPEREGS_B downto 0)(b'length-1 downto 0);
+  signal pipe_c : signed_vector(PIPEREGS_C downto 0)(c'length-1 downto 0);
+  signal pipe_d : signed_vector(PIPEREGS_D downto 0)(d'length-1 downto 0);
 
 begin
 
   -- check input length
-  assert (src_a'length<=MAX_WIDTH_A)
+  assert (a'length<=MAX_WIDTH_A)
     report "ERROR " & IMPLEMENTATION & ": " & 
            "Input A width cannot exceed " & integer'image(MAX_WIDTH_A)
     severity failure;
-  assert (src_b'length<=MAX_WIDTH_B)
+  assert (b'length<=MAX_WIDTH_B)
     report "ERROR " & IMPLEMENTATION & ": " & 
            "Input B width cannot exceed " & integer'image(MAX_WIDTH_B)
     severity failure;
-  assert (src_c'length<=MAX_WIDTH_C)
+  assert (c'length<=MAX_WIDTH_C)
     report "ERROR " & IMPLEMENTATION & ": " & 
            "Input C width cannot exceed " & integer'image(MAX_WIDTH_C)
     severity failure;
-  assert (src_d'length<=MAX_WIDTH_D)
+  assert (d'length<=MAX_WIDTH_D)
     report "ERROR " & IMPLEMENTATION & ": " & 
            "Input D width cannot exceed " & integer'image(MAX_WIDTH_D)
     severity failure;
 
-  pipe_rst(PIPEREGS_RST) <= src_rst;
-  pipe_clr(PIPEREGS_CLR) <= src_clr;
-  pipe_vld(PIPEREGS_VLD) <= src_vld;
-  pipe_alumode(PIPEREGS_ALUMODE) <= src_alumode;
-  pipe_inmode(PIPEREGS_INMODE) <= src_inmode;
-  pipe_opmode(PIPEREGS_OPMODE) <= src_opmode;
-  pipe_a(PIPEREGS_A) <= src_a;
-  pipe_b(PIPEREGS_B) <= src_b;
-  pipe_c(PIPEREGS_C) <= src_c;
-  pipe_d(PIPEREGS_D) <= src_d;
+  pipe_rst(PIPEREGS_RST) <= rst;
+  pipe_clr(PIPEREGS_CLR) <= clr;
+  pipe_vld(PIPEREGS_VLD) <= vld;
+  pipe_alumode(PIPEREGS_ALUMODE) <= alumode;
+  pipe_inmode(PIPEREGS_INMODE) <= inmode;
+  pipe_opmode(PIPEREGS_OPMODE) <= opmode;
+  pipe_a(PIPEREGS_A) <= a;
+  pipe_b(PIPEREGS_B) <= b;
+  pipe_c(PIPEREGS_C) <= c;
+  pipe_d(PIPEREGS_D) <= d;
 
   g_rst : if PIPEREGS_RST>=1 generate
     process(clk) begin
       if rising_edge(clk) then
-        if rst/='0' then
+        if srst/='0' then
           pipe_rst(PIPEREGS_RST-1 downto 0) <= (others=>'1');
         elsif clkena='1' then
           pipe_rst(PIPEREGS_RST-1 downto 0) <= pipe_rst(PIPEREGS_RST downto 1);
@@ -122,7 +122,7 @@ begin
   g_clr : if PIPEREGS_CLR>=1 generate
     process(clk) begin
       if rising_edge(clk) then
-        if rst/='0' then
+        if srst/='0' then
           pipe_clr(PIPEREGS_CLR-1 downto 0) <= (others=>'1');
         elsif clkena='1' then
           pipe_clr(PIPEREGS_CLR-1 downto 0) <= pipe_clr(PIPEREGS_CLR downto 1);
@@ -134,7 +134,7 @@ begin
   g_vld : if PIPEREGS_VLD>=1 generate
     process(clk) begin
       if rising_edge(clk) then
-        if rst/='0' then
+        if srst/='0' then
           pipe_vld(PIPEREGS_VLD-1 downto 0) <= (others=>'0');
         elsif clkena='1' then
           pipe_vld(PIPEREGS_VLD-1 downto 0) <= pipe_vld(PIPEREGS_VLD downto 1);
@@ -146,7 +146,7 @@ begin
   g_alumode : if PIPEREGS_ALUMODE>=1 generate
     process(clk) begin
       if rising_edge(clk) then
-        if rst/='0' then
+        if srst/='0' then
           pipe_alumode(PIPEREGS_ALUMODE-1 downto 0) <= (others=>(others=>'0'));
         elsif clkena='1' then
           pipe_alumode(PIPEREGS_ALUMODE-1 downto 0) <= pipe_alumode(PIPEREGS_ALUMODE downto 1);
@@ -158,7 +158,7 @@ begin
   g_inmode : if PIPEREGS_INMODE>=1 generate
     process(clk) begin
       if rising_edge(clk) then
-        if rst/='0' then
+        if srst/='0' then
           pipe_inmode(PIPEREGS_INMODE-1 downto 0) <= (others=>(others=>'0'));
         elsif clkena='1' then
           pipe_inmode(PIPEREGS_INMODE-1 downto 0) <= pipe_inmode(PIPEREGS_INMODE downto 1);
@@ -170,7 +170,7 @@ begin
   g_opmode : if PIPEREGS_OPMODE>=1 generate
     process(clk) begin
       if rising_edge(clk) then
-        if rst/='0' then
+        if srst/='0' then
           pipe_opmode(PIPEREGS_OPMODE-1 downto 0) <= (others=>(others=>'0'));
         elsif clkena='1' then
           pipe_opmode(PIPEREGS_OPMODE-1 downto 0) <= pipe_opmode(PIPEREGS_OPMODE downto 1);
@@ -182,7 +182,7 @@ begin
   g_a : if PIPEREGS_A>=1 generate
     process(clk) begin
       if rising_edge(clk) then
-        if rst/='0' then
+        if srst/='0' then
           pipe_a(PIPEREGS_A-1 downto 0) <= (others=>(others=>'-'));
         elsif clkena='1' then
           pipe_a(PIPEREGS_A-1 downto 0) <= pipe_a(PIPEREGS_A downto 1);
@@ -194,7 +194,7 @@ begin
   g_b : if PIPEREGS_B>=1 generate
     process(clk) begin
       if rising_edge(clk) then
-        if rst/='0' then
+        if srst/='0' then
           pipe_b(PIPEREGS_B-1 downto 0) <= (others=>(others=>'-'));
         elsif clkena='1' then
           pipe_b(PIPEREGS_B-1 downto 0) <= pipe_b(PIPEREGS_B downto 1);
@@ -206,7 +206,7 @@ begin
   g_c : if PIPEREGS_C>=1 generate
     process(clk) begin
       if rising_edge(clk) then
-        if rst/='0' then
+        if srst/='0' then
           pipe_c(PIPEREGS_C-1 downto 0) <= (others=>(others=>'-'));
         elsif clkena='1' then
           pipe_c(PIPEREGS_C-1 downto 0) <= pipe_c(PIPEREGS_C downto 1);
@@ -218,7 +218,7 @@ begin
   g_d : if PIPEREGS_D>=1 generate
     process(clk) begin
       if rising_edge(clk) then
-        if rst/='0' then
+        if srst/='0' then
           pipe_d(PIPEREGS_D-1 downto 0) <= (others=>(others=>'-'));
         elsif clkena='1' then
           pipe_d(PIPEREGS_D-1 downto 0) <= pipe_d(PIPEREGS_D downto 1);

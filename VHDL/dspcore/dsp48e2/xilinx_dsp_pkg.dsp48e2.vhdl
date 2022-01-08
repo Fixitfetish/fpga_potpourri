@@ -1,13 +1,13 @@
 -------------------------------------------------------------------------------
---! @file       dsp_pkg.dsp58.vhdl
+--! @file       xilinx_dsp_pkg.dsp48e2.vhdl
 --! @author     Fixitfetish
---! @date       31/Jan/2021
+--! @date       01/Jan/2022
 --! @version    0.10
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
--- Includes DOXYGEN support.
+-- Code comments are optimized for SIGASI and DOXYGEN.
 -------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
@@ -15,35 +15,23 @@ library ieee;
 library baselib;
   use baselib.ieee_extension.all;
 
---! @brief This package includes a Xilinx Versal DSP58 specific collection of common
+--! @brief This package includes a Xilinx UltraScale specific collection of common
 --! parameters and functions. It helps to minimize code duplication in the
 --! different DSP implementations.
 --!
-package dsp_pkg_dsp58 is
+package xilinx_dsp_pkg_dsp48e2 is
 
   --! accumulator width in bits
-  constant ACCU_WIDTH : positive := 58;
+  constant ACCU_WIDTH : positive := 48;
 
-  constant MAX_WIDTH_A  : positive := 34;
-  constant MAX_WIDTH_B  : positive := 24;
+  constant MAX_WIDTH_A  : positive := 30;
+  constant MAX_WIDTH_B  : positive := 18;
   constant MAX_WIDTH_D  : positive := 27;
   constant MAX_WIDTH_C  : positive := ACCU_WIDTH;
   constant MAX_WIDTH_AB : positive := ACCU_WIDTH;
 
-  type t_resource_type_dsp58 is (DSP, LOGIC);
-
-  type r_dsp_feed is
-  record
-    rst, clr, vld : std_logic;
-    alumode : std_logic_vector(3 downto 0);
-    inmode : std_logic_vector(4 downto 0);
-    opmode : std_logic_vector(8 downto 0);
-    a : signed(MAX_WIDTH_A-1 downto 0);
-    b : signed(MAX_WIDTH_B-1 downto 0);
-    c : signed(MAX_WIDTH_C-1 downto 0);
-    d : signed(MAX_WIDTH_D-1 downto 0);
-  end record;
-
+  type t_resource_type_ultrascale is (DSP, LOGIC);
+  
   --! determine number of required additional guard bits (MSBs)
   function accu_guard_bits(
     num_summand : natural; -- number of summands that are accumulated
@@ -60,19 +48,19 @@ package dsp_pkg_dsp58 is
 
   --! determine number of input registers within DSP cell and in LOGIC
   function NUM_IREG(
-    loc : t_resource_type_dsp58; -- location either DSP or LOGIC
+    loc : t_resource_type_ultrascale; -- location either DSP or LOGIC
     n : natural -- overall number of input registers
   ) return integer;
 
   --! determine number of A/B input registers within DSP cell and in LOGIC
   function NUM_IREG_AB(
-    loc : t_resource_type_dsp58; -- location either DSP or LOGIC
+    loc : t_resource_type_ultrascale; -- location either DSP or LOGIC
     n : natural -- overall number of input registers
   ) return integer;
 
   --! determine number of C input registers within DSP cell and in LOGIC
   function NUM_IREG_C(
-    loc : t_resource_type_dsp58; -- location either DSP or LOGIC
+    loc : t_resource_type_ultrascale; -- location either DSP or LOGIC
     n : natural -- overall number of input registers
   ) return integer;
 
@@ -81,6 +69,9 @@ package dsp_pkg_dsp58 is
 
   --! Register M only requires clock enable when register is enabled 
   function CEM(clkena:std_logic; n:natural) return std_logic;
+
+  --! Pass clock enable only when at least one register is enabled
+  function CE(clkena:std_logic; nreg:natural) return std_logic;
 
   --! INMODE has only one register stage
   function INMODEREG(n:natural) return natural;
@@ -98,7 +89,7 @@ end package;
 
 -------------------------------------------------------------------------------
 
-package body dsp_pkg_dsp58 is
+package body xilinx_dsp_pkg_dsp48e2 is
 
   --! determine number of required additional guard bits (MSBs)
   function accu_guard_bits(
@@ -145,7 +136,7 @@ package body dsp_pkg_dsp58 is
 
   --! determine number of input registers within DSP cell and in LOGIC
   function NUM_IREG(
-    loc : t_resource_type_dsp58; -- location either DSP or LOGIC
+    loc : t_resource_type_ultrascale; -- location either DSP or LOGIC
     n : natural -- overall number of input registers
   ) return integer is
     -- maximum number of input registers supported within the DSP cell
@@ -165,7 +156,7 @@ package body dsp_pkg_dsp58 is
 
   --! determine number of A/B input registers within DSP cell and in LOGIC
   function NUM_IREG_AB(
-    loc : t_resource_type_dsp58; -- location either DSP or LOGIC
+    loc : t_resource_type_ultrascale; -- location either DSP or LOGIC
     n : natural -- overall number of input registers
   ) return integer is
     -- maximum number of input registers supported within the DSP cell
@@ -185,7 +176,7 @@ package body dsp_pkg_dsp58 is
 
   --! determine number of C input registers within DSP cell and in LOGIC
   function NUM_IREG_C(
-    loc : t_resource_type_dsp58; -- location either DSP or LOGIC
+    loc : t_resource_type_ultrascale; -- location either DSP or LOGIC
     n : natural -- overall number of input registers
   ) return integer is
     -- maximum number of input registers supported within the DSP cell
@@ -210,6 +201,10 @@ package body dsp_pkg_dsp58 is
   --! Register M only requires clock enable when register is enabled 
   function CEM(clkena:std_logic; n:natural) return std_logic is
   begin if n>=2 then return clkena; else return '0'; end if; end function;
+
+  --! Pass clock enable only when at least one register is enabled
+  function CE(clkena:std_logic; nreg:natural) return std_logic is
+  begin if nreg>=1 then return clkena; else return '0'; end if; end function;
 
   --! INMODE has only one register stage
   function INMODEREG(n:natural) return natural is

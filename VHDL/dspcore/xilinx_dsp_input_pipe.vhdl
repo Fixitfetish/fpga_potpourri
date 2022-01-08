@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --! @file       xilinx_dsp_input_pipe.vhdl
 --! @author     Fixitfetish
---! @date       06/Jan/2022
+--! @date       01/Jan/2022
 --! @version    0.10
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,

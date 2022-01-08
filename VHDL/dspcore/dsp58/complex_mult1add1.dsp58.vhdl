@@ -15,11 +15,9 @@ library ieee;
 library baselib;
   use baselib.ieee_extension_types.all;
   use baselib.ieee_extension.all;
-library dsplib;
-  use dsplib.dsp_pkg_dsp58.all;
-
 library unisim;
-  use unisim.vcomponents.all;
+
+use work.xilinx_dsp_pkg_dsp58.all;
 
 --! @brief This is an implementation of the entity complex_mult1add1 for Xilinx Versal.
 --! One complex multiplication is performed and results are accumulated.
@@ -47,6 +45,13 @@ architecture dsp58 of complex_mult1add1 is
     end if;
   end function;
 
+  -- only enable ADREG when more than 2 input registers are required
+  function ADREG(n:natural) return natural is
+  begin 
+    if    n<=1 then return 0;
+    else            return 1;
+    end if;
+  end function;
 
   -- derived constants
   constant ACCU_RND_DISABLE : boolean := USE_CHAIN_INPUT and USE_Z_INPUT;
@@ -58,7 +63,7 @@ architecture dsp58 of complex_mult1add1 is
   constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
   constant OUTPUT_WIDTH : positive := result_re'length;
 
-  signal alumode : std_logic_vector(3 downto 0);
+  constant alumode : std_logic_vector(3 downto 0) := "0000"; -- always P = Z + (W + X + Y + CIN)
   signal opmode : std_logic_vector(8 downto 0);
 
   signal dsp_feed_re, dsp_feed_im : r_dsp_feed;
@@ -99,8 +104,6 @@ begin
 --  inmode(3) <= '0'; -- logic_ireg(0).sub; -- +/- A
 --  inmode(4) <= '0'; -- BREG controlled input
 
-  alumode <= "0000"; -- always P = Z + (W + X + Y + CIN)
-
   i_dsp_feed_re : entity work.dsp_input_logic_dsp58
   generic map(
     PIPEREGS_RST     => NUM_INPUT_REG_XY,
@@ -115,20 +118,20 @@ begin
     PIPEREGS_D       => open  -- unused
   )
   port map(
-    clk         => clk,
-    rst         => open,
-    clkena      => clkena,
-    src_rst     => rst,
-    src_clr     => clr,
-    src_vld     => vld,
-    src_alumode => alumode,
-    src_inmode  => open, -- unused
-    src_opmode  => open, -- unused
-    src_a       => x_re,
-    src_b       => y_re,
-    src_c       => z_re,
-    src_d       => "00", -- unused
-    dsp_feed    => dsp_feed_re
+    clk      => clk,
+    srst     => open,
+    clkena   => clkena,
+    rst      => rst,
+    clr      => clr,
+    vld      => vld,
+    alumode  => alumode,
+    inmode   => open, -- unused
+    opmode   => open, -- unused
+    a        => x_re,
+    b        => y_re,
+    c        => z_re,
+    d        => "00", -- unused
+    dsp_feed => dsp_feed_re
   );
 
   i_dsp_feed_im : entity work.dsp_input_logic_dsp58
@@ -145,20 +148,20 @@ begin
     PIPEREGS_D       => open  -- unused
   )
   port map(
-    clk         => clk,
-    rst         => open,
-    clkena      => clkena,
-    src_rst     => rst,
-    src_clr     => clr,
-    src_vld     => vld,
-    src_alumode => alumode,
-    src_inmode  => open, -- unused
-    src_opmode  => open, -- unused
-    src_a       => x_im,
-    src_b       => y_im,
-    src_c       => z_im,
-    src_d       => "00", -- unused
-    dsp_feed    => dsp_feed_im
+    clk      => clk,
+    srst     => open,
+    clkena   => clkena,
+    rst      => rst,
+    clr      => clr,
+    vld      => vld,
+    alumode  => alumode,
+    inmode   => open, -- unused
+    opmode   => open, -- unused
+    a        => x_im,
+    b        => y_im,
+    c        => z_im,
+    d        => "00", -- unused
+    dsp_feed => dsp_feed_im
   );
 
   i_opmode : entity work.dsp_opmode_logic_dsp58
@@ -181,11 +184,11 @@ begin
   chainin_re_i <= std_logic_vector(chainin_re(ACCU_WIDTH-1 downto 0));
   chainin_im_i <= std_logic_vector(chainin_im(ACCU_WIDTH-1 downto 0));
 
-  i_dspcplx : DSPCPLX
+  i_dspcplx : unisim.vcomponents.DSPCPLX
   generic map(
      ACASCREG_IM                  => 1, -- integer := 1;
      ACASCREG_RE                  => 1, -- integer := 1;
-     ADREG                        => 1, -- integer := 1;
+     ADREG                        => ADREG(NUM_INPUT_REG_XY),
      ALUMODEREG_IM                => INMODEREG(NUM_INPUT_REG_XY),
      ALUMODEREG_RE                => INMODEREG(NUM_INPUT_REG_XY),
      AREG_IM                      => ABREG(NUM_INPUT_REG_XY), -- integer := 2;
@@ -206,8 +209,8 @@ begin
      CARRYINREG_RE                => 1, -- integer := 1;
      CARRYINSELREG_IM             => 1, -- integer := 1;
      CARRYINSELREG_RE             => 1, -- integer := 1;
-     CONJUGATEREG_A               => 1, -- integer := 1;
-     CONJUGATEREG_B               => 1, -- integer := 1;
+     CONJUGATEREG_A               => INMODEREG(NUM_INPUT_REG_XY), -- TODO
+     CONJUGATEREG_B               => INMODEREG(NUM_INPUT_REG_XY), -- TODO
      CREG_IM                      => NUM_IREG_C(DSP,NUM_INPUT_REG_Z), -- integer := 1;
      CREG_RE                      => NUM_IREG_C(DSP,NUM_INPUT_REG_Z), -- integer := 1;
      IS_ALUMODE_IM_INVERTED       => (others=>'0'), -- std_logic_vector(3 downto 0) := "0000";
@@ -282,23 +285,23 @@ begin
      P_RE              => accu_re, -- out std_logic_vector(57 downto 0);
      UNDERFLOW_IM      => ufl_im, -- out std_ulogic;
      UNDERFLOW_RE      => ufl_re, -- out std_ulogic;
-     ACIN_IM           => open, -- in std_logic_vector(17 downto 0);
-     ACIN_RE           => open, -- in std_logic_vector(17 downto 0);
+     ACIN_IM           => (others=>'0'), -- unused;
+     ACIN_RE           => (others=>'0'), -- unused;
      ALUMODE_IM        => dsp_feed_im.alumode, -- in std_logic_vector(3 downto 0);
      ALUMODE_RE        => dsp_feed_re.alumode, -- in std_logic_vector(3 downto 0);
-     ASYNC_RST         => open, -- in std_ulogic;
+     ASYNC_RST         => '0', -- unused
      A_IM              => std_logic_vector(dsp_feed_im.a(17 downto 0)),
      A_RE              => std_logic_vector(dsp_feed_re.a(17 downto 0)),
-     BCIN_IM           => open, -- in std_logic_vector(17 downto 0);
-     BCIN_RE           => open, -- in std_logic_vector(17 downto 0);
+     BCIN_IM           => (others=>'0'), -- unused
+     BCIN_RE           => (others=>'0'), -- unused
      B_IM              => std_logic_vector(dsp_feed_im.b(17 downto 0)),
      B_RE              => std_logic_vector(dsp_feed_re.b(17 downto 0)),
-     CARRYCASCIN_IM    => open, -- in std_ulogic;
-     CARRYCASCIN_RE    => open, -- in std_ulogic;
-     CARRYINSEL_IM     => open, -- in std_logic_vector(2 downto 0);
-     CARRYINSEL_RE     => open, -- in std_logic_vector(2 downto 0);
-     CARRYIN_IM        => open, -- in std_ulogic;
-     CARRYIN_RE        => open, -- in std_ulogic;
+     CARRYCASCIN_IM    => '0', -- unused
+     CARRYCASCIN_RE    => '0', -- unused
+     CARRYINSEL_IM     => (others=>'0'), -- unused
+     CARRYINSEL_RE     => (others=>'0'), -- unused
+     CARRYIN_IM        => '0', -- unused
+     CARRYIN_RE        => '0', -- unused
      CEA1_IM           => clkena, -- in std_ulogic;
      CEA1_RE           => clkena, -- in std_ulogic;
      CEA2_IM           => clkena, -- in std_ulogic;
@@ -310,10 +313,10 @@ begin
      CEB1_RE           => clkena, -- in std_ulogic;
      CEB2_IM           => clkena, -- in std_ulogic;
      CEB2_RE           => clkena, -- in std_ulogic;
-     CECARRYIN_IM      => open, -- in std_ulogic;
-     CECARRYIN_RE      => open, -- in std_ulogic;
-     CECONJUGATE_A     => open, -- in std_ulogic;
-     CECONJUGATE_B     => open, -- in std_ulogic;
+     CECARRYIN_IM      => '0', -- unused
+     CECARRYIN_RE      => '0', -- unused
+     CECONJUGATE_A     => clkena,
+     CECONJUGATE_B     => clkena,
      CECTRL_IM         => clkena, -- in std_ulogic;
      CECTRL_RE         => clkena, -- in std_ulogic;
      CEC_IM            => clkena, -- in std_ulogic;
@@ -327,8 +330,8 @@ begin
      CONJUGATE_B       => '0', -- in std_ulogic;
      C_IM              => std_logic_vector(dsp_feed_im.c),
      C_RE              => std_logic_vector(dsp_feed_re.c),
-     MULTSIGNIN_IM     => open, -- in std_ulogic;
-     MULTSIGNIN_RE     => open, -- in std_ulogic;
+     MULTSIGNIN_IM     => '0', -- unused
+     MULTSIGNIN_RE     => '0', -- unused
      OPMODE_IM         => opmode,
      OPMODE_RE         => opmode,
      PCIN_IM           => chainin_im_i, -- in std_logic_vector(57 downto 0);
@@ -354,13 +357,9 @@ begin
      RSTP_RE           => reset  -- in std_ulogic
   );
 
-  chainout_re(ACCU_WIDTH-1 downto 0) <= signed(chainout_re_i);
-  chainout_im(ACCU_WIDTH-1 downto 0) <= signed(chainout_im_i);
-  g_chainout : for n in ACCU_WIDTH to (chainout_re'length-1) generate
-    -- sign extension (for simulation and to avoid warnings)
-    chainout_re(n) <= chainout_re_i(ACCU_WIDTH-1);
-    chainout_im(n) <= chainout_im_i(ACCU_WIDTH-1);
-  end generate;
+  -- sign extension (for simulation and to avoid warnings)
+  chainout_re <= resize(signed(chainout_re_i), chainout_re'length);
+  chainout_im <= resize(signed(chainout_im_i), chainout_im'length);
 
   -- pipelined valid signal
   g_dspreg_on : if NUM_OUTPUT_REG>=1 generate
@@ -387,7 +386,7 @@ begin
   accu_used_im <= signed(accu_im(ACCU_USED_WIDTH-1 downto 0));
 
   -- right-shift and clipping
-  i_out_re : entity dsplib.signed_output_logic
+  i_out_re : entity work.signed_output_logic
   generic map(
     PIPELINE_STAGES    => NUM_OUTPUT_REG-1,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -406,7 +405,7 @@ begin
     result_ovf  => r_ovf_re
   );
 
-  i_out_im : entity dsplib.signed_output_logic
+  i_out_im : entity work.signed_output_logic
   generic map(
     PIPELINE_STAGES    => NUM_OUTPUT_REG-1,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -428,5 +427,8 @@ begin
   -- TODO
   result_ovf_re <= r_ovf_re or ofl_re or ufl_re;
   result_ovf_im <= r_ovf_im or ofl_im or ufl_im;
+
+  -- report constant number of pipeline register stages
+  PIPESTAGES <= NUM_INPUT_REG_XY + NUM_OUTPUT_REG;
 
 end architecture;
