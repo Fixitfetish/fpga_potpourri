@@ -73,8 +73,14 @@ architecture dsp58 of xilinx_complex_macc is
   -- Consider up to two BREG register stages
   constant NUM_BREG : natural := NUM_INPUT_REG_B - NUM_MREG;
 
+  -- Consider up to one Conjugate A register as second input register stage
+  constant NUM_CONJ_AREG : natural := minimum(1,NUM_INPUT_REG_A);
+
+  -- Consider up to one Conjugate B register as second input register stage
+  constant NUM_CONJ_BREG : natural := minimum(1,NUM_INPUT_REG_B);
+
   -- Consider up to one ADREG register stage
-  constant NUM_ADREG : natural := 1; -- TODO  ???
+  constant NUM_ADREG : natural := minimum(1,NUM_INPUT_REG_A-2); -- TODO  ???
 
   -- Consider up to one CREG register stage
   constant NUM_CREG : natural := NUM_INPUT_REG_C;
@@ -203,8 +209,8 @@ begin
      CARRYINREG_RE                => 1, -- integer := 1;
      CARRYINSELREG_IM             => 1, -- integer := 1;
      CARRYINSELREG_RE             => 1, -- integer := 1;
-     CONJUGATEREG_A               => NUM_AREG,
-     CONJUGATEREG_B               => NUM_BREG,
+     CONJUGATEREG_A               => NUM_CONJ_AREG,
+     CONJUGATEREG_B               => NUM_CONJ_BREG,
      CREG_IM                      => NUM_CREG, -- integer := 1;
      CREG_RE                      => NUM_CREG, -- integer := 1;
      IS_ALUMODE_IM_INVERTED       => (others=>'0'), -- std_logic_vector(3 downto 0) := "0000";
