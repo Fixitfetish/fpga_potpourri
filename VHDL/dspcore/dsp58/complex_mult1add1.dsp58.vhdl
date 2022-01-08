@@ -98,12 +98,6 @@ begin
            "More guard bits required for saturation/clipping and/or overflow detection."
     severity failure;
 
---  inmode(0) <= '0'; -- AREG controlled input
---  inmode(1) <= '0'; -- do not gate A/B
---  inmode(2) <= '1'; -- D into preadder
---  inmode(3) <= '0'; -- logic_ireg(0).sub; -- +/- A
---  inmode(4) <= '0'; -- BREG controlled input
-
   i_dsp_feed_re : entity work.dsp_input_logic_dsp58
   generic map(
     PIPEREGS_RST     => NUM_INPUT_REG_XY,

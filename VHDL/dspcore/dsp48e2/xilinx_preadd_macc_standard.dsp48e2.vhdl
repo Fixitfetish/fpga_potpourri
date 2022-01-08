@@ -35,7 +35,6 @@ architecture dsp48e2 of xilinx_preadd_macc_standard is
     return res;
   end function;
 
-  --! rounding bit generation (+0.5)
   function nof_regs_clr return natural is
   begin 
     if    RELATION_CLR="AD" then return NUM_INPUT_REG_AD;
@@ -90,7 +89,7 @@ architecture dsp48e2 of xilinx_preadd_macc_standard is
   end function;
   constant NUM_DREG : natural := GET_DREG;
 
-  -- Consider up to one BREG register stage
+  -- Consider up to two BREG register stages
   constant NUM_BREG : natural := NUM_INPUT_REG_B - NUM_MREG;
 
   -- Consider up to one CREG register stage
