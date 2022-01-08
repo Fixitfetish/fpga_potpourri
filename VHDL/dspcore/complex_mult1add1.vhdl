@@ -10,8 +10,8 @@
 -- Code comments are optimized for SIGASI and DOXYGEN.
 -------------------------------------------------------------------------------
 library ieee;
- use ieee.std_logic_1164.all;
- use ieee.numeric_std.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
 
 --! @brief Multiply the two complex inputs X and Y. Optionally, the complex chain input
 --! and complex Z input can be added to the product result as well.

@@ -320,8 +320,8 @@ begin
      CEP_IM            => clkena, -- in std_ulogic;
      CEP_RE            => clkena, -- in std_ulogic;
      CLK               => clk, -- in std_ulogic;
-     CONJUGATE_A       => conj_a, -- in std_ulogic;
-     CONJUGATE_B       => conj_b, -- in std_ulogic;
+     CONJUGATE_A       => a_conj, -- in std_ulogic;
+     CONJUGATE_B       => b_conj, -- in std_ulogic;
      C_IM              => std_logic_vector(resize(c_im,MAX_WIDTH_C)),
      C_RE              => std_logic_vector(resize(c_re,MAX_WIDTH_C)),
      MULTSIGNIN_IM     => '0', -- unused

@@ -86,9 +86,9 @@ port (
   --! Valid signal, high-active
   vld        : in  std_logic;
   --! Conjugate A synchronous to A input - disabled by default.
-  conj_a     : in  std_logic := '0';
+  a_conj     : in  std_logic := '0';
   --! Conjugate B synchronous to B input - disabled by default.
-  conj_b     : in  std_logic := '0';
+  b_conj     : in  std_logic := '0';
   --! 1st factor, real component
   a_re       : in  signed;
   --! 1st factor, imaginary component
