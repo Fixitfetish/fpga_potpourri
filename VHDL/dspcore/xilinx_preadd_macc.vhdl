@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       xilinx_preadd_macc_standard.vhdl
+--! @file       xilinx_preadd_macc.vhdl
 --! @author     Fixitfetish
 --! @date       01/Jan/2022
 --! @version    0.10
@@ -19,7 +19,7 @@ library ieee;
 --! Multiply the sum of two signed (D +/- A) with a signed B and accumulate results.
 --! Optionally, the chain input and C input can be added to the product result as well.
 --!
---! @image html xilinx_preadd_macc_standard.svg "" width=600px
+--! @image html xilinx_preadd_macc.svg "" width=600px
 --!
 --! The behavior is as follows
 --!
@@ -47,7 +47,7 @@ library ieee;
 --! * CARRY, MULTISIGN
 --! * A and B input cascade
 --!
-entity xilinx_preadd_macc_standard is
+entity xilinx_preadd_macc is
 generic (
   --! @brief Enable chain input from neighbor DSP cell.
   --! Note that this disables the accumulator feature when the C input is enabled as well.

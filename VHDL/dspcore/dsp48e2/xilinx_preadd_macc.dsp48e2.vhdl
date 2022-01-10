@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       xilinx_preadd_macc_standard.dsp48e2.vhdl
+--! @file       xilinx_preadd_macc.dsp48e2.vhdl
 --! @author     Fixitfetish
 --! @date       01/Jan/2022
 --! @version    0.10
@@ -18,14 +18,14 @@ library unisim;
 
 use work.xilinx_dsp_pkg_dsp48e2.all;
 
---! @brief Implementation of xilinx_preadd_macc_standard for Xilinx DSP48e2.
+--! @brief Implementation of xilinx_preadd_macc for Xilinx DSP48e2.
 --!
 --! Refer to Xilinx UltraScale Architecture DSP48E2 Slice, UG579 (v1.11) August 30, 2021
 --!
-architecture dsp48e2 of xilinx_preadd_macc_standard is
+architecture dsp48e2 of xilinx_preadd_macc is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "xilinx_preadd_macc_standard(dsp48e2)";
+  constant IMPLEMENTATION : string := "xilinx_preadd_macc(dsp48e2)";
 
   --! rounding bit generation (+0.5)
   function gRND return std_logic_vector is
