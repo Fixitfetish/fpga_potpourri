@@ -22,7 +22,7 @@ use work.xilinx_dsp_pkg_dsp58.all;
 --!
 --! @image html complex_mult1add1.dsp58.svg "" width=600px
 --!
---! **RESOURCES**
+--! **OPTIMIZATION="RESOURCES"**
 --! * This implementation requires two back-to-back DSP58s.
 --! * Chaining is supported.
 --! * The number of overall pipeline stages is typically NUM_INPUT_REG_XY + NUM_OUTPUT_REG.

@@ -13,7 +13,6 @@ library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
 library baselib;
-  use baselib.ieee_extension_types.all;
   use baselib.ieee_extension.all;
 
 use work.xilinx_dsp_pkg_dsp48e2.all;
@@ -23,12 +22,12 @@ use work.xilinx_dsp_pkg_dsp48e2.all;
 --!
 --! @image html complex_mult1add1.dsp48e2.svg "" width=600px
 --!
---! **PERFORMANCE**
+--! **OPTIMIZATION="PERFORMANCE"**
 --! * This implementation requires four instances of the entity signed_mult1add1 .
 --! * Chaining is supported.
 --! * The number of overall pipeline stages is typically NUM_INPUT_REG + 1 + NUM_OUTPUT_REG.
 --! 
---! **RESOURCES**
+--! **OPTIMIZATION="RESOURCES"**
 --! * This implementation requires three instances of the entity signed_preadd_mult1add1 .
 --! * Chaining is supported.
 --! * The number of overall pipeline stages is typically NUM_INPUT_REG + 2 + NUM_OUTPUT_REG.
