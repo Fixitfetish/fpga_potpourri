@@ -76,6 +76,8 @@ generic (
   USE_CHAIN_INPUT : boolean := false;
   --! Enable additional Z input. Note that this might disable the accumulator feature.
   USE_Z_INPUT : boolean := false;
+  --! Product negation mode can be OFF, static ON or DYNAMIC. In modes OFF and ON the NEG input port will be ignored.
+  NEGATION : string := "OFF";
   --! @brief Number of additional input registers for inputs X and Y. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
   NUM_INPUT_REG_XY : natural := 1;
@@ -102,9 +104,9 @@ generic (
   --! Enable overflow/clipping detection 
   OUTPUT_OVERFLOW : boolean := true;
   --! @brief OPTIMIZATION : TODO
-  --! * MAXIMUM_PERFORMANCE
-  --! * MINIMUM_DSP_CELLS
-  OPTIMIZATION : string := "MAXIMUM_PERFORMANCE"
+  --! * PERFORMANCE
+  --! * RESOURCES
+  OPTIMIZATION : string := "PERFORMANCE"
 );
 port (
   --! Standard system clock
@@ -118,8 +120,7 @@ port (
   clr        : in  std_logic;
   --! Valid signal for input factors, high-active
   vld        : in  std_logic;
-  --! @brief Negation of product , '0' -> +(x*y), '1' -> -(x*y). 
-  --! Negation is disabled by default.
+  --! Negation of product , '0' -> +(x*y), '1' -> -(x*y). Only relevant in DYNAMIC mode.
   neg        : in  std_logic := '0';
   --! 1st factor input, real component
   x_re       : in  signed;
@@ -165,20 +166,24 @@ begin
   -- synthesis translate_off (Altera Quartus)
   -- pragma translate_off (Xilinx Vivado , Synopsys)
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
-    report "WARNING in complex_mult1add1 :" &
+    report "WARNING in " & complex_mult1add1'INSTANCE_NAME & ": " & 
            " Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."
     severity warning;
   assert (x_re'length=x_im'length)
-    report "ERROR in complex_mult1add1 :" &
+    report "ERROR in " & complex_mult1add1'INSTANCE_NAME & ": " & 
            " Real and imaginary components of X input must have same size."
     severity failure;
   assert (y_re'length=y_im'length)
-    report "ERROR in complex_mult1add1 :" &
+    report "ERROR in " & complex_mult1add1'INSTANCE_NAME & ": " & 
            " Real and imaginary components of Y input must have same size."
     severity failure;
   assert (z_re'length=z_im'length) or not USE_Z_INPUT
-    report "ERROR in complex_mult1add1 :" &
+    report "ERROR in " & complex_mult1add1'INSTANCE_NAME & ": " & 
            " Real and imaginary components of Z input must have same size."
+    severity failure;
+  assert (NEGATION="OFF" or NEGATION="ON" or NEGATION="DYNAMIC")
+    report "ERROR in " & complex_mult1add1'INSTANCE_NAME & ": " & 
+           "Generic NEGATION string must be OFF, ON or DYNAMIC."
     severity failure;
   -- synthesis translate_on (Altera Quartus)
   -- pragma translate_on (Xilinx Vivado , Synopsys)

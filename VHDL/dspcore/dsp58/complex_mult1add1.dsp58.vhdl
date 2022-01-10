@@ -18,13 +18,11 @@ library baselib;
 use work.xilinx_dsp_pkg_dsp58.all;
 
 --! @brief This is an implementation of the entity complex_mult1add1 for Xilinx Versal.
---! One complex multiplication is performed and results are accumulated.
---!
---! Refer to Xilinx Versal ACAP DSP Engine, Architecture Manual, AM004 (v1.1.2) July 15, 2021
+--! One complex multiplication is performed and results can be accumulated.
 --!
 --! @image html complex_mult1add1.dsp58.svg "" width=600px
 --!
---! **MAXIMUM_PERFORMANCE**
+--! **RESOURCES**
 --! * This implementation requires two back-to-back DSP58s.
 --! * Chaining is supported.
 --! * The number of overall pipeline stages is typically NUM_INPUT_REG_XY + NUM_OUTPUT_REG.

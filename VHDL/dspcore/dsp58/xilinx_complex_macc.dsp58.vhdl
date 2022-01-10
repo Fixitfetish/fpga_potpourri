@@ -80,7 +80,7 @@ architecture dsp58 of xilinx_complex_macc is
   constant NUM_CONJ_BREG : natural := minimum(1,NUM_INPUT_REG_B);
 
   -- Consider up to one ADREG register stage
-  constant NUM_ADREG : natural := minimum(1,NUM_INPUT_REG_A-2); -- TODO  ???
+  constant NUM_ADREG : natural := minimum(1,maximum(0,NUM_INPUT_REG_A-2)); -- TODO  ???
 
   -- Consider up to one CREG register stage
   constant NUM_CREG : natural := NUM_INPUT_REG_C;
