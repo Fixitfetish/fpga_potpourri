@@ -155,7 +155,7 @@ begin
 --           and (logic_ireg(0).x = to_signed(-2**(LIM_WIDTH_A-1),LIM_WIDTH_A)) )
 --    else (others=>'0');
 
-  i_dsp : entity work.xilinx_preadd_macc_standard(dsp48e2)
+  i_dsp : entity work.xilinx_preadd_macc(dsp48e2)
   generic map(
     USE_CHAIN_INPUT  => USE_CHAIN_INPUT,
     USE_C_INPUT      => USE_Z_INPUT,

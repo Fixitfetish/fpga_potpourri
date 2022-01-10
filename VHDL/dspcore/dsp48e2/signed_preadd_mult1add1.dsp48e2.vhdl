@@ -181,7 +181,7 @@ begin
     dsp_d    => dsp_d
   );
 
-  i_dsp : entity work.xilinx_preadd_macc_standard(dsp48e2)
+  i_dsp : entity work.xilinx_preadd_macc(dsp48e2)
   generic map(
     USE_CHAIN_INPUT  => USE_CHAIN_INPUT,
     USE_C_INPUT      => USE_Z_INPUT,
