@@ -139,8 +139,8 @@ begin
     PREADDER_INPUT_D  => PREADDER_INPUT_XB
   )
   port map(
-    a_sub      => sub_xa,
-    d_sub      => sub_xb,
+    sub_a      => sub_xa,
+    sub_d      => sub_xb,
     a          => xa,
     d          => xb,
     dsp_a_neg  => neg,

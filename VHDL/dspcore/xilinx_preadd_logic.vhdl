@@ -27,13 +27,13 @@ library baselib;
 --! |:---------:|:---------:|:-------:|:-------:|:----------:|:----------:|:-------
 --! | ADD       | ADD       |    A    |    D    |   '0' (+)  |    A  +  D | ---
 --! | ADD       | SUBTRACT  |    A    |    D    |   '1' (-)  |    A  -  D | ---
---! | ADD       | DYNAMIC   |    A    |    D    |    d_sub   |    A +/- D | ---
+--! | ADD       | DYNAMIC   |    A    |    D    |    sub_d   |    A +/- D | ---
 --! | SUBTRACT  | ADD       |    D    |    A    |   '1' (-)  |    D  -  A | ---
---! | DYNAMIC   | ADD       |    D    |    A    |    a_sub   |    D +/- A | ---
+--! | DYNAMIC   | ADD       |    D    |    A    |    sub_a   |    D +/- A | ---
 --! | SUBTRACT  | SUBTRACT  |   -D    |    A    |   '1' (-)  |   -D  -  A | additional logic required
---! | DYNAMIC   | SUBTRACT  |   -D    |    A    |    a_sub   |   -D +/- A | additional logic required
---! | SUBTRACT  | DYNAMIC   |   -A    |    D    |    d_sub   |   -A +/- D | additional logic required
---! | DYNAMIC   | DYNAMIC   | +/-A    |    D    |    d_sub   | +/-A +/- D | additional logic required
+--! | DYNAMIC   | SUBTRACT  |   -D    |    A    |    sub_a   |   -D +/- A | additional logic required
+--! | SUBTRACT  | DYNAMIC   |   -A    |    D    |    sub_d   |   -A +/- D | additional logic required
+--! | DYNAMIC   | DYNAMIC   | +/-A    |    D    |    sub_d   | +/-A +/- D | additional logic required
 --!
 --! Refer to 
 --! * Xilinx UltraScale Architecture DSP48E2 Slice, UG579 (v1.11) August 30, 2021
@@ -47,8 +47,8 @@ library baselib;
 --!   PREADDER_INPUT_D  => string   -- d preadder mode
 --! )
 --! port map(
---!   a_sub      => in  std_logic, -- add/subtract a
---!   d_sub      => in  std_logic, -- add/subtract d
+--!   sub_a      => in  std_logic, -- add/subtract a
+--!   sub_d      => in  std_logic, -- add/subtract d
 --!   a          => in  signed, -- first preadder input
 --!   d          => in  signed, -- second preadder input
 --!   dsp_a_neg  => out std_logic, -- negate A
@@ -71,15 +71,15 @@ generic (
 port (
   --! @brief Add/subtract, '0' -> +a, '1' -> -a
   --! Only relevant in DYNAMIC mode. In DYNAMIC mode subtraction is disabled by default.
-  a_sub      : in  std_logic := '0';
+  sub_a      : in  std_logic := '0';
   --! @brief Add/subtract, '0' -> +d, '1' -> -d
   --! Only relevant in DYNAMIC mode. In DYNAMIC mode subtraction is disabled by default.
-  d_sub      : in  std_logic := '0';
+  sub_d      : in  std_logic := '0';
   --! first preadder input
   a          : in  signed;
   --! second preadder input
   d          : in  signed;
-  --! DSP_A negation
+  --! DSP input A negation
   dsp_a_neg  : out std_logic;
   --! DSP preadder input A
   dsp_a      : out signed;
@@ -146,7 +146,7 @@ begin
            "Max output width is smaller than max input width."
     severity warning;
 
-  a_i <= -resize(a,a_i'length) when (STATIC_NEGATE_A or (DYNAMIC_NEGATE_A and a_sub='1')) else resize(a,a_i'length);
+  a_i <= -resize(a,a_i'length) when (STATIC_NEGATE_A or (DYNAMIC_NEGATE_A and sub_a='1')) else resize(a,a_i'length);
 
   d_i <= -resize(d,d_i'length) when (STATIC_NEGATE_D) else resize(d,d_i'length);
 
@@ -154,8 +154,8 @@ begin
 
   dsp_d_i <= resize(a_i,dsp_d_i'length) when SWAP_AD else d_i;
 
-  dsp_a_neg <= d_sub when (PREADDER_INPUT_D="DYNAMIC") else
-               a_sub when (PREADDER_INPUT_A="DYNAMIC") else
+  dsp_a_neg <= sub_d when (PREADDER_INPUT_D="DYNAMIC") else
+               sub_a when (PREADDER_INPUT_A="DYNAMIC") else
                '0'   when (PREADDER_INPUT_A="ADD" and PREADDER_INPUT_D="ADD") else '1';
 
   dsp_a <= dsp_a_i;
