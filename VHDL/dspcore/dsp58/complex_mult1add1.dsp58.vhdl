@@ -32,6 +32,8 @@ architecture dsp58 of complex_mult1add1 is
   -- identifier for reports of warnings and errors
   constant IMPLEMENTATION : string := "complex_mult1add1(dsp58)";
 
+  signal conj_x_i, conj_y_i : std_logic := '0';
+
   -- number main path input registers within DSP
   constant NUM_IREG_DSP : natural := NUM_IREG(DSP,NUM_INPUT_REG_XY);
 
@@ -66,6 +68,14 @@ architecture dsp58 of complex_mult1add1 is
   signal accu_used_re, accu_used_im : signed(ACCU_USED_WIDTH-1 downto 0);
 
 begin
+
+  conj_x_i <= conj_x when CONJUGATE_X="DYNAMIC" else '1' when CONJUGATE_X="ON" else '0';
+  conj_y_i <= conj_y when CONJUGATE_Y="DYNAMIC" else '1' when CONJUGATE_Y="ON" else '0';
+
+  assert (NEGATION="OFF")
+    report "ERROR " & IMPLEMENTATION & " with optimization=PERFORMANCE : " &
+           "Selected optimization does not support negation."
+    severity failure;
 
   -- check chain in/out length
   assert (chainin_re'length>=ACCU_WIDTH and chainin_im'length>=ACCU_WIDTH) or (not USE_CHAIN_INPUT)
@@ -111,7 +121,7 @@ begin
     src_rst  => rst,
     src_clr  => clr,
     src_vld  => vld,
-    src_neg  => '0', -- TODO x_conj,
+    src_neg  => conj_x_i,
     src_a    => x_re,
     src_b    => y_re,
     src_c    => z_re,
@@ -144,7 +154,7 @@ begin
     src_rst  => rst,
     src_clr  => clr,
     src_vld  => vld,
-    src_neg  => '0', -- TODO y_conj,
+    src_neg  => conj_y_i,
     src_a    => x_im,
     src_b    => y_im,
     src_c    => z_im,

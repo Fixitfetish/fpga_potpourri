@@ -37,12 +37,6 @@ architecture dsp48e2 of complex_mult1add1 is
   -- identifier for reports of warnings and errors
   constant IMPLEMENTATION : string := "complex_mult1add1(dsp48e2)";
 
-  -- Can be OFF , ON or DYNAMIC
-  constant CONJUGATE_X : string := "OFF";
-  constant CONJUGATE_Y : string := "OFF";
-
-  constant conj_x, conj_y : std_logic := '0';
-
   signal neg_i, conj_x_i, conj_y_i : std_logic := '0';
 
 begin

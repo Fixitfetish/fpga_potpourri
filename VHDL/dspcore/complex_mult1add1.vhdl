@@ -78,6 +78,12 @@ generic (
   USE_Z_INPUT : boolean := false;
   --! Product negation mode can be OFF, static ON or DYNAMIC. In modes OFF and ON the NEG input port will be ignored.
   NEGATION : string := "OFF";
+  --! @brief Complex conjugate X, i.e. negation of input port X_IM. Can be OFF, static ON or DYNAMIC.
+  --! In modes OFF and ON the CONJ_X input port will be ignored.
+  CONJUGATE_X : string := "OFF";
+  --! @brief Complex conjugate Y, i.e. negation of input port Y_IM. Can be OFF, static ON or DYNAMIC.
+  --! In modes OFF and ON the CONJ_Y input port will be ignored.
+  CONJUGATE_Y : string := "OFF";
   --! @brief Number of additional input registers for inputs X and Y. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
   NUM_INPUT_REG_XY : natural := 1;
@@ -122,6 +128,10 @@ port (
   vld        : in  std_logic;
   --! Negation of product , '0' -> +(x*y), '1' -> -(x*y). Only relevant in DYNAMIC mode.
   neg        : in  std_logic := '0';
+  --! Complex conjugate X , '0' -> +x_im, '1' -> -x_im. Only relevant when CONJUGATE_X="DYNAMIC" .
+  conj_x     : in  std_logic := '0';
+  --! Complex conjugate Y , '0' -> +y_im, '1' -> -y_im. Only relevant when CONJUGATE_Y="DYNAMIC" .
+  conj_y     : in  std_logic := '0';
   --! 1st factor input, real component
   x_re       : in  signed;
   --! 1st factor input, imaginary component
