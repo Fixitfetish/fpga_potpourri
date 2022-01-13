@@ -32,18 +32,6 @@ package xilinx_dsp_pkg_dsp58 is
 
   type t_resource_type_dsp58 is (DSP, LOGIC);
 
-  type r_dsp_feed is
-  record
-    rst, clr, vld : std_logic;
-    alumode : std_logic_vector(3 downto 0);
-    inmode : std_logic_vector(4 downto 0);
-    opmode : std_logic_vector(8 downto 0);
-    a : signed(MAX_WIDTH_A-1 downto 0);
-    b : signed(MAX_WIDTH_B-1 downto 0);
-    c : signed(MAX_WIDTH_C-1 downto 0);
-    d : signed(MAX_WIDTH_D-1 downto 0);
-  end record;
-
   --! determine number of required additional guard bits (MSBs)
   function accu_guard_bits(
     num_summand : natural; -- number of summands that are accumulated

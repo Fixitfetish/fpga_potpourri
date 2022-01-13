@@ -76,6 +76,9 @@ package xilinx_dsp_pkg_dsp48e2 is
   --! INMODE has only one register stage
   function INMODEREG(n:natural) return natural;
 
+  --! OPMODE has only one register stage
+  function OPMODEREG(n:natural) return natural;
+
   --! Register P is the first output register when NUM_OUTPUT_REG=>1 (strongly recommended!)
   function PREG(n:natural) return natural;
 
@@ -208,6 +211,10 @@ package body xilinx_dsp_pkg_dsp48e2 is
 
   --! INMODE has only one register stage
   function INMODEREG(n:natural) return natural is
+  begin if n>=1 then return 1; else return 0; end if; end function;
+
+  --! OPMODE has only one register stage
+  function OPMODEREG(n:natural) return natural is
   begin if n>=1 then return 1; else return 0; end if; end function;
 
   --! Register P is the first output register when NUM_OUTPUT_REG=>1 (strongly recommended!)
