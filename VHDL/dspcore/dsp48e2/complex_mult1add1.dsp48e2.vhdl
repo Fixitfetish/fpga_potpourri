@@ -25,12 +25,12 @@ use work.xilinx_dsp_pkg_dsp48e2.all;
 --! **OPTIMIZATION="PERFORMANCE"**
 --! * This implementation requires four instances of the entity signed_mult1add1 .
 --! * Chaining is supported.
---! * The number of overall pipeline stages is typically NUM_INPUT_REG + 1 + NUM_OUTPUT_REG.
---! 
+--! * The number of overall pipeline stages is typically NUM_INPUT_REG_XY + 1 + NUM_OUTPUT_REG.
+--!
 --! **OPTIMIZATION="RESOURCES"**
 --! * This implementation requires three instances of the entity signed_preadd_mult1add1 .
 --! * Chaining is supported.
---! * The number of overall pipeline stages is typically NUM_INPUT_REG + 2 + NUM_OUTPUT_REG.
+--! * The number of overall pipeline stages is typically NUM_INPUT_REG_XY + 2 + NUM_OUTPUT_REG.
 --!
 architecture dsp48e2 of complex_mult1add1 is
 
@@ -62,7 +62,7 @@ begin
  -- * Re1/Im1 can add Z input in addition to chain input
  -- * Re2/Im2 can add round bit and accumulate in addition to chain input
  --------------------------------------------------------------------------------------------------
- G1 : if OPTIMIZATION="PERFORMANCE" generate
+ G4DSP : if OPTIMIZATION="PERFORMANCE" generate
   signal chainout_re1 : signed(79 downto 0);
   signal chainout_im1 : signed(79 downto 0);
   signal dummy_re, dummy_im : signed(ACCU_WIDTH-1 downto 0);
@@ -222,7 +222,7 @@ begin
  -- * The rounding (i.e. +0.5) not possible within DSP.
  --   But rounding bit can be injected at the first chain link where USE_CHAIN_INPUT=false
  --------------------------------------------------------------------------------------------------
- G2 : if OPTIMIZATION="RESOURCES" generate
+ G3DSP : if OPTIMIZATION="RESOURCES" generate
   constant TEMP_WIDTH : positive := x_re'length + y_re'length + 1;
   signal temp : signed(TEMP_WIDTH-1 downto 0);
   -- identifier for reports of warnings and errors

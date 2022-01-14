@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---! @file       xilinx_preadd_macc.dsp48e2.vhdl
+--! @file       xilinx_preadd_macc.dsp58.vhdl
 --! @author     Fixitfetish
 --! @date       01/Jan/2022
 --! @version    0.10
@@ -16,16 +16,16 @@ library baselib;
   use baselib.ieee_extension.all;
 library unisim;
 
-use work.xilinx_dsp_pkg_dsp48e2.all;
+use work.xilinx_dsp_pkg_dsp58.all;
 
---! @brief Implementation of xilinx_preadd_macc for Xilinx DSP48e2.
+--! @brief Implementation of xilinx_preadd_macc for Xilinx DSP58.
 --!
---! Refer to Xilinx UltraScale Architecture DSP48E2 Slice, UG579 (v1.11) August 30, 2021
+--! Refer to Xilinx Versal ACAP DSP Engine, Architecture Manual, AM004 (v1.1.2) July 15, 2021
 --!
-architecture dsp48e2 of xilinx_preadd_macc is
+architecture dsp58 of xilinx_preadd_macc is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "xilinx_preadd_macc(dsp48e2)";
+  constant IMPLEMENTATION : string := "xilinx_preadd_macc(dsp58)";
 
   --! rounding bit generation (+0.5)
   function gRND return std_logic_vector is
@@ -214,7 +214,7 @@ begin
   -- use only LSBs of chain input
   chainin_i <= std_logic_vector(chainin(ACCU_WIDTH-1 downto 0));
 
-  i_dsp : unisim.VCOMPONENTS.DSP48E2
+  i_dsp : unisim.VCOMPONENTS.DSP58
   generic map(
     -- Feature Control Attributes: Data Path Selection
     AMULTSEL                  => AMULTSEL, -- "A" or "AD"
@@ -224,18 +224,22 @@ begin
     PREADDINSEL               => "A", -- Selects input to preadder (A, B)
     RND                       => gRND, -- Rounding Constant
     USE_MULT                  => "MULTIPLY", -- Select multiplier usage (MULTIPLY,DYNAMIC,NONE)
-    USE_SIMD                  => "ONE48", -- SIMD selection(ONE48, FOUR12, TWO24)
+    USE_SIMD                  => "ONE58", -- SIMD selection(ONE58, FOUR12, TWO24)
     USE_WIDEXOR               => "FALSE", -- Use the Wide XOR function (FALSE, TRUE)
-    XORSIMD                   => "XOR24_48_96", -- Mode of operation for the Wide XOR (XOR24_48_96, XOR12)
+    XORSIMD                   => "XOR24_34_58_116", -- Mode of operation for the Wide XOR (XOR24_34_58_116, XOR12)
+    RESET_MODE                => "SYNC",
+    DSP_MODE                  => "INT24",
     -- Pattern Detector Attributes: Pattern Detection Configuration
     AUTORESET_PATDET          => "NO_RESET", -- NO_RESET, RESET_MATCH, RESET_NOT_MATCH
     AUTORESET_PRIORITY        => "RESET", -- Priority of AUTORESET vs.CEP (RESET, CEP).
-    MASK                      => (others=>'1'), -- 48-bit mask value for pattern detect (1=ignore)
-    PATTERN                   => (others=>'0'), -- 48-bit pattern match for pattern detect
+    MASK                      => (others=>'1'), -- 58-bit mask value for pattern detect (1=ignore)
+    PATTERN                   => (others=>'0'), -- 58-bit pattern match for pattern detect
     SEL_MASK                  => "MASK", -- MASK, C, ROUNDING_MODE1, ROUNDING_MODE2
     SEL_PATTERN               => "PATTERN", -- Select pattern value (PATTERN, C)
     USE_PATTERN_DETECT        => "NO_PATDET", -- Enable pattern detect (NO_PATDET, PATDET)
     -- Programmable Inversion Attributes: Specifies built-in programmable inversion on specific pins
+    IS_ASYNC_RST_INVERTED     => '0',
+    IS_NEGATE_INVERTED        => "000",
     IS_ALUMODE_INVERTED       => "0000",
     IS_CARRYIN_INVERTED       => '0',
     IS_CLK_INVERTED           => '0',
@@ -295,6 +299,7 @@ begin
     CLK                => clk,
     INMODE             => inmode,
     OPMODE             => opmode,
+    NEGATE             => "000", -- TODO
     -- Data: 30-bit (each) input: Data Ports
     A                  => std_logic_vector(resize(a,MAX_WIDTH_A)),
     B                  => std_logic_vector(resize(b,MAX_WIDTH_B)),
@@ -316,6 +321,7 @@ begin
     CEM                => CE(clkena,NUM_MREG),
     CEP                => CE(clkena and pipe_vld(0),NUM_OUTPUT_REG), -- accumulate only valid values
     -- Reset: 1-bit (each) input: Reset
+    ASYNC_RST          => '0',
     RSTA               => rst,
     RSTALLCARRYIN      => '1', -- unused
     RSTALUMODE         => rst,
