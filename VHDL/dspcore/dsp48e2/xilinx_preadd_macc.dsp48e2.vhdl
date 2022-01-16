@@ -121,8 +121,8 @@ architecture dsp48e2 of xilinx_preadd_macc is
   signal chainin_i, chainout_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
   signal p_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
 
-  signal a_i : signed(MAX_WIDTH_D-2 downto 0);
-  signal d_i : signed(MAX_WIDTH_D-2 downto 0);
+  signal dsp_a : signed(MAX_WIDTH_D-2 downto 0);
+  signal dsp_d : signed(MAX_WIDTH_D-2 downto 0);
 
 begin
 
@@ -182,23 +182,24 @@ begin
     end process;
   end generate;
 
-  i_preadd : entity work.xilinx_preadd_logic
+  i_neg : entity work.xilinx_negation_logic(dsp48e2)
   generic map(
-    NEGATE_A  => NEGATE_A,
-    NEGATE_B  => NEGATE_B,
-    NEGATE_D  => NEGATE_D
+    USE_D_INPUT => USE_D_INPUT,
+    NEGATE_A    => NEGATE_A,
+    NEGATE_B    => NEGATE_B,
+    NEGATE_D    => NEGATE_D
   )
   port map(
-    neg_a      => neg_a,
-    neg_b      => neg_b,
-    neg_d      => neg_d,
-    a          => a,
-    d          => d,
-    dsp_a_neg  => negate_preadd,
-    dsp_a      => a_i,
-    dsp_d      => d_i
+    neg_a        => neg_a,
+    neg_b        => neg_b,
+    neg_d        => neg_d,
+    a            => a,
+    d            => d,
+    neg_preadd   => negate_preadd,
+    neg_product  => open, -- unused
+    dsp_a        => dsp_a,
+    dsp_d        => dsp_d
   );
-
 
   inmode(0) <= '0'; -- '0'= A2 Mux controlled AREG , '1'= A1
   inmode(1) <= '0'; -- do not gate A input
@@ -317,11 +318,11 @@ begin
     INMODE             => inmode,
     OPMODE             => opmode,
     -- Data: 30-bit (each) input: Data Ports
-    A                  => std_logic_vector(resize(a_i,MAX_WIDTH_A)),
+    A                  => std_logic_vector(resize(dsp_a,MAX_WIDTH_A)),
     B                  => std_logic_vector(resize(b,MAX_WIDTH_B)),
     C                  => std_logic_vector(resize(c,MAX_WIDTH_C)),
     CARRYIN            => '0', -- unused
-    D                  => std_logic_vector(resize(d_i,MAX_WIDTH_D)),
+    D                  => std_logic_vector(resize(dsp_d,MAX_WIDTH_D)),
     -- Clock Enable: 1-bit (each) input: Clock Enable Inputs
     CEA1               => CE(clkena,NUM_AREG),
     CEA2               => CE(clkena,NUM_AREG),
