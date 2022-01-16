@@ -95,12 +95,12 @@ begin
     OUTPUT_CLIP        => false,
     OUTPUT_OVERFLOW    => false
   )
-  port map(
-    clk        => clk, -- clock
-    rst        => rst, -- reset
+  port map (
+    clk        => clk,
+    rst        => rst,
     clkena     => clkena,
     clr        => '1',
-    vld        => vld, -- valid
+    vld        => vld,
     neg_xa     => neg_re1,
     neg_xb     => open, -- unused
     neg_y      => open, -- TODO instead of xa
@@ -109,13 +109,12 @@ begin
     y          => y_re,
     z          => z_re,
     result     => dummy_re, -- unused
-    result_vld => open, -- not needed
-    result_ovf => open, -- not needed
+    result_vld => open, -- unused
+    result_ovf => open, -- unused
     chainin    => chainin_re,
     chainout   => chainout_re1,
     PIPESTAGES => open  -- unused
   );
-
 
   -- operation:  Re2 = Re1 - Xim*Yim   (accumulation possible)
   i_re2 : entity work.signed_preadd_mult1add1(dsp48e2)
@@ -136,12 +135,12 @@ begin
     OUTPUT_CLIP        => OUTPUT_CLIP,
     OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
   )
-  port map(
-    clk        => clk, -- clock
-    rst        => rst, -- reset
+  port map (
+    clk        => clk,
+    rst        => rst,
     clkena     => clkena,
     clr        => clr, -- accumulator enabled in last instance only!
-    vld        => vld, -- valid
+    vld        => vld,
     neg_xa     => neg_re2,
     neg_xb     => open, -- unused
     neg_y      => open, -- TODO instead of xa
@@ -156,7 +155,6 @@ begin
     chainout   => chainout_re,
     PIPESTAGES => PIPESTAGES
   );
-
 
   -- operation:  Im1 = ImChain + Xre*Yim + Zim 
   i_im1 : entity work.signed_preadd_mult1add1(dsp48e2)
@@ -177,12 +175,12 @@ begin
     OUTPUT_CLIP        => false,
     OUTPUT_OVERFLOW    => false
   )
-  port map(
-    clk        => clk, -- clock
-    rst        => rst, -- reset
+  port map (
+    clk        => clk,
+    rst        => rst,
     clkena     => clkena,
     clr        => '1',
-    vld        => vld, -- valid
+    vld        => vld,
     neg_xa     => neg_im1,
     neg_xb     => open, -- unused
     neg_y      => open, -- TODO instead of xa
@@ -191,8 +189,8 @@ begin
     y          => y_im,
     z          => z_im,
     result     => dummy_im, -- unused
-    result_vld => open, -- not needed
-    result_ovf => open, -- not needed
+    result_vld => open, -- unused
+    result_ovf => open, -- unused
     chainin    => chainin_im,
     chainout   => chainout_im1,
     PIPESTAGES => open  -- unused
@@ -217,12 +215,12 @@ begin
     OUTPUT_CLIP        => OUTPUT_CLIP,
     OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
   )
-  port map(
-    clk        => clk, -- clock
-    rst        => rst, -- reset
+  port map (
+    clk        => clk,
+    rst        => rst,
     clkena     => clkena,
     clr        => clr, -- accumulator enabled in last instance only!
-    vld        => vld, -- valid
+    vld        => vld,
     neg_xa     => neg_im2,
     neg_xb     => open, -- unused
     neg_y      => open, -- TODO instead of xa

@@ -143,7 +143,7 @@ port (
   --! Clock enable (optional)
   clkena     : in  std_logic := '1';
   --! @brief Clear accumulator (mark first valid input factors of accumulation sequence).
-  --! This port might be ignored when USE_CHAIN_INPUT=true.
+  --! This port might be ignored when USE_CHAIN_INPUT=true and/or USE_Z_INPUT=true.
   --! If accumulation is not wanted then set constant '1' (default).
   clr        : in  std_logic := '1';
   --! Valid signal for input factors, high-active
@@ -163,7 +163,7 @@ port (
   xb         : in  signed;
   --! 2nd signed factor input
   y          : in  signed;
-  --! @brief Additional summand after multiplication. Set "00" if unused.
+  --! @brief Additional summand after multiplication. Set "00" if unused (USE_Z_INPUT=false).
   --! Z is LSB bound to the LSB of the product x*y before shift right, i.e. similar to chain input.
   z          : in  signed;
   --! @brief Resulting product/accumulator output (optionally rounded and clipped).
@@ -181,7 +181,8 @@ port (
   --! The chain width is device specific. A maximum width of 80 bits is supported.
   --! If the device specific chain width is smaller then only the LSBs are used.
   chainout   : out signed(79 downto 0) := (others=>'0');
-  --! Number of pipeline stages, constant, depends on configuration and device specific implementation
+  --! @brief Number of pipeline stages, constant, depends on configuration and device specific implementation.
+  --! Here the pipeline stages of the main X path through the multiplier are reported.
   PIPESTAGES : out natural := 1
 );
 begin

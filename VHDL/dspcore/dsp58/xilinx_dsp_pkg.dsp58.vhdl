@@ -30,8 +30,8 @@ package xilinx_dsp_pkg_dsp58 is
   constant MAX_WIDTH_C  : positive := ACCU_WIDTH;
   constant MAX_WIDTH_AB : positive := ACCU_WIDTH;
 
-  type t_resource_type_dsp58 is (DSP, LOGIC);
-
+  type t_resource_type is (DSP, LOGIC);
+  
   --! determine number of required additional guard bits (MSBs)
   function accu_guard_bits(
     num_summand : natural; -- number of summands that are accumulated
@@ -48,19 +48,19 @@ package xilinx_dsp_pkg_dsp58 is
 
   --! determine number of input registers within DSP cell and in LOGIC
   function NUM_IREG(
-    loc : t_resource_type_dsp58; -- location either DSP or LOGIC
+    loc : t_resource_type; -- location either DSP or LOGIC
     n : natural -- overall number of input registers
   ) return integer;
 
   --! determine number of A/B input registers within DSP cell and in LOGIC
   function NUM_IREG_AB(
-    loc : t_resource_type_dsp58; -- location either DSP or LOGIC
+    loc : t_resource_type; -- location either DSP or LOGIC
     n : natural -- overall number of input registers
   ) return integer;
 
   --! determine number of C input registers within DSP cell and in LOGIC
   function NUM_IREG_C(
-    loc : t_resource_type_dsp58; -- location either DSP or LOGIC
+    loc : t_resource_type; -- location either DSP or LOGIC
     n : natural -- overall number of input registers
   ) return integer;
 
@@ -139,7 +139,7 @@ package body xilinx_dsp_pkg_dsp58 is
 
   --! determine number of input registers within DSP cell and in LOGIC
   function NUM_IREG(
-    loc : t_resource_type_dsp58; -- location either DSP or LOGIC
+    loc : t_resource_type; -- location either DSP or LOGIC
     n : natural -- overall number of input registers
   ) return integer is
     -- maximum number of input registers supported within the DSP cell
@@ -159,7 +159,7 @@ package body xilinx_dsp_pkg_dsp58 is
 
   --! determine number of A/B input registers within DSP cell and in LOGIC
   function NUM_IREG_AB(
-    loc : t_resource_type_dsp58; -- location either DSP or LOGIC
+    loc : t_resource_type; -- location either DSP or LOGIC
     n : natural -- overall number of input registers
   ) return integer is
     -- maximum number of input registers supported within the DSP cell
@@ -179,7 +179,7 @@ package body xilinx_dsp_pkg_dsp58 is
 
   --! determine number of C input registers within DSP cell and in LOGIC
   function NUM_IREG_C(
-    loc : t_resource_type_dsp58; -- location either DSP or LOGIC
+    loc : t_resource_type; -- location either DSP or LOGIC
     n : natural -- overall number of input registers
   ) return integer is
     -- maximum number of input registers supported within the DSP cell
@@ -244,7 +244,7 @@ package body xilinx_dsp_pkg_dsp58 is
     elsif factor=2 then
       return "TWO24";
     else
-      return "ONE48";
+      return "ONE58";
     end if;
   end function;
 

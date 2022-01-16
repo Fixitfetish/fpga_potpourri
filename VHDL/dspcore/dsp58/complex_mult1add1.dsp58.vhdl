@@ -81,7 +81,7 @@ begin
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND-1,
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
-    USE_XB_INPUT       => false,
+    USE_XB_INPUT       => false, -- unused
     USE_Z_INPUT        => USE_Z_INPUT,
     NEGATE_XA          => "DYNAMIC",
     NEGATE_XB          => open, -- unused
@@ -121,14 +121,14 @@ begin
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAIN_INPUT    => true,
-    USE_XB_INPUT       => false,
+    USE_XB_INPUT       => false, -- unused
     USE_Z_INPUT        => false,
     NEGATE_XA          => "DYNAMIC",
     NEGATE_XB          => open, -- unused
     NEGATE_Y           => open,
     NUM_INPUT_REG_X    => NUM_INPUT_REG_XY+1, -- additional pipeline register(s) because of chaining
     NUM_INPUT_REG_Y    => NUM_INPUT_REG_XY+1, -- additional pipeline register(s) because of chaining
-    NUM_INPUT_REG_Z    => 0,
+    NUM_INPUT_REG_Z    => 0, -- unused
     NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     OUTPUT_ROUND       => OUTPUT_ROUND,
@@ -147,7 +147,7 @@ begin
     xa         => x_im,
     xb         => "00", -- unused
     y          => y_im,
-    z          => "00",
+    z          => "00", -- unused
     result     => result_re,
     result_vld => result_vld,
     result_ovf => result_ovf_re,
@@ -161,7 +161,7 @@ begin
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND-1,
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
-    USE_XB_INPUT       => false,
+    USE_XB_INPUT       => false, -- unused
     USE_Z_INPUT        => USE_Z_INPUT,
     NEGATE_XA          => "DYNAMIC",
     NEGATE_XB          => open, -- unused
@@ -201,14 +201,14 @@ begin
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAIN_INPUT    => true,
-    USE_XB_INPUT       => false,
+    USE_XB_INPUT       => false, -- unused
     USE_Z_INPUT        => false,
     NEGATE_XA          => "DYNAMIC",
     NEGATE_XB          => open, -- unused
     NEGATE_Y           => open,
     NUM_INPUT_REG_X    => NUM_INPUT_REG_XY+1, -- additional pipeline register(s) because of chaining
     NUM_INPUT_REG_Y    => NUM_INPUT_REG_XY+1, -- additional pipeline register(s) because of chaining
-    NUM_INPUT_REG_Z    => 0,
+    NUM_INPUT_REG_Z    => 0, -- unused
     NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     OUTPUT_ROUND       => OUTPUT_ROUND,
@@ -227,7 +227,7 @@ begin
     xa         => x_im,
     xb         => "00", -- unused
     y          => y_re,
-    z          => "00",
+    z          => "00", -- unused
     result     => result_im,
     result_vld => open, -- same as real component
     result_ovf => result_ovf_im,
