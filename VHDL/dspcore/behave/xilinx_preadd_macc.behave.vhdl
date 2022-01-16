@@ -181,10 +181,10 @@ begin
     end process;
   end generate;
 
-  a_i <= resize(pipe_ad(0).a,ACCU_WIDTH/2) when pipe_ad(0).neg_a/='1' else -resize(pipe_ad(0).a,ACCU_WIDTH/2);
-  b_i <= resize( pipe_b(0).b,ACCU_WIDTH/2) when  pipe_b(0).neg_b/='1' else -resize( pipe_b(0).b,ACCU_WIDTH/2);
-  d_i <= resize(pipe_ad(0).d,ACCU_WIDTH/2) when pipe_ad(0).neg_d/='1' else -resize(pipe_ad(0).d,ACCU_WIDTH/2);
-  c_i <= resize(pipe_c(0),ACCU_WIDTH) when USE_C_INPUT else (others=>'0');
+  a_i <= resize(pipe_ad(0).a, a_i'length) when pipe_ad(0).neg_a/='1' else -resize(pipe_ad(0).a, a_i'length);
+  b_i <= resize( pipe_b(0).b, b_i'length) when  pipe_b(0).neg_b/='1' else -resize( pipe_b(0).b, b_i'length);
+  d_i <= resize(pipe_ad(0).d, d_i'length) when pipe_ad(0).neg_d/='1' else -resize(pipe_ad(0).d, d_i'length);
+  c_i <= resize( pipe_c(0)  , c_i'length) when USE_C_INPUT else (others=>'0');
 
   -- use only LSBs of chain input
   chainin_i <= resize(chainin,ACCU_WIDTH) when USE_CHAIN_INPUT else (others=>'0');
