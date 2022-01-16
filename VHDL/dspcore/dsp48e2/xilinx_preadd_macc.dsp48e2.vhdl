@@ -53,7 +53,7 @@ architecture dsp48e2 of xilinx_preadd_macc is
   -- Consider up to one MREG register as second input register stage
   constant NUM_MREG : natural := minimum(1,maximum(0,NUM_INPUT_REG_AD-1));
 
-  constant ENABLE_PREADDER : boolean := USE_D_INPUT or USE_NEGATION;
+  constant ENABLE_PREADDER : boolean := USE_D_INPUT or NEGATE_A="ON"  or NEGATE_A="DYNAMIC";
 
   function AMULTSEL return string is begin 
     if ENABLE_PREADDER then return "AD"; else return "A"; end if;
@@ -181,7 +181,7 @@ begin
   inmode(0) <= '0'; -- '0'= A2 Mux controlled AREG , '1'= A1
   inmode(1) <= '0'; -- do not gate A input
   inmode(2) <= '1' when USE_D_INPUT else '0'; -- D input gate
-  inmode(3) <= neg when USE_NEGATION else '0';
+  inmode(3) <= neg_a when NEGATE_A="DYNAMIC" else '1' when NEGATE_A="ON" else '0';
   inmode(4) <= '0'; -- '0'= B2 Mux controlled BREG , '1'= B1
 
   -- hold clear until next valid

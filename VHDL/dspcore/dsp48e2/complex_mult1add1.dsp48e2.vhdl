@@ -77,13 +77,17 @@ begin
   neg_im2 <= neg_i xor conj_x_i;
 
   -- Operation:  Re1 = ReChain + Xre*Yre + Zre
-  i_re1 : entity work.signed_mult1add1(dsp48e2)
+  i_re1 : entity work.signed_preadd_mult1add1(dsp48e2)
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND-1,
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
+    USE_XB_INPUT       => false, -- unused
     USE_Z_INPUT        => USE_Z_INPUT,
-    USE_NEGATION       => true,
-    NUM_INPUT_REG_XY   => NUM_INPUT_REG_XY,
+    NEGATE_XA          => "DYNAMIC", -- TODO : open
+    NEGATE_XB          => open, -- unused
+    NEGATE_Y           => open, -- TODO : use instead of XA
+    NUM_INPUT_REG_X    => NUM_INPUT_REG_XY,
+    NUM_INPUT_REG_Y    => NUM_INPUT_REG_XY,
     NUM_INPUT_REG_Z    => NUM_INPUT_REG_Z,
     NUM_OUTPUT_REG     => 1,
     OUTPUT_SHIFT_RIGHT => 0,
@@ -91,49 +95,60 @@ begin
     OUTPUT_CLIP        => false,
     OUTPUT_OVERFLOW    => false
   )
-  port map (
-    clk        => clk,
-    rst        => rst,
+  port map(
+    clk        => clk, -- clock
+    rst        => rst, -- reset
     clkena     => clkena,
     clr        => '1',
-    vld        => vld,
-    neg        => neg_re1,
-    x          => x_re,
+    vld        => vld, -- valid
+    neg_xa     => neg_re1,
+    neg_xb     => open, -- unused
+    neg_y      => open, -- TODO instead of xa
+    xa         => x_re,
+    xb         => "00", -- unused
     y          => y_re,
     z          => z_re,
     result     => dummy_re, -- unused
-    result_vld => open, -- unused
-    result_ovf => open, -- unused
+    result_vld => open, -- not needed
+    result_ovf => open, -- not needed
     chainin    => chainin_re,
     chainout   => chainout_re1,
     PIPESTAGES => open  -- unused
   );
 
+
   -- operation:  Re2 = Re1 - Xim*Yim   (accumulation possible)
-  i_re2 : entity work.signed_mult1add1(dsp48e2)
+  i_re2 : entity work.signed_preadd_mult1add1(dsp48e2)
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAIN_INPUT    => true,
+    USE_XB_INPUT       => false, -- unused
     USE_Z_INPUT        => false,
-    USE_NEGATION       => true,
-    NUM_INPUT_REG_XY   => NUM_INPUT_REG_XY+1, -- additional pipeline register(s) because of chaining
-    NUM_INPUT_REG_Z    => 0,
+    NEGATE_XA          => "DYNAMIC", -- TODO : open
+    NEGATE_XB          => open, -- unused
+    NEGATE_Y           => open, -- TODO : use instead of XA
+    NUM_INPUT_REG_X    => NUM_INPUT_REG_XY+1, -- additional pipeline register(s) because of chaining
+    NUM_INPUT_REG_Y    => NUM_INPUT_REG_XY+1, -- additional pipeline register(s) because of chaining
+    NUM_INPUT_REG_Z    => 0, -- unused
     NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     OUTPUT_ROUND       => OUTPUT_ROUND,
     OUTPUT_CLIP        => OUTPUT_CLIP,
     OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
   )
-  port map (
-    clk        => clk,
-    rst        => rst,
+  port map(
+    clk        => clk, -- clock
+    rst        => rst, -- reset
     clkena     => clkena,
     clr        => clr, -- accumulator enabled in last instance only!
-    vld        => vld,
-    neg        => neg_re2,
-    x          => x_im,
+    vld        => vld, -- valid
+    neg_xa     => neg_re2,
+    neg_xb     => open, -- unused
+    neg_y      => open, -- TODO instead of xa
+    xa         => x_im,
+    xb         => "00", -- unused
     y          => y_im,
-    z          => "00",
+    z          => "00", -- unused
     result     => result_re,
     result_vld => result_vld,
     result_ovf => result_ovf_re,
@@ -142,14 +157,19 @@ begin
     PIPESTAGES => PIPESTAGES
   );
 
+
   -- operation:  Im1 = ImChain + Xre*Yim + Zim 
-  i_im1 : entity work.signed_mult1add1(dsp48e2)
+  i_im1 : entity work.signed_preadd_mult1add1(dsp48e2)
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND-1,
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
+    USE_XB_INPUT       => false, -- unused
     USE_Z_INPUT        => USE_Z_INPUT,
-    USE_NEGATION       => true,
-    NUM_INPUT_REG_XY   => NUM_INPUT_REG_XY,
+    NEGATE_XA          => "DYNAMIC", -- TODO : open
+    NEGATE_XB          => open, -- unused
+    NEGATE_Y           => open, -- TODO : use instead of XA
+    NUM_INPUT_REG_X    => NUM_INPUT_REG_XY,
+    NUM_INPUT_REG_Y    => NUM_INPUT_REG_XY,
     NUM_INPUT_REG_Z    => NUM_INPUT_REG_Z,
     NUM_OUTPUT_REG     => 1,
     OUTPUT_SHIFT_RIGHT => 0,
@@ -157,49 +177,59 @@ begin
     OUTPUT_CLIP        => false,
     OUTPUT_OVERFLOW    => false
   )
-  port map (
-    clk        => clk,
-    rst        => rst,
+  port map(
+    clk        => clk, -- clock
+    rst        => rst, -- reset
     clkena     => clkena,
     clr        => '1',
-    vld        => vld,
-    neg        => neg_im1,
-    x          => x_re,
+    vld        => vld, -- valid
+    neg_xa     => neg_im1,
+    neg_xb     => open, -- unused
+    neg_y      => open, -- TODO instead of xa
+    xa         => x_re,
+    xb         => "00", -- unused
     y          => y_im,
     z          => z_im,
     result     => dummy_im, -- unused
-    result_vld => open, -- unused
-    result_ovf => open, -- unused
+    result_vld => open, -- not needed
+    result_ovf => open, -- not needed
     chainin    => chainin_im,
     chainout   => chainout_im1,
     PIPESTAGES => open  -- unused
   );
 
   -- operation:  Im2 = Im1 + Xim*Yre   (accumulation possible)
-  i_im2 : entity work.signed_mult1add1(dsp48e2)
+  i_im2 : entity work.signed_preadd_mult1add1(dsp48e2)
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAIN_INPUT    => true,
+    USE_XB_INPUT       => false, -- unused
     USE_Z_INPUT        => false,
-    USE_NEGATION       => true,
-    NUM_INPUT_REG_XY   => NUM_INPUT_REG_XY+1, -- additional pipeline register(s) because of chaining
-    NUM_INPUT_REG_Z    => 0,
+    NEGATE_XA          => "DYNAMIC", -- TODO : open
+    NEGATE_XB          => open, -- unused
+    NEGATE_Y           => open, -- TODO : use instead of XA
+    NUM_INPUT_REG_X    => NUM_INPUT_REG_XY+1, -- additional pipeline register(s) because of chaining
+    NUM_INPUT_REG_Y    => NUM_INPUT_REG_XY+1, -- additional pipeline register(s) because of chaining
+    NUM_INPUT_REG_Z    => 0, -- unused
     NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     OUTPUT_ROUND       => OUTPUT_ROUND,
     OUTPUT_CLIP        => OUTPUT_CLIP,
     OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
   )
-  port map (
-    clk        => clk,
-    rst        => rst,
+  port map(
+    clk        => clk, -- clock
+    rst        => rst, -- reset
     clkena     => clkena,
     clr        => clr, -- accumulator enabled in last instance only!
-    vld        => vld,
-    neg        => neg_im2,
-    x          => x_im,
+    vld        => vld, -- valid
+    neg_xa     => neg_im2,
+    neg_xb     => open, -- unused
+    neg_y      => open, -- TODO instead of xa
+    xa         => x_im,
+    xb         => "00", -- unused
     y          => y_re,
-    z          => "00",
+    z          => "00", -- unused
     result     => result_im,
     result_vld => open, -- same as real component
     result_ovf => result_ovf_im,
@@ -235,24 +265,24 @@ begin
      if NEGATION="DYNAMIC" then
        return "DYNAMIC";
      elsif NEGATION="ON" then
-       return "SUBTRACT";
-     else return "ADD"; end if;
+       return "ON";
+     else return "OFF"; end if;
 
    elsif choice="TEMP_XB" then
      -- XB = Yim * Xre
      if NEGATION="DYNAMIC" or CONJUGATE_Y="DYNAMIC" then
        return "DYNAMIC";
      elsif (CONJUGATE_Y="ON" and NEGATION="OFF") or (CONJUGATE_Y="OFF" and NEGATION="ON") then
-       return "SUBTRACT";
-     else return "ADD"; end if;
+       return "ON";
+     else return "OFF"; end if;
 
    elsif choice="RE_XA" then
      -- XA = -Xre * Yim
      if NEGATION="DYNAMIC" or CONJUGATE_Y="DYNAMIC" then
        return "DYNAMIC";
      elsif (CONJUGATE_Y="OFF" and NEGATION="OFF") or (CONJUGATE_Y="ON" and NEGATION="ON") then
-       return "SUBTRACT";
-     else return "ADD"; end if;
+       return "ON";
+     else return "OFF"; end if;
 
    elsif choice="RE_XB" then
      -- XB = -Xim * Yim
@@ -260,12 +290,12 @@ begin
        return "DYNAMIC";
      elsif NEGATION="ON" then
        if (CONJUGATE_X="ON" and CONJUGATE_Y="OFF") or (CONJUGATE_X="OFF" and CONJUGATE_Y="ON") then
-         return "SUBTRACT";
-       else return "ADD"; end if;
+         return "ON";
+       else return "OFF"; end if;
      else
        if (CONJUGATE_X="OFF" and CONJUGATE_Y="OFF") or (CONJUGATE_X="ON" and CONJUGATE_Y="ON") then
-         return "SUBTRACT";
-       else return "ADD"; end if;
+         return "ON";
+       else return "OFF"; end if;
      end if;
 
    elsif choice="IM_XA" then
@@ -273,16 +303,16 @@ begin
      if NEGATION="DYNAMIC" or CONJUGATE_X="DYNAMIC" then
        return "DYNAMIC";
      elsif (CONJUGATE_X="ON" and NEGATION="OFF") or (CONJUGATE_X="OFF" and NEGATION="ON") then
-       return "SUBTRACT";
-     else return "ADD"; end if;
+       return "ON";
+     else return "OFF"; end if;
 
    elsif choice="IM_XB" then
      -- XB := -Xre * Yre
      if NEGATION="DYNAMIC" then
        return "DYNAMIC";
      elsif NEGATION="OFF" then
-       return "SUBTRACT";
-     else return "ADD"; end if;
+       return "ON";
+     else return "OFF"; end if;
    else
      return "INVALID";
    end if;
@@ -320,10 +350,13 @@ begin
   generic map(
     NUM_SUMMAND        => 2,
     USE_CHAIN_INPUT    => false,
+    USE_XB_INPUT       => true,
     USE_Z_INPUT        => false,
-    PREADDER_INPUT_XA  => TEMP_PREADDER_XA,
-    PREADDER_INPUT_XB  => TEMP_PREADDER_XB,
-    NUM_INPUT_REG_XY   => NUM_INPUT_REG_XY,
+    NEGATE_XA          => TEMP_PREADDER_XA,
+    NEGATE_XB          => TEMP_PREADDER_XB,
+    NEGATE_Y           => open,
+    NUM_INPUT_REG_X    => NUM_INPUT_REG_XY,
+    NUM_INPUT_REG_Y    => NUM_INPUT_REG_XY,
     NUM_INPUT_REG_Z    => open, -- unused
     NUM_OUTPUT_REG     => 1,
     OUTPUT_SHIFT_RIGHT => 0, -- raw temporary result for following RE and IM stage
@@ -337,8 +370,8 @@ begin
     clkena     => clkena,
     clr        => open,
     vld        => vld, -- valid
-    sub_xa     => temp_neg_xa,
-    sub_xb     => temp_neg_xb,
+    neg_xa     => temp_neg_xa,
+    neg_xb     => temp_neg_xb,
     xa         => y_re, -- first factor
     xb         => y_im, -- first factor
     y          => x_re, -- second factor
@@ -361,10 +394,13 @@ begin
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND,
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
+    USE_XB_INPUT       => true,
     USE_Z_INPUT        => true,
-    PREADDER_INPUT_XA  => RE_PREADDER_XA,
-    PREADDER_INPUT_XB  => RE_PREADDER_XB,
-    NUM_INPUT_REG_XY   => NUM_INPUT_REG_XY+2, -- 2 more pipeline stages to compensate Z input
+    NEGATE_XA          => RE_PREADDER_XA,
+    NEGATE_XB          => RE_PREADDER_XB,
+    NEGATE_Y           => open,
+    NUM_INPUT_REG_X    => NUM_INPUT_REG_XY+2, -- 2 more pipeline stages to compensate Z input
+    NUM_INPUT_REG_Y    => NUM_INPUT_REG_XY+2, -- 2 more pipeline stages to compensate Z input
     NUM_INPUT_REG_Z    => 1,
     NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -378,8 +414,8 @@ begin
     clkena     => clkena,
     clr        => clr, -- clear
     vld        => vld, -- valid
-    sub_xa     => re_neg_xa, --not neg, -- subtract (add)
-    sub_xb     => re_neg_xb, --not neg, -- subtract (add)
+    neg_xa     => re_neg_xa, --not neg, -- subtract (add)
+    neg_xb     => re_neg_xb, --not neg, -- subtract (add)
     xa         => x_re,
     xb         => x_im,
     y          => y_im,
@@ -402,10 +438,13 @@ begin
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND,
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
+    USE_XB_INPUT       => true,
     USE_Z_INPUT        => true,
-    PREADDER_INPUT_XA  => IM_PREADDER_XA,
-    PREADDER_INPUT_XB  => IM_PREADDER_XB,
-    NUM_INPUT_REG_XY   => NUM_INPUT_REG_XY+2, -- 2 more pipeline stages to compensate Z input
+    NEGATE_XA          => IM_PREADDER_XA,
+    NEGATE_XB          => IM_PREADDER_XB,
+    NEGATE_Y           => open,
+    NUM_INPUT_REG_X    => NUM_INPUT_REG_XY+2, -- 2 more pipeline stages to compensate Z input
+    NUM_INPUT_REG_Y    => NUM_INPUT_REG_XY+2, -- 2 more pipeline stages to compensate Z input
     NUM_INPUT_REG_Z    => 1,
     NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -419,8 +458,8 @@ begin
     clkena     => clkena,
     clr        => clr, -- clear
     vld        => vld, -- valid
-    sub_xa     => im_neg_xa, --neg,     -- add (subtract)
-    sub_xb     => im_neg_xb, --not neg, -- subtract (add)
+    neg_xa     => im_neg_xa, --neg,     -- add (subtract)
+    neg_xb     => im_neg_xb, --not neg, -- subtract (add)
     xa         => x_im,
     xb         => x_re,
     y          => y_re,

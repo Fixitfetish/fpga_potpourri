@@ -43,8 +43,8 @@ library baselib;
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
 --! I1 : xilinx_preadd_logic
 --! generic map(
---!   PREADDER_INPUT_A  => string,  -- a preadder mode
---!   PREADDER_INPUT_D  => string   -- d preadder mode
+--!   NEGATE_A  => string,  -- a preadder mode
+--!   NEGATE_D  => string   -- d preadder mode
 --! )
 --! port map(
 --!   sub_a      => in  std_logic, -- add/subtract a
@@ -62,11 +62,11 @@ generic (
   --! @brief Preadder mode of input A. Options are ADD, SUBTRACT or DYNAMIC.
   --! In ADD and SUBTRACT mode sub_a is ignored. In dynamic mode sub_a='1' means subtract.
   --! Note that additional logic might be required dependent on mode and FPGA type.
-  PREADDER_INPUT_A : string := "ADD";
+  NEGATE_A : string := "OFF";
   --! @brief Preadder mode of input D. Options are ADD, SUBTRACT or DYNAMIC.
   --! In ADD and SUBTRACT mode sub_d is ignored. In dynamic mode sub_d='1' means subtract.
   --! Note that additional logic might be required dependent on mode and FPGA type.
-  PREADDER_INPUT_D : string := "ADD"
+  NEGATE_D : string := "OFF"
 );
 port (
   --! @brief Add/subtract, '0' -> +a, '1' -> -a
@@ -90,14 +90,14 @@ begin
 
   -- synthesis translate_off (Altera Quartus)
   -- pragma translate_off (Xilinx Vivado , Synopsys)
-  assert (PREADDER_INPUT_A="ADD") or (PREADDER_INPUT_A="SUBTRACT") or (PREADDER_INPUT_A="DYNAMIC")
+  assert (NEGATE_A="OFF") or (NEGATE_A="ON") or (NEGATE_A="DYNAMIC")
     report "ERROR in " & xilinx_preadd_logic'INSTANCE_NAME & ": " & 
-           "Generic PREADDER_INPUT_A string must be ADD, SUBTRACT or DYNAMIC."
+           "Generic NEGATE_A string must be ON, OFF or DYNAMIC."
     severity failure;
 
-  assert (PREADDER_INPUT_D="ADD") or (PREADDER_INPUT_D="SUBTRACT") or (PREADDER_INPUT_D="DYNAMIC")
+  assert (NEGATE_D="OFF") or (NEGATE_D="ON") or (NEGATE_D="DYNAMIC")
     report "ERROR in " & xilinx_preadd_logic'INSTANCE_NAME & ": " & 
-           "Generic PREADDER_INPUT_D string must be ADD, SUBTRACT or DYNAMIC."
+           "Generic NEGATE_D string must be ON, OFF or DYNAMIC."
     severity failure;
   -- synthesis translate_on (Altera Quartus)
   -- pragma translate_on (Xilinx Vivado , Synopsys)
@@ -111,14 +111,14 @@ architecture rtl of xilinx_preadd_logic is
   -- identifier for reports of warnings and errors
   constant IMPLEMENTATION : string := "xilinx_preadd_logic";
 
-  constant SWAP_AD : boolean := PREADDER_INPUT_A="ADD" or PREADDER_INPUT_D="DYNAMIC";
+  constant SWAP_AD : boolean := NEGATE_A="OFF" or NEGATE_D="DYNAMIC";
   
-  constant STATIC_NEGATE_A : boolean := PREADDER_INPUT_A="SUBTRACT" and PREADDER_INPUT_D="DYNAMIC";
+  constant STATIC_NEGATE_A : boolean := NEGATE_A="ON" and NEGATE_D="DYNAMIC";
 
-  constant STATIC_NEGATE_D : boolean := PREADDER_INPUT_D="SUBTRACT" and
-                                       (PREADDER_INPUT_A="SUBTRACT" or PREADDER_INPUT_A="DYNAMIC");
+  constant STATIC_NEGATE_D : boolean := NEGATE_D="ON" and
+                                       (NEGATE_A="ON" or NEGATE_A="DYNAMIC");
 
-  constant DYNAMIC_NEGATE_A : boolean := PREADDER_INPUT_A="DYNAMIC" and PREADDER_INPUT_D="DYNAMIC";
+  constant DYNAMIC_NEGATE_A : boolean := NEGATE_A="DYNAMIC" and NEGATE_D="DYNAMIC";
 
   constant MAX_INPUT_WIDTH : positive := maximum(a'length, d'length);
   constant MAX_OUTPUT_WIDTH : positive := maximum(dsp_a'length, dsp_d'length);
@@ -154,9 +154,9 @@ begin
 
   dsp_d_i <= resize(a_i,dsp_d_i'length) when SWAP_AD else d_i;
 
-  dsp_a_neg <= sub_d when (PREADDER_INPUT_D="DYNAMIC") else
-               sub_a when (PREADDER_INPUT_A="DYNAMIC") else
-               '0'   when (PREADDER_INPUT_A="ADD" and PREADDER_INPUT_D="ADD") else '1';
+  dsp_a_neg <= sub_d when (NEGATE_D="DYNAMIC") else
+               sub_a when (NEGATE_A="DYNAMIC") else
+               '0'   when (NEGATE_A="OFF" and NEGATE_D="OFF") else '1';
 
   dsp_a <= dsp_a_i;
   dsp_d <= dsp_d_i;

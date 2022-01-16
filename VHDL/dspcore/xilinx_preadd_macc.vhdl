@@ -47,6 +47,28 @@ library ieee;
 --! * CARRY, MULTISIGN
 --! * A and B input cascade
 --!
+--! VHDL Instantiation Template:
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
+--! I1 : xilinx_preadd_macc
+--! generic map(
+--!   USE_CHAIN_INPUT => boolean,
+--!   USE_C_INPUT     => boolean,
+--!   USE_D_INPUT     => boolean,
+--!   NEGATE_A        => string,  -- mode "OFF", "ON" or "DYNAMIC"
+--!   NEGATE_B        => string,  -- mode "OFF", "ON" or "DYNAMIC"
+--!   NEGATE_D        => string   -- mode "OFF", "ON" or "DYNAMIC"
+--! )
+--! port map(
+--!   neg_a        => in  std_logic, -- negate a
+--!   neg_b        => in  std_logic, -- negate b
+--!   neg_d        => in  std_logic, -- negate d
+--!   a            => in  signed, -- first factor, main input
+--!   b            => in  signed, -- second factor
+--!   c            => in  signed, -- additional summand after multiplication
+--!   d            => in  signed, -- first factor, second preadder input
+--! );
+--! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--!
 entity xilinx_preadd_macc is
 generic (
   --! @brief Enable chain input from neighbor DSP cell.
@@ -57,9 +79,18 @@ generic (
   USE_C_INPUT : boolean := false;
   --! Enable additional D preadder input.
   USE_D_INPUT : boolean := false;
-  --! @brief Enable negation for input port A. This will activate the preadder as well.
-  --! If disabled the input port NEG will be ignored.
-  USE_NEGATION : boolean := false;
+  --! @brief NEGATION mode of input A.
+  --! Options are OFF, ON or DYNAMIC. In OFF and ON mode input port NEG_A is ignored.
+  --! Note that additional logic might be required dependent on mode and FPGA type.
+  NEGATE_A : string := "OFF";
+  --! @brief NEGATION mode of input B, preferably used for product negation.
+  --! Options are OFF, ON or DYNAMIC. In OFF and ON mode input port NEG_B is ignored.
+  --! Note that additional logic might be required dependent on mode and FPGA type.
+  NEGATE_B : string := "OFF";
+  --! @brief NEGATION mode of input D.
+  --! Options are OFF, ON or DYNAMIC. In OFF and ON mode input port NEG_D is ignored.
+  --! Note that additional logic might be required dependent on mode and FPGA type.
+  NEGATE_D : string := "OFF";
   --! Number of DSP internal input registers for inputs A and D. At least one is strongly recommended.
   NUM_INPUT_REG_AD : natural range 0 to 3 := 1;
   --! Number of DSP internal input registers for input B. At least one is strongly recommended.
@@ -89,11 +120,18 @@ port (
   clr        : in  std_logic := '1';
   --! Valid signal synchronous to inputs A and D, high-active
   vld        : in  std_logic;
-  --! Negation of A synchronous to input A , '0' -> (d+a)*b , '1' -> (d-a)*b. Negation is disabled by default.
-  neg        : in  std_logic := '0';
+  --! @brief Negation of A synchronous to input A, '0'=+a, '1'=-a .
+  --! Only relevant in DYNAMIC mode.
+  neg_a      : in  std_logic := '0';
+  --! @brief Negation of B synchronous to input B, '0'=+b, '1'=-b , preferably used for product negation.
+  --! Only relevant in DYNAMIC mode.
+  neg_b      : in  std_logic := '0';
+  --! @brief Negation of D synchronous to input D, '0'=+d, '1'=-d
+  --! Only relevant in DYNAMIC mode when D input is enabled.
+  neg_d      : in  std_logic := '0';
   --! 1st factor input (also 1st preadder input)
   a          : in  signed;
-  --! 2nd factor input, real component
+  --! 2nd factor input
   b          : in  signed;
   --! @brief Additional summand after multiplication. Set "00" if unused (USE_C_INPUT=false).
   --! C is LSB bound to the LSB of the product a*b before shift right, i.e. similar to chain input.
@@ -116,4 +154,25 @@ port (
   --! Number of pipeline stages in AD path, constant, depends on configuration and device specific implementation
   PIPESTAGES : out natural := 1
 );
+begin
+
+  -- synthesis translate_off (Altera Quartus)
+  -- pragma translate_off (Xilinx Vivado , Synopsys)
+  assert (NEGATE_A="OFF") or (NEGATE_A="ON") or (NEGATE_A="DYNAMIC")
+    report "ERROR in " & xilinx_preadd_macc'INSTANCE_NAME & ": " & 
+           "Generic NEGATE_A string must be ON, OFF or DYNAMIC."
+    severity failure;
+
+  assert (NEGATE_B="OFF") or (NEGATE_B="ON") or (NEGATE_B="DYNAMIC")
+    report "ERROR in " & xilinx_preadd_macc'INSTANCE_NAME & ": " & 
+           "Generic NEGATE_B string must be ON, OFF or DYNAMIC."
+    severity failure;
+
+  assert (NEGATE_D="OFF") or (NEGATE_D="ON") or (NEGATE_D="DYNAMIC")
+    report "ERROR in " & xilinx_preadd_macc'INSTANCE_NAME & ": " & 
+           "Generic NEGATE_D string must be ON, OFF or DYNAMIC."
+    severity failure;
+  -- synthesis translate_on (Altera Quartus)
+  -- pragma translate_on (Xilinx Vivado , Synopsys)
+
 end entity;

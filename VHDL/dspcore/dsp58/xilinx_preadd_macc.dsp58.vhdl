@@ -53,7 +53,8 @@ architecture dsp58 of xilinx_preadd_macc is
   -- Consider up to one MREG register as second input register stage
   constant NUM_MREG : natural := minimum(1,maximum(0,NUM_INPUT_REG_AD-1));
 
-  constant ENABLE_PREADDER : boolean := USE_D_INPUT or USE_NEGATION;
+  constant ENABLE_PREADDER : boolean := USE_D_INPUT or NEGATE_A="ON" or NEGATE_A="DYNAMIC"; -- TODO
+--  constant ENABLE_PREADDER : boolean := USE_D_INPUT;
 
   function AMULTSEL return string is begin 
     if ENABLE_PREADDER then return "AD"; else return "A"; end if;
@@ -98,10 +99,13 @@ architecture dsp58 of xilinx_preadd_macc is
   signal pipe_clr : std_logic_vector(NUM_INPUT_REG_CLR downto 0);
   signal pipe_vld : std_logic_vector(NUM_INPUT_REG_VLD downto 0);
 
-  -- Consider up to one INMODE input register stage
+  -- Consider up to one INMODE input register stage (also used for NEGATE)
   constant NUM_INMODE_REG : natural := minimum(1,NUM_INPUT_REG_AD);
   -- OPMODE control signal
-  signal inmode : std_logic_vector(4 downto 0);
+  signal inmode : std_logic_vector(4 downto 0) := (others=>'0');
+  signal negate : std_logic_vector(2 downto 0) := (others=>'0');
+  alias negate_preadd : std_logic is inmode(3);
+  alias negate_product : std_logic is negate(0);
 
   -- Consider up to one OPMODE input register stage
   constant NUM_OPMODE_REG : natural := minimum(1,NUM_INPUT_REG_CLR);
@@ -119,6 +123,8 @@ architecture dsp58 of xilinx_preadd_macc is
   signal clr_i, clr_q : std_logic := '0';
   signal chainin_i, chainout_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
   signal p_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
+
+  signal neg_a_i, neg_b_i, neg_d_i :std_logic;
 
 begin
 
@@ -145,6 +151,11 @@ begin
   assert (NUM_INPUT_REG_AD=NUM_INPUT_REG_B)
     report "ERROR " & IMPLEMENTATION & ": " & 
            "For now the number of input registers in AD and B path must be the same."
+    severity failure;
+
+  assert not (NEGATE_B="DYNAMIC" and NUM_INPUT_REG_B<NUM_INPUT_REG_AD)
+    report "ERROR " & IMPLEMENTATION & ": " & 
+           "Dynamic negation of input port B requires NUM_INPUT_REG_B>=NUM_INPUT_REG_AD."
     severity failure;
 
   assert not(ROUND_ENABLE and USE_C_INPUT and USE_CHAIN_INPUT)
@@ -178,10 +189,28 @@ begin
     end process;
   end generate;
 
+  neg_a_i <= neg_a when NEGATE_A="DYNAMIC" else '1' when NEGATE_A="ON" else '0';
+  neg_b_i <= neg_b when NEGATE_B="DYNAMIC" else '1' when NEGATE_B="ON" else '0';
+  neg_d_i <= neg_d when NEGATE_D="DYNAMIC" else '1' when NEGATE_D="ON" else '0';
+
+  -- TODO : negation logic
+  negate_preadd <= neg_a_i;
+  negate_product <= '0';
+
+--  GDOFF : if not USE_D_INPUT generate
+--    negate_preadd <= '0'; -- unused, preadder can be disabled
+--    dsp_b_neg <= neg_a_i xor neg_b_i;
+--  end generate;
+--
+--  GDON : if USE_D_INPUT generate
+--    negate_preadd <= neg_a_i xor neg_b_i xor neg_d_i;
+--    negate_product <= neg_b_i xor neg_d_i;
+--  end generate;
+
+
   inmode(0) <= '0'; -- '0'= A2 Mux controlled AREG , '1'= A1
   inmode(1) <= '0'; -- do not gate A input
-  inmode(2) <= '1' when USE_D_INPUT else '0'; -- D input gate
-  inmode(3) <= neg when USE_NEGATION else '0';
+  inmode(2) <= '1' when USE_D_INPUT else '0'; -- pass D through input gate
   inmode(4) <= '0'; -- '0'= B2 Mux controlled BREG , '1'= B1
 
   -- hold clear until next valid
@@ -299,7 +328,7 @@ begin
     CLK                => clk,
     INMODE             => inmode,
     OPMODE             => opmode,
-    NEGATE             => "000", -- TODO
+    NEGATE             => negate,
     -- Data: 30-bit (each) input: Data Ports
     A                  => std_logic_vector(resize(a,MAX_WIDTH_A)),
     B                  => std_logic_vector(resize(b,MAX_WIDTH_B)),

@@ -69,10 +69,12 @@ architecture dsp48e2 of signed_preadd_mult1add1 is
   constant IMPLEMENTATION : string := "signed_preadd_mult1add1(dsp48e2)";
 
   -- number main path input registers within DSP
-  constant NUM_IREG_DSP : natural := NUM_IREG(DSP,NUM_INPUT_REG_XY);
+  constant NUM_IREG_X_DSP : natural := NUM_IREG(DSP,NUM_INPUT_REG_X);
+  constant NUM_IREG_Y_DSP : natural := NUM_IREG(DSP,NUM_INPUT_REG_Y);
 
   -- number main path input registers in LOGIC
-  constant NUM_IREG_LOGIC : natural := NUM_IREG(LOGIC,NUM_INPUT_REG_XY);
+  constant NUM_IREG_X_LOGIC : natural := NUM_IREG(LOGIC,NUM_INPUT_REG_X);
+  constant NUM_IREG_Y_LOGIC : natural := NUM_IREG(LOGIC,NUM_INPUT_REG_Y);
 
   -- derived constants
   constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
@@ -90,7 +92,9 @@ architecture dsp48e2 of signed_preadd_mult1add1 is
   signal dsp_rst : std_logic;
   signal dsp_clr : std_logic;
   signal dsp_vld : std_logic;
-  signal dsp_neg : std_logic;
+  signal dsp_neg_a : std_logic;
+  signal dsp_neg_b : std_logic;
+  signal dsp_neg_d : std_logic;
   signal dsp_a : signed(a'length-1 downto 0);
   signal dsp_b : signed(y'length-1 downto 0);
   signal dsp_c : signed(z'length-1 downto 0);
@@ -135,12 +139,12 @@ begin
   -- Pipeline and control logic of inputs XA and XB
   i_preadd : entity work.xilinx_preadd_logic
   generic map(
-    PREADDER_INPUT_A  => PREADDER_INPUT_XA,
-    PREADDER_INPUT_D  => PREADDER_INPUT_XB
+    NEGATE_A  => NEGATE_XA,
+    NEGATE_D  => NEGATE_XB
   )
   port map(
-    sub_a      => sub_xa,
-    sub_d      => sub_xb,
+    sub_a      => neg_xa,
+    sub_d      => neg_xb,
     a          => xa,
     d          => xb,
     dsp_a_neg  => neg,
@@ -150,47 +154,55 @@ begin
 
   i_feed : entity work.xilinx_dsp_input_pipe
   generic map(
-    PIPEREGS_RST     => NUM_IREG_LOGIC,
-    PIPEREGS_CLR     => NUM_IREG_LOGIC,
-    PIPEREGS_VLD     => NUM_IREG_LOGIC,
-    PIPEREGS_NEG     => NUM_IREG_LOGIC,
-    PIPEREGS_A       => NUM_IREG_LOGIC,
-    PIPEREGS_B       => NUM_IREG_LOGIC,
+    PIPEREGS_RST     => NUM_IREG_X_LOGIC,
+    PIPEREGS_CLR     => NUM_IREG_X_LOGIC,
+    PIPEREGS_VLD     => NUM_IREG_X_LOGIC,
+    PIPEREGS_NEG_A   => NUM_IREG_X_LOGIC,
+    PIPEREGS_NEG_B   => NUM_IREG_Y_LOGIC,
+    PIPEREGS_NEG_D   => NUM_IREG_X_LOGIC,
+    PIPEREGS_A       => NUM_IREG_X_LOGIC,
+    PIPEREGS_B       => NUM_IREG_Y_LOGIC,
     PIPEREGS_C       => NUM_IREG_C(LOGIC,NUM_INPUT_REG_Z),
-    PIPEREGS_D       => NUM_IREG_LOGIC
+    PIPEREGS_D       => NUM_IREG_X_LOGIC
   )
   port map(
-    clk      => clk,
-    srst     => open, -- unused
-    clkena   => clkena,
-    src_rst  => rst,
-    src_clr  => clr,
-    src_vld  => vld,
-    src_neg  => neg,
-    src_a    => a,
-    src_b    => y,
-    src_c    => z,
-    src_d    => d,
-    dsp_rst  => dsp_rst,
-    dsp_clr  => dsp_clr,
-    dsp_vld  => dsp_vld,
-    dsp_neg  => dsp_neg,
-    dsp_a    => dsp_a,
-    dsp_b    => dsp_b,
-    dsp_c    => dsp_c,
-    dsp_d    => dsp_d
+    clk       => clk,
+    srst      => open, -- unused
+    clkena    => clkena,
+    src_rst   => rst,
+    src_clr   => clr,
+    src_vld   => vld,
+    src_neg_a => neg,
+    src_neg_b => open,
+    src_neg_d => open,
+    src_a     => a,
+    src_b     => y,
+    src_c     => z,
+    src_d     => d,
+    dsp_rst   => dsp_rst,
+    dsp_clr   => dsp_clr,
+    dsp_vld   => dsp_vld,
+    dsp_neg_a => dsp_neg_a,
+    dsp_neg_b => dsp_neg_b,
+    dsp_neg_d => dsp_neg_d,
+    dsp_a     => dsp_a,
+    dsp_b     => dsp_b,
+    dsp_c     => dsp_c,
+    dsp_d     => dsp_d
   );
 
   i_dsp : entity work.xilinx_preadd_macc(dsp48e2)
   generic map(
     USE_CHAIN_INPUT  => USE_CHAIN_INPUT,
     USE_C_INPUT      => USE_Z_INPUT,
-    USE_D_INPUT      => true,
-    USE_NEGATION     => true,
-    NUM_INPUT_REG_AD => NUM_IREG_DSP,
-    NUM_INPUT_REG_B  => NUM_IREG_DSP,
+    USE_D_INPUT      => USE_XB_INPUT,
+    NEGATE_A         => "DYNAMIC",
+    NEGATE_B         => open, -- TODO
+    NEGATE_D         => open, -- TODO
+    NUM_INPUT_REG_AD => NUM_IREG_X_DSP,
+    NUM_INPUT_REG_B  => NUM_IREG_Y_DSP,
     NUM_INPUT_REG_C  => NUM_IREG_C(DSP,NUM_INPUT_REG_Z),
-    RELATION_CLR     => "AD",
+    RELATION_CLR     => "AD", -- TODO : make flexible ?
     NUM_OUTPUT_REG   => 1,
     ROUND_ENABLE     => ROUND_ENABLE and not (USE_CHAIN_INPUT and USE_Z_INPUT),
     ROUND_BIT        => maximum(0,OUTPUT_SHIFT_RIGHT-1)
@@ -201,7 +213,9 @@ begin
     clkena     => clkena,
     clr        => dsp_clr,
     vld        => dsp_vld,
-    neg        => dsp_neg,
+    neg_a      => dsp_neg_a,
+    neg_b      => dsp_neg_b,
+    neg_d      => dsp_neg_d,
     a          => dsp_a,
     b          => dsp_b,
     c          => dsp_c,
@@ -240,6 +254,6 @@ begin
   );
 
   -- report constant number of pipeline register stages
-  PIPESTAGES <= NUM_INPUT_REG_XY + NUM_OUTPUT_REG;
+  PIPESTAGES <= NUM_INPUT_REG_X + NUM_OUTPUT_REG;
 
 end architecture;

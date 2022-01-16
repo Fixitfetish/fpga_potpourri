@@ -76,13 +76,13 @@ generic (
   USE_CHAIN_INPUT : boolean := false;
   --! Enable additional Z input. Note that this might disable the accumulator feature.
   USE_Z_INPUT : boolean := false;
-  --! Product negation mode can be OFF, static ON or DYNAMIC. In modes OFF and ON the NEG input port will be ignored.
+  --! Product negation mode can be OFF, static ON or DYNAMIC. In modes OFF and ON the input port NEG will be ignored.
   NEGATION : string := "OFF";
   --! @brief Complex conjugate X, i.e. negation of input port X_IM. Can be OFF, static ON or DYNAMIC.
-  --! In modes OFF and ON the CONJ_X input port will be ignored.
+  --! In modes OFF and ON the input port CONJ_X will be ignored.
   CONJUGATE_X : string := "OFF";
   --! @brief Complex conjugate Y, i.e. negation of input port Y_IM. Can be OFF, static ON or DYNAMIC.
-  --! In modes OFF and ON the CONJ_Y input port will be ignored.
+  --! In modes OFF and ON the input port CONJ_Y will be ignored.
   CONJUGATE_Y : string := "OFF";
   --! @brief Number of additional input registers for inputs X and Y. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
@@ -126,7 +126,7 @@ port (
   clr        : in  std_logic;
   --! Valid signal for input factors, high-active
   vld        : in  std_logic;
-  --! Negation of product , '0' -> +(x*y), '1' -> -(x*y). Only relevant in DYNAMIC mode.
+  --! Negation of product , '0' -> +(x*y), '1' -> -(x*y). Only relevant when NEGATION="DYNAMIC" .
   neg        : in  std_logic := '0';
   --! Complex conjugate X , '0' -> +x_im, '1' -> -x_im. Only relevant when CONJUGATE_X="DYNAMIC" .
   conj_x     : in  std_logic := '0';

@@ -77,13 +77,17 @@ begin
   neg_im2 <= neg_i xor conj_x_i;
 
   -- Operation:  Re1 = ReChain + Xre*Yre + Zre
-  i_re1 : entity work.signed_mult1add1(dsp58)
+  i_re1 : entity work.signed_preadd_mult1add1(dsp58)
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND-1,
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
+    USE_XB_INPUT       => false,
     USE_Z_INPUT        => USE_Z_INPUT,
-    USE_NEGATION       => true,
-    NUM_INPUT_REG_XY   => NUM_INPUT_REG_XY,
+    NEGATE_XA          => "DYNAMIC",
+    NEGATE_XB          => open, -- unused
+    NEGATE_Y           => open,
+    NUM_INPUT_REG_X    => NUM_INPUT_REG_XY,
+    NUM_INPUT_REG_Y    => NUM_INPUT_REG_XY,
     NUM_INPUT_REG_Z    => NUM_INPUT_REG_Z,
     NUM_OUTPUT_REG     => 1,
     OUTPUT_SHIFT_RIGHT => 0,
@@ -97,8 +101,11 @@ begin
     clkena     => clkena,
     clr        => '1',
     vld        => vld,
-    neg        => neg_re1,
-    x          => x_re,
+    neg_xa     => neg_re1,
+    neg_xb     => open, -- unused
+    neg_y      => open,
+    xa         => x_re,
+    xb         => "00", -- unused
     y          => y_re,
     z          => z_re,
     result     => dummy_re, -- unused
@@ -110,13 +117,17 @@ begin
   );
 
   -- operation:  Re2 = Re1 - Xim*Yim   (accumulation possible)
-  i_re2 : entity work.signed_mult1add1(dsp58)
+  i_re2 : entity work.signed_preadd_mult1add1(dsp58)
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAIN_INPUT    => true,
+    USE_XB_INPUT       => false,
     USE_Z_INPUT        => false,
-    USE_NEGATION       => true,
-    NUM_INPUT_REG_XY   => NUM_INPUT_REG_XY+1, -- additional pipeline register(s) because of chaining
+    NEGATE_XA          => "DYNAMIC",
+    NEGATE_XB          => open, -- unused
+    NEGATE_Y           => open,
+    NUM_INPUT_REG_X    => NUM_INPUT_REG_XY+1, -- additional pipeline register(s) because of chaining
+    NUM_INPUT_REG_Y    => NUM_INPUT_REG_XY+1, -- additional pipeline register(s) because of chaining
     NUM_INPUT_REG_Z    => 0,
     NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -130,8 +141,11 @@ begin
     clkena     => clkena,
     clr        => clr, -- accumulator enabled in last instance only!
     vld        => vld,
-    neg        => neg_re2,
-    x          => x_im,
+    neg_xa     => neg_re2,
+    neg_xb     => open, -- unused
+    neg_y      => open,
+    xa         => x_im,
+    xb         => "00", -- unused
     y          => y_im,
     z          => "00",
     result     => result_re,
@@ -143,13 +157,17 @@ begin
   );
 
   -- operation:  Im1 = ImChain + Xre*Yim + Zim 
-  i_im1 : entity work.signed_mult1add1(dsp58)
+  i_im1 : entity work.signed_preadd_mult1add1(dsp58)
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND-1,
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
+    USE_XB_INPUT       => false,
     USE_Z_INPUT        => USE_Z_INPUT,
-    USE_NEGATION       => true,
-    NUM_INPUT_REG_XY   => NUM_INPUT_REG_XY,
+    NEGATE_XA          => "DYNAMIC",
+    NEGATE_XB          => open, -- unused
+    NEGATE_Y           => open,
+    NUM_INPUT_REG_X    => NUM_INPUT_REG_XY,
+    NUM_INPUT_REG_Y    => NUM_INPUT_REG_XY,
     NUM_INPUT_REG_Z    => NUM_INPUT_REG_Z,
     NUM_OUTPUT_REG     => 1,
     OUTPUT_SHIFT_RIGHT => 0,
@@ -163,8 +181,11 @@ begin
     clkena     => clkena,
     clr        => '1',
     vld        => vld,
-    neg        => neg_im1,
-    x          => x_re,
+    neg_xa     => neg_im1,
+    neg_xb     => open, -- unused
+    neg_y      => open,
+    xa         => x_re,
+    xb         => "00", -- unused
     y          => y_im,
     z          => z_im,
     result     => dummy_im, -- unused
@@ -176,13 +197,17 @@ begin
   );
 
   -- operation:  Im2 = Im1 + Xim*Yre   (accumulation possible)
-  i_im2 : entity work.signed_mult1add1(dsp58)
+  i_im2 : entity work.signed_preadd_mult1add1(dsp58)
   generic map(
     NUM_SUMMAND        => 2*NUM_SUMMAND, -- two multiplications per complex multiplication
     USE_CHAIN_INPUT    => true,
+    USE_XB_INPUT       => false,
     USE_Z_INPUT        => false,
-    USE_NEGATION       => true,
-    NUM_INPUT_REG_XY   => NUM_INPUT_REG_XY+1, -- additional pipeline register(s) because of chaining
+    NEGATE_XA          => "DYNAMIC",
+    NEGATE_XB          => open, -- unused
+    NEGATE_Y           => open,
+    NUM_INPUT_REG_X    => NUM_INPUT_REG_XY+1, -- additional pipeline register(s) because of chaining
+    NUM_INPUT_REG_Y    => NUM_INPUT_REG_XY+1, -- additional pipeline register(s) because of chaining
     NUM_INPUT_REG_Z    => 0,
     NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
@@ -196,8 +221,11 @@ begin
     clkena     => clkena,
     clr        => clr, -- accumulator enabled in last instance only!
     vld        => vld,
-    neg        => neg_im2,
-    x          => x_im,
+    neg_xa     => neg_im2,
+    neg_xb     => open, -- unused
+    neg_y      => open,
+    xa         => x_im,
+    xb         => "00", -- unused
     y          => y_re,
     z          => "00",
     result     => result_im,
@@ -281,7 +309,7 @@ begin
     PIPEREGS_RST     => NUM_IREG_LOGIC,
     PIPEREGS_CLR     => NUM_IREG_LOGIC,
     PIPEREGS_VLD     => NUM_IREG_LOGIC,
-    PIPEREGS_NEG     => NUM_IREG_LOGIC,
+    PIPEREGS_NEG_A   => NUM_IREG_LOGIC,
     PIPEREGS_A       => NUM_IREG_LOGIC,
     PIPEREGS_B       => NUM_IREG_LOGIC,
     PIPEREGS_C       => NUM_IREG_C(LOGIC,NUM_INPUT_REG_Z),
@@ -294,7 +322,7 @@ begin
     src_rst  => rst,
     src_clr  => clr,
     src_vld  => vld,
-    src_neg  => conj_x_i,
+    src_neg_a=> conj_x_i,
     src_a    => x_re,
     src_b    => y_re,
     src_c    => z_re,
@@ -302,7 +330,7 @@ begin
     dsp_rst  => dsp_rst,
     dsp_clr  => dsp_clr,
     dsp_vld  => dsp_vld,
-    dsp_neg  => dsp_a_conj,
+    dsp_neg_a=> dsp_a_conj,
     dsp_a    => dsp_a_re,
     dsp_b    => dsp_b_re,
     dsp_c    => dsp_c_re,
@@ -314,7 +342,7 @@ begin
     PIPEREGS_RST     => NUM_IREG_LOGIC,
     PIPEREGS_CLR     => NUM_IREG_LOGIC,
     PIPEREGS_VLD     => NUM_IREG_LOGIC,
-    PIPEREGS_NEG     => NUM_IREG_LOGIC,
+    PIPEREGS_NEG_A   => NUM_IREG_LOGIC,
     PIPEREGS_A       => NUM_IREG_LOGIC,
     PIPEREGS_B       => NUM_IREG_LOGIC,
     PIPEREGS_C       => NUM_IREG_C(LOGIC,NUM_INPUT_REG_Z),
@@ -327,7 +355,7 @@ begin
     src_rst  => rst,
     src_clr  => clr,
     src_vld  => vld,
-    src_neg  => conj_y_i,
+    src_neg_a=> conj_y_i,
     src_a    => x_im,
     src_b    => y_im,
     src_c    => z_im,
@@ -335,7 +363,7 @@ begin
     dsp_rst  => dsp_rst,
     dsp_clr  => dsp_clr,
     dsp_vld  => dsp_vld,
-    dsp_neg  => dsp_b_conj,
+    dsp_neg_a=> dsp_b_conj,
     dsp_a    => dsp_a_im,
     dsp_b    => dsp_b_im,
     dsp_c    => dsp_c_im,
