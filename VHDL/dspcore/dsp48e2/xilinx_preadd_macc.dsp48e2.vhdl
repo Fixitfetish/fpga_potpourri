@@ -101,7 +101,8 @@ architecture dsp48e2 of xilinx_preadd_macc is
   -- Consider up to one INMODE input register stage
   constant NUM_INMODE_REG : natural := minimum(1,NUM_INPUT_REG_AD);
   -- OPMODE control signal
-  signal inmode : std_logic_vector(4 downto 0);
+  signal inmode : std_logic_vector(4 downto 0) := (others=>'0');
+  alias negate_preadd : std_logic is inmode(3);
 
   -- Consider up to one OPMODE input register stage
   constant NUM_OPMODE_REG : natural := minimum(1,NUM_INPUT_REG_CLR);
@@ -119,6 +120,9 @@ architecture dsp48e2 of xilinx_preadd_macc is
   signal clr_i, clr_q : std_logic := '0';
   signal chainin_i, chainout_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
   signal p_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
+
+  signal a_i : signed(MAX_WIDTH_D-2 downto 0);
+  signal d_i : signed(MAX_WIDTH_D-2 downto 0);
 
 begin
 
@@ -178,10 +182,27 @@ begin
     end process;
   end generate;
 
+  i_preadd : entity work.xilinx_preadd_logic
+  generic map(
+    NEGATE_A  => NEGATE_A,
+    NEGATE_B  => NEGATE_B,
+    NEGATE_D  => NEGATE_D
+  )
+  port map(
+    neg_a      => neg_a,
+    neg_b      => neg_b,
+    neg_d      => neg_d,
+    a          => a,
+    d          => d,
+    dsp_a_neg  => negate_preadd,
+    dsp_a      => a_i,
+    dsp_d      => d_i
+  );
+
+
   inmode(0) <= '0'; -- '0'= A2 Mux controlled AREG , '1'= A1
   inmode(1) <= '0'; -- do not gate A input
-  inmode(2) <= '1' when USE_D_INPUT else '0'; -- D input gate
-  inmode(3) <= neg_a when NEGATE_A="DYNAMIC" else '1' when NEGATE_A="ON" else '0';
+  inmode(2) <= '1' when USE_D_INPUT else '0'; -- pass D through input gate
   inmode(4) <= '0'; -- '0'= B2 Mux controlled BREG , '1'= B1
 
   -- hold clear until next valid
@@ -296,11 +317,11 @@ begin
     INMODE             => inmode,
     OPMODE             => opmode,
     -- Data: 30-bit (each) input: Data Ports
-    A                  => std_logic_vector(resize(a,MAX_WIDTH_A)),
+    A                  => std_logic_vector(resize(a_i,MAX_WIDTH_A)),
     B                  => std_logic_vector(resize(b,MAX_WIDTH_B)),
     C                  => std_logic_vector(resize(c,MAX_WIDTH_C)),
     CARRYIN            => '0', -- unused
-    D                  => std_logic_vector(resize(d,MAX_WIDTH_D)),
+    D                  => std_logic_vector(resize(d_i,MAX_WIDTH_D)),
     -- Clock Enable: 1-bit (each) input: Clock Enable Inputs
     CEA1               => CE(clkena,NUM_AREG),
     CEA2               => CE(clkena,NUM_AREG),

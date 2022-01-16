@@ -53,8 +53,7 @@ architecture dsp58 of xilinx_preadd_macc is
   -- Consider up to one MREG register as second input register stage
   constant NUM_MREG : natural := minimum(1,maximum(0,NUM_INPUT_REG_AD-1));
 
-  constant ENABLE_PREADDER : boolean := USE_D_INPUT or NEGATE_A="ON" or NEGATE_A="DYNAMIC"; -- TODO
---  constant ENABLE_PREADDER : boolean := USE_D_INPUT;
+  constant ENABLE_PREADDER : boolean := USE_D_INPUT;
 
   function AMULTSEL return string is begin 
     if ENABLE_PREADDER then return "AD"; else return "A"; end if;
@@ -103,8 +102,8 @@ architecture dsp58 of xilinx_preadd_macc is
   constant NUM_INMODE_REG : natural := minimum(1,NUM_INPUT_REG_AD);
   -- OPMODE control signal
   signal inmode : std_logic_vector(4 downto 0) := (others=>'0');
-  signal negate : std_logic_vector(2 downto 0) := (others=>'0');
   alias negate_preadd : std_logic is inmode(3);
+  signal negate : std_logic_vector(2 downto 0) := (others=>'0');
   alias negate_product : std_logic is negate(0);
 
   -- Consider up to one OPMODE input register stage
@@ -193,20 +192,15 @@ begin
   neg_b_i <= neg_b when NEGATE_B="DYNAMIC" else '1' when NEGATE_B="ON" else '0';
   neg_d_i <= neg_d when NEGATE_D="DYNAMIC" else '1' when NEGATE_D="ON" else '0';
 
-  -- TODO : negation logic
-  negate_preadd <= neg_a_i;
-  negate_product <= '0';
+  GDOFF : if not USE_D_INPUT generate
+    negate_product <= neg_a_i xor neg_b_i;
+    negate_preadd  <= '0'; -- unused, preadder can be disabled
+  end generate;
 
---  GDOFF : if not USE_D_INPUT generate
---    negate_preadd <= '0'; -- unused, preadder can be disabled
---    dsp_b_neg <= neg_a_i xor neg_b_i;
---  end generate;
---
---  GDON : if USE_D_INPUT generate
---    negate_preadd <= neg_a_i xor neg_b_i xor neg_d_i;
---    negate_product <= neg_b_i xor neg_d_i;
---  end generate;
-
+  GDON : if USE_D_INPUT generate
+    negate_product <= neg_b_i xor neg_d_i;
+    negate_preadd  <= neg_b_i xor neg_d_i xor neg_a_i;
+  end generate;
 
   inmode(0) <= '0'; -- '0'= A2 Mux controlled AREG , '1'= A1
   inmode(1) <= '0'; -- do not gate A input

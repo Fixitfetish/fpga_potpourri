@@ -85,20 +85,16 @@ architecture dsp48e2 of signed_preadd_mult1add1 is
   constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
   constant OUTPUT_WIDTH : positive := result'length;
 
-  signal neg : std_logic;
-  signal a : signed(MAX_WIDTH_D-2 downto 0);
-  signal d : signed(MAX_WIDTH_D-2 downto 0);
-
   signal dsp_rst : std_logic;
   signal dsp_clr : std_logic;
   signal dsp_vld : std_logic;
   signal dsp_neg_a : std_logic;
   signal dsp_neg_b : std_logic;
   signal dsp_neg_d : std_logic;
-  signal dsp_a : signed(a'length-1 downto 0);
+  signal dsp_a : signed(xa'length-1 downto 0);
   signal dsp_b : signed(y'length-1 downto 0);
   signal dsp_c : signed(z'length-1 downto 0);
-  signal dsp_d : signed(d'length-1 downto 0);
+  signal dsp_d : signed(xb'length-1 downto 0);
 
   signal accu : signed(ACCU_WIDTH-1 downto 0);
   signal accu_vld : std_logic := '0';
@@ -136,22 +132,6 @@ begin
            "More guard bits required for saturation/clipping and/or overflow detection."
     severity failure;
 
-  -- Pipeline and control logic of inputs XA and XB
-  i_preadd : entity work.xilinx_preadd_logic
-  generic map(
-    NEGATE_A  => NEGATE_XA,
-    NEGATE_D  => NEGATE_XB
-  )
-  port map(
-    sub_a      => neg_xa,
-    sub_d      => neg_xb,
-    a          => xa,
-    d          => xb,
-    dsp_a_neg  => neg,
-    dsp_a      => a,
-    dsp_d      => d 
-  );
-
   i_feed : entity work.xilinx_dsp_input_pipe
   generic map(
     PIPEREGS_RST     => NUM_IREG_X_LOGIC,
@@ -172,13 +152,13 @@ begin
     src_rst   => rst,
     src_clr   => clr,
     src_vld   => vld,
-    src_neg_a => neg,
-    src_neg_b => open,
-    src_neg_d => open,
-    src_a     => a,
+    src_neg_a => neg_xa,
+    src_neg_b => neg_y,
+    src_neg_d => neg_xb,
+    src_a     => xa,
     src_b     => y,
     src_c     => z,
-    src_d     => d,
+    src_d     => xb,
     dsp_rst   => dsp_rst,
     dsp_clr   => dsp_clr,
     dsp_vld   => dsp_vld,
@@ -196,9 +176,9 @@ begin
     USE_CHAIN_INPUT  => USE_CHAIN_INPUT,
     USE_C_INPUT      => USE_Z_INPUT,
     USE_D_INPUT      => USE_XB_INPUT,
-    NEGATE_A         => "DYNAMIC",
-    NEGATE_B         => open, -- TODO
-    NEGATE_D         => open, -- TODO
+    NEGATE_A         => NEGATE_XA,
+    NEGATE_B         => NEGATE_Y,
+    NEGATE_D         => NEGATE_XB,
     NUM_INPUT_REG_AD => NUM_IREG_X_DSP,
     NUM_INPUT_REG_B  => NUM_IREG_Y_DSP,
     NUM_INPUT_REG_C  => NUM_IREG_C(DSP,NUM_INPUT_REG_Z),
