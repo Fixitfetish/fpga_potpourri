@@ -63,11 +63,11 @@ begin
  -- * Re2/Im2 can add round bit and accumulate in addition to chain input
  --------------------------------------------------------------------------------------------------
  G4DSP : if OPTIMIZATION="PERFORMANCE" generate
+  -- identifier for reports of warnings and errors
+  constant CHOICE : string := IMPLEMENTATION & " with optimization=PERFORMANCE";
   signal chainout_re1 : signed(79 downto 0);
   signal chainout_im1 : signed(79 downto 0);
   signal dummy_re, dummy_im : signed(ACCU_WIDTH-1 downto 0);
-  -- identifier for reports of warnings and errors
-  constant CHOICE : string := IMPLEMENTATION & " with optimization=PERFORMANCE";
   signal neg_re1, neg_re2, neg_im1, neg_im2 : std_logic;
  begin
 
@@ -243,6 +243,8 @@ begin
  -- Special Operation with 2 DSP cells and chaining
  --------------------------------------------------------------------------------------------------
  G2DSP : if OPTIMIZATION="RESOURCES" generate
+  -- identifier for reports of warnings and errors
+  constant CHOICE : string := IMPLEMENTATION & " with optimization=RESOURCES";
   -- number main path input registers within DSP
   constant NUM_IREG_DSP : natural := NUM_IREG(DSP,NUM_INPUT_REG_XY);
   -- number main path input registers in LOGIC
@@ -251,7 +253,7 @@ begin
   constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
   constant PRODUCT_WIDTH : natural := x_re'length + y_re'length + 1;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
-  constant GUARD_BITS_EVAL : natural := accu_guard_bits(NUM_SUMMAND,MAX_GUARD_BITS,IMPLEMENTATION);
+  constant GUARD_BITS_EVAL : natural := accu_guard_bits(NUM_SUMMAND,MAX_GUARD_BITS,CHOICE);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
   constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
   constant OUTPUT_WIDTH : positive := result_re'length;
@@ -274,33 +276,33 @@ begin
  begin
 
   assert (NEGATION="OFF")
-    report "ERROR " & IMPLEMENTATION & " with optimization=PERFORMANCE : " &
+    report "ERROR " & CHOICE & " : " &
            "Selected optimization does not yet support product negation."
     severity failure;
 
   -- check chain in/out length
   assert (chainin_re'length>=ACCU_WIDTH and chainin_im'length>=ACCU_WIDTH) or (not USE_CHAIN_INPUT)
-    report "ERROR " & IMPLEMENTATION & ": " &
+    report "ERROR " & CHOICE & ": " &
            "Chain input width must be at least " & integer'image(ACCU_WIDTH) & " bits."
     severity failure;
 
   -- check input/output length
   assert (x_re'length<=18 and x_im'length<=18 and y_re'length<=18 and y_im'length<=18)
-    report "ERROR " & IMPLEMENTATION & ": " & 
+    report "ERROR " & CHOICE & ": " & 
            "Complex multiplier input width of X and Y is limited to 18."
     severity failure;
   assert (z_re'length<=MAX_WIDTH_C and z_im'length<=MAX_WIDTH_C)
-    report "ERROR " & IMPLEMENTATION & ": Summand input Z width cannot exceed " & integer'image(MAX_WIDTH_C)
+    report "ERROR " & CHOICE & ": Summand input Z width cannot exceed " & integer'image(MAX_WIDTH_C)
     severity failure;
 
   assert GUARD_BITS_EVAL<=MAX_GUARD_BITS
-    report "ERROR " & IMPLEMENTATION & ": " &
+    report "ERROR " & CHOICE & ": " &
            "Maximum number of accumulator bits is " & integer'image(ACCU_WIDTH) & " ." &
            "Input bit widths allow only maximum number of guard bits = " & integer'image(MAX_GUARD_BITS)
     severity failure;
 
   assert OUTPUT_WIDTH<ACCU_USED_SHIFTED_WIDTH or not(OUTPUT_CLIP or OUTPUT_OVERFLOW)
-    report "ERROR " & IMPLEMENTATION & ": " &
+    report "ERROR " & CHOICE & ": " &
            "More guard bits required for saturation/clipping and/or overflow detection."
     severity failure;
 
