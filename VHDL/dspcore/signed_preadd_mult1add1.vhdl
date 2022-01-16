@@ -92,7 +92,7 @@ generic (
   USE_CHAIN_INPUT : boolean := false;
   --! Enable additional preadder input XB.
   USE_XB_INPUT : boolean := false;
-  --! Enable additional Z input. Note that this might disable the accumulator feature.
+  --! Enable additional summand input Z. Note that this might disable the accumulator feature.
   USE_Z_INPUT : boolean := false;
   --! @brief NEGATION mode of input XA.
   --! Options are OFF, ON or DYNAMIC. In OFF and ON mode input port NEG_XA is ignored.
