@@ -21,7 +21,7 @@ library ieee;
 --!
 --! The behavior is as follows
 --! * CLR=1  VLD=0  ->  r = undefined                # reset accumulator
---! * CLR=1  VLD=1  ->  r = (+/-xb +/-xb)*y + z      # restart accumulation
+--! * CLR=1  VLD=1  ->  r = (+/-xa +/-xb)*y + z      # restart accumulation
 --! * CLR=0  VLD=0  ->  r = r                        # hold accumulator
 --! * CLR=0  VLD=1  ->  r = r + (+/-xa +/-xb)*y + z  # proceed accumulation
 --!
@@ -90,7 +90,7 @@ generic (
   --! @brief Enable chain input from neighbor DSP cell, i.e. enable additional summand input.
   --! Enabling the chain input might disable the accumulator feature.
   USE_CHAIN_INPUT : boolean := false;
-  --! Enable additional XB preadder input.
+  --! Enable additional preadder input XB.
   USE_XB_INPUT : boolean := false;
   --! Enable additional Z input. Note that this might disable the accumulator feature.
   USE_Z_INPUT : boolean := false;
