@@ -275,7 +275,7 @@ begin
 
   assert (NEGATION="OFF")
     report "ERROR " & IMPLEMENTATION & " with optimization=PERFORMANCE : " &
-           "Selected optimization does not support negation."
+           "Selected optimization does not yet support product negation."
     severity failure;
 
   -- check chain in/out length
