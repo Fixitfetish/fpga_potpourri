@@ -61,10 +61,12 @@ generic (
   NUM_INPUT_REG_B : natural range 0 to 3 := 1;
   --! Number of DSP internal input registers for input C. At least one is strongly recommended. Set to 0 if unused.
   NUM_INPUT_REG_C : natural range 0 to 1 := 1;
-  --! Defines if the CLR input port is synchronous to input signals "A", "B" or "C".
+  --! Defines if the input port CLR is synchronous to input signals "A", "B" or "C".
   RELATION_CLR : string := "A";
-  --! Defines if the VLD input port is synchronous to input signals "A", "B" or "C".
+  --! Defines if the input port VLD is synchronous to input signals "A", "B" or "C".
   RELATION_VLD : string := "A";
+  --! Defines if the input port NEG is synchronous to input signals "A" or "B".
+  RELATION_NEG : string := "A";
   --! @brief Number of result output registers within the DSP cell.
   --! One is strongly recommended and even required when the accumulation feature is needed
   NUM_OUTPUT_REG : natural range 0 to 1 := 1;
@@ -85,9 +87,11 @@ port (
   clr        : in  std_logic := '1';
   --! Valid signal, high-active
   vld        : in  std_logic;
-  --! Conjugate A synchronous to A input - disabled by default.
+  --! Negation of product , '0' -> +(a*b), '1' -> -(a*b). Optional and disabled by default.
+  neg        : in  std_logic := '0';
+  --! Conjugate A, synchronous to A input. Optional and disabled by default.
   a_conj     : in  std_logic := '0';
-  --! Conjugate B synchronous to B input - disabled by default.
+  --! Conjugate B, synchronous to B input. Optional and disabled by default.
   b_conj     : in  std_logic := '0';
   --! 1st factor, real component
   a_re       : in  signed;
@@ -128,4 +132,25 @@ port (
   --! Number of pipeline stages in AD path, constant, depends on configuration and device specific implementation
   PIPESTAGES : out natural := 1
 );
+begin
+
+  -- synthesis translate_off (Altera Quartus)
+  -- pragma translate_off (Xilinx Vivado , Synopsys)
+  assert (RELATION_CLR="A") or (RELATION_CLR="B") or (RELATION_CLR="C")
+    report "ERROR in " & xilinx_complex_macc'INSTANCE_NAME & ": " & 
+           "Generic RELATION_CLR string must be A, B or C."
+    severity failure;
+
+  assert (RELATION_VLD="A") or (RELATION_VLD="B") or (RELATION_VLD="C")
+    report "ERROR in " & xilinx_complex_macc'INSTANCE_NAME & ": " & 
+           "Generic RELATION_VLD string must be A, B or C."
+    severity failure;
+
+  assert (RELATION_NEG="A") or (RELATION_NEG="B")
+    report "ERROR in " & xilinx_complex_macc'INSTANCE_NAME & ": " & 
+           "Generic RELATION_NEG string must be A or B."
+    severity failure;
+  -- synthesis translate_on (Altera Quartus)
+  -- pragma translate_on (Xilinx Vivado , Synopsys)
+
 end entity;

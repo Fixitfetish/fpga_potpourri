@@ -88,6 +88,9 @@ architecture dsp58 of xilinx_complex_macc is
   signal pipe_clr : std_logic_vector(NUM_INPUT_REG_CLR downto 0);
   signal pipe_vld : std_logic_vector(NUM_INPUT_REG_VLD downto 0);
 
+  signal a_conj_i, b_conj_i : std_logic;
+  signal a_re_i, b_re_i : signed(INPUT_WIDTH-1 downto 0);
+
   -- Consider up to one OPMODE input register stage
   constant NUM_OPMODE_REG : natural := minimum(1,NUM_INPUT_REG_CLR);
   -- OPMODE control signal
@@ -126,6 +129,26 @@ begin
     report "ERROR " & IMPLEMENTATION & ": " & 
            "DSP internal rounding bit addition not possible when C and CHAIN inputs are enabled."
     severity failure;
+
+  g_neg_a : if RELATION_NEG="A" generate
+    -- negate port A because NEG and A_RE are synchronous
+    -- TODO : a_re is most negative value ?
+    a_re_i <= -resize(a_re,a_re_i'length) when neg='1' else resize(a_re,a_re_i'length);
+    a_conj_i <= neg xor a_conj;
+    -- pass through port B
+    b_re_i <= resize(b_re,b_re_i'length);
+    b_conj_i <= b_conj;
+  end generate;
+
+  g_neg_b : if RELATION_NEG="B" generate
+    -- negate port B because NEG and B_RE are synchronous
+    -- TODO : b_re is most negative value ?
+    b_re_i <= -resize(b_re,b_re_i'length) when neg='1' else resize(b_re,b_re_i'length);
+    b_conj_i <= neg xor b_conj;
+    -- pass through port A
+    a_re_i <= resize(a_re,a_re_i'length);
+    a_conj_i <= a_conj;
+  end generate;
 
   pipe_clr(NUM_INPUT_REG_CLR) <= clr;
   g_clr : if NUM_INPUT_REG_CLR>=1 generate
@@ -291,11 +314,11 @@ begin
      ALUMODE_RE        => alumode, -- in std_logic_vector(3 downto 0);
      ASYNC_RST         => '0', -- unused
      A_IM              => std_logic_vector(resize(a_im,INPUT_WIDTH)),
-     A_RE              => std_logic_vector(resize(a_re,INPUT_WIDTH)),
+     A_RE              => std_logic_vector(a_re_i),
      BCIN_IM           => (others=>'0'), -- unused
      BCIN_RE           => (others=>'0'), -- unused
      B_IM              => std_logic_vector(resize(b_im,INPUT_WIDTH)),
-     B_RE              => std_logic_vector(resize(b_re,INPUT_WIDTH)),
+     B_RE              => std_logic_vector(b_re_i),
      CARRYCASCIN_IM    => '0', -- unused
      CARRYCASCIN_RE    => '0', -- unused
      CARRYINSEL_IM     => (others=>'0'), -- unused
@@ -325,9 +348,9 @@ begin
      CEM_RE            => CE(clkena,NUM_MREG),
      CEP_IM            => CE(clkena and pipe_vld(0),NUM_OUTPUT_REG), -- accumulate only valid values
      CEP_RE            => CE(clkena and pipe_vld(0),NUM_OUTPUT_REG), -- accumulate only valid values
-     CLK               => clk, -- in std_ulogic;
-     CONJUGATE_A       => a_conj, -- in std_ulogic;
-     CONJUGATE_B       => b_conj, -- in std_ulogic;
+     CLK               => clk,
+     CONJUGATE_A       => a_conj_i,
+     CONJUGATE_B       => b_conj_i,
      C_IM              => std_logic_vector(resize(c_im,MAX_WIDTH_C)),
      C_RE              => std_logic_vector(resize(c_re,MAX_WIDTH_C)),
      MULTSIGNIN_IM     => '0', -- unused

@@ -260,6 +260,7 @@ begin
   signal dsp_rst : std_logic;
   signal dsp_clr : std_logic;
   signal dsp_vld : std_logic;
+  signal dsp_neg : std_logic;
   signal dsp_a_conj : std_logic;
   signal dsp_b_conj : std_logic;
   signal dsp_a_re : signed(x_re'length-1 downto 0);
@@ -274,11 +275,6 @@ begin
   signal accu_vld : std_logic := '0';
   signal accu_used_re, accu_used_im : signed(ACCU_USED_WIDTH-1 downto 0);
  begin
-
-  assert (NEGATION="OFF")
-    report "ERROR " & CHOICE & " : " &
-           "Selected optimization does not yet support product negation."
-    severity failure;
 
   -- check chain in/out length
   assert (chainin_re'length>=ACCU_WIDTH and chainin_im'length>=ACCU_WIDTH) or (not USE_CHAIN_INPUT)
@@ -312,6 +308,7 @@ begin
     PIPEREGS_CLR     => NUM_IREG_LOGIC,
     PIPEREGS_VLD     => NUM_IREG_LOGIC,
     PIPEREGS_NEG_A   => NUM_IREG_LOGIC,
+    PIPEREGS_NEG_B   => NUM_IREG_LOGIC,
     PIPEREGS_A       => NUM_IREG_LOGIC,
     PIPEREGS_B       => NUM_IREG_LOGIC,
     PIPEREGS_C       => NUM_IREG_C(LOGIC,NUM_INPUT_REG_Z),
@@ -325,6 +322,7 @@ begin
     src_clr  => clr,
     src_vld  => vld,
     src_neg_a=> conj_x_i,
+    src_neg_b=> conj_y_i,
     src_a    => x_re,
     src_b    => y_re,
     src_c    => z_re,
@@ -333,6 +331,7 @@ begin
     dsp_clr  => dsp_clr,
     dsp_vld  => dsp_vld,
     dsp_neg_a=> dsp_a_conj,
+    dsp_neg_b=> dsp_b_conj,
     dsp_a    => dsp_a_re,
     dsp_b    => dsp_b_re,
     dsp_c    => dsp_c_re,
@@ -357,7 +356,7 @@ begin
     src_rst  => rst,
     src_clr  => clr,
     src_vld  => vld,
-    src_neg_a=> conj_y_i,
+    src_neg_a=> neg,
     src_a    => x_im,
     src_b    => y_im,
     src_c    => z_im,
@@ -365,7 +364,7 @@ begin
     dsp_rst  => dsp_rst,
     dsp_clr  => dsp_clr,
     dsp_vld  => dsp_vld,
-    dsp_neg_a=> dsp_b_conj,
+    dsp_neg_a=> dsp_neg,
     dsp_a    => dsp_a_im,
     dsp_b    => dsp_b_im,
     dsp_c    => dsp_c_im,
@@ -381,6 +380,7 @@ begin
     NUM_INPUT_REG_C  => NUM_IREG_C(DSP,NUM_INPUT_REG_Z),
     RELATION_CLR     => "A",
     RELATION_VLD     => "A",
+    RELATION_NEG     => "A",
     NUM_OUTPUT_REG   => 1,
     ROUND_ENABLE     => ROUND_ENABLE and not (USE_CHAIN_INPUT and USE_Z_INPUT),
     ROUND_BIT        => maximum(0,OUTPUT_SHIFT_RIGHT-1)
@@ -391,6 +391,7 @@ begin
     clkena      => clkena,
     clr         => dsp_clr,
     vld         => dsp_vld,
+    neg         => dsp_neg,
     a_conj      => dsp_a_conj,
     b_conj      => dsp_b_conj,
     a_re        => dsp_a_re,
