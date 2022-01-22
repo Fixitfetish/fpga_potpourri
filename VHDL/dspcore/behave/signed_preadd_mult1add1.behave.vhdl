@@ -80,8 +80,8 @@ architecture behave of signed_preadd_mult1add1 is
   signal dsp_rst : std_logic;
   signal dsp_clr : std_logic;
   signal dsp_vld : std_logic;
+  signal dsp_neg : std_logic;
   signal dsp_neg_a : std_logic;
-  signal dsp_neg_b : std_logic;
   signal dsp_neg_d : std_logic;
   signal dsp_a : signed(xa'length-1 downto 0);
   signal dsp_b : signed(y'length-1 downto 0);
@@ -145,7 +145,7 @@ begin
     src_clr   => clr,
     src_vld   => vld,
     src_neg_a => neg_xa,
-    src_neg_b => neg_y,
+    src_neg_b => neg,
     src_neg_d => neg_xb,
     src_a     => xa,
     src_b     => y,
@@ -155,7 +155,7 @@ begin
     dsp_clr   => dsp_clr,
     dsp_vld   => dsp_vld,
     dsp_neg_a => dsp_neg_a,
-    dsp_neg_b => dsp_neg_b,
+    dsp_neg_b => dsp_neg,
     dsp_neg_d => dsp_neg_d,
     dsp_a     => dsp_a,
     dsp_b     => dsp_b,
@@ -168,9 +168,9 @@ begin
     USE_CHAIN_INPUT  => USE_CHAIN_INPUT,
     USE_C_INPUT      => USE_Z_INPUT,
     USE_D_INPUT      => USE_XB_INPUT,
-    NEGATE_A         => NEGATE_XA,
-    NEGATE_B         => NEGATE_Y,
-    NEGATE_D         => NEGATE_XB,
+    USE_NEGATION     => USE_NEGATION,
+    USE_A_NEGATION   => USE_XA_NEGATION,
+    USE_D_NEGATION   => USE_XB_NEGATION,
     NUM_INPUT_REG_AD => 0,
     NUM_INPUT_REG_B  => 0,
     NUM_INPUT_REG_C  => 0,
@@ -185,8 +185,8 @@ begin
     clkena     => clkena,
     clr        => dsp_clr,
     vld        => dsp_vld,
+    neg        => dsp_neg,
     neg_a      => dsp_neg_a,
-    neg_b      => dsp_neg_b,
     neg_d      => dsp_neg_d,
     a          => dsp_a,
     b          => dsp_b,

@@ -53,7 +53,7 @@ architecture dsp48e2 of xilinx_preadd_macc is
   -- Consider up to one MREG register as second input register stage
   constant NUM_MREG : natural := minimum(1,maximum(0,NUM_INPUT_REG_AD-1));
 
-  constant ENABLE_PREADDER : boolean := USE_D_INPUT or NEGATE_A="ON"  or NEGATE_A="DYNAMIC";
+  constant ENABLE_PREADDER : boolean := USE_D_INPUT or USE_NEGATION or USE_A_NEGATION;
 
   function AMULTSEL return string is begin 
     if ENABLE_PREADDER then return "AD"; else return "A"; end if;
@@ -117,14 +117,14 @@ architecture dsp48e2 of xilinx_preadd_macc is
   signal chainin_i, chainout_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
   signal p_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
 
-  signal dsp_a : signed(MAX_WIDTH_D-2 downto 0);
-  signal dsp_d : signed(MAX_WIDTH_D-2 downto 0);
+  signal dsp_a : signed(MAX_WIDTH_AD-1 downto 0);
+  signal dsp_d : signed(MAX_WIDTH_AD-1 downto 0);
 
 begin
 
-  assert (a'length<=MAX_WIDTH_D)
+  assert (a'length<=MAX_WIDTH_AD)
     report "ERROR " & IMPLEMENTATION & ": " & 
-           "Preadder and Multiplier input A width cannot exceed " & integer'image(MAX_WIDTH_D)
+           "Preadder and Multiplier input A width cannot exceed " & integer'image(MAX_WIDTH_AD)
     severity failure;
 
   assert (b'length<=MAX_WIDTH_B)
@@ -137,9 +137,9 @@ begin
            "Summand input C width cannot exceed " & integer'image(MAX_WIDTH_C)
     severity failure;
 
-  assert (d'length<=MAX_WIDTH_D)
+  assert (d'length<=MAX_WIDTH_AD)
     report "ERROR " & IMPLEMENTATION & ": " & 
-           "Preadder and Multiplier input D width cannot exceed " & integer'image(MAX_WIDTH_D)
+           "Preadder and Multiplier input D width cannot exceed " & integer'image(MAX_WIDTH_AD)
     severity failure;
 
   assert (NUM_INPUT_REG_AD=NUM_INPUT_REG_B)
@@ -180,14 +180,14 @@ begin
 
   i_neg : entity work.xilinx_negation_logic(dsp48e2)
   generic map(
-    USE_D_INPUT => USE_D_INPUT,
-    NEGATE_A    => NEGATE_A,
-    NEGATE_B    => NEGATE_B,
-    NEGATE_D    => NEGATE_D
+    USE_D_INPUT    => USE_D_INPUT,
+    USE_NEGATION   => USE_NEGATION,
+    USE_A_NEGATION => USE_A_NEGATION,
+    USE_D_NEGATION => USE_D_NEGATION
   )
   port map(
+    neg          => neg,
     neg_a        => neg_a,
-    neg_b        => neg_b,
     neg_d        => neg_d,
     a            => a,
     d            => d,

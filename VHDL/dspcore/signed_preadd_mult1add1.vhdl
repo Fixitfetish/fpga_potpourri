@@ -39,11 +39,11 @@ library ieee;
 --! generic map(
 --!   NUM_SUMMAND        => natural,  -- overall number of summed products
 --!   USE_CHAIN_INPUT    => boolean,  -- enable chain input
---!   USE_XB_INPUT       => boolean,  -- enable XB input
 --!   USE_Z_INPUT        => boolean,  -- enable Z input
---!   NEGATE_XA          => string,   -- xa negation mode
---!   NEGATE_XB          => string,   -- xb negation mode
---!   NEGATE_Y           => string,   -- y negation mode
+--!   USE_XB_INPUT       => boolean,  -- enable XB input
+--!   USE_NEGATION       => boolean,
+--!   USE_XA_NEGATION    => boolean,
+--!   USE_XB_NEGATION    => boolean,
 --!   NUM_INPUT_REG_X    => natural,  -- number of input registers for XA and XB
 --!   NUM_INPUT_REG_Y    => natural,  -- number of input registers for Y
 --!   NUM_INPUT_REG_Z    => natural,  -- number of input registers for Z
@@ -59,9 +59,9 @@ library ieee;
 --!   clkena     => in  std_logic, -- clock enable
 --!   clr        => in  std_logic, -- clear accu
 --!   vld        => in  std_logic, -- valid
+--!   neg        => in  std_logic, -- negate product
 --!   neg_xa     => in  std_logic, -- negate xa
 --!   neg_xb     => in  std_logic, -- negate xb
---!   neg_y      => in  std_logic, -- negate y
 --!   xa         => in  signed, -- first preadder input, first factor
 --!   xb         => in  signed, -- second preadder input, first factor
 --!   y          => in  signed, -- second factor
@@ -90,22 +90,20 @@ generic (
   --! @brief Enable chain input from neighbor DSP cell, i.e. enable additional summand input.
   --! Enabling the chain input might disable the accumulator feature.
   USE_CHAIN_INPUT : boolean := false;
-  --! Enable additional preadder input XB.
-  USE_XB_INPUT : boolean := false;
   --! Enable additional summand input Z. Note that this might disable the accumulator feature.
   USE_Z_INPUT : boolean := false;
-  --! @brief NEGATION mode of input XA.
-  --! Options are OFF, ON or DYNAMIC. In OFF and ON mode input port NEG_XA is ignored.
-  --! Note that additional logic might be required dependent on mode and FPGA type.
-  NEGATE_XA : string := "OFF";
-  --! @brief NEGATION mode of input XB.
-  --! Options are OFF, ON or DYNAMIC. In OFF and ON mode input port NEG_XB is ignored.
-  --! Note that additional logic might be required dependent on mode and FPGA type.
-  NEGATE_XB : string := "OFF";
-  --! @brief NEGATION mode of input Y, preferably used for product negation.
-  --! Options are OFF, ON or DYNAMIC. In OFF and ON mode input port NEG_Y is ignored.
-  --! Note that additional logic might be required dependent on mode and FPGA type.
-  NEGATE_Y : string := "OFF";
+  --! Enable additional preadder input XB.
+  USE_XB_INPUT : boolean := false;
+  --! @brief Enable NEG input port and allow product negation. Might require more resources and power.
+  --! Can be also used for input port Y negation.
+  USE_NEGATION : boolean := false;
+  --! @brief Enable NEG_XA input port and allow separate negation of preadder input port XA.
+  --! Might require more resources and power. Typically only relevant when USE_XB_INPUT=true
+  --! because otherwise preferably the product negation should be used.
+  USE_XA_NEGATION : boolean := false;
+  --! @brief Enable NEG_XB input port and allow separate negation of preadder input port XB.
+  --! Might require more resources and power. Only relevant when USE_XB_INPUT=true.
+  USE_XB_NEGATION : boolean := false;
   --! @brief Number of additional input registers for inputs XA and XB. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
   NUM_INPUT_REG_X : natural := 1;
@@ -148,15 +146,12 @@ port (
   clr        : in  std_logic := '1';
   --! Valid signal for input factors, high-active
   vld        : in  std_logic;
-  --! @brief Negation of XA synchronous to input XA, '0'=+xa, '1'=-xa .
-  --! Only relevant in DYNAMIC mode.
+  --! Negation of product , '0'->+(x*y), '1'->-(x*y) . Only relevant when USE_NEGATION=true.
+  neg        : in  std_logic := '0';
+  --! Negation of XA synchronous to input XA, '0'=+xa, '1'=-xa . Only relevant when USE_XA_NEGATION=true.
   neg_xa     : in  std_logic := '0';
-  --! @brief Negation of XB synchronous to input XB, '0'=+xb, '1'=-xb .
-  --! Only relevant in DYNAMIC mode when XB input is enabled.
+  --! Negation of XB synchronous to input XB, '0'=+xb, '1'=-xb . Only relevant when USE_XB_NEGATION=true.
   neg_xb     : in  std_logic := '0';
-  --! @brief Negation of Y synchronous to input Y, '0'=+y, '1'=-y , preferably used for product negation.
-  --! Only relevant in DYNAMIC mode.
-  neg_y      : in  std_logic := '0';
   --! first preadder input (1st signed factor)
   xa         : in  signed;
   --! second preadder input (1st signed factor)
@@ -189,21 +184,6 @@ begin
 
   -- synthesis translate_off (Altera Quartus)
   -- pragma translate_off (Xilinx Vivado , Synopsys)
-  assert (NEGATE_XA="OFF") or (NEGATE_XA="ON") or (NEGATE_XA="DYNAMIC")
-    report "ERROR in " & signed_preadd_mult1add1'INSTANCE_NAME & ": " & 
-           "Generic NEGATE_XA string must be ON, OFF or DYNAMIC."
-    severity failure;
-
-  assert (NEGATE_XB="OFF") or (NEGATE_XB="ON") or (NEGATE_XB="DYNAMIC")
-    report "ERROR in " & signed_preadd_mult1add1'INSTANCE_NAME & ": " & 
-           "Generic NEGATE_XB string must be ON, OFF or DYNAMIC."
-    severity failure;
-
-  assert (NEGATE_Y="OFF") or (NEGATE_Y="ON") or (NEGATE_Y="DYNAMIC")
-    report "ERROR in " & signed_preadd_mult1add1'INSTANCE_NAME & ": " & 
-           "Generic NEGATE_Y string must be ON, OFF or DYNAMIC."
-    severity failure;
-
   assert (not OUTPUT_ROUND) or (OUTPUT_SHIFT_RIGHT/=0)
     report "WARNING in " & signed_preadd_mult1add1'INSTANCE_NAME &
            " Disabled rounding because OUTPUT_SHIFT_RIGHT is 0."

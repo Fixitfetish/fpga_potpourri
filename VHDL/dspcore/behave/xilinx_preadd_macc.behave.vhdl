@@ -138,8 +138,8 @@ begin
     end process;
   end generate;
 
-  pipe_ad(NUM_INPUT_REG_AD).neg_a <= neg_a when NEGATE_A="DYNAMIC" else '1' when NEGATE_A="ON" else '0';
-  pipe_ad(NUM_INPUT_REG_AD).neg_d <= neg_d when NEGATE_D="DYNAMIC" else '1' when NEGATE_D="ON" else '0';
+  pipe_ad(NUM_INPUT_REG_AD).neg_a <= neg_a when USE_A_NEGATION else '0';
+  pipe_ad(NUM_INPUT_REG_AD).neg_d <= neg_d when USE_D_NEGATION else '0';
   pipe_ad(NUM_INPUT_REG_AD).a <= a;
   pipe_ad(NUM_INPUT_REG_AD).d <= d when USE_D_INPUT else (others=>'0');
   g_ad : if NUM_INPUT_REG_AD>=1 generate
@@ -154,7 +154,7 @@ begin
     end process;
   end generate;
 
-  pipe_b(NUM_INPUT_REG_B).neg_b <= neg_b when NEGATE_B="DYNAMIC" else '1' when NEGATE_B="ON" else '0';
+  pipe_b(NUM_INPUT_REG_B).neg_b <= neg when USE_NEGATION else '0';
   pipe_b(NUM_INPUT_REG_B).b <= b;
   g_b : if NUM_INPUT_REG_B>=1 generate
     process(clk) begin

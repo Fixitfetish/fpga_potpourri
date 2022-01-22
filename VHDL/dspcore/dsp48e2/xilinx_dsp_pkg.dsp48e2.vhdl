@@ -29,6 +29,7 @@ package xilinx_dsp_pkg_dsp48e2 is
   constant MAX_WIDTH_D  : positive := 27;
   constant MAX_WIDTH_C  : positive := ACCU_WIDTH;
   constant MAX_WIDTH_AB : positive := ACCU_WIDTH;
+  constant MAX_WIDTH_AD : positive := MAX_WIDTH_D;
 
   type t_resource_type is (DSP, LOGIC);
   

@@ -54,13 +54,13 @@ library ieee;
 --!   USE_CHAIN_INPUT => boolean,
 --!   USE_C_INPUT     => boolean,
 --!   USE_D_INPUT     => boolean,
---!   NEGATE_A        => string,  -- mode "OFF", "ON" or "DYNAMIC"
---!   NEGATE_B        => string,  -- mode "OFF", "ON" or "DYNAMIC"
---!   NEGATE_D        => string   -- mode "OFF", "ON" or "DYNAMIC"
+--!   USE_NEGATION    => boolean,
+--!   USE_A_NEGATION  => boolean,
+--!   USE_D_NEGATION  => boolean
 --! )
 --! port map(
+--!   neg          => in  std_logic, -- negate product
 --!   neg_a        => in  std_logic, -- negate a
---!   neg_b        => in  std_logic, -- negate b
 --!   neg_d        => in  std_logic, -- negate d
 --!   a            => in  signed, -- first factor, main input
 --!   b            => in  signed, -- second factor
@@ -77,20 +77,18 @@ generic (
   --! @brief Enable additional C input.
   --! Note that this disables the accumulator feature when the chain input is enabled as well.
   USE_C_INPUT : boolean := false;
-  --! Enable additional D preadder input.
+  --! Enable additional D preadder input. Might require more resources and power.
   USE_D_INPUT : boolean := false;
-  --! @brief NEGATION mode of input A.
-  --! Options are OFF, ON or DYNAMIC. In OFF and ON mode input port NEG_A is ignored.
-  --! Note that additional logic might be required dependent on mode and FPGA type.
-  NEGATE_A : string := "OFF";
-  --! @brief NEGATION mode of input B, preferably used for product negation.
-  --! Options are OFF, ON or DYNAMIC. In OFF and ON mode input port NEG_B is ignored.
-  --! Note that additional logic might be required dependent on mode and FPGA type.
-  NEGATE_B : string := "OFF";
-  --! @brief NEGATION mode of input D.
-  --! Options are OFF, ON or DYNAMIC. In OFF and ON mode input port NEG_D is ignored.
-  --! Note that additional logic might be required dependent on mode and FPGA type.
-  NEGATE_D : string := "OFF";
+  --! @brief Enable NEG input port and allow product negation. Might require more resources and power.
+  --! Can be also used for input port B negation.
+  USE_NEGATION : boolean := false;
+  --! @brief Enable NEG_A input port and allow separate negation of preadder input port A.
+  --! Might require more resources and power. Typically only relevant when USE_D_INPUT=true
+  --! because otherwise preferably the product negation should be used.
+  USE_A_NEGATION : boolean := false;
+  --! @brief Enable NEG_D input port and allow separate negation of preadder input port D.
+  --! Might require more resources and power. Only relevant when USE_D_INPUT=true.
+  USE_D_NEGATION : boolean := false;
   --! Number of DSP internal input registers for inputs A and D. At least one is strongly recommended.
   NUM_INPUT_REG_AD : natural range 0 to 3 := 1;
   --! Number of DSP internal input registers for input B. At least one is strongly recommended.
@@ -120,14 +118,11 @@ port (
   clr        : in  std_logic := '1';
   --! Valid signal synchronous to inputs A and D, high-active
   vld        : in  std_logic;
-  --! @brief Negation of A synchronous to input A, '0'=+a, '1'=-a .
-  --! Only relevant in DYNAMIC mode.
+  --! Negation of product , '0'->+(a*b), '1'->-(a*b) . Only relevant when USE_NEGATION=true.
+  neg        : in  std_logic := '0';
+  --! Negation of A synchronous to input A, '0'=+a, '1'=-a . Only relevant when USE_A_NEGATION=true.
   neg_a      : in  std_logic := '0';
-  --! @brief Negation of B synchronous to input B, '0'=+b, '1'=-b , preferably used for product negation.
-  --! Only relevant in DYNAMIC mode.
-  neg_b      : in  std_logic := '0';
-  --! @brief Negation of D synchronous to input D, '0'=+d, '1'=-d
-  --! Only relevant in DYNAMIC mode when D input is enabled.
+  --! Negation of D synchronous to input D, '0'=+d, '1'=-d . Only relevant when USE_D_NEGATION=true.
   neg_d      : in  std_logic := '0';
   --! 1st factor input (also 1st preadder input)
   a          : in  signed;
@@ -158,19 +153,14 @@ begin
 
   -- synthesis translate_off (Altera Quartus)
   -- pragma translate_off (Xilinx Vivado , Synopsys)
-  assert (NEGATE_A="OFF") or (NEGATE_A="ON") or (NEGATE_A="DYNAMIC")
-    report "ERROR in " & xilinx_preadd_macc'INSTANCE_NAME & ": " & 
-           "Generic NEGATE_A string must be ON, OFF or DYNAMIC."
+  assert (USE_D_INPUT or not USE_D_NEGATION)
+    report "ERROR " & xilinx_preadd_macc'INSTANCE_NAME & ": " & 
+           "Negation of input port D not possible because input port D is disabled."
     severity failure;
 
-  assert (NEGATE_B="OFF") or (NEGATE_B="ON") or (NEGATE_B="DYNAMIC")
-    report "ERROR in " & xilinx_preadd_macc'INSTANCE_NAME & ": " & 
-           "Generic NEGATE_B string must be ON, OFF or DYNAMIC."
-    severity failure;
-
-  assert (NEGATE_D="OFF") or (NEGATE_D="ON") or (NEGATE_D="DYNAMIC")
-    report "ERROR in " & xilinx_preadd_macc'INSTANCE_NAME & ": " & 
-           "Generic NEGATE_D string must be ON, OFF or DYNAMIC."
+  assert (USE_A_NEGATION or not USE_D_NEGATION)
+    report "ERROR " & xilinx_preadd_macc'INSTANCE_NAME & ": " & 
+           "Swap A and D input ports and enable USE_A_NEGATION instead of USE_D_NEGATION to save resources and power."
     severity failure;
   -- synthesis translate_on (Altera Quartus)
   -- pragma translate_on (Xilinx Vivado , Synopsys)

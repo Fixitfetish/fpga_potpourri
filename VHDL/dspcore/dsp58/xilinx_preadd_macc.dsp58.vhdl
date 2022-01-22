@@ -53,6 +53,7 @@ architecture dsp58 of xilinx_preadd_macc is
   -- Consider up to one MREG register as second input register stage
   constant NUM_MREG : natural := minimum(1,maximum(0,NUM_INPUT_REG_AD-1));
 
+  -- Preadder only needed when D input enabled - otherwise product negation can be used instead.
   constant ENABLE_PREADDER : boolean := USE_D_INPUT;
 
   function AMULTSEL return string is begin 
@@ -119,14 +120,14 @@ architecture dsp58 of xilinx_preadd_macc is
   signal chainin_i, chainout_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
   signal p_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
 
-  signal dsp_a : signed(a'length-1 downto 0);
-  signal dsp_d : signed(d'length-1 downto 0);
+  signal dsp_a : signed(MAX_WIDTH_AD-1 downto 0);
+  signal dsp_d : signed(MAX_WIDTH_AD-1 downto 0);
 
 begin
 
-  assert (a'length<=MAX_WIDTH_D)
+  assert (a'length<=MAX_WIDTH_AD)
     report "ERROR " & IMPLEMENTATION & ": " & 
-           "Preadder and Multiplier input A width cannot exceed " & integer'image(MAX_WIDTH_D)
+           "Preadder and Multiplier input A width cannot exceed " & integer'image(MAX_WIDTH_AD)
     severity failure;
 
   assert (b'length<=MAX_WIDTH_B)
@@ -139,19 +140,14 @@ begin
            "Summand input C width cannot exceed " & integer'image(MAX_WIDTH_C)
     severity failure;
 
-  assert (d'length<=MAX_WIDTH_D)
+  assert (d'length<=MAX_WIDTH_AD)
     report "ERROR " & IMPLEMENTATION & ": " & 
-           "Preadder and Multiplier input D width cannot exceed " & integer'image(MAX_WIDTH_D)
+           "Preadder and Multiplier input D width cannot exceed " & integer'image(MAX_WIDTH_AD)
     severity failure;
 
   assert (NUM_INPUT_REG_AD=NUM_INPUT_REG_B)
     report "ERROR " & IMPLEMENTATION & ": " & 
            "For now the number of input registers in AD and B path must be the same."
-    severity failure;
-
-  assert not (NEGATE_B="DYNAMIC" and NUM_INPUT_REG_B<NUM_INPUT_REG_AD)
-    report "ERROR " & IMPLEMENTATION & ": " & 
-           "Dynamic negation of input port B requires NUM_INPUT_REG_B>=NUM_INPUT_REG_AD."
     severity failure;
 
   assert not(ROUND_ENABLE and USE_C_INPUT and USE_CHAIN_INPUT)
@@ -187,14 +183,14 @@ begin
 
   i_neg : entity work.xilinx_negation_logic(dsp58)
   generic map(
-    USE_D_INPUT => USE_D_INPUT,
-    NEGATE_A    => NEGATE_A,
-    NEGATE_B    => NEGATE_B,
-    NEGATE_D    => NEGATE_D
+    USE_D_INPUT    => USE_D_INPUT,
+    USE_NEGATION   => USE_NEGATION,
+    USE_A_NEGATION => USE_A_NEGATION,
+    USE_D_NEGATION => USE_D_NEGATION
   )
   port map(
+    neg          => neg,
     neg_a        => neg_a,
-    neg_b        => neg_b,
     neg_d        => neg_d,
     a            => a,
     d            => d,

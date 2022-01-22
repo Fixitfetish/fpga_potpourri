@@ -3,7 +3,7 @@
 --! @author     Fixitfetish
 --! @date       15/Jan/2022
 --! @version    0.10
---! @note       VHDL-1993
+--! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
@@ -74,14 +74,14 @@ library baselib;
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
 --! I1 : xilinx_negation_logic
 --! generic map(
---!   USE_D_INPUT => boolean,
---!   NEGATE_A    => string,  -- mode "OFF", "ON" or "DYNAMIC"
---!   NEGATE_B    => string,  -- mode "OFF", "ON" or "DYNAMIC"
---!   NEGATE_D    => string   -- mode "OFF", "ON" or "DYNAMIC"
+--!   USE_D_INPUT    => boolean,
+--!   USE_NEGATION   => boolean,
+--!   USE_A_NEGATION => boolean,
+--!   USE_D_NEGATION => boolean
 --! )
 --! port map(
+--!   neg          => in  std_logic, -- negate product
 --!   neg_a        => in  std_logic, -- negate a
---!   neg_b        => in  std_logic, -- negate b
 --!   neg_d        => in  std_logic, -- negate d
 --!   a            => in  signed, -- first preadder input
 --!   d            => in  signed, -- second preadder input
@@ -94,27 +94,25 @@ library baselib;
 --!
 entity xilinx_negation_logic is
 generic (
-  --! Enable additional D preadder input.
+  --! Enable additional D preadder input. Might require more resources and power.
   USE_D_INPUT : boolean := false;
-  --! @brief Negation mode of input A. Options are OFF, ON or DYNAMIC.
-  --! In OFF and ON mode the input port NEG_A is ignored.
-  --! Note that additional logic might be required dependent on mode and FPGA type.
-  NEGATE_A : string := "OFF";
-  --! @brief Negation mode of input B. Options are OFF, ON or DYNAMIC.
-  --! In OFF and ON mode the input port NEG_B is ignored.
-  --! Note that additional logic might be required dependent on mode and FPGA type.
-  NEGATE_B : string := "OFF";
-  --! @brief Negation mode of input D. Options are OFF, ON or DYNAMIC.
-  --! In OFF and ON mode the input port NEG_D is ignored.
-  --! Note that additional logic might be required dependent on mode and FPGA type.
-  NEGATE_D : string := "OFF"
+  --! @brief Enable NEG input port and allow product negation. Might require more resources and power.
+  --! Can be also used for input port B negation.
+  USE_NEGATION : boolean := false;
+  --! @brief Enable NEG_A input port and allow separate negation of preadder input port A.
+  --! Might require more resources and power. Typically only relevant when USE_D_INPUT=true
+  --! because otherwise preferably the product negation should be used.
+  USE_A_NEGATION : boolean := false;
+  --! @brief Enable NEG_D input port and allow separate negation of preadder input port D.
+  --! Might require more resources and power. Only relevant when USE_D_INPUT=true.
+  USE_D_NEGATION : boolean := false
 );
 port (
-  --! @brief Add/subtract, '0' -> +a, '1' -> -a . Only relevant in DYNAMIC mode.
+  --! Negation of product , '0'->+(a*b), '1'->-(a*b) . Only relevant when USE_NEGATION=true.
+  neg         : in  std_logic := '0';
+  --! @brief Negation of A synchronous to input A, '0'=+a, '1'=-a . Only relevant when USE_A_NEGATION=true.
   neg_a       : in  std_logic := '0';
-  --! @brief Add/subtract, '0' -> +b, '1' -> -b . Only relevant in DYNAMIC mode.
-  neg_b       : in  std_logic := '0';
-  --! @brief Add/subtract, '0' -> +d, '1' -> -d . Only relevant in DYNAMIC mode.
+  --! @brief Negation of D synchronous to input D, '0'=+d, '1'=-d . Only relevant when USE_D_NEGATION=true.
   neg_d       : in  std_logic := '0';
   --! first preadder input
   a           : in  signed;
@@ -133,25 +131,26 @@ begin
 
   -- synthesis translate_off (Altera Quartus)
   -- pragma translate_off (Xilinx Vivado , Synopsys)
-  assert (NEGATE_A="OFF") or (NEGATE_A="ON") or (NEGATE_A="DYNAMIC")
+  assert (USE_D_INPUT or not USE_D_NEGATION)
     report "ERROR " & xilinx_negation_logic'INSTANCE_NAME & ": " & 
-           "Generic NEGATE_A string must be ON, OFF or DYNAMIC."
+           "Negation of input port D not possible because input port D is disabled."
     severity failure;
 
-  assert (NEGATE_B="OFF") or (NEGATE_B="ON") or (NEGATE_B="DYNAMIC")
+  assert (USE_A_NEGATION or not USE_D_NEGATION)
     report "ERROR " & xilinx_negation_logic'INSTANCE_NAME & ": " & 
-           "Generic NEGATE_B string must be ON, OFF or DYNAMIC."
+           "Swap A and D input ports and enable USE_A_NEGATION instead of USE_D_NEGATION to save resources and power."
     severity failure;
 
-  assert (NEGATE_D="OFF") or (NEGATE_D="ON") or (NEGATE_D="DYNAMIC")
+  assert (dsp_a'length>=a'length)
     report "ERROR " & xilinx_negation_logic'INSTANCE_NAME & ": " & 
-           "Generic NEGATE_D string must be ON, OFF or DYNAMIC."
+           "DSP_A output width shall not be smaller then A input width."
     severity failure;
 
-  assert (USE_D_INPUT) or (NEGATE_D="OFF")
-    report "WARNING " & xilinx_negation_logic'INSTANCE_NAME & ": " & 
-           "When D input is not used the generic NEGATE_D is ignored and should be OFF."
-    severity warning;
+  assert (dsp_d'length>=d'length or not USE_D_INPUT)
+    report "ERROR " & xilinx_negation_logic'INSTANCE_NAME & ": " & 
+           "DSP_D output width shall not be smaller then D input width."
+    severity failure;
+
   -- synthesis translate_on (Altera Quartus)
   -- pragma translate_on (Xilinx Vivado , Synopsys)
 
@@ -168,80 +167,49 @@ architecture dsp48e2 of xilinx_negation_logic is
   -- identifier for reports of warnings and errors
   constant IMPLEMENTATION : string := "xilinx_negation_logic(dsp48e2)";
 
-  function gNEG(s:string) return string is
-  begin
-    if NEGATE_B="DYNAMIC" or s="DYNAMIC" then
-      return "DYNAMIC";
-    elsif NEGATE_B="ON" and s="OFF" then
-      return "ON";
-    elsif NEGATE_B="ON" and s="ON" then
-      return "OFF";
-    else
-      return s;
-    end if;
-  end function;
-
-  constant cNEGATE_A : string := gNEG(NEGATE_A);
-  constant cNEGATE_D : string := gNEG(NEGATE_D);
-
-  constant SWAP_AD : boolean := cNEGATE_A="OFF" or cNEGATE_D="DYNAMIC";
-  
-  constant STATIC_NEGATE_A : boolean := cNEGATE_A="ON" and cNEGATE_D="DYNAMIC";
-
-  constant STATIC_NEGATE_D : boolean := cNEGATE_D="ON" and
-                                       (cNEGATE_A="ON" or cNEGATE_A="DYNAMIC");
-
-  constant DYNAMIC_NEGATE_A : boolean := cNEGATE_A="DYNAMIC" and cNEGATE_D="DYNAMIC";
-
-  constant MAX_INPUT_WIDTH : positive := maximum(a'length, d'length);
-  constant MAX_OUTPUT_WIDTH : positive := maximum(dsp_a'length, dsp_d'length);
-
-  signal neg_a_i, neg_b_i, neg_d_i :std_logic;
-  signal neg_a_i2, neg_d_i2 :std_logic;
-
-  signal a_i : signed(MAX_OUTPUT_WIDTH-1 downto 0);
-  signal d_i : signed(MAX_OUTPUT_WIDTH-1 downto 0);
+  signal neg_i, neg_a_i, neg_d_i :std_logic;
 
   signal dsp_a_i : signed(dsp_a'length-1 downto 0);
   signal dsp_d_i : signed(dsp_d'length-1 downto 0);
 
 begin
 
-  assert (a'length=d'length)
+  assert (USE_D_INPUT and a'length=d'length)
     report "WARNING " & IMPLEMENTATION & ": " & 
            "Input widths of A and D are different."
     severity warning;
 
-  assert (dsp_a'length=dsp_d'length)
-    report "WARNING " & IMPLEMENTATION & ": " & 
-           "Output widths of DSP_A and DSP_D are different."
-    severity warning;
+  neg_i   <= neg   when USE_NEGATION   else '0'; -- product negation
+  neg_a_i <= neg_a when USE_A_NEGATION else '0';
+  neg_d_i <= neg_d when USE_D_NEGATION else '0';
 
-  assert (MAX_OUTPUT_WIDTH>=MAX_INPUT_WIDTH)
-    report "WARNING " & IMPLEMENTATION & ": " & 
-           "Max output width is smaller than max input width."
-    severity warning;
+  -- always pass through A
+  dsp_a_i <= resize(a,dsp_a_i'length);
 
-  neg_a_i <= '0' when NEGATE_A="OFF" else '1' when NEGATE_A="ON" else neg_a;
-  neg_b_i <= '0' when NEGATE_B="OFF" else '1' when NEGATE_B="ON" else neg_b;
-  neg_d_i <= '0' when (NEGATE_D="OFF" or not USE_D_INPUT) else '1' when NEGATE_D="ON" else neg_d;
-
-  neg_a_i2 <= neg_a_i xor neg_b_i; -- only relevant in DYNAMIC mode
-  neg_d_i2 <= neg_d_i xor neg_b_i; -- only relevant in DYNAMIC mode
-
-  a_i <= -resize(a,a_i'length) when (STATIC_NEGATE_A or (DYNAMIC_NEGATE_A and neg_a_i2='1')) else resize(a,a_i'length);
-
-  d_i <= -resize(d,d_i'length) when (STATIC_NEGATE_D) else resize(d,d_i'length);
-
-  dsp_a_i <= resize(d_i,dsp_a_i'length) when SWAP_AD else a_i;
-
-  dsp_d_i <= resize(a_i,dsp_d_i'length) when SWAP_AD else d_i;
-
-  neg_preadd <= neg_d_i2 when (cNEGATE_D="DYNAMIC") else
-                neg_a_i2 when (cNEGATE_A="DYNAMIC") else
-                '0'   when (cNEGATE_A="OFF" and cNEGATE_D="OFF") else '1';
+  -- Negate port D when necessary
+  g_neg_d : if not USE_D_INPUT generate
+    dsp_d_i <= (others=>'0');
+  elsif (USE_NEGATION nor USE_D_NEGATION) generate
+    -- just pass through D when negation is not required
+    dsp_d_i <= resize(d,dsp_d_i'length);
+  else generate
+    constant D_WIDTH : positive := dsp_d'length;
+    constant D_MAX : signed(D_WIDTH-1 downto 0) := to_signed(2**(D_WIDTH-1)-1,D_WIDTH);
+    constant D_MIN : signed(D_WIDTH-1 downto 0) := not D_MAX;
+--    constant D_MAX : signed(D_WIDTH-1 downto 0) := (D_WIDTH-1=>'0', others=>'1');
+--    constant D_MIN : signed(D_WIDTH-1 downto 0) := (D_WIDTH-1=>'1', others=>'0');
+    signal negate : std_logic;
+    signal temp : signed(D_WIDTH-1 downto 0);
+   begin
+    negate <= neg_i xor neg_d_i;
+    temp <= resize(d,temp'length);
+    -- Includes clipping to most positive value when most negative value is negated.
+    dsp_d_i <= D_MAX when (d'length=D_WIDTH and negate='1' and temp=D_MIN) else -temp when negate='1' else temp;
+  end generate;
 
   neg_product <= '0'; -- not available in DSP48
+  neg_preadd <= neg_i xor neg_a_i;
+
   dsp_a <= dsp_a_i;
   dsp_d <= dsp_d_i;
 
@@ -251,27 +219,30 @@ end architecture;
 
 architecture dsp58 of xilinx_negation_logic is
 
-  signal neg_a_i, neg_b_i, neg_d_i :std_logic;
+  -- identifier for reports of warnings and errors
+  constant IMPLEMENTATION : string := "xilinx_negation_logic(dsp58)";
+
+  signal neg_i, neg_a_i, neg_d_i :std_logic;
 
 begin
 
-  neg_a_i <= neg_a when NEGATE_A="DYNAMIC" else '1' when NEGATE_A="ON" else '0';
-  neg_b_i <= neg_b when NEGATE_B="DYNAMIC" else '1' when NEGATE_B="ON" else '0';
-  neg_d_i <= neg_d when NEGATE_D="DYNAMIC" else '1' when NEGATE_D="ON" else '0';
+  assert (USE_D_INPUT and a'length=d'length)
+    report "WARNING " & IMPLEMENTATION & ": " & 
+           "Input widths of A and D are different."
+    severity warning;
 
-  GDOFF : if not USE_D_INPUT generate
-    -- just product negation required, when either A or B is negated
-    neg_product <= neg_a_i xor neg_b_i;
-    neg_preadd  <= '0'; -- unused, preadder can be disabled
-  end generate;
+  neg_i   <= neg   when USE_NEGATION   else '0'; -- product negation
+  neg_a_i <= neg_a when USE_A_NEGATION else '0';
+  neg_d_i <= neg_d when USE_D_NEGATION else '0';
 
-  GDON : if USE_D_INPUT generate
-    neg_product <= neg_b_i xor neg_d_i;
-    neg_preadd  <= neg_b_i xor neg_d_i xor neg_a_i;
-  end generate;
+  neg_product <= (neg_d_i xor neg_i) when USE_D_INPUT else
+                 (neg_a_i xor neg_i); -- just product negation required, when either A or B is negated
+
+  neg_preadd  <= (neg_d_i xor neg_a_i) when USE_D_INPUT else
+                 '0'; -- unused, preadder can be disabled
 
   -- DSP58 does not require manipulation of A and D data input ports.
-  dsp_a <= a;
-  dsp_d <= d;
+  dsp_a <= resize(a,dsp_a'length);
+  dsp_d <= resize(d,dsp_d'length) when USE_D_INPUT else to_signed(0,dsp_d'length);
 
 end architecture;
