@@ -58,9 +58,9 @@ begin
            " Supported optimizations are : PERFORMANCE or RESOURCES"
     severity failure;
 
-  neg_i <= neg when NEGATION="DYNAMIC" else '1' when NEGATION="ON" else '0';
-  conj_x_i <= conj_x when CONJUGATE_X="DYNAMIC" else '1' when CONJUGATE_X="ON" else '0';
-  conj_y_i <= conj_y when CONJUGATE_Y="DYNAMIC" else '1' when CONJUGATE_Y="ON" else '0';
+  neg_i    <= neg    when USE_NEGATION    else '0';
+  conj_x_i <= conj_x when USE_CONJUGATE_X else '0';
+  conj_y_i <= conj_y when USE_CONJUGATE_Y else '0';
 
 
  --------------------------------------------------------------------------------------------------
@@ -97,7 +97,7 @@ begin
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
     USE_Z_INPUT        => USE_Z_INPUT,
     USE_XB_INPUT       => false, -- unused
-    USE_NEGATION       => (NEGATION/="OFF"), -- TODO
+    USE_NEGATION       => USE_NEGATION,
     USE_XA_NEGATION    => open, -- unused
     USE_XB_NEGATION    => open, -- unused
     NUM_INPUT_REG_X    => NUM_INPUT_REG_XY,
@@ -138,7 +138,7 @@ begin
     USE_Z_INPUT        => false, -- unused
     USE_XB_INPUT       => false, -- unused
     USE_NEGATION       => true,
-    USE_XA_NEGATION    => (CONJUGATE_X/="OFF"),
+    USE_XA_NEGATION    => USE_CONJUGATE_X,
     USE_XB_NEGATION    => open, -- unused
     NUM_INPUT_REG_X    => NUM_INPUT_REG_XY+1, -- additional pipeline register(s) because of chaining
     NUM_INPUT_REG_Y    => NUM_INPUT_REG_XY+1, -- additional pipeline register(s) because of chaining
@@ -177,8 +177,8 @@ begin
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
     USE_Z_INPUT        => USE_Z_INPUT,
     USE_XB_INPUT       => false, -- unused
-    USE_NEGATION       => (CONJUGATE_Y/="OFF"), -- TODO
-    USE_XA_NEGATION    => (NEGATION/="OFF"), -- TODO
+    USE_NEGATION       => USE_CONJUGATE_Y,
+    USE_XA_NEGATION    => USE_NEGATION,
     USE_XB_NEGATION    => open, -- unused
     NUM_INPUT_REG_X    => NUM_INPUT_REG_XY,
     NUM_INPUT_REG_Y    => NUM_INPUT_REG_XY,
@@ -217,8 +217,8 @@ begin
     USE_CHAIN_INPUT    => true,
     USE_Z_INPUT        => false, -- unused
     USE_XB_INPUT       => false, -- unused
-    USE_NEGATION       => (NEGATION/="OFF"), -- TODO
-    USE_XA_NEGATION    => (CONJUGATE_X/="OFF"), -- TODO
+    USE_NEGATION       => USE_NEGATION,
+    USE_XA_NEGATION    => USE_CONJUGATE_X,
     USE_XB_NEGATION    => open, -- unused
     NUM_INPUT_REG_X    => NUM_INPUT_REG_XY+1, -- additional pipeline register(s) because of chaining
     NUM_INPUT_REG_Y    => NUM_INPUT_REG_XY+1, -- additional pipeline register(s) because of chaining
@@ -299,8 +299,8 @@ begin
     USE_CHAIN_INPUT    => false,
     USE_Z_INPUT        => false,
     USE_XB_INPUT       => true,
-    USE_NEGATION       => (NEGATION/="OFF"), -- TODO
-    USE_XA_NEGATION    => (CONJUGATE_Y/="OFF"), -- TODO
+    USE_NEGATION       => USE_NEGATION,
+    USE_XA_NEGATION    => USE_CONJUGATE_Y,
     USE_XB_NEGATION    => false, -- unused
     NUM_INPUT_REG_X    => NUM_INPUT_REG_XY,
     NUM_INPUT_REG_Y    => NUM_INPUT_REG_XY,
@@ -341,7 +341,7 @@ begin
     USE_Z_INPUT        => true,
     USE_XB_INPUT       => true,
     USE_NEGATION       => true,
-    USE_XA_NEGATION    => (CONJUGATE_X/="OFF"), -- TODO
+    USE_XA_NEGATION    => USE_CONJUGATE_X,
     USE_XB_NEGATION    => false, -- unused
     NUM_INPUT_REG_X    => NUM_INPUT_REG_XY+2, -- 2 more pipeline stages to compensate Z input
     NUM_INPUT_REG_Y    => NUM_INPUT_REG_XY+2, -- 2 more pipeline stages to compensate Z input
@@ -381,9 +381,9 @@ begin
     USE_CHAIN_INPUT    => USE_CHAIN_INPUT,
     USE_Z_INPUT        => true,
     USE_XB_INPUT       => true,
-    USE_NEGATION       => (NEGATION/="OFF"), -- TODO
+    USE_NEGATION       => USE_NEGATION,
     USE_XA_NEGATION    => true,
-    USE_XB_NEGATION    => (CONJUGATE_X/="OFF"), -- TODO,
+    USE_XB_NEGATION    => USE_CONJUGATE_X,
     NUM_INPUT_REG_X    => NUM_INPUT_REG_XY+2, -- 2 more pipeline stages to compensate Z input
     NUM_INPUT_REG_Y    => NUM_INPUT_REG_XY+2, -- 2 more pipeline stages to compensate Z input
     NUM_INPUT_REG_Z    => 1,

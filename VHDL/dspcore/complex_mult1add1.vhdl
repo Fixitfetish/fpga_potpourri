@@ -76,18 +76,16 @@ generic (
   --!
   --! Note that every single accumulated product result counts!
   NUM_SUMMAND : natural := 0;
-  --! Enable chain input from neighbor DSP cell, i.e. enable additional accumulator input : TODO
+  --! Enable chain input from neighbor DSP cell, i.e. enable additional accumulator input.
   USE_CHAIN_INPUT : boolean := false;
   --! Enable additional Z input. Note that this might disable the accumulator feature.
   USE_Z_INPUT : boolean := false;
-  --! Product negation mode can be OFF, static ON or DYNAMIC. In modes OFF and ON the input port NEG will be ignored.
-  NEGATION : string := "OFF";
-  --! @brief Complex conjugate X, i.e. negation of input port X_IM. Can be OFF, static ON or DYNAMIC.
-  --! In modes OFF and ON the input port CONJ_X will be ignored.
-  CONJUGATE_X : string := "OFF";
-  --! @brief Complex conjugate Y, i.e. negation of input port Y_IM. Can be OFF, static ON or DYNAMIC.
-  --! In modes OFF and ON the input port CONJ_Y will be ignored.
-  CONJUGATE_Y : string := "OFF";
+  --! Enable NEG input port for product negation. Might require more resources and power.
+  USE_NEGATION : boolean := false;
+  --! Enable CONJ_X input port for complex conjugate X, i.e. negation of input port X_IM.
+  USE_CONJUGATE_X : boolean := false;
+  --! Enable CONJ_Y input port for complex conjugate Y, i.e. negation of input port Y_IM.
+  USE_CONJUGATE_Y : boolean := false;
   --! @brief Number of additional input registers for inputs X and Y. At least one is strongly recommended.
   --! If available the input registers within the DSP cell are used.
   NUM_INPUT_REG_XY : natural := 1;
@@ -126,11 +124,11 @@ port (
   clr        : in  std_logic;
   --! Valid signal for input factors, high-active
   vld        : in  std_logic;
-  --! Negation of product , '0' -> +(x*y), '1' -> -(x*y). Only relevant when NEGATION="DYNAMIC" .
+  --! Negation of product , '0' -> +(x*y), '1' -> -(x*y). Only relevant when USE_NEGATION=true .
   neg        : in  std_logic := '0';
-  --! Complex conjugate X , '0' -> +x_im, '1' -> -x_im. Only relevant when CONJUGATE_X="DYNAMIC" .
+  --! Complex conjugate X , '0' -> +x_im, '1' -> -x_im. Only relevant when USE_CONJUGATE_X=true .
   conj_x     : in  std_logic := '0';
-  --! Complex conjugate Y , '0' -> +y_im, '1' -> -y_im. Only relevant when CONJUGATE_Y="DYNAMIC" .
+  --! Complex conjugate Y , '0' -> +y_im, '1' -> -y_im. Only relevant when USE_CONJUGATE_Y=true .
   conj_y     : in  std_logic := '0';
   --! 1st factor input, real component
   x_re       : in  signed;
@@ -190,10 +188,6 @@ begin
   assert (z_re'length=z_im'length) or not USE_Z_INPUT
     report "ERROR in " & complex_mult1add1'INSTANCE_NAME & ": " & 
            " Real and imaginary components of Z input must have same size."
-    severity failure;
-  assert (NEGATION="OFF" or NEGATION="ON" or NEGATION="DYNAMIC")
-    report "ERROR in " & complex_mult1add1'INSTANCE_NAME & ": " & 
-           "Generic NEGATION string must be OFF, ON or DYNAMIC."
     severity failure;
   -- synthesis translate_on (Altera Quartus)
   -- pragma translate_on (Xilinx Vivado , Synopsys)

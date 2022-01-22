@@ -163,9 +163,9 @@ begin
     dsp_d     => dsp_dim
   );
 
-  neg_i    <= dsp_neg    when NEGATION="DYNAMIC"    else '1' when NEGATION="ON"    else '0';
-  conj_x_i <= dsp_conj_x when CONJUGATE_X="DYNAMIC" else '1' when CONJUGATE_X="ON" else '0';
-  conj_y_i <= dsp_conj_y when CONJUGATE_Y="DYNAMIC" else '1' when CONJUGATE_Y="ON" else '0';
+  neg_i    <= dsp_neg    when USE_NEGATION    else '0';
+  conj_x_i <= dsp_conj_x when USE_CONJUGATE_X else '0';
+  conj_y_i <= dsp_conj_y when USE_CONJUGATE_Y else '0';
 
   neg_xre <= neg_i;
   neg_xim <= neg_i xor conj_x_i;
