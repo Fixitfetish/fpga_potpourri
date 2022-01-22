@@ -36,6 +36,10 @@ architecture dsp58 of complex_mult1add1 is
 
   -- identifier for reports of warnings and errors
   constant IMPLEMENTATION : string := "complex_mult1add1(dsp58)";
+  
+  constant X_INPUT_WIDTH   : positive := maximum(x_re'length,x_im'length);
+  constant Y_INPUT_WIDTH   : positive := maximum(y_re'length,y_im'length);
+  constant MAX_INPUT_WIDTH : positive := maximum(X_INPUT_WIDTH,Y_INPUT_WIDTH);
 
   signal neg_i, conj_x_i, conj_y_i : std_logic := '0';
 
@@ -240,11 +244,35 @@ begin
 
 
  --------------------------------------------------------------------------------------------------
- -- Special Operation with 2 DSP cells and chaining
+ -- Operation with 3 DSP cells  (Z input not supported !)
+ -- *  Temp =           ( Yre + Yim) * Xre 
+ -- *  Re   = ReChain + (-Xre - Xim) * Yim + Temp
+ -- *  Im   = ImChain + ( Xim - Xre) * Yre + Temp
+ --
+ -- USE_CHAIN_INPUT=true
+ -- * accumulation not possible because P feedback must be disabled
+ -- * The rounding (i.e. +0.5) not possible within DSP.
+ --   But rounding bit can be injected at the first chain link where USE_CHAIN_INPUT=false
  --------------------------------------------------------------------------------------------------
- G2DSP : if OPTIMIZATION="RESOURCES" generate
+ G3DSP : if (OPTIMIZATION="RESOURCES" and MAX_INPUT_WIDTH>18) generate
   -- identifier for reports of warnings and errors
-  constant CHOICE : string := IMPLEMENTATION & " with optimization=RESOURCES";
+  constant CHOICE : string := IMPLEMENTATION & " with optimization=RESOURCES (3 DSP cells)";
+ begin
+
+ -- TODO
+
+ end generate;
+
+
+ --------------------------------------------------------------------------------------------------
+ -- Special Operation with 2 back-to-back DSP cells plus chain and Z input.
+ --
+ -- Notes
+ -- * factor inputs X and Y are limited to 2x18 bits
+ --------------------------------------------------------------------------------------------------
+ G2DSP : if (OPTIMIZATION="RESOURCES" and MAX_INPUT_WIDTH<=18) generate
+  -- identifier for reports of warnings and errors
+  constant CHOICE : string := IMPLEMENTATION & " with optimization=RESOURCES (2 DSP cells)";
   -- number main path input registers within DSP
   constant NUM_IREG_DSP : natural := NUM_IREG(DSP,NUM_INPUT_REG_XY);
   -- number main path input registers in LOGIC
@@ -275,21 +303,6 @@ begin
   signal accu_vld : std_logic := '0';
   signal accu_used_re, accu_used_im : signed(ACCU_USED_WIDTH-1 downto 0);
  begin
-
-  -- check chain in/out length
-  assert (chainin_re'length>=ACCU_WIDTH and chainin_im'length>=ACCU_WIDTH) or (not USE_CHAIN_INPUT)
-    report "ERROR " & CHOICE & ": " &
-           "Chain input width must be at least " & integer'image(ACCU_WIDTH) & " bits."
-    severity failure;
-
-  -- check input/output length
-  assert (x_re'length<=18 and x_im'length<=18 and y_re'length<=18 and y_im'length<=18)
-    report "ERROR " & CHOICE & ": " & 
-           "Complex multiplier input width of X and Y is limited to 18."
-    severity failure;
-  assert (z_re'length<=MAX_WIDTH_C and z_im'length<=MAX_WIDTH_C)
-    report "ERROR " & CHOICE & ": Summand input Z width cannot exceed " & integer'image(MAX_WIDTH_C)
-    severity failure;
 
   assert GUARD_BITS_EVAL<=MAX_GUARD_BITS
     report "ERROR " & CHOICE & ": " &

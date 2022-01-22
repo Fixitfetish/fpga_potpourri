@@ -46,16 +46,6 @@ architecture behave of complex_mult1add1 is
   constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
   constant OUTPUT_WIDTH : positive := result_re'length;
 
-  --! rounding bit generation (+0.5)
-  function gRND(clear:std_logic) return signed is
-    variable res : signed(ACCU_WIDTH-1 downto 0) := (others=>'0');
-  begin 
-    if clear/='0' then
-      res :=signed(RND(ROUND_ENABLE,OUTPUT_SHIFT_RIGHT));
-    end if;
-    return res;
-  end function;
-
   signal dsp_rst : std_logic;
   signal dsp_clr : std_logic;
   signal dsp_vld : std_logic;
@@ -79,6 +69,7 @@ architecture behave of complex_mult1add1 is
   signal neg_i, conj_x_i, conj_y_i : std_logic := '0';
   signal neg_xre,neg_xim,neg_yre,neg_yim : std_logic;
 
+  signal clr_q : std_logic;
   signal p_re, p_im : signed(ACCU_WIDTH-1 downto 0);
   signal chainin_re_i, chainin_im_i : signed(ACCU_WIDTH-1 downto 0);
 
@@ -193,8 +184,23 @@ begin
   chainin_im_i <= resize(chainin_im,ACCU_WIDTH) when USE_CHAIN_INPUT else (others=>'0');
 
   -- Operation
-  p_re <= are*bre - aim*bim + cre + chainin_re_i + gRND(dsp_clr);
-  p_im <= are*bim + aim*bre + cim + chainin_im_i + gRND(dsp_clr);
+  p_re <= (are*bre - aim*bim) + cre + chainin_re_i;
+  p_im <= (are*bim + aim*bre) + cim + chainin_im_i;
+
+  -- CLR pending bit
+  pclr : process(clk) begin
+    if rising_edge(clk) then
+      if rst/='0' then
+        clr_q <= '0';
+      elsif clkena='1' then
+        if dsp_clr='1' and dsp_vld='0' then
+          clr_q <= '1';
+        elsif dsp_vld='1' then
+          clr_q <= '0';
+        end if;
+      end if;
+    end if;
+  end process;
 
   -- pipelined output valid signal
   g_dspreg_on : if NUM_OUTPUT_REG=1 generate
@@ -210,13 +216,14 @@ begin
           if clkena='1' then
             accu_vld <= dsp_vld;
             -- Update and accumulate only valid values
-            -- Clear also when invalid
-            if dsp_clr='1' then
-              accu_re <= p_re;
-              accu_im <= p_im;
-            elsif dsp_vld='1' then
-              accu_re <= p_re + accu_re;
-              accu_im <= p_im + accu_im;
+            if dsp_vld='1' then
+              if dsp_clr='1' or clr_q='1' then
+                accu_re <= p_re + signed(RND(ROUND_ENABLE,OUTPUT_SHIFT_RIGHT));
+                accu_im <= p_im + signed(RND(ROUND_ENABLE,OUTPUT_SHIFT_RIGHT));
+              else
+                accu_re <= p_re + accu_re;
+                accu_im <= p_im + accu_im;
+              end if;
             end if;
           end if;
         end if;
@@ -225,8 +232,8 @@ begin
   end generate;
   g_dspreg_off : if NUM_OUTPUT_REG=0 generate
     accu_vld <= dsp_vld;
-    accu_re <= p_re;
-    accu_im <= p_im;
+    accu_re <= p_re + signed(RND(ROUND_ENABLE,OUTPUT_SHIFT_RIGHT));
+    accu_im <= p_im + signed(RND(ROUND_ENABLE,OUTPUT_SHIFT_RIGHT));
   end generate;
 
   chainout_re <= resize(accu_re,chainout_re'length);

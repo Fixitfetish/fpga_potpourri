@@ -21,14 +21,24 @@ library ieee;
 --!
 --! @image html xilinx_complex_macc.svg "" width=600px
 --!
---! The behavior is as follows
+--! **ACCU Mode**
+--! * Only ChainIn or C can accumulated in addition to A*B.
 --!
---! | CLR | VLD | Operation                         | Comment                |
---! |-----|-----|-----------------------------------|------------------------|
---! |  1  |  0  | P = undefined                     | reset accumulator      |
---! |  1  |  1  | P = A*B + C + CHAININ             | restart accumulation   |
---! |  0  |  0  | P = P                             | hold accumulator       |
---! |  0  |  1  | P = P + A*B + (C or CHAININ)      | proceed accumulation   |
+--! | CLR pending | CLR | VLD | Operation P                     | Comment                                      |
+--! |-------------|-----|-----|---------------------------------|----------------------------------------------|
+--! |    0 / 1    |  1  |  0  | P = P                           | Hold output register P, set CLR pending bit  |
+--! |    0 / 1    |  0  |  0  | P = P                           | Hold output register P, keep CLR pending bit |
+--! |    0 / 1    |  1  |  1  | P = RND + A*B + (ChainIn or C)  | Restart Accumulation, clear CLR pending bit  |
+--! |      1      |  0  |  1  | P = RND + A*B + (ChainIn or C)  | Restart Accumulation, clear CLR pending bit  |
+--! |      0      |  0  |  1  | P =  P  + A*B + (ChainIn or C)  | Proceed Accumulation, clear CLR pending bit  |
+--!
+--! **SUM Mode** (always CLR=1)
+--! * Adding round bit RND not possible when ChainIn and C are used.
+--!
+--! | CLR | VLD | Operation P                         | Comment                  |
+--! |-----|-----|-------------------------------------|--------------------------|
+--! |  1  |  0  | P = P                               | Hold output register P   |
+--! |  1  |  1  | P = A*B + (2 of RND, ChainIn or C)  |                          |
 --!
 --! All DSP internal registers before the final accumulator P register are considered to be input registers.
 --! * The A and B path always have the same number of input register.

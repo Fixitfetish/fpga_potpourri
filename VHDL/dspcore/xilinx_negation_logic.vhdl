@@ -251,9 +251,6 @@ end architecture;
 
 architecture dsp58 of xilinx_negation_logic is
 
-  -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "xilinx_negation_logic(dsp58)";
-
   signal neg_a_i, neg_b_i, neg_d_i :std_logic;
 
 begin

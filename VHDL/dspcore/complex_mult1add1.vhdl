@@ -59,6 +59,10 @@ library ieee;
 --!
 entity complex_mult1add1 is
 generic (
+  --! @brief OPTIMIZATION : TODO
+  --! * PERFORMANCE
+  --! * RESOURCES
+  OPTIMIZATION : string := "PERFORMANCE";
   --! @brief The number of summands is important to determine the number of additional
   --! guard bits (MSBs) that are required for the accumulation process. @link NUM_SUMMAND More...
   --!
@@ -108,11 +112,7 @@ generic (
   --! Enable clipping when right shifted result exceeds output range.
   OUTPUT_CLIP : boolean := true;
   --! Enable overflow/clipping detection 
-  OUTPUT_OVERFLOW : boolean := true;
-  --! @brief OPTIMIZATION : TODO
-  --! * PERFORMANCE
-  --! * RESOURCES
-  OPTIMIZATION : string := "PERFORMANCE"
+  OUTPUT_OVERFLOW : boolean := true
 );
 port (
   --! Standard system clock

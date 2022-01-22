@@ -46,8 +46,8 @@ architecture dsp48e2 of xilinx_preadd_macc is
       return integer'high;
     end if;
   end function;
-
   constant NUM_INPUT_REG_CLR : natural := nof_regs_clr;
+
   constant NUM_INPUT_REG_VLD : natural := NUM_INPUT_REG_AD;
 
   -- Consider up to one MREG register as second input register stage
@@ -108,16 +108,12 @@ architecture dsp48e2 of xilinx_preadd_macc is
   constant NUM_OPMODE_REG : natural := minimum(1,NUM_INPUT_REG_CLR);
   -- OPMODE control signal
   signal opmode : std_logic_vector(8 downto 0);
-  alias opmode_xy is opmode(3 downto 0);
-  alias opmode_z  is opmode(6 downto 4);
-  alias opmode_w  is opmode(8 downto 7);
 
   -- ALUMODE input register, here currently constant and disabled
   constant NUM_ALUMODE_REG : natural := 0;
   -- ALUMODE control signal
   constant alumode : std_logic_vector(3 downto 0) := "0000"; -- always P = Z + (W + X + Y + CIN)
 
-  signal clr_i, clr_q : std_logic := '0';
   signal chainin_i, chainout_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
   signal p_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
 
@@ -206,32 +202,20 @@ begin
   inmode(2) <= '1' when USE_D_INPUT else '0'; -- pass D through input gate
   inmode(4) <= '0'; -- '0'= B2 Mux controlled BREG , '1'= B1
 
-  -- hold clear until next valid
-  p_clr : process(clk)
-  begin
-    if rising_edge(clk) then
-      if rst/='0' then
-        clr_q<='1';
-      elsif clkena='1' then
-        if pipe_clr(NUM_OPMODE_REG)='1' and pipe_vld(NUM_OPMODE_REG)='0' then
-          clr_q<='1';
-        elsif pipe_vld(NUM_OPMODE_REG)='1' then
-          clr_q<='0';
-        end if;
-      end if;
-    end if;
-  end process;
-  clr_i <= pipe_clr(NUM_OPMODE_REG) or clr_q;
-
-  -- OPMODE control signal
-  opmode_xy <= "0101"; -- constant, always multiplier result M
-  opmode_z  <= "001" when USE_CHAIN_INPUT else -- PCIN
-               "011" when USE_C_INPUT else -- Input C
-               "000"; -- unused
-  opmode_w  <= "11" when (USE_CHAIN_INPUT and USE_C_INPUT) else -- input C
-               "10" when clr_i='1' else -- clear P and initialize P with rounding constant
-               "00" when (NUM_OUTPUT_REG=0) else -- add zero when P register disabled
-               "01"; -- feedback P accumulator register output
+  i_opmode : entity work.xilinx_opmode_logic
+  generic map(
+    USE_PCIN_INPUT => USE_CHAIN_INPUT,
+    USE_C_INPUT    => USE_C_INPUT,
+    ENABLE_P_REG   => (NUM_OUTPUT_REG>=1)
+  )
+  port map(
+    clk    => clk,
+    rst    => rst,
+    clkena => clkena,
+    clr    => pipe_clr(NUM_OPMODE_REG),
+    vld    => pipe_vld(NUM_OPMODE_REG),
+    opmode => opmode
+  );
 
   -- use only LSBs of chain input
   chainin_i <= std_logic_vector(chainin(ACCU_WIDTH-1 downto 0));
@@ -336,7 +320,7 @@ begin
     CED                => CE(clkena,NUM_DREG),
     CEINMODE           => CE(clkena,NUM_INMODE_REG),
     CEM                => CE(clkena,NUM_MREG),
-    CEP                => CE(clkena and pipe_vld(0),NUM_OUTPUT_REG), -- accumulate only valid values
+    CEP                => CE(clkena and pipe_vld(0),NUM_OUTPUT_REG), -- accumulate/output only valid values
     -- Reset: 1-bit (each) input: Reset
     RSTA               => rst,
     RSTALLCARRYIN      => '1', -- unused

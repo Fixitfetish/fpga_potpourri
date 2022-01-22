@@ -20,6 +20,13 @@ use work.xilinx_dsp_pkg_dsp58.all;
 
 --! @brief Implementation of xilinx_complex_macc for Xilinx DSP58.
 --!
+--! Notes and Limitations
+--! * Maximum A and B factor input width is 2x18 bits.
+--! * DSP internal accumulation not supported when both summand inputs, chain and C, are enabled.
+--! * DSP internal rounding bit addition not possible when both summand inputs, chain and C, are enabled.
+--! * Product negation requires additional DSP external logic which is implemented at the input.
+--! * Additional negation logic includes clipping of 18-bit input to most positive value when most negative value is negated.
+--!
 --! Refer to Xilinx Versal ACAP DSP Engine, Architecture Manual, AM004 (v1.1.2) July 15, 2021
 --!
 architecture dsp58 of xilinx_complex_macc is
@@ -40,9 +47,9 @@ architecture dsp58 of xilinx_complex_macc is
 
   function nof_regs_clr return natural is
   begin 
-    if    RELATION_CLR="A" then return NUM_INPUT_REG_A;
-    elsif RELATION_CLR="B" then return NUM_INPUT_REG_B;
-    elsif RELATION_CLR="C" then return NUM_INPUT_REG_C;
+    if    RELATION_CLR="A"  then return NUM_INPUT_REG_A;
+    elsif RELATION_CLR="B"  then return NUM_INPUT_REG_B;
+    elsif RELATION_CLR="C"  then return NUM_INPUT_REG_C;
     else
       report "ERROR: CLR input port must be related to A, B or C."
         severity failure;
@@ -95,16 +102,12 @@ architecture dsp58 of xilinx_complex_macc is
   constant NUM_OPMODE_REG : natural := minimum(1,NUM_INPUT_REG_CLR);
   -- OPMODE control signal
   signal opmode : std_logic_vector(8 downto 0);
-  alias opmode_xy is opmode(3 downto 0);
-  alias opmode_z  is opmode(6 downto 4);
-  alias opmode_w  is opmode(8 downto 7);
 
   -- ALUMODE input register, here currently constant and disabled
   constant NUM_ALUMODE_REG : natural := 0;
   -- ALUMODE control signal
   constant alumode : std_logic_vector(3 downto 0) := "0000"; -- always P = Z + (W + X + Y + CIN)
 
-  signal clr_i, clr_q : std_logic := '0';
   signal chainin_re_i, chainout_re_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
   signal chainin_im_i, chainout_im_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
   signal p_re_i, p_im_i : std_logic_vector(ACCU_WIDTH-1 downto 0);
@@ -113,6 +116,12 @@ architecture dsp58 of xilinx_complex_macc is
 
 begin
 
+  -- check chain in/out length
+  assert (chainin_re'length>=ACCU_WIDTH and chainin_im'length>=ACCU_WIDTH) or (not USE_CHAIN_INPUT)
+    report "ERROR " & IMPLEMENTATION & ": " & "Chain input width must be at least " & integer'image(ACCU_WIDTH)
+    severity failure;
+
+  -- check input/output length
   assert (a_re'length<=INPUT_WIDTH and a_im'length<=INPUT_WIDTH)
     report "ERROR " & IMPLEMENTATION & ": " & "Multiplier input A width cannot exceed " & integer'image(INPUT_WIDTH)
     severity failure;
@@ -121,7 +130,7 @@ begin
     report "ERROR " & IMPLEMENTATION & ": " & "Multiplier input B width cannot exceed " & integer'image(INPUT_WIDTH)
     severity failure;
 
-  assert (c_re'length<=MAX_WIDTH_C and c_im'length<=MAX_WIDTH_C)
+  assert (c_re'length<=MAX_WIDTH_C and c_im'length<=MAX_WIDTH_C) or (not USE_C_INPUT)
     report "ERROR " & IMPLEMENTATION & ": " & "Summand input C width cannot exceed " & integer'image(MAX_WIDTH_C)
     severity failure;
 
@@ -130,20 +139,30 @@ begin
            "DSP internal rounding bit addition not possible when C and CHAIN inputs are enabled."
     severity failure;
 
+  -- Negate port A because NEG and A_RE are synchronous.
   g_neg_a : if RELATION_NEG="A" generate
-    -- negate port A because NEG and A_RE are synchronous
-    -- TODO : a_re is most negative value ?
-    a_re_i <= -resize(a_re,a_re_i'length) when neg='1' else resize(a_re,a_re_i'length);
+    constant re_max : signed(INPUT_WIDTH-1 downto 0) := (INPUT_WIDTH-1=>'0', others=>'1');
+    constant re_min : signed(INPUT_WIDTH-1 downto 0) := (INPUT_WIDTH-1=>'1', others=>'0');
+    signal re : signed(INPUT_WIDTH-1 downto 0);
+  begin
+    -- Includes clipping to most positive value when most negative value is negated.
+    re <= resize(a_re,INPUT_WIDTH);
+    a_re_i <= re_max when (a_re'length=INPUT_WIDTH and neg='1' and re=re_min) else -re when neg='1' else re;
     a_conj_i <= neg xor a_conj;
     -- pass through port B
     b_re_i <= resize(b_re,b_re_i'length);
     b_conj_i <= b_conj;
   end generate;
 
+  -- Negate port B because NEG and B_RE are synchronous.
   g_neg_b : if RELATION_NEG="B" generate
-    -- negate port B because NEG and B_RE are synchronous
-    -- TODO : b_re is most negative value ?
-    b_re_i <= -resize(b_re,b_re_i'length) when neg='1' else resize(b_re,b_re_i'length);
+    constant re_max : signed(INPUT_WIDTH-1 downto 0) := (INPUT_WIDTH-1=>'0', others=>'1');
+    constant re_min : signed(INPUT_WIDTH-1 downto 0) := (INPUT_WIDTH-1=>'1', others=>'0');
+    signal re : signed(INPUT_WIDTH-1 downto 0);
+  begin
+    -- Includes clipping to most positive value when most negative value is negated.
+    re <= resize(b_re,INPUT_WIDTH);
+    b_re_i <= re_max when (b_re'length=INPUT_WIDTH and neg='1' and re=re_min) else -re when neg='1' else re;
     b_conj_i <= neg xor b_conj;
     -- pass through port A
     a_re_i <= resize(a_re,a_re_i'length);
@@ -176,32 +195,20 @@ begin
     end process;
   end generate;
 
-  -- hold clear until next valid
-  p_clr : process(clk)
-  begin
-    if rising_edge(clk) then
-      if rst/='0' then
-        clr_q<='1';
-      elsif clkena='1' then
-        if pipe_clr(NUM_OPMODE_REG)='1' and pipe_vld(NUM_OPMODE_REG)='0' then
-          clr_q<='1';
-        elsif pipe_vld(NUM_OPMODE_REG)='1' then
-          clr_q<='0';
-        end if;
-      end if;
-    end if;
-  end process;
-  clr_i <= pipe_clr(NUM_OPMODE_REG) or clr_q;
-
-  -- OPMODE control signal
-  opmode_xy <= "0101"; -- constant, always multiplier result M
-  opmode_z  <= "001" when USE_CHAIN_INPUT else -- PCIN
-               "011" when USE_C_INPUT else -- Input C
-               "000"; -- unused
-  opmode_w  <= "11" when (USE_CHAIN_INPUT and USE_C_INPUT) else -- input C
-               "10" when clr_i='1' else -- clear P and initialize P with rounding constant
-               "00" when (NUM_OUTPUT_REG=0) else -- add zero when P register disabled
-               "01"; -- feedback P accumulator register output
+  i_opmode : entity work.xilinx_opmode_logic
+  generic map(
+    USE_PCIN_INPUT => USE_CHAIN_INPUT,
+    USE_C_INPUT    => USE_C_INPUT,
+    ENABLE_P_REG   => (NUM_OUTPUT_REG>=1)
+  )
+  port map(
+    clk    => clk,
+    rst    => rst,
+    clkena => clkena,
+    clr    => pipe_clr(NUM_OPMODE_REG),
+    vld    => pipe_vld(NUM_OPMODE_REG),
+    opmode => opmode
+  );
 
   -- use only LSBs of chain input
   chainin_re_i <= std_logic_vector(chainin_re(ACCU_WIDTH-1 downto 0));
@@ -346,8 +353,8 @@ begin
      CEC_RE            => CE(clkena,NUM_CREG),
      CEM_IM            => CE(clkena,NUM_MREG),
      CEM_RE            => CE(clkena,NUM_MREG),
-     CEP_IM            => CE(clkena and pipe_vld(0),NUM_OUTPUT_REG), -- accumulate only valid values
-     CEP_RE            => CE(clkena and pipe_vld(0),NUM_OUTPUT_REG), -- accumulate only valid values
+     CEP_IM            => CE(clkena and pipe_vld(0),NUM_OUTPUT_REG), -- accumulate/output only valid values
+     CEP_RE            => CE(clkena and pipe_vld(0),NUM_OUTPUT_REG), -- accumulate/output only valid values
      CLK               => clk,
      CONJUGATE_A       => a_conj_i,
      CONJUGATE_B       => b_conj_i,
