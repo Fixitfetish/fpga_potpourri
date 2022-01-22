@@ -22,8 +22,8 @@ generic (
   PIPEREGS_RST     : natural := 1;
   PIPEREGS_CLR     : natural := 1;
   PIPEREGS_VLD     : natural := 1;
+  PIPEREGS_NEG     : natural := 1;
   PIPEREGS_NEG_A   : natural := 1;
-  PIPEREGS_NEG_B   : natural := 1;
   PIPEREGS_NEG_D   : natural := 1;
   PIPEREGS_A       : natural := 1;
   PIPEREGS_B       : natural := 1;
@@ -40,8 +40,8 @@ port (
   src_rst   : in  std_logic := '0';
   src_clr   : in  std_logic := '1';
   src_vld   : in  std_logic := '0';
+  src_neg   : in  std_logic := '0';
   src_neg_a : in  std_logic := '0';
-  src_neg_b : in  std_logic := '0';
   src_neg_d : in  std_logic := '0';
   src_a     : in  signed;
   src_b     : in  signed;
@@ -50,8 +50,8 @@ port (
   dsp_rst   : out std_logic;
   dsp_clr   : out std_logic;
   dsp_vld   : out std_logic;
+  dsp_neg   : out std_logic;
   dsp_neg_a : out std_logic;
-  dsp_neg_b : out std_logic;
   dsp_neg_d : out std_logic;
   dsp_a     : out signed;
   dsp_b     : out signed;
@@ -67,8 +67,8 @@ architecture rtl of xilinx_dsp_input_pipe is
   signal pipe_rst   : std_logic_vector(PIPEREGS_RST downto 0) := (others=>'1');
   signal pipe_clr   : std_logic_vector(PIPEREGS_CLR downto 0) := (others=>'1');
   signal pipe_vld   : std_logic_vector(PIPEREGS_VLD downto 0) := (others=>'0');
+  signal pipe_neg   : std_logic_vector(PIPEREGS_NEG downto 0) := (others=>'0');
   signal pipe_neg_a : std_logic_vector(PIPEREGS_NEG_A downto 0) := (others=>'0');
-  signal pipe_neg_b : std_logic_vector(PIPEREGS_NEG_B downto 0) := (others=>'0');
   signal pipe_neg_d : std_logic_vector(PIPEREGS_NEG_D downto 0) := (others=>'0');
   signal pipe_a     : signed_vector(PIPEREGS_A downto 0)(src_a'length-1 downto 0);
   signal pipe_b     : signed_vector(PIPEREGS_B downto 0)(src_b'length-1 downto 0);
@@ -80,8 +80,8 @@ begin
   pipe_rst(PIPEREGS_RST) <= src_rst;
   pipe_clr(PIPEREGS_CLR) <= src_clr;
   pipe_vld(PIPEREGS_VLD) <= src_vld;
+  pipe_neg(PIPEREGS_NEG) <= src_neg;
   pipe_neg_a(PIPEREGS_NEG_A) <= src_neg_a;
-  pipe_neg_b(PIPEREGS_NEG_B) <= src_neg_b;
   pipe_neg_d(PIPEREGS_NEG_D) <= src_neg_d;
   pipe_a(PIPEREGS_A) <= src_a;
   pipe_b(PIPEREGS_B) <= src_b;
@@ -124,6 +124,18 @@ begin
     end process;
   end generate;
 
+  g_neg : if PIPEREGS_NEG>=1 generate
+    process(clk) begin
+      if rising_edge(clk) then
+        if srst/='0' then
+          pipe_neg(PIPEREGS_NEG-1 downto 0) <= (others=>'0');
+        elsif clkena='1' then
+          pipe_neg(PIPEREGS_NEG-1 downto 0) <= pipe_neg(PIPEREGS_NEG downto 1);
+        end if;
+      end if;
+    end process;
+  end generate;
+
   g_neg_a : if PIPEREGS_NEG_A>=1 generate
     process(clk) begin
       if rising_edge(clk) then
@@ -131,18 +143,6 @@ begin
           pipe_neg_a(PIPEREGS_NEG_A-1 downto 0) <= (others=>'0');
         elsif clkena='1' then
           pipe_neg_a(PIPEREGS_NEG_A-1 downto 0) <= pipe_neg_a(PIPEREGS_NEG_A downto 1);
-        end if;
-      end if;
-    end process;
-  end generate;
-
-  g_neg_b : if PIPEREGS_NEG_B>=1 generate
-    process(clk) begin
-      if rising_edge(clk) then
-        if srst/='0' then
-          pipe_neg_b(PIPEREGS_NEG_B-1 downto 0) <= (others=>'0');
-        elsif clkena='1' then
-          pipe_neg_b(PIPEREGS_NEG_B-1 downto 0) <= pipe_neg_b(PIPEREGS_NEG_B downto 1);
         end if;
       end if;
     end process;
@@ -211,8 +211,8 @@ begin
   dsp_rst <= pipe_rst(0);
   dsp_clr <= pipe_clr(0);
   dsp_vld <= pipe_vld(0);
+  dsp_neg <= pipe_neg(0);
   dsp_neg_a <= pipe_neg_a(0);
-  dsp_neg_b <= pipe_neg_b(0);
   dsp_neg_d <= pipe_neg_d(0);
   dsp_a <= pipe_a(0);
   dsp_b <= pipe_b(0);
