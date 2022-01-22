@@ -24,7 +24,7 @@ library baselib;
 --! This can save power because unnecessary toggling of the P register is avoided,
 --! especially when accumulation is not needed and CLR is constant 1.
 --!
---! ACCU Mode
+--! **ACCU Mode**
 --! * Only PCIN or C can accumulated in addition to XY.
 --!
 --! | CLR_Q(out) | CLR | VLD |  CLR_Q(in) | Operation P                 | Comment                                      |
@@ -35,7 +35,7 @@ library baselib;
 --! |      1     |  0  |  1  |     0      | P = RND + XY + (PCIN or C)  | Restart Accumulation, clear CLR pending bit  |
 --! |      0     |  0  |  1  |     0      | P = P + XY + (PCIN or C)    | Proceed Accumulation, clear CLR pending bit  |
 --!
---! SUM Mode (always CLR=1)
+--! **SUM Mode** (always CLR=1)
 --! * Adding round bit RND not possible when PCIN and C are used.
 --!
 --! | CLR | VLD | Operation P                     | Comment                  |

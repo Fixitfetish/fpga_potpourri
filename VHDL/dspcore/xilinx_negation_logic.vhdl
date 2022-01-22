@@ -23,18 +23,6 @@ library baselib;
 --! In this implementation this is not an issue because the inputs a and d are
 --! limited to 26 bits but the preadder input can be 27 bits wide.
 --!
---! | PREADD A  | PREADD D  |  DSP_D  |  DSP_A  | DSP_A_NEG  | Operation  | Comment
---! |:---------:|:---------:|:-------:|:-------:|:----------:|:----------:|:-------
---! | ADD       | ADD       |    A    |    D    |   '0' (+)  |    A  +  D | ---
---! | ADD       | SUBTRACT  |    A    |    D    |   '1' (-)  |    A  -  D | ---
---! | ADD       | DYNAMIC   |    A    |    D    |    sub_d   |    A +/- D | ---
---! | SUBTRACT  | ADD       |    D    |    A    |   '1' (-)  |    D  -  A | ---
---! | DYNAMIC   | ADD       |    D    |    A    |    sub_a   |    D +/- A | ---
---! | SUBTRACT  | SUBTRACT  |   -D    |    A    |   '1' (-)  |   -D  -  A | additional logic required
---! | DYNAMIC   | SUBTRACT  |   -D    |    A    |    sub_a   |   -D +/- A | additional logic required
---! | SUBTRACT  | DYNAMIC   |   -A    |    D    |    sub_d   |   -A +/- D | additional logic required
---! | DYNAMIC   | DYNAMIC   | +/-A    |    D    |    sub_d   | +/-A +/- D | additional logic required
---!
 --! **NEAGTE_B="OFF"** : The product negation follows the negation of D.
 --!
 --! | NEGATE A | NEGATE D | DSP_A | DSP_D | DSP_A_NEG       | DSP_B_NEG | Operation       | Comment
@@ -150,7 +138,6 @@ begin
     report "ERROR " & xilinx_negation_logic'INSTANCE_NAME & ": " & 
            "DSP_D output width shall not be smaller then D input width."
     severity failure;
-
   -- synthesis translate_on (Altera Quartus)
   -- pragma translate_on (Xilinx Vivado , Synopsys)
 

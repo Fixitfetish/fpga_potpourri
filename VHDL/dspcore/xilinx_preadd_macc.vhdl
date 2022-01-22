@@ -51,14 +51,26 @@ library ieee;
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
 --! I1 : xilinx_preadd_macc
 --! generic map(
---!   USE_CHAIN_INPUT => boolean,
---!   USE_C_INPUT     => boolean,
---!   USE_D_INPUT     => boolean,
---!   USE_NEGATION    => boolean,
---!   USE_A_NEGATION  => boolean,
---!   USE_D_NEGATION  => boolean
+--!   USE_CHAIN_INPUT  => boolean,
+--!   USE_C_INPUT      => boolean,
+--!   USE_D_INPUT      => boolean,
+--!   USE_NEGATION     => boolean,
+--!   USE_A_NEGATION   => boolean,
+--!   USE_D_NEGATION   => boolean,
+--!   NUM_INPUT_REG_AD => natural,
+--!   NUM_INPUT_REG_B  => natural,
+--!   NUM_INPUT_REG_C  => natural,
+--!   RELATION_CLR     => string,
+--!   NUM_OUTPUT_REG   => natural,
+--!   ROUND_ENABLE     => boolean,
+--!   ROUND_BIT        => natural
 --! )
 --! port map(
+--!   clk          => in  std_logic,
+--!   rst          => in  std_logic,
+--!   clkena       => in  std_logic,
+--!   clr          => in  std_logic,
+--!   vld          => in  std_logic,
 --!   neg          => in  std_logic, -- negate product
 --!   neg_a        => in  std_logic, -- negate a
 --!   neg_d        => in  std_logic, -- negate d
@@ -66,6 +78,11 @@ library ieee;
 --!   b            => in  signed, -- second factor
 --!   c            => in  signed, -- additional summand after multiplication
 --!   d            => in  signed, -- first factor, second preadder input
+--!   p            => out signed,
+--!   p_vld        => out std_logic,
+--!   chainin      => in  signed(79 downto 0),
+--!   chainout     => out signed(79 downto 0),
+--!   PIPESTAGES   => out natural
 --! );
 --! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 --!
