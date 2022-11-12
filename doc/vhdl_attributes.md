@@ -1,4 +1,6 @@
-# VHDL Attributes and Examples (VHDL 2008 and earlier)
+# VHDL Attributes (VHDL 2008 and earlier)
+
+A compact overview with some examples.
 
 ## Enumerator
 type C is (blue, yellow, red, green, black, orange, brown, white);
@@ -67,7 +69,7 @@ The 'range attribute can be useful for loops or to constrain other related objec
 
 ## Base Type
 
-Returns the base type of a subtype.
+The 'base attribute is applied to types and returns the base type of a subtype.
 
 | Usage                   | Result                      |
 |:------------------------|:----------------------------|
@@ -105,3 +107,6 @@ Example: Within architecture TB of entity TOP we have an instance I1 of entity E
 | E'instance_name | ":TOP(TB):I1@E(RTL)" | string with design hierarchy including entity E             |
 
 The '*_name attributes can be useful in connection with asserts and reporting.
+
+---
+Fixitfetish@github.com
