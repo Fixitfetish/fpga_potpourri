@@ -54,6 +54,9 @@ The 'range attribute can be useful for loops or to constrain other related objec
 * for i in M'range(1) generate ... end generate;
 * variable B : M'element'base(M'element'reverse_range);
 
+The 'high , 'low , 'left and 'right attributes are useful when the range is flexible.
+* sr <= sr(sr'high-1 downto sr'low) & sr(sr'high); -- shift register
+
 ## Attributes on Types
 
 The 'base attribute is applied to types and returns the base type of a subtype.
@@ -79,7 +82,7 @@ type color is (blue, yellow, red, green, black, orange, brown, white); -- enumer
 | color'rightof(red) | green  | right of another list element       |
 | color'pred(orange) | black  | predecessor of another list element |
 | color'succ(orange) | brown  | successor of another list element   |
-| color'ascending    | true   |                                     |
+| color'ascending    | true   | check if range is TO direction      |
 
 ## Integer and Boolean
 
