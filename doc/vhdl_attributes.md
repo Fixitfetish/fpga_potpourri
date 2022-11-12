@@ -109,4 +109,4 @@ Example: Within architecture TB of entity TOP we have an instance I1 of entity E
 The '*_name attributes can be useful in connection with asserts and reporting.
 
 ---
-Fixitfetish@github.com
+<https://github.com/Fixitfetish>
