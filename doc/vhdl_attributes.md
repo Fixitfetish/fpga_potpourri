@@ -14,6 +14,7 @@ variable M : my_matrix;
 |:------------------------|:--------|:----------------------------|
 | M'subtype               | type    | my_matrix                   |
 | M'subtype'base          | type    | byte_matrix (unconstrained) |
+| M'subtype'element       | type    | byte                        |
 | M'element               | type    | byte                        |
 | M'element'base          | type    | bit_vector (unconstrained)  |
 | M'element'element       | type    | bit                         |
@@ -65,6 +66,7 @@ The 'base attribute is applied to types and returns the base type of a subtype.
 | natural'base            | type    | integer                    |
 | unsigned'base           | type    | unresolved_unsigned        |
 | std_logic_vector'base   | type    | std_ulogic_vector          |
+| unsigned'element        | type    | std_logic                  |
 
 ```
 type color is (blue, yellow, red, green, black, orange, brown, white); -- enumerator
