@@ -7,7 +7,7 @@ A compact overview with some examples.
 subtype byte is bit_vector(7 downto 0);
 type byte_matrix is array(integer range <>, integer range <>) of byte; -- 2-dim matrix of bytes
 subtype my_matrix is byte_matrix(2 downto -1 , -5 to 3);
-variable M : my_matrix;
+signal M : my_matrix;
 ```
 
 | Usage                   | Return  | Result                      |
@@ -44,15 +44,15 @@ variable M : my_matrix;
 | M'element'ascending     | boolean | false                       |
 
 The 'subtype , 'element and 'base attributes can be useful for dependent declarations.
-* variable aux1 : M'subtype;
-* variable word : M'element'base(15 downto 0);
-* variable M2 : M'subtype'base(0 to 3, 0 to 7);
+* signal aux1 : M'subtype;
+* signal word : M'element'base(15 downto 0);
+* signal M2 : M'subtype'base(0 to 3, 0 to 7);
 * type byte_vector is array(natural range <>) of M'element;
 
 The 'range attribute can be useful for loops or to constrain other related objects.
 * for i in M'element'range loop ... end loop;
 * for i in M'range(1) generate ... end generate;
-* variable B : M'element'base(M'element'reverse_range);
+* signal B : M'element'base(M'element'reverse_range);
 
 The 'high , 'low , 'left and 'right attributes are useful when the range is flexible.
 * sr <= sr(sr'high-1 downto sr'low) & sr(sr'high); -- shift register
@@ -69,7 +69,7 @@ The 'base attribute is applied to types and returns the base type of a subtype.
 | unsigned'element        | type    | std_logic                  |
 
 ```
-type color is (blue, yellow, red, green, black, orange, brown, white); -- enumerator
+type color is (blue, yellow, red, green, black, orange, brown, white); -- enumeration type
 ```
 
 | Usage              | Result | Description                         |
@@ -90,7 +90,7 @@ type color is (blue, yellow, red, green, black, orange, brown, white); -- enumer
 ## Integer and Boolean
 
 ```
-variable I : integer range 25 downto -13 := 22;
+signal I : integer range 25 downto -13 := 22;
 ```
 
 | Usage                   | Result                      |
