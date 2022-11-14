@@ -3,13 +3,12 @@
 A compact overview with some examples.
 
 ## Attributes on Arrays
+```
 subtype byte is bit_vector(7 downto 0);
-
 type byte_matrix is array(integer range <>, integer range <>) of byte; -- 2-dim matrix of bytes
-
 subtype my_matrix is byte_matrix(2 downto -1 , -5 to 3);
-
 variable M : my_matrix;
+```
 
 | Usage                   | Return  | Result                      |
 |:------------------------|:--------|:----------------------------|
@@ -67,7 +66,9 @@ The 'base attribute is applied to types and returns the base type of a subtype.
 | unsigned'base           | type    | unresolved_unsigned        |
 | std_logic_vector'base   | type    | std_ulogic_vector          |
 
+```
 type color is (blue, yellow, red, green, black, orange, brown, white); -- enumerator
+```
 
 | Usage              | Result | Description                         |
 |:-------------------|:-------|:------------------------------------|
@@ -86,7 +87,9 @@ type color is (blue, yellow, red, green, black, orange, brown, white); -- enumer
 
 ## Integer and Boolean
 
+```
 variable I : integer range 25 downto -13 := 22;
+```
 
 | Usage                   | Result                      |
 |:------------------------|:----------------------------|
