@@ -18,7 +18,7 @@ to demonstrate to concept. Implementation details are described below.
 </p>
 
 The additional output logic is mostly implemented in logic and allows optional
-* rounding
+* shift-right and rounding
 * clipping/saturation
 * overflow detection
 * additional output pipeline registers
@@ -39,12 +39,13 @@ NOTES
   - Z input contributes when Z is valid.
   - Chain input contributes when CHAININ is valid.
   - Accumulator feedback contributes when CLR=0 and round bit when CLR=1.
-* Leave unused inputs unconnected/open or set constant invalid and zero to save resources and to improve timing.
+* In general, leave unused inputs unconnected/open or set constant invalid and zero to save resources and to improve timing.
+* If preadding is not required then only use XA and set XB invalid.
 * Leave unused ouptuts open or terminate with unused dummy signals.
-* If DSP internal rounding bit addition is not possible then rounding is done within output logic. 
+* If DSP internal rounding bit addition is not possible then rounding is done within the output logic. 
 
 <p align="center">
-  <img src="./dspcore_signed_preadd_mult1add1_xilinx.drawio.svg">
+  <img src="./dspcore_signed_preadd_mult1add1_xilinx.drawio.svg" width="40%">
 </p>
 
 
@@ -55,14 +56,14 @@ Reference: [Xilinx - UltraScale Architecture DSP Slice (UG579)](https://docs.amd
 The DSP48E is used in Ultrascale(+) devices and has the following features
 * 27x18 Multiplication, 27-bit XA and XB, 18-bit Y
 * 27-bit Preadder
-* 48-bit accumulator and output register width
+* 48-bit accumulator/output register width
 
 
 ### DSP58
 
 Reference: [Xilinx/AMD - Versal ACAP DSP Engine (AM004)](https://docs.amd.com/r/en-US/am004-versal-dsp-engine)
 
-With Versal ACAP the new DSP58 has been introduced. The main changes to the previous DSP48E in respect to the SIGNED_PREADD_MULT1ADD1 module are
+With Versal ACAP the DSP58 has been introduced. The main changes to the previous DSP48E in respect to this module are
 * 27x24 Multiplication, 27-bit XA and XB, 24-bit Y
 * additional product negation within multiplier
-* 58-bit accumulator and output register width
+* 58-bit accumulator/output register width
