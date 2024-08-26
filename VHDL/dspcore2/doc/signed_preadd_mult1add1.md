@@ -14,7 +14,7 @@ Note that all DSP internal pipeline registers are transformed into input registe
 to demonstrate to concept. Implementation details are described below. 
 
 <p align="center">
-  <img src="./signed_preadd_mult1add1.drawio.svg" width="60%">
+  <img src="./signed_preadd_mult1add1.drawio.svg">
 </p>
 
 The additional output logic is mostly implemented in logic and allows optional
@@ -29,12 +29,24 @@ The additional output logic is mostly implemented in logic and allows optional
 The Xilinx/AMD implementation is rougly as follows
 
 <p align="center">
-  <img src="./signed_preadd_mult1add1_xilinx.drawio.svg" width="70%">
+  <img src="./signed_preadd_mult1add1_xilinx.drawio.svg">
 </p>
 
 NOTES
-* The ALU supports a maximum of 3 simultaneous summands. 
 * At least 2 input register are recommended for XA, XB and Y.
+* The ALU supports a maximum of 3 simultaneous summands. Input valid signals dynamically control the ALU operation.
+  - Multiplier output contributes to ALU result when inputs (XA or XB) and Y are valid.
+  - Z input contributes when Z is valid.
+  - Chain input contributes when CHAININ is valid.
+  - Accumulator feedback contributes when CLR=0 and round bit when CLR=1.
+* Leave unused inputs unconnected/open or set constant invalid and zero to save resources and to improve timing.
+* Leave unused ouptuts open or terminate with unused dummy signals.
+* If DSP internal rounding bit addition is not possible then rounding is done within output logic. 
+
+<p align="center">
+  <img src="./dspcore_signed_preadd_mult1add1_xilinx.drawio.svg">
+</p>
+
 
 ### DSP48E
 
