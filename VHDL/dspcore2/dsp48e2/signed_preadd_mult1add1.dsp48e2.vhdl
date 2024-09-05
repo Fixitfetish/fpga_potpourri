@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- @file       signed_preadd_mult1add1.dsp48e2.vhdl
 -- @author     Fixitfetish
--- @date       25/Aug/2024
--- @version    0.20
+-- @date       05/Sep/2024
+-- @version    0.21
 -- @note       VHDL-1993
 -- @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --             <https://opensource.org/licenses/MIT>
@@ -140,6 +140,8 @@ architecture dsp48e2 of signed_preadd_mult1add1 is
   signal accu_rnd : std_logic := '0';
   signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
 
+  signal clr_i : std_logic := '0';
+
 begin
 
   assert (xa'length<=MAX_WIDTH_AD)
@@ -175,12 +177,18 @@ begin
 
   assert OUTPUT_WIDTH<ACCU_USED_SHIFTED_WIDTH or not(OUTPUT_CLIP or OUTPUT_OVERFLOW)
     report IMPLEMENTATION & ": " &
-           "More guard bits required for saturation/clipping and/or overflow detection."
+           "More guard bits required for saturation/clipping and/or overflow detection." &
+           "  OUTPUT_WIDTH="            & integer'image(OUTPUT_WIDTH) &
+           ", ACCU_USED_SHIFTED_WIDTH=" & integer'image(ACCU_USED_SHIFTED_WIDTH) &
+           ", OUTPUT_CLIP="             & boolean'image(OUTPUT_CLIP) &
+           ", OUTPUT_OVERFLOW="         & boolean'image(OUTPUT_OVERFLOW)
     severity failure;
 
   assert (DSPREG.M=1)
     report INSTANCE_NAME & ": DSP internal pipeline register after multiplier is disabled. FIX: use at least two input registers at ports XA, XB and Y."
     severity warning;
+
+  clr_i <= clr when USE_ACCU else '0';
 
   i_feed : entity work.xilinx_input_pipe
   generic map(
@@ -197,7 +205,7 @@ begin
     srst      => open, -- unused
     clkena    => clkena,
     src_rst   => rst,
-    src_clr   => clr,
+    src_clr   => clr_i,
     src_neg   => neg,
     src_a_vld => xa_vld,
     src_b_vld => y_vld,

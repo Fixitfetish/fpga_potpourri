@@ -1,13 +1,13 @@
 -------------------------------------------------------------------------------
 --! @file       complex_mult1add1.dsp58.vhdl
 --! @author     Fixitfetish
---! @date       01/Jan/2022
---! @version    0.10
+--! @date       05/Sep/2024
+--! @version    0.21
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
--- Code comments are optimized for SIGASI and DOXYGEN.
+-- Code comments are optimized for SIGASI.
 -------------------------------------------------------------------------------
 library ieee;
  use ieee.std_logic_1164.all;
@@ -18,18 +18,20 @@ library unisim;
 
 use work.xilinx_dsp_pkg_dsp58.all;
 
---! @brief Implementation of complex_mult1add1 for Xilinx DSP58.
---!
---! Notes and Limitations
---! * Maximum A and B factor input width is 2x18 bits.
---! * DSP internal accumulation not supported when both summand inputs, chain and C, are enabled.
---! * DSP internal rounding bit addition not possible when both summand inputs, chain and C, are enabled.
---! * Product negation requires additional DSP external logic which is implemented at the input.
---! * Additional negation logic includes clipping of 18-bit input to most positive value when most negative value is negated.
---!
---! Refer to Xilinx Versal ACAP DSP Engine, Architecture Manual, AM004 (v1.2.1) September 11, 2022
---!
+-- Implementation of complex_mult1add1 for AMD/Xilinx DSP58.
+--
+-- Notes and Limitations
+-- * Maximum A and B factor input width is 2x18 bits.
+-- * DSP internal accumulation not supported when both summand inputs, chain and C, are enabled.
+-- * DSP internal rounding bit addition not possible when both summand inputs, chain and C, are enabled.
+-- * Product negation requires additional DSP external logic which is implemented at the input.
+-- * Additional negation logic includes clipping of 18-bit input to most positive value when most negative value is negated.
+--
+-- Refer to Xilinx Versal ACAP DSP Engine, Architecture Manual, AM004 (v1.2.1) September 11, 2022
+--
 architecture dsp58 of complex_mult1add1 is
+
+  constant INSTANCE_NAME : string := complex_mult1add1'INSTANCE_NAME;
 
   -- identifier for reports of warnings and errors
   constant IMPLEMENTATION : string := "complex_mult1add1(dsp58)";
@@ -37,38 +39,17 @@ architecture dsp58 of complex_mult1add1 is
   -- Max input width
   constant INPUT_WIDTH : positive := 18;
 
-  -- Derive number of DSP internal pipeline registers.
-  -- Currently, inputs A and B must be balanced and have the same number of pipeline registers.
-  function GET_NUM_DSPCPLX_REG(
-    aregs : natural; -- overall required input registers at input A
-    bregs : natural; -- overall required input registers at input B
-    cregs : natural  -- overall required input registers at input C
-  ) return t_dspreg is
-    variable dsp : t_dspreg;
-  begin
-    -- Enable internal M register at multiplier output if two or more multiplier input registers are requested.
-    -- This is better for timing and can reduce the number of PL input registers.
-    if (aregs>=2 and bregs>=2) then dsp.M:=1; else dsp.M:=0; end if;
-    -- DSP has maximum two internal multiplier input registers, additional ones must be in PL.
-    dsp.A  := minimum(2,aregs-dsp.M);
-    dsp.B  := minimum(2,bregs-dsp.M);
-    -- DSP has maximum one internal adder input register, additional ones must be in PL.
-    dsp.C  := minimum(1,cregs);
-    -- Unused D input is misused for CONJ input delay here.
-    dsp.D  := minimum(1,dsp.A);
-    dsp.AD := minimum(1,maximum(0,dsp.A-1));
-    dsp.INMODE  := 1; -- currently always one input register expected
-    dsp.OPMODE  := 1; -- currently always one input register expected
-    dsp.ALUMODE := 0; -- currently ALUMODE is constant, no register required
-    return dsp;
-  end function;
+  -- TODO: later independent X and Y input registers ?
+  constant NUM_INPUT_REG_X : positive := NUM_INPUT_REG_XY;
+  constant NUM_INPUT_REG_Y : positive := NUM_INPUT_REG_XY;
 
   constant DSPREG : t_dspreg := GET_NUM_DSPCPLX_REG(
-    aregs => NUM_INPUT_REG_XY,
-    bregs => NUM_INPUT_REG_XY,
+    aregs => NUM_INPUT_REG_X,
+    bregs => NUM_INPUT_REG_Y,
     cregs => NUM_INPUT_REG_Z
   );
 
+  -- number of additional pipeline register in logic in-front of DSP input.
   type t_logicreg is
   record
     A   : natural;
@@ -79,16 +60,19 @@ architecture dsp58 of complex_mult1add1 is
     NEG : natural;
   end record;
 
+  -- This function calculates the number registers that are required to correctly
+  -- align data and control signals at the input of the DSP cell.
+  -- DSP internal delays are intentionally not compensated here.
   function GET_NUM_LOGIC_REG return t_logicreg is
     variable reg : t_logicreg;
   begin
-    reg.A := NUM_INPUT_REG_XY - DSPREG.A - DSPREG.M;
-    reg.B := NUM_INPUT_REG_XY - DSPREG.B - DSPREG.M;
+    reg.A := NUM_INPUT_REG_X - DSPREG.A - DSPREG.M;
+    reg.B := NUM_INPUT_REG_Y - DSPREG.B - DSPREG.M;
     reg.C := NUM_INPUT_REG_Z - DSPREG.C;
     reg.D := 0; -- unused
-    if    RELATION_CLR="X" then reg.CLR := reg.A;
-    elsif RELATION_CLR="Y" then reg.CLR := reg.B;
-    elsif RELATION_CLR="Z" then reg.CLR := reg.C;
+    if    RELATION_CLR="X"  then reg.CLR := reg.A;
+    elsif RELATION_CLR="Y"  then reg.CLR := reg.B;
+    elsif RELATION_CLR="Z"  then reg.CLR := reg.C;
     else  reg.CLR := 0; end if;
     if    RELATION_NEG="X" then reg.NEG := reg.A;
     elsif RELATION_NEG="Y" then reg.NEG := reg.B;
@@ -99,9 +83,9 @@ architecture dsp58 of complex_mult1add1 is
 
   function RELATION_CLR_ABC return string is
   begin
-    if    RELATION_CLR="X" then return "A";
-    elsif RELATION_CLR="Y" then return "B";
-    elsif RELATION_CLR="Z" then return "C";
+    if    RELATION_CLR="X"  then return "A";
+    elsif RELATION_CLR="Y"  then return "B";
+    elsif RELATION_CLR="Z"  then return "C";
     else  return "INVALID";
     end if;
   end function;
@@ -116,18 +100,17 @@ architecture dsp58 of complex_mult1add1 is
   constant OUTPUT_WIDTH : positive := result_re'length;
 
 
-
   -- OPMODE control signal
   signal opmode : std_logic_vector(8 downto 0);
 
   -- ALUMODE control signal
   signal alumode : std_logic_vector(3 downto 0);
 
-
   signal dsp_rst   : std_logic;
   signal dsp_clr   : std_logic;
   signal dsp_neg   : std_logic;
   signal dsp_a_vld : std_logic;
+  signal dsp_b_vld : std_logic;
   signal dsp_c_vld : std_logic;
   signal dsp_a_conj : std_logic;
   signal dsp_b_conj : std_logic;
@@ -158,37 +141,51 @@ architecture dsp58 of complex_mult1add1 is
   signal accu_rnd : std_logic := '0';
   signal accu_used_re, accu_used_im : signed(ACCU_USED_WIDTH-1 downto 0);
 
-  signal neg_i, x_conj_i, y_conj_i : std_logic := '0';
+  signal clr_i, neg_i, x_conj_i, y_conj_i : std_logic := '0';
 
 begin
 
+  clr_i    <= clr    when USE_ACCU        else '0';
   neg_i    <= neg    when USE_NEGATION    else '0';
   x_conj_i <= x_conj when USE_CONJUGATE_X else '0';
   y_conj_i <= y_conj when USE_CONJUGATE_Y else '0';
 
 
   assert (x_re'length<=INPUT_WIDTH and x_im'length<=INPUT_WIDTH)
-    report "ERROR " & IMPLEMENTATION & ": " & "Multiplier input X width cannot exceed " & integer'image(INPUT_WIDTH)
+    report IMPLEMENTATION & ": " & "Multiplier input X width cannot exceed " & integer'image(INPUT_WIDTH)
     severity failure;
 
   assert (y_re'length<=INPUT_WIDTH and y_im'length<=INPUT_WIDTH)
-    report "ERROR " & IMPLEMENTATION & ": " & "Multiplier input Y width cannot exceed " & integer'image(INPUT_WIDTH)
+    report IMPLEMENTATION & ": " & "Multiplier input Y width cannot exceed " & integer'image(INPUT_WIDTH)
     severity failure;
 
   assert (z_re'length<=MAX_WIDTH_C and z_im'length<=MAX_WIDTH_C)
-    report "ERROR " & IMPLEMENTATION & ": " & "Summand input Z width cannot exceed " & integer'image(MAX_WIDTH_C)
+    report IMPLEMENTATION & ": " & "Summand input Z width cannot exceed " & integer'image(MAX_WIDTH_C)
+    severity failure;
+
+  assert (NUM_INPUT_REG_X=NUM_INPUT_REG_Y)
+    report IMPLEMENTATION & ": " & 
+           "For now the number of input registers in X and Y path must be the same."
     severity failure;
 
   assert GUARD_BITS_EVAL<=MAX_GUARD_BITS
-    report "ERROR " & IMPLEMENTATION & ": " &
+    report IMPLEMENTATION & ": " &
            "Maximum number of accumulator bits is " & integer'image(ACCU_WIDTH) & " ." &
            "Input bit widths allow only maximum number of guard bits = " & integer'image(MAX_GUARD_BITS)
     severity failure;
 
   assert OUTPUT_WIDTH<ACCU_USED_SHIFTED_WIDTH or not(OUTPUT_CLIP or OUTPUT_OVERFLOW)
-    report "ERROR " & IMPLEMENTATION & ": " &
-           "More guard bits required for saturation/clipping and/or overflow detection."
+    report IMPLEMENTATION & ": " &
+           "More guard bits required for saturation/clipping and/or overflow detection." &
+           "  OUTPUT_WIDTH="            & integer'image(OUTPUT_WIDTH) &
+           ", ACCU_USED_SHIFTED_WIDTH=" & integer'image(ACCU_USED_SHIFTED_WIDTH) &
+           ", OUTPUT_CLIP="             & boolean'image(OUTPUT_CLIP) &
+           ", OUTPUT_OVERFLOW="         & boolean'image(OUTPUT_OVERFLOW)
     severity failure;
+
+  assert (DSPREG.M=1)
+    report INSTANCE_NAME & ": DSP internal pipeline register after multiplier is disabled. FIX: use at least two input registers at ports X and Y."
+    severity warning;
 
   i_feed_re : entity work.xilinx_input_pipe
   generic map(
@@ -205,9 +202,10 @@ begin
     srst      => open, -- unused
     clkena    => clkena,
     src_rst   => rst,
-    src_clr   => clr,
+    src_clr   => clr_i,
     src_neg   => neg_i,
-    src_a_vld => vld,
+    src_a_vld => x_vld,
+    src_b_vld => y_vld,
     src_c_vld => z_vld,
     src_d_vld => open,
     src_a_neg => x_conj_i,
@@ -220,6 +218,7 @@ begin
     dsp_clr   => dsp_clr,
     dsp_neg   => dsp_neg,
     dsp_a_vld => dsp_a_vld,
+    dsp_b_vld => dsp_b_vld,
     dsp_c_vld => dsp_c_vld,
     dsp_d_vld => open, -- unused
     dsp_a_neg => a_conj,
@@ -245,9 +244,10 @@ begin
     srst      => open, -- unused
     clkena    => clkena,
     src_rst   => rst,
-    src_clr   => clr,
-    src_neg   => neg_i,
-    src_a_vld => vld,
+    src_clr   => clr_i,
+    src_neg   => neg_i, -- TODO: better y_conj_i here? with separate delay!
+    src_a_vld => x_vld,
+    src_b_vld => y_vld,
     src_c_vld => z_vld,
     src_d_vld => open,
     src_a_neg => y_conj_i,
@@ -260,6 +260,7 @@ begin
     dsp_clr   => open,
     dsp_neg   => open,
     dsp_a_vld => open,
+    dsp_b_vld => open,
     dsp_c_vld => open,
     dsp_d_vld => open,
     dsp_a_neg => b_conj,
@@ -309,8 +310,8 @@ begin
     NUM_AREG     => DSPREG.A,
     NUM_BREG     => DSPREG.B,
     NUM_CREG     => DSPREG.C,
-    NUM_DREG     => DSPREG.D,
-    NUM_ADREG    => DSPREG.AD,
+    NUM_DREG     => DSPREG.D, -- irrelevant
+    NUM_ADREG    => 0, -- AD register does not contribute to input delay! (see AM004 v1.2.1, Table 22)
     NUM_MREG     => DSPREG.M,
     RELATION_CLR => RELATION_CLR_ABC
   )
@@ -319,11 +320,14 @@ begin
     rst       => rst,
     clkena    => clkena,
     clr       => dsp_clr,
+    neg       => open, -- unused
     a_neg     => open, -- unused
     a_vld     => dsp_a_vld,
+    b_vld     => dsp_b_vld,
     c_vld     => dsp_c_vld,
     d_vld     => open, -- unused
     pcin_vld  => chainin_vld,
+    negate    => open, -- unused
     inmode    => open, -- unused
     opmode    => opmode,
     alumode   => alumode,
@@ -361,8 +365,8 @@ begin
      CARRYINREG_RE                => 1, -- integer := 1;
      CARRYINSELREG_IM             => 1, -- integer := 1;
      CARRYINSELREG_RE             => 1, -- integer := 1;
-     CONJUGATEREG_A               => DSPREG.D,
-     CONJUGATEREG_B               => DSPREG.D,
+     CONJUGATEREG_A               => DSPREG.INMODE,
+     CONJUGATEREG_B               => DSPREG.INMODE,
      CREG_IM                      => DSPREG.C, -- integer := 1;
      CREG_RE                      => DSPREG.C, -- integer := 1;
      IS_ALUMODE_IM_INVERTED       => (others=>'0'), -- std_logic_vector(3 downto 0) := "0000";
@@ -467,8 +471,8 @@ begin
      CEB2_RE           => CE(clkena,DSPREG.B),
      CECARRYIN_IM      => '0', -- unused
      CECARRYIN_RE      => '0', -- unused
-     CECONJUGATE_A     => CE(clkena,DSPREG.D),
-     CECONJUGATE_B     => CE(clkena,DSPREG.D),
+     CECONJUGATE_A     => CE(clkena,DSPREG.INMODE),
+     CECONJUGATE_B     => CE(clkena,DSPREG.INMODE),
      CECTRL_IM         => CE(clkena,DSPREG.OPMODE),
      CECTRL_RE         => CE(clkena,DSPREG.OPMODE),
      CEC_IM            => CE(clkena,DSPREG.C),
@@ -543,16 +547,16 @@ begin
     OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
   )
   port map (
-    clk            => clk,
-    rst            => rst,
-    clkena         => clkena,
-    dsp_out        => accu_used_re,
-    dsp_out_vld    => accu_vld,
-    dsp_out_ovf    => (dsp_ufl_re or dsp_ofl_re),
-    dsp_out_rnd    => accu_rnd,
-    result         => result_re,
-    result_vld     => result_vld,
-    result_ovf     => result_ovf_re
+    clk         => clk,
+    rst         => rst,
+    clkena      => clkena,
+    dsp_out     => accu_used_re,
+    dsp_out_vld => accu_vld,
+    dsp_out_ovf => (dsp_ufl_re or dsp_ofl_re),
+    dsp_out_rnd => accu_rnd,
+    result      => result_re,
+    result_vld  => result_vld,
+    result_ovf  => result_ovf_re
   );
 
   -- Right-shift and clipping
@@ -565,19 +569,19 @@ begin
     OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
   )
   port map (
-    clk            => clk,
-    rst            => rst,
-    clkena         => clkena,
-    dsp_out        => accu_used_im,
-    dsp_out_vld    => accu_vld,
-    dsp_out_ovf    => (dsp_ufl_im or dsp_ofl_im),
-    dsp_out_rnd    => accu_rnd,
-    result         => result_im,
-    result_vld     => open, -- same as real
-    result_ovf     => result_ovf_im
+    clk         => clk,
+    rst         => rst,
+    clkena      => clkena,
+    dsp_out     => accu_used_im,
+    dsp_out_vld => accu_vld,
+    dsp_out_ovf => (dsp_ufl_im or dsp_ofl_im),
+    dsp_out_rnd => accu_rnd,
+    result      => result_im,
+    result_vld  => open, -- same as real
+    result_ovf  => result_ovf_im
   );
 
   -- report constant number of pipeline register stages
-  PIPESTAGES <= NUM_INPUT_REG_XY + NUM_OUTPUT_REG; -- TODO ?
+  PIPESTAGES <= NUM_INPUT_REG_X + NUM_OUTPUT_REG; -- TODO ?
 
 end architecture;

@@ -49,11 +49,11 @@ NOTES
 </p>
 
 
-### DSP48E
+### DSP48E2
 
 Reference: [Xilinx - UltraScale Architecture DSP Slice (UG579)](https://docs.amd.com/v/u/en-US/ug579-ultrascale-dsp)
 
-The DSP48E is used in Ultrascale(+) devices and has the following features
+The DSP48E2 is used in Ultrascale(+) devices and has the following features
 * 27x18 Multiplication, 27-bit XA and XB, 18-bit Y
 * 27-bit Preadder
 * 48-bit accumulator/output register width

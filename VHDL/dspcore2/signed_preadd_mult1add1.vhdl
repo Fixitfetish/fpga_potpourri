@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- @file       signed_preadd_mult1add1.vhdl
 -- @author     Fixitfetish
--- @date       25/Aug/2024
--- @version    0.20
+-- @date       05/Sep/2024
+-- @version    0.21
 -- @note       VHDL-1993
 -- @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --             <https://opensource.org/licenses/MIT>
@@ -151,10 +151,10 @@ port (
   rst          : in  std_logic := '0';
   -- Clock enable (optional)
   clkena       : in  std_logic := '1';
-  -- Clear accumulator (mark first valid input factors of accumulation sequence).
+  -- Clear accumulator (mark first valid input of accumulation sequence).
   -- Only relevant when USE_ACCU=true. If accumulation is not wanted then set constant '1'.
   clr          : in  std_logic := '1';
-  -- Negation of product , '0'->+(a*b), '1'->-(a*b) . Only relevant when USE_NEGATION=true.
+  -- Negation of product , '0'->+(x*y), '1'->-(x*y) . Only relevant when USE_NEGATION=true.
   neg          : in  std_logic := '0';
   -- 1st factor input (also 1st preadder input). Choose width as small as possible! Set "00" if unused.
   xa           : in  signed;

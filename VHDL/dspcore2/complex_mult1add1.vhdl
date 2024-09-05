@@ -1,73 +1,73 @@
 -------------------------------------------------------------------------------
 --! @file       complex_mult1add1.vhdl
 --! @author     Fixitfetish
---! @date       25/Aug/2024
---! @version    0.20
+--! @date       05/Sep/2024
+--! @version    0.21
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
--- Code comments are optimized for SIGASI and DOXYGEN.
+-- Code comments are optimized for SIGASI.
 -------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
 
---! @brief Multiply the two complex inputs X and Y. Optionally, the complex chain input
---! and complex Z input can be added to the product result as well.
---!
---! @image html complex_mult1add1.svg "" width=600px
---!
---! The behavior is as follows
---!
---! | X_CONJ | Y_CONJ | Operation                |
---! |--------|--------|--------------------------|
---! |    0   |    0   | M =      X  *      Y     |
---! |    0   |    1   | M =      X  * conj(Y)    |
---! |    1   |    0   | M = conj(X) *      Y     |
---! |    1   |    1   | M = conj(X) * conj(Y)    |
---!
---! | CLR | VLD | Operation                      | Comment                   |
---! |-----|-----|--------------------------------|---------------------------|
---! |  1  |  0  | P = undefined                  | reset accumulator         |
---! |  1  |  1  | P = +/-M + Z + CHAININ         | restart/no accumulation   |
---! |  0  |  0  | P = P                          | hold accumulator/output   |
---! |  0  |  1  | P = P +/-M + (Z or CHAININ)    | proceed accumulation      |
---!
---! The length of the input factors X and Y is flexible, but the real and imaginary components should have the same length.
---! The input factors are automatically resized with sign extensions bits to the maximum possible factor length.
---! The maximum length of the input factors is device and implementation specific.
---! The summand inputs Z and CHAININ are LSB bound to the LSB of the product M.
---! Output P is the result before the optional shift right, clipping and rounding.
---!
---! @image html accumulator_register.svg "" width=800px
---!
---! * NUM_SUMMAND = configurable, @link NUM_SUMMAND more... @endlink
---! * ACCU WIDTH = accumulator width (device specific)
---! * PRODUCT WIDTH = x'length + y'length
---! * GUARD BITS = ceil(log2(NUM_SUMMAND))
---! * ACCU USED WIDTH = PRODUCT WIDTH + GUARD BITS <= ACCU WIDTH
---! * OUTPUT SHIFT RIGHT = number of LSBs to prune
---! * OVFL = overflow detection sign bits, all must match the output sign bit otherwise overflow
---! * R = rounding bit (+0.5 when OUTPUT ROUND is enabled)
---! * ACCU USED SHIFTED WIDTH = ACCU USED WIDTH - OUTPUT SHIFT RIGHT
---! * OUTPUT WIDTH = length of result output <= ACCU USED SHIFTED WIDTH
---!
---! \b Example: The input lengths are x'length=18 and y'length=16, hence PRODUCT_WIDTH=34.
---! With NUM_SUMMAND=30 the number of additional guard bits is GUARD_BITS=5.
---! If the output length is 22 then the standard shift-right setting (conservative,
---! without risk of overflow) would be OUTPUT_SHIFT_RIGHT = 34 + 5 - 22 = 17.
---!
---! If just the sum of products is required but not any further accumulation
---! then set CLR to constant '1'.
---!
---! The delay depends on the configuration and the underlying hardware.
---! The number pipeline stages is reported as constant at output port @link PIPESTAGES PIPESTAGES @endlink .
---!
---! TODO:
---! Optimal settings for overflow detection and/or saturation/clipping :
---! GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH
---!
+-- Multiply the two complex inputs X and Y. Optionally, the complex chain input
+-- and complex Z input can be added to the product result as well.
+--
+-- @image html complex_mult1add1.svg "" width=600px
+--
+-- The behavior is as follows
+--
+-- | X_CONJ | Y_CONJ | Operation                |
+-- |--------|--------|--------------------------|
+-- |    0   |    0   | M =      X  *      Y     |
+-- |    0   |    1   | M =      X  * conj(Y)    |
+-- |    1   |    0   | M = conj(X) *      Y     |
+-- |    1   |    1   | M = conj(X) * conj(Y)    |
+--
+-- | CLR | VLD | Operation                      | Comment                   |
+-- |-----|-----|--------------------------------|---------------------------|
+-- |  1  |  0  | P = undefined                  | reset accumulator         |
+-- |  1  |  1  | P = +/-M + Z + CHAININ         | restart/no accumulation   |
+-- |  0  |  0  | P = P                          | hold accumulator/output   |
+-- |  0  |  1  | P = P +/-M + (Z or CHAININ)    | proceed accumulation      |
+--
+-- The length of the input factors X and Y is flexible, but the real and imaginary components should have the same length.
+-- The input factors are automatically resized with sign extensions bits to the maximum possible factor length.
+-- The maximum length of the input factors is device and implementation specific.
+-- The summand inputs Z and CHAININ are LSB bound to the LSB of the product M.
+-- Output P is the result before the optional shift right, clipping and rounding.
+--
+-- @image html accumulator_register.svg "" width=800px
+--
+-- * NUM_SUMMAND = configurable, @link NUM_SUMMAND more... @endlink
+-- * ACCU WIDTH = accumulator width (device specific)
+-- * PRODUCT WIDTH = x'length + y'length
+-- * GUARD BITS = ceil(log2(NUM_SUMMAND))
+-- * ACCU USED WIDTH = PRODUCT WIDTH + GUARD BITS <= ACCU WIDTH
+-- * OUTPUT SHIFT RIGHT = number of LSBs to prune
+-- * OVFL = overflow detection sign bits, all must match the output sign bit otherwise overflow
+-- * R = rounding bit (+0.5 when OUTPUT ROUND is enabled)
+-- * ACCU USED SHIFTED WIDTH = ACCU USED WIDTH - OUTPUT SHIFT RIGHT
+-- * OUTPUT WIDTH = length of result output <= ACCU USED SHIFTED WIDTH
+--
+-- \b Example: The input lengths are x'length=18 and y'length=16, hence PRODUCT_WIDTH=34.
+-- With NUM_SUMMAND=30 the number of additional guard bits is GUARD_BITS=5.
+-- If the output length is 22 then the standard shift-right setting (conservative,
+-- without risk of overflow) would be OUTPUT_SHIFT_RIGHT = 34 + 5 - 22 = 17.
+--
+-- If just the sum of products is required but not any further accumulation
+-- then set CLR to constant '1'.
+--
+-- The delay depends on the configuration and the underlying hardware.
+-- The number pipeline stages is reported as constant at output port PIPESTAGES.
+--
+-- TODO:
+-- Optimal settings for overflow detection and/or saturation/clipping :
+-- GUARD BITS = OUTPUT WIDTH + OUTPUT SHIFT RIGHT + 1 - PRODUCT WIDTH
+--
 entity complex_mult1add1 is
 generic (
   --! Enable feedback of accumulator register P into DSP ALU when input port CLR=0
@@ -125,19 +125,21 @@ port (
   --! If accumulation is not wanted then set constant '1'.
   clr           : in  std_logic := '1';
   --! Valid signal for input factors, high-active
-  vld           : in  std_logic;
+--  vld           : in  std_logic;
   --! Negation of product , '0' -> +(x*y), '1' -> -(x*y). Only relevant when USE_NEGATION=true .
   neg           : in  std_logic := '0';
   --! 1st factor input, real component
   x_re          : in  signed;
   --! 1st factor input, imaginary component
   x_im          : in  signed;
+  x_vld         : in  std_logic;
   --! Complex conjugate X , '0' -> +x_im, '1' -> -x_im. Only relevant when USE_CONJUGATE_X=true .
   x_conj        : in  std_logic := '0';
   --! 2nd factor input, real component
   y_re          : in  signed;
   --! 2nd factor input, imaginary component
   y_im          : in  signed;
+  y_vld         : in  std_logic;
   --! Complex conjugate Y , '0' -> +y_im, '1' -> -y_im. Only relevant when USE_CONJUGATE_Y=true .
   y_conj        : in  std_logic := '0';
   --! @brief Additional summand after multiplication, real component. Set "00" if unused.

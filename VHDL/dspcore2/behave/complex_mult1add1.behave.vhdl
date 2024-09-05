@@ -1,13 +1,13 @@
 -------------------------------------------------------------------------------
 --! @file       complex_mult1add1.behave.vhdl
 --! @author     Fixitfetish
---! @date       15/Jan/2022
---! @version    0.10
+--! @date       05/Sep/2024
+--! @version    0.21
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
--- Code comments are optimized for SIGASI and DOXYGEN.
+-- Code comments are optimized for SIGASI.
 -------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
@@ -35,6 +35,7 @@ architecture behave of complex_mult1add1 is
 
   -- identifier for reports of warnings and errors
   constant IMPLEMENTATION : string := "complex_mult1add1(behave)";
+  constant INSTANCE_NAME : string := complex_mult1add1'INSTANCE_NAME;
 
   constant ACCU_WIDTH : positive := 64;
   constant MAX_WIDTH_A : positive := 32;
@@ -84,17 +85,18 @@ architecture behave of complex_mult1add1 is
   constant NUM_INPUT_REG_CTRL : natural := NUM_INPUT_REG_XY;
   signal pipe_rst : std_logic_vector(NUM_INPUT_REG_CTRL downto 0);
   signal pipe_clr : std_logic_vector(NUM_INPUT_REG_CTRL downto 0);
-  signal pipe_vld : std_logic_vector(NUM_INPUT_REG_CTRL downto 0);
   signal pipe_neg : std_logic_vector(NUM_INPUT_REG_CTRL downto 0);
 
   constant NUM_INPUT_REG_X : natural := NUM_INPUT_REG_XY; -- TODO : later independent X and Y delays?
   signal pipe_xre : signed_vector(NUM_INPUT_REG_X downto 0)(x_re'length-1 downto 0);
   signal pipe_xim : signed_vector(NUM_INPUT_REG_X downto 0)(x_im'length-1 downto 0);
+  signal pipe_xvld  : std_logic_vector(NUM_INPUT_REG_X downto 0);
   signal pipe_xconj : std_logic_vector(NUM_INPUT_REG_X downto 0);
 
   constant NUM_INPUT_REG_Y : natural := NUM_INPUT_REG_XY; -- TODO : later independent X and Y delays?
   signal pipe_yre : signed_vector(NUM_INPUT_REG_Y downto 0)(y_re'length-1 downto 0);
   signal pipe_yim : signed_vector(NUM_INPUT_REG_Y downto 0)(y_im'length-1 downto 0);
+  signal pipe_yvld  : std_logic_vector(NUM_INPUT_REG_Y downto 0);
   signal pipe_yconj : std_logic_vector(NUM_INPUT_REG_Y downto 0);
 
   signal pipe_zre : signed_vector(NUM_INPUT_REG_Z downto 0)(z_re'length-1 downto 0);
@@ -105,10 +107,9 @@ architecture behave of complex_mult1add1 is
   signal bre, bim : signed(MAX_WIDTH_B-1 downto 0);
   signal cre, cim : signed(MAX_WIDTH_C-1 downto 0);
 
---  signal neg_i, conj_x_i, conj_y_i : std_logic := '0';
   signal neg_xre, neg_xim, neg_yre, neg_yim : std_logic;
 
-  signal p_vld : std_logic;
+  signal m_vld, p_vld : std_logic;
   signal m_re, m_im : signed(ACCU_WIDTH-1 downto 0);
   signal p_re, p_im : signed(ACCU_WIDTH-1 downto 0);
   signal chainin_re_i, chainin_im_i : signed(ACCU_WIDTH-1 downto 0);
@@ -122,13 +123,15 @@ architecture behave of complex_mult1add1 is
 begin
 
   assert OUTPUT_WIDTH<ACCU_USED_SHIFTED_WIDTH or not(OUTPUT_CLIP or OUTPUT_OVERFLOW)
-    report "ERROR " & IMPLEMENTATION & ": " &
-           "More guard bits required for saturation/clipping and/or overflow detection."
+    report INSTANCE_NAME & ": " & "More guard bits required for saturation/clipping and/or overflow detection." &
+           "  OUTPUT_WIDTH="            & integer'image(OUTPUT_WIDTH) &
+           ", ACCU_USED_SHIFTED_WIDTH=" & integer'image(ACCU_USED_SHIFTED_WIDTH) &
+           ", OUTPUT_CLIP="             & boolean'image(OUTPUT_CLIP) &
+           ", OUTPUT_OVERFLOW="         & boolean'image(OUTPUT_OVERFLOW)
     severity failure;
 
   pipe_rst(NUM_INPUT_REG_CTRL) <= rst;
   pipe_clr(NUM_INPUT_REG_CTRL) <= clr;
-  pipe_vld(NUM_INPUT_REG_CTRL) <= vld;
   pipe_neg(NUM_INPUT_REG_CTRL) <= neg when USE_NEGATION else '0';
   g_ctrl : if NUM_INPUT_REG_CTRL>=1 generate
     process(clk) begin
@@ -136,12 +139,10 @@ begin
         if rst/='0' then
           pipe_rst(NUM_INPUT_REG_CTRL-1 downto 0) <= (others=>'1');
           pipe_clr(NUM_INPUT_REG_CTRL-1 downto 0) <= (others=>'1');
-          pipe_vld(NUM_INPUT_REG_CTRL-1 downto 0) <= (others=>'0');
           pipe_neg(NUM_INPUT_REG_CTRL-1 downto 0) <= (others=>'0');
         elsif clkena='1' then
           pipe_rst(NUM_INPUT_REG_CTRL-1 downto 0) <= pipe_rst(NUM_INPUT_REG_CTRL downto 1);
           pipe_clr(NUM_INPUT_REG_CTRL-1 downto 0) <= pipe_clr(NUM_INPUT_REG_CTRL downto 1);
-          pipe_vld(NUM_INPUT_REG_CTRL-1 downto 0) <= pipe_vld(NUM_INPUT_REG_CTRL downto 1);
           pipe_neg(NUM_INPUT_REG_CTRL-1 downto 0) <= pipe_neg(NUM_INPUT_REG_CTRL downto 1);
         end if;
       end if;
@@ -150,6 +151,7 @@ begin
 
   pipe_xre(NUM_INPUT_REG_X) <= x_re;
   pipe_xim(NUM_INPUT_REG_X) <= x_im;
+  pipe_xvld(NUM_INPUT_REG_X) <= x_vld;
   pipe_xconj(NUM_INPUT_REG_X) <= x_conj when USE_CONJUGATE_X else '0';
   g_x : if NUM_INPUT_REG_X>=1 generate
     process(clk) begin
@@ -157,10 +159,12 @@ begin
         if rst/='0' then
           pipe_xre(NUM_INPUT_REG_X-1 downto 0) <= (others=>(others=>'-'));
           pipe_xim(NUM_INPUT_REG_X-1 downto 0) <= (others=>(others=>'-'));
+          pipe_xvld(NUM_INPUT_REG_X-1 downto 0) <= (others=>'0');
           pipe_xconj(NUM_INPUT_REG_X-1 downto 0) <= (others=>'0');
         elsif clkena='1' then
           pipe_xre(NUM_INPUT_REG_X-1 downto 0) <= pipe_xre(NUM_INPUT_REG_X downto 1);
           pipe_xim(NUM_INPUT_REG_X-1 downto 0) <= pipe_xim(NUM_INPUT_REG_X downto 1);
+          pipe_xvld(NUM_INPUT_REG_X-1 downto 0) <= pipe_xvld(NUM_INPUT_REG_X downto 1);
           pipe_xconj(NUM_INPUT_REG_X-1 downto 0) <= pipe_xconj(NUM_INPUT_REG_X downto 1);
         end if;
       end if;
@@ -169,6 +173,7 @@ begin
 
   pipe_yre(NUM_INPUT_REG_Y) <= y_re;
   pipe_yim(NUM_INPUT_REG_Y) <= y_im;
+  pipe_yvld(NUM_INPUT_REG_Y) <= y_vld;
   pipe_yconj(NUM_INPUT_REG_Y) <= y_conj when USE_CONJUGATE_Y else '0';
   g_y : if NUM_INPUT_REG_Y>=1 generate
     process(clk) begin
@@ -176,11 +181,13 @@ begin
         if rst/='0' then
           pipe_yre(NUM_INPUT_REG_Y-1 downto 0) <= (others=>(others=>'-'));
           pipe_yim(NUM_INPUT_REG_Y-1 downto 0) <= (others=>(others=>'-'));
+          pipe_yvld(NUM_INPUT_REG_Y-1 downto 0) <= (others=>'0');
           pipe_yconj(NUM_INPUT_REG_Y-1 downto 0) <= (others=>'0');
         elsif clkena='1' then
           pipe_yre(NUM_INPUT_REG_Y-1 downto 0) <= pipe_yre(NUM_INPUT_REG_Y downto 1);
           pipe_yim(NUM_INPUT_REG_Y-1 downto 0) <= pipe_yim(NUM_INPUT_REG_Y downto 1);
-          pipe_xconj(NUM_INPUT_REG_Y-1 downto 0) <= pipe_yconj(NUM_INPUT_REG_Y downto 1);
+          pipe_yvld(NUM_INPUT_REG_Y-1 downto 0) <= pipe_yvld(NUM_INPUT_REG_Y downto 1);
+          pipe_yconj(NUM_INPUT_REG_Y-1 downto 0) <= pipe_yconj(NUM_INPUT_REG_Y downto 1);
         end if;
       end if;
     end process;
@@ -232,13 +239,14 @@ begin
   chainin_re_i <= resize(chainin_re,ACCU_WIDTH) when chainin_vld_q='1' else (others=>'0');
   chainin_im_i <= resize(chainin_im,ACCU_WIDTH) when chainin_vld_q='1' else (others=>'0');
 
-  m_re <= (are*bre - aim*bim) when pipe_vld(0)='1' else (others=>'0');
-  m_im <= (are*bim + aim*bre) when pipe_vld(0)='1' else (others=>'0');
+  m_vld <= pipe_xvld(0) and pipe_yvld(0); -- for a valid product both factors must be valid
+  m_re <= (are*bre - aim*bim) when m_vld='1' else (others=>'0');
+  m_im <= (are*bim + aim*bre) when m_vld='1' else (others=>'0');
 
   -- Operation
   p_re <= m_re + cre + chainin_re_i;
   p_im <= m_im + cim + chainin_im_i;
-  p_vld <= pipe_vld(0) or pipe_zvld(0) or chainin_vld_q;
+  p_vld <= m_vld or pipe_zvld(0) or chainin_vld_q;
 
   process(clk)
   begin

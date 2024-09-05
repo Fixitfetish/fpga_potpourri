@@ -1,13 +1,13 @@
 -------------------------------------------------------------------------------
 --! @file       complex_macc_chain.behave.vhdl
 --! @author     Fixitfetish
---! @date       29/Jan/2022
---! @version    0.10
+--! @date       05/Sep/2024
+--! @version    0.21
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
--- Includes DOXYGEN support.
+-- Code comments are optimized for SIGASI.
 -------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
@@ -15,7 +15,7 @@ library ieee;
 library baselib;
   use baselib.ieee_extension_types.all;
 
---! @brief N complex multiplications and sum of all product results.
+--! N complex multiplications and sum of all product results.
 --!
 architecture behave of complex_macc_chain is
 
@@ -52,12 +52,12 @@ architecture behave of complex_macc_chain is
     i_cmacc : entity work.complex_mult1add1(behave)
     generic map(
       USE_ACCU           => (USE_ACCU and (n=(NUM_MULT-1))),
-      NUM_SUMMAND        => NUM_MULT,
+      NUM_SUMMAND        => 2 * NUM_MULT, -- TODO
       USE_NEGATION       => USE_NEGATION,
       USE_CONJUGATE_X    => USE_CONJUGATE_X,
       USE_CONJUGATE_Y    => USE_CONJUGATE_Y,
-      NUM_INPUT_REG_XY   => NUM_INPUT_REG_XY + n,
-      NUM_INPUT_REG_Z    => NUM_INPUT_REG_Z + n,
+      NUM_INPUT_REG_XY   => 1 + NUM_INPUT_REG_XY + n, -- minimum one input register
+      NUM_INPUT_REG_Z    => 1 + NUM_INPUT_REG_Z  + n, -- minimum one input register
       NUM_OUTPUT_REG     => OUTREGS(n),
       OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
       OUTPUT_ROUND       => (OUTPUT_ROUND and (n=(NUM_MULT-1))),
@@ -69,13 +69,14 @@ architecture behave of complex_macc_chain is
       rst           => rst,
       clkena        => clkena,
       clr           => clr_i,
-      vld           => vld,
       neg           => neg(n),
       x_re          => x_re(n),
       x_im          => x_im(n),
+      x_vld         => x_vld(n),
       x_conj        => x_conj(n),
       y_re          => y_re(n),
       y_im          => y_im(n),
+      y_vld         => y_vld(n),
       y_conj        => y_conj(n),
       z_re          => z_re(n),
       z_im          => z_im(n),

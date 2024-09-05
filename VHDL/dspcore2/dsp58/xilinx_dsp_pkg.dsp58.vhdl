@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- @file       xilinx_dsp_pkg.dsp58.vhdl
 -- @author     Fixitfetish
--- @date       25/Aug/2024
--- @version    0.20
+-- @date       05/Sep/2024
+-- @version    0.21
 -- @note       VHDL-1993
 -- @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --             <https://opensource.org/licenses/MIT>
@@ -50,12 +50,18 @@ package xilinx_dsp_pkg_dsp58 is
   end record;
 
   function GET_NUM_DSP_REG(
-    use_d : boolean;
+    use_d : boolean; -- Input D and preadder required
     use_a_neg : boolean;
-    aregs : natural;
-    bregs : natural;
-    cregs : natural;
-    dregs : natural
+    aregs : natural; -- overall required number of port A input register (DSP internal + external in logic)
+    bregs : natural; -- overall required number of port B input register (DSP internal + external in logic)
+    cregs : natural; -- overall required number of port C input register (DSP internal + external in logic)
+    dregs : natural  -- overall required number of port D input register (DSP internal + external in logic)
+  ) return t_dspreg;
+
+  function GET_NUM_DSPCPLX_REG(
+    aregs : natural; -- overall required number of port A input register (DSP internal + external in logic)
+    bregs : natural; -- overall required number of port B input register (DSP internal + external in logic)
+    cregs : natural  -- overall required number of port C input register (DSP internal + external in logic)
   ) return t_dspreg;
 
   -- determine number of required additional guard bits (MSBs)
@@ -121,17 +127,12 @@ end package;
 package body xilinx_dsp_pkg_dsp58 is
 
   function GET_NUM_DSP_REG(
-    -- Input D and preadder required
-    use_d : boolean;
+    use_d : boolean; -- Input D and preadder required
     use_a_neg : boolean;
-    -- overall required number of port A input register (DSP internal + external in logic)
-    aregs : natural;
-    -- overall required number of port B input register (DSP internal + external in logic)
-    bregs : natural;
-    -- overall required number of port C input register (DSP internal + external in logic)
-    cregs : natural;
-    -- overall required number of port D input register (DSP internal + external in logic)
-    dregs : natural
+    aregs : natural; -- overall required number of port A input register (DSP internal + external in logic)
+    bregs : natural; -- overall required number of port B input register (DSP internal + external in logic)
+    cregs : natural; -- overall required number of port C input register (DSP internal + external in logic)
+    dregs : natural  -- overall required number of port D input register (DSP internal + external in logic)
   ) return t_dspreg is
     variable dsp : t_dspreg;
   begin
@@ -164,6 +165,33 @@ package body xilinx_dsp_pkg_dsp58 is
     dsp.D := minimum(1,dregs);
     dsp.NEGATE  := 1; -- currently always one input register expected
     dsp.INMODE  := 1; -- currently always one input register expected
+    dsp.OPMODE  := 1; -- currently always one input register expected
+    dsp.ALUMODE := 0; -- currently ALUMODE is constant, no register required
+    return dsp;
+  end function;
+
+  -- Derive number of DSP internal pipeline registers.
+  -- Currently, inputs A and B must be balanced and have the same number of pipeline registers.
+  function GET_NUM_DSPCPLX_REG(
+    aregs : natural; -- overall required number of port A input register (DSP internal + external in logic)
+    bregs : natural; -- overall required number of port B input register (DSP internal + external in logic)
+    cregs : natural  -- overall required number of port C input register (DSP internal + external in logic)
+  ) return t_dspreg is
+    variable dsp : t_dspreg;
+  begin
+    -- After the data input registers the M pipeline register is the most important for timing and
+    -- performance. The M register can be seen as second input register. Since input ports A and B
+    -- contribute to the multiplier result these ports must have at least 2 input registers to enable M.
+    if (aregs>=2 and bregs>=2) then dsp.M:=1; else dsp.M:=0; end if;
+    -- DSP has maximum two internal multiplier input registers, additional ones must be in PL.
+    dsp.A  := minimum(2,aregs-dsp.M);
+    dsp.B  := minimum(2,bregs-dsp.M);
+    -- DSP has maximum one internal adder input register, additional ones must be in PL.
+    dsp.C  := minimum(1,cregs);
+    dsp.D  := 1; -- irrelevant
+    dsp.AD := minimum(1,maximum(0,dsp.A-1)); -- important for DSPCPLX configuration
+    dsp.NEGATE  := 1; -- unused
+    dsp.INMODE  := minimum(1,dsp.A); -- misused for CONJ input delay, important for DSPCPLX configuration
     dsp.OPMODE  := 1; -- currently always one input register expected
     dsp.ALUMODE := 0; -- currently ALUMODE is constant, no register required
     return dsp;

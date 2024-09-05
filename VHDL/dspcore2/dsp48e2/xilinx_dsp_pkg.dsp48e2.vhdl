@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- @file       xilinx_dsp_pkg.dsp48e2.vhdl
 -- @author     Fixitfetish
--- @date       25/Aug/2024
--- @version    0.20
+-- @date       05/Sep/2024
+-- @version    0.21
 -- @note       VHDL-1993
 -- @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --             <https://opensource.org/licenses/MIT>
@@ -18,6 +18,8 @@ library baselib;
 -- This package includes a Xilinx UltraScale specific collection of common
 -- parameters and functions. It helps to minimize code duplication in the
 -- different DSP implementations.
+--
+-- Refer to Xilinx UltraScale Architecture DSP48E2 Slice, UG579 (v1.11) August 30, 2021
 --
 package xilinx_dsp_pkg_dsp48e2 is
 
@@ -47,15 +49,15 @@ package xilinx_dsp_pkg_dsp48e2 is
   end record;
 
   function GET_NUM_DSP_REG(
-    use_d : boolean;
+    use_d : boolean; -- Input D and preadder required
     use_a_neg : boolean;
-    aregs : natural;
-    bregs : natural;
-    cregs : natural;
-    dregs : natural
+    aregs : natural; -- overall required number of port A input register (DSP internal + external in logic)
+    bregs : natural; -- overall required number of port B input register (DSP internal + external in logic)
+    cregs : natural; -- overall required number of port C input register (DSP internal + external in logic)
+    dregs : natural  -- overall required number of port D input register (DSP internal + external in logic)
   ) return t_dspreg;
 
-  --! determine number of required additional guard bits (MSBs)
+  -- determine number of required additional guard bits (MSBs)
   function accu_guard_bits(
     num_summand : natural; -- number of summands that are accumulated
     dflt : natural; -- default value when num_summand=0
@@ -118,17 +120,12 @@ end package;
 package body xilinx_dsp_pkg_dsp48e2 is
 
   function GET_NUM_DSP_REG(
-    -- Input D and preadder required
-    use_d : boolean;
+    use_d : boolean; -- Input D and preadder required
     use_a_neg : boolean;
-    -- overall required number of port A input register (DSP internal + external in logic)
-    aregs : natural;
-    -- overall required number of port B input register (DSP internal + external in logic)
-    bregs : natural;
-    -- overall required number of port C input register (DSP internal + external in logic)
-    cregs : natural;
-    -- overall required number of port D input register (DSP internal + external in logic)
-    dregs : natural
+    aregs : natural; -- overall required number of port A input register (DSP internal + external in logic)
+    bregs : natural; -- overall required number of port B input register (DSP internal + external in logic)
+    cregs : natural; -- overall required number of port C input register (DSP internal + external in logic)
+    dregs : natural  -- overall required number of port D input register (DSP internal + external in logic)
   ) return t_dspreg is
     variable dsp : t_dspreg;
   begin
