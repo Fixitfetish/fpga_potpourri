@@ -75,6 +75,11 @@ Chaining and summation of N products is possible.
 * `Result RE = CIre + (-Xre - Xim) * Yim + Z  = CIre + Xre*Yre - Xim*Yim`
 * `Result IM = CIim + ( Xim - Xre) * Yre + Z  = CIim + Xre*Yim + Xim*Yre`
 
+TODO: better would be (less and more balanced negation)
+* `Z = (Yre - Yim) * Xim`
+* `Result RE = CIre + ( Xre - Xim) * Yre + Z  = CIre + Xre*Yre - Xim*Yim`
+* `Result IM = CIim + ( Xre + Xim) * Yim + Z  = CIim + Xre*Yim + Xim*Yre`
+
 Features
 * The minimum latency is 4+N cycles.
 * X and Y inputs are limited to same resolution (18-bit DSP48E2, 24-bit DSP58).
