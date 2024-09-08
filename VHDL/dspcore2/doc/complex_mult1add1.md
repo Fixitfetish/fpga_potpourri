@@ -38,6 +38,8 @@ NOTES
   - Z input contributes when Z is valid.
   - Chain input contributes when CHAININ is valid.
   - Accumulator feedback contributes when CLR=0 and round bit when CLR=1.
+* Dynamic complex conjugate of X and/or Y is supported.
+* Dynamic product negation is supported.
 * In general, leave unused inputs unconnected/open or set constant invalid and zero to save resources and to improve timing.
 * Leave unused ouptuts open or terminate with unused dummy signals.
 * Typically, DSP internal round bit addition is supported.
@@ -53,7 +55,7 @@ NOTES
 ### 4-DSP Implementation
 
 This implementation requires 4 DPSs cells per complex multiplication.
-Chaining and summation of N products is possible. The preadder functionality can be used for negation purposes.
+The preadder functionality is not required but can be used for negation purposes.
 
  * `COre = CIre + Xre*Yre + Zre`
  * `COim = CIim + Xre*Yim + Zim`
@@ -61,6 +63,7 @@ Chaining and summation of N products is possible. The preadder functionality can
  * `Result IM = COim + Xim*Yre = CIim + Xre*Yim + Xim*Yre + Zim`
 
 Features
+* Chaining and summation of N products is possible.
 * The minimum latency is 2+2*N cycles.
 * X input (27-bit) can have higher resolution then Y input (18-bit DSP48E2, 24-bit DSP58).
 * An additional Z summand input is supported.
@@ -68,8 +71,7 @@ Features
 
 ### 3-DSP Implementation
 
-This implementation requires 3 DPSs cells with preadder functionality per complex multiplication.
-Chaining and summation of N products is possible. 
+This implementation requires 3 DPSs cells with preadder functionality per complex multiplication. 
 
 * `Z = (Yre + Yim) * Xre`
 * `Result RE = CIre + (-Xre - Xim) * Yim + Z  = CIre + Xre*Yre - Xim*Yim`
@@ -81,6 +83,7 @@ TODO: better would be (less and more balanced negation)
 * `Result IM = CIim + ( Xre + Xim) * Yim + Z  = CIim + Xre*Yim + Xim*Yre`
 
 Features
+* Chaining and summation of N products is possible.
 * The minimum latency is 4+N cycles.
 * X and Y inputs are limited to same resolution (18-bit DSP48E2, 24-bit DSP58).
 * An additional Z summand is **not** supported.
@@ -90,12 +93,12 @@ Features
 ### 2-DSP Implementation
 
 This implementation requires 2 DPSs cells per complex multiplication and is a special implementation only supported by DSP58/DSPCPLX.
-Chaining and summation of N products is possible.
 
  * `Result RE = CIre + Xre*Yre - Xim*Yim + Zre`
  * `Result IM = CIim + Xre*Yim + Xim*Yre + Zim`
 
 Features
+* Chaining and summation of N products is possible.
 * The minimum latency is 2+N cycles.
 * X and Y inputs are limited to 18-bit.
 * An additional Z summand input is supported.
