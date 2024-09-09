@@ -37,7 +37,7 @@ NOTES
   - Multiplier output contributes to ALU result when inputs X and Y are valid.
   - Z input contributes when Z is valid.
   - Chain input contributes when CHAININ is valid.
-  - Accumulator feedback contributes when CLR=0 and round bit when CLR=1.
+  - Accumulator feedback contributes when CLR=0. Round bit is added when CLR=1 and rounding is enabled.
 * Dynamic complex conjugate of X and/or Y is supported.
 * Dynamic product negation is supported.
 * In general, leave unused inputs unconnected/open or set constant invalid and zero to save resources and to improve timing.
@@ -71,13 +71,10 @@ Features
 
 ### 3-DSP Implementation
 
-This implementation requires 3 DPSs cells with preadder functionality per complex multiplication. 
+This implementation requires 3 DPSs cells with preadder functionality per complex multiplication.
+Several implementations with a slightly different mapping to DSP cells are possible.
+The following split tries to use the DSP internal negation feature as efficient as possible and to avoid additional negation in logic.
 
-* `Z = (Yre + Yim) * Xre`
-* `Result RE = CIre + (-Xre - Xim) * Yim + Z  = CIre + Xre*Yre - Xim*Yim`
-* `Result IM = CIim + ( Xim - Xre) * Yre + Z  = CIim + Xre*Yim + Xim*Yre`
-
-TODO: better would be (less and more balanced negation)
 * `Z = (Yre - Yim) * Xim`
 * `Result RE = CIre + ( Xre - Xim) * Yre + Z  = CIre + Xre*Yre - Xim*Yim`
 * `Result IM = CIim + ( Xre + Xim) * Yim + Z  = CIim + Xre*Yim + Xim*Yre`

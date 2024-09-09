@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       complex_macc_chain.vhdl
 --! @author     Fixitfetish
---! @date       05/Sep/2024
---! @version    0.21
+--! @date       09/Sep/2024
+--! @version    0.25
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -107,13 +107,11 @@ generic (
   NUM_INPUT_REG_XY : natural := 0;
   -- Number of additional Z input registers which will always be implemented in logic.
   NUM_INPUT_REG_Z : natural := 0;
-  -- Number of result output registers. At least one is required. The
-  -- first output register is typically the result register within the DSP cell.
-  -- A second output register is recommended when logic for rounding, clipping
+  -- Number of additional result output registers. Typically, all additional output registers
+  -- are not part of a DSP cell and therefore implemented in logic.
+  -- At least one more output register is recommended when logic for rounding, clipping
   -- and/or overflow detection is enabled.
-  -- Typically all output registers after the first one are not part of a DSP cell
-  -- and therefore implemented in logic.
-  NUM_OUTPUT_REG : positive := 1;
+  NUM_OUTPUT_REG : natural := 0;
   -- Number of bits by which the accumulator result output is shifted right
   OUTPUT_SHIFT_RIGHT : natural := 0;
   -- Round 'nearest' (half-up) of result output.

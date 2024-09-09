@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       complex_mult1add1.vhdl
 --! @author     Fixitfetish
---! @date       05/Sep/2024
---! @version    0.21
+--! @date       09/Sep/2024
+--! @version    0.25
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -70,6 +70,8 @@ library ieee;
 --
 entity complex_mult1add1 is
 generic (
+  -- OPTIMIZATION can be either "PERFORMANCE" or "RESOURCES"
+  OPTIMIZATION : string := "RESOURCES";
   --! Enable feedback of accumulator register P into DSP ALU when input port CLR=0
   USE_ACCU : boolean := false;
   --! @brief The number of summands is important to determine the number of additional
@@ -94,6 +96,9 @@ generic (
   --! Number of input registers for inputs X and Y. At least one DSP internal register is required.
   NUM_INPUT_REG_XY : positive := 1;
   --! Number of registers for input Z. At least one DSP internal register is required.
+  --! NOTE: In the 3-DSP mode (e.g. DSP48E2 with OPTIMIZATION="RESOURCES") the Z input is not supported
+  --! and NUM_INPUT_REG_Z defines the number of pipeline registers from the 1st to the 2nd stage.
+  --! Try NUM_INPUT_REG_Z=2 if you face timing issues.
   NUM_INPUT_REG_Z : positive := 1;
   --! Defines if the CLR input port is synchronous to input signal "X", "Y" or "Z".
   RELATION_CLR : string := "X";
@@ -116,66 +121,68 @@ generic (
 );
 port (
   --! Standard system clock
-  clk           : in  std_logic;
+  clk             : in  std_logic;
   --! Global pipeline reset (optional, only connect if really required!)
-  rst           : in  std_logic := '0';
+  rst             : in  std_logic := '0';
   --! Clock enable (optional)
-  clkena        : in  std_logic := '1';
+  clkena          : in  std_logic := '1';
   --! @brief Clear accumulator (mark first valid input factors of accumulation sequence).
   --! If accumulation is not wanted then set constant '1'.
-  clr           : in  std_logic := '1';
-  --! Valid signal for input factors, high-active
---  vld           : in  std_logic;
+  clr             : in  std_logic := '1';
   --! Negation of product , '0' -> +(x*y), '1' -> -(x*y). Only relevant when USE_NEGATION=true .
-  neg           : in  std_logic := '0';
+  neg             : in  std_logic := '0';
   --! 1st factor input, real component
-  x_re          : in  signed;
+  x_re            : in  signed;
   --! 1st factor input, imaginary component
-  x_im          : in  signed;
-  x_vld         : in  std_logic;
+  x_im            : in  signed;
+  x_vld           : in  std_logic;
   --! Complex conjugate X , '0' -> +x_im, '1' -> -x_im. Only relevant when USE_CONJUGATE_X=true .
-  x_conj        : in  std_logic := '0';
+  x_conj          : in  std_logic := '0';
   --! 2nd factor input, real component
-  y_re          : in  signed;
+  y_re            : in  signed;
   --! 2nd factor input, imaginary component
-  y_im          : in  signed;
-  y_vld         : in  std_logic;
+  y_im            : in  signed;
+  y_vld           : in  std_logic;
   --! Complex conjugate Y , '0' -> +y_im, '1' -> -y_im. Only relevant when USE_CONJUGATE_Y=true .
-  y_conj        : in  std_logic := '0';
+  y_conj          : in  std_logic := '0';
   --! @brief Additional summand after multiplication, real component. Set "00" if unused.
   --! Z is LSB bound to the LSB of the product x*y before shift right, i.e. similar to chain input.
-  z_re          : in  signed;
+  z_re            : in  signed;
   --! @brief Additional summand after multiplication, imaginary component. Set "00" if unused.
   --! Z is LSB bound to the LSB of the product x*y before shift right, i.e. similar to chain input.
-  z_im          : in  signed;
+  z_im            : in  signed;
   --! Valid signal synchronous to input Z, high-active. Set '0' if input Z is unused.
-  z_vld         : in  std_logic := '0';
+  z_vld           : in  std_logic := '0';
   --! @brief Resulting product/accumulator output (optionally rounded and clipped).
   --! The standard result output might be unused when chain output is used instead.
-  result_re     : out signed;
-  result_im     : out signed;
+  result_re       : out signed;
+  result_im       : out signed;
   --! Valid signal for result output, high-active
-  result_vld    : out std_logic;
+  result_vld      : out std_logic;
   --! Result output real component overflow/clipping detection
-  result_ovf_re : out std_logic;
+  result_ovf_re   : out std_logic;
   --! Result output imaginary component overflow/clipping detection
-  result_ovf_im : out std_logic;
+  result_ovf_im   : out std_logic;
   --! @brief Input from other chained DSP cell (optional, only used when input enabled and connected).
   --! The chain width is device specific. A maximum width of 80 bits is supported.
   --! If the device specific chain width is smaller then only the LSBs are used.
-  chainin_re    : in  signed(79 downto 0) := (others=>'0');
-  chainin_im    : in  signed(79 downto 0) := (others=>'0');
+  chainin_re      : in  signed(79 downto 0) := (others=>'0');
+  chainin_im      : in  signed(79 downto 0) := (others=>'0');
   --! Valid signal of chain input one cycle ahead of PCIN, high-active. Set '0' if chain input is unused.
-  chainin_vld   : in  std_logic := '0';
+  --! For timing reasons two separate signals though both are synchronous.
+  chainin_re_vld  : in  std_logic := '0';
+  chainin_im_vld  : in  std_logic := '0';
   --! @brief Result output to other chained DSP cell (optional)
   --! The chain width is device specific. A maximum width of 80 bits is supported.
   --! If the device specific chain width is smaller then only the LSBs are used.
-  chainout_re   : out signed(79 downto 0) := (others=>'0');
-  chainout_im   : out signed(79 downto 0) := (others=>'0');
+  chainout_re     : out signed(79 downto 0) := (others=>'0');
+  chainout_im     : out signed(79 downto 0) := (others=>'0');
   --! Valid signal of chain output one cycle ahead of PCOUT, high-active.
-  chainout_vld  : out std_logic;
+  --! For timing reasons two separate signals though both are synchronous.
+  chainout_re_vld : out std_logic;
+  chainout_im_vld : out std_logic;
   --! Number of pipeline stages in X path, constant, depends on configuration and device specific implementation
-  PIPESTAGES    : out integer := 1
+  PIPESTAGES      : out integer := 1
 );
 begin
 

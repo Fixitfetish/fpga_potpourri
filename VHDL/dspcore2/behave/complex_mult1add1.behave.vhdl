@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       complex_mult1add1.behave.vhdl
 --! @author     Fixitfetish
---! @date       05/Sep/2024
---! @version    0.21
+--! @date       09/Sep/2024
+--! @version    0.25
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -217,7 +217,7 @@ begin
         if rst/='0' then
           chainin_vld_q <= '0';
         elsif clkena='1' then
-          chainin_vld_q <= chainin_vld;
+          chainin_vld_q <= chainin_re_vld;
         end if;
       end if;
     end process;
@@ -270,7 +270,8 @@ begin
 
   chainout_re <= resize(accu_re,chainout_re'length);
   chainout_im <= resize(accu_im,chainout_im'length);
-  chainout_vld <= p_vld;
+  chainout_re_vld <= p_vld;
+  chainout_im_vld <= p_vld;
 
   -- cut off unused sign extension bits
   -- (This reduces the logic consumption in the following steps when rounding,

@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       complex_mult1add1.dsp58.vhdl
 --! @author     Fixitfetish
---! @date       05/Sep/2024
---! @version    0.21
+--! @date       09/Sep/2024
+--! @version    0.25
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -12,8 +12,6 @@
 library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
-library baselib;
-  use baselib.ieee_extension.all;
 library unisim;
 
 use work.xilinx_dsp_pkg_dsp58.all;
@@ -31,17 +29,440 @@ use work.xilinx_dsp_pkg_dsp58.all;
 --
 architecture dsp58 of complex_mult1add1 is
 
-  constant INSTANCE_NAME : string := complex_mult1add1'INSTANCE_NAME;
-
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "complex_mult1add1(dsp58)";
+  constant INSTANCE_NAME : string := complex_mult1add1'INSTANCE_NAME & ":: ";
 
-  -- Max input width
-  constant INPUT_WIDTH : positive := 18;
+  constant X_INPUT_WIDTH   : positive := maximum(x_re'length,x_im'length);
+  constant Y_INPUT_WIDTH   : positive := maximum(y_re'length,y_im'length);
+  constant MAX_INPUT_WIDTH : positive := maximum(X_INPUT_WIDTH,Y_INPUT_WIDTH);
 
   -- TODO: later independent X and Y input registers ?
   constant NUM_INPUT_REG_X : positive := NUM_INPUT_REG_XY;
   constant NUM_INPUT_REG_Y : positive := NUM_INPUT_REG_XY;
+
+  signal neg_i, x_conj_i, y_conj_i : std_logic := '0';
+
+begin
+
+  neg_i    <= neg    when USE_NEGATION    else '0';
+  x_conj_i <= x_conj when USE_CONJUGATE_X else '0';
+  y_conj_i <= y_conj when USE_CONJUGATE_Y else '0';
+
+ --------------------------------------------------------------------------------------------------
+ -- Operation with 4 DSP cells and chaining
+ -- *  Re1 = ReChain + Xre*Yre + Zre
+ -- *  Im1 = ImChain + Xre*Yim + Zim
+ -- *  Re2 = Re1     - Xim*Yim + ReAccu
+ -- *  Im2 = Im1     + Xim*Yre + ImAccu
+ --
+ -- Notes
+ -- * Re1/Im1 can add Z input in addition to chain input
+ -- * Re2/Im2 can add round bit and accumulate in addition to chain input
+ -- * TODO : also allows complex preadder => different entity complex_preadd_macc !?
+ --------------------------------------------------------------------------------------------------
+ G4DSP : if OPTIMIZATION="PERFORMANCE" or OPTIMIZATION="G4DSP" generate
+  -- identifier for reports of warnings and errors
+  constant CHOICE : string := INSTANCE_NAME & "(optimization=PERFORMANCE, 4 DSPs):: ";
+  signal chain_re , chain_im: signed(79 downto 0);
+  signal chain_re_vld, chain_im_vld : std_logic;
+  signal dummy_re, dummy_im : signed(ACCU_WIDTH-1 downto 0);
+ begin
+
+  assert (NUM_INPUT_REG_X>=2 and NUM_INPUT_REG_Y>=2)
+    report CHOICE & "For high-speed the X and Y paths should have at least two input registers."
+    severity warning;
+
+  assert (X_INPUT_WIDTH<=MAX_WIDTH_AD)
+    report CHOICE & "Multiplier input X width cannot exceed " & integer'image(MAX_WIDTH_AD)
+    severity failure;
+
+  assert (Y_INPUT_WIDTH<=MAX_WIDTH_B)
+    report CHOICE & "Multiplier input Y width cannot exceed " & integer'image(MAX_WIDTH_B) & ". Maybe swap X and Y inputs ?"
+    severity failure;
+
+  -- Operation:  Re1 = ReChain + Xre*Yre + Zre
+  i_re1 : entity work.signed_preadd_mult1add1(dsp58)
+  generic map(
+    USE_ACCU           => false,
+    NUM_SUMMAND        => 2, -- irrelevant because output logic is unused
+    USE_XB_INPUT       => false, -- unused
+    USE_NEGATION       => USE_NEGATION,
+    USE_XA_NEGATION    => open, -- unused
+    USE_XB_NEGATION    => open, -- unused
+    NUM_INPUT_REG_X    => NUM_INPUT_REG_X,
+    NUM_INPUT_REG_Y    => NUM_INPUT_REG_Y,
+    NUM_INPUT_REG_Z    => NUM_INPUT_REG_Z,
+    RELATION_CLR       => open, -- unused
+    RELATION_NEG       => RELATION_NEG,
+    NUM_OUTPUT_REG     => 1,
+    OUTPUT_SHIFT_RIGHT => 0,     -- result output unused
+    OUTPUT_ROUND       => false, -- result output unused
+    OUTPUT_CLIP        => false, -- result output unused
+    OUTPUT_OVERFLOW    => false  -- result output unused
+  )
+  port map (
+    clk          => clk,
+    rst          => rst,
+    clkena       => clkena,
+    clr          => open, -- unused
+    neg          => neg_i,
+    xa           => x_re,
+    xa_vld       => x_vld,
+    xa_neg       => open, -- unused
+    xb           => "00", -- unused
+    xb_vld       => open, -- unused
+    xb_neg       => open, -- unused
+    y            => y_re,
+    y_vld        => y_vld,
+    z            => z_re,
+    z_vld        => z_vld,
+    result       => dummy_re, -- unused
+    result_vld   => open, -- unused
+    result_ovf   => open, -- unused
+    chainin      => chainin_re,
+    chainin_vld  => chainin_re_vld,
+    chainout     => chain_re,
+    chainout_vld => chain_re_vld,
+    PIPESTAGES   => open  -- unused
+  );
+
+  -- operation:  Re2 = Re1 - Xim*Yim   (accumulation possible)
+  i_re2 : entity work.signed_preadd_mult1add1(dsp58)
+  generic map(
+    USE_ACCU           => USE_ACCU, -- accumulator enabled in last chain link only!
+    NUM_SUMMAND        => NUM_SUMMAND, -- TODO : NUM_SUMMAND, two multiplications per complex multiplication
+    USE_XB_INPUT       => false, -- unused
+    USE_NEGATION       => true,
+    USE_XA_NEGATION    => USE_CONJUGATE_X,
+    USE_XB_NEGATION    => open, -- unused
+    NUM_INPUT_REG_X    => NUM_INPUT_REG_X + 1,
+    NUM_INPUT_REG_Y    => NUM_INPUT_REG_Y + 1,
+    NUM_INPUT_REG_Z    => open, -- unused
+    RELATION_CLR       => RELATION_CLR,
+    RELATION_NEG       => RELATION_NEG, -- TODO : neg and y_conj must have same relation. force "Y" ?
+    NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
+    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
+    OUTPUT_ROUND       => OUTPUT_ROUND,
+    OUTPUT_CLIP        => OUTPUT_CLIP,
+    OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
+  )
+  port map (
+    clk          => clk,
+    rst          => rst,
+    clkena       => clkena,
+    clr          => clr, -- accumulator enabled in last chain link only!
+    neg          => (not neg_i) xor y_conj_i,
+    xa           => x_im,
+    xa_vld       => x_vld,
+    xa_neg       => x_conj_i,
+    xb           => "00", -- unused
+    xb_vld       => open, -- unused
+    xb_neg       => open, -- unused
+    y            => y_im,
+    y_vld        => y_vld,
+    z            => "00", -- unused
+    z_vld        => open, -- unused
+    result       => result_re,
+    result_vld   => result_vld,
+    result_ovf   => result_ovf_re,
+    chainin      => chain_re,
+    chainin_vld  => chain_re_vld,
+    chainout     => chainout_re,
+    chainout_vld => chainout_re_vld,
+    PIPESTAGES   => PIPESTAGES
+  );
+
+  -- operation:  Im1 = ImChain + Xre*Yim + Zim 
+  i_im1 : entity work.signed_preadd_mult1add1(dsp58)
+  generic map(
+    USE_ACCU           => false,
+    NUM_SUMMAND        => 2, -- irrelevant because output logic is unused
+    USE_XB_INPUT       => false, -- unused
+    USE_NEGATION       => USE_CONJUGATE_Y,
+    USE_XA_NEGATION    => USE_NEGATION,
+    USE_XB_NEGATION    => open, -- unused
+    NUM_INPUT_REG_X    => NUM_INPUT_REG_X,
+    NUM_INPUT_REG_Y    => NUM_INPUT_REG_Y,
+    NUM_INPUT_REG_Z    => NUM_INPUT_REG_Z,
+    RELATION_CLR       => open, -- unused
+    RELATION_NEG       => RELATION_NEG, -- TODO : fixed to "Y" ?
+    NUM_OUTPUT_REG     => 1,
+    OUTPUT_SHIFT_RIGHT => 0,     -- result output unused
+    OUTPUT_ROUND       => false, -- result output unused
+    OUTPUT_CLIP        => false, -- result output unused
+    OUTPUT_OVERFLOW    => false  -- result output unused
+  )
+  port map (
+    clk          => clk,
+    rst          => rst,
+    clkena       => clkena,
+    clr          => open,
+    neg          => y_conj_i,
+    xa           => x_re,
+    xa_vld       => x_vld,
+    xa_neg       => neg_i,
+    xb           => "00", -- unused
+    xb_vld       => open, -- unused
+    xb_neg       => open, -- unused
+    y            => y_im,
+    y_vld        => y_vld,
+    z            => z_im,
+    z_vld        => z_vld,
+    result       => dummy_im, -- unused
+    result_vld   => open, -- unused
+    result_ovf   => open, -- unused
+    chainin      => chainin_im,
+    chainin_vld  => chainin_im_vld,
+    chainout     => chain_im,
+    chainout_vld => chain_im_vld,
+    PIPESTAGES   => open  -- unused
+  );
+
+  -- operation:  Im2 = Im1 + Xim*Yre   (accumulation possible)
+  i_im2 : entity work.signed_preadd_mult1add1(dsp58)
+  generic map(
+    USE_ACCU           => USE_ACCU, -- accumulator enabled in last chain link only!
+    NUM_SUMMAND        => NUM_SUMMAND, -- TODO : NUM_SUMMAND, two multiplications per complex multiplication
+    USE_XB_INPUT       => false, -- unused
+    USE_NEGATION       => USE_NEGATION,
+    USE_XA_NEGATION    => USE_CONJUGATE_X,
+    USE_XB_NEGATION    => open, -- unused
+    NUM_INPUT_REG_X    => NUM_INPUT_REG_X + 1,
+    NUM_INPUT_REG_Y    => NUM_INPUT_REG_Y + 1,
+    NUM_INPUT_REG_Z    => open, -- unused
+    RELATION_CLR       => RELATION_CLR,
+    RELATION_NEG       => RELATION_NEG,
+    NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
+    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
+    OUTPUT_ROUND       => OUTPUT_ROUND,
+    OUTPUT_CLIP        => OUTPUT_CLIP,
+    OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
+  )
+  port map (
+    clk          => clk,
+    rst          => rst,
+    clkena       => clkena,
+    clr          => clr, -- accumulator enabled in last chain link only!
+    neg          => neg_i,
+    xa           => x_im,
+    xa_vld       => x_vld,
+    xa_neg       => x_conj_i,
+    xb           => "00", -- unused
+    xb_vld       => open, -- unused
+    xb_neg       => open, -- unused
+    y            => y_re,
+    y_vld        => y_vld,
+    z            => "00", -- unused
+    z_vld        => open, -- unused
+    result       => result_im,
+    result_vld   => open, -- same as real component
+    result_ovf   => result_ovf_im,
+    chainin      => chain_im,
+    chainin_vld  => chain_im_vld,
+    chainout     => chainout_im,
+    chainout_vld => chainout_im_vld,
+    PIPESTAGES   => open  -- same as real component
+  );
+
+ end generate G4DSP;
+
+
+ --------------------------------------------------------------------------------------------------
+ -- Operation with 3 DSP cells
+ -- *  Temp =           ( Yre - Yim) * Xim 
+ -- *  Re   = ReChain + ( Xre - Xim) * Yre + Temp  = ReChain + (Xre * Yre) - (Xim * Yim)
+ -- *  Im   = ImChain + ( Xre + Xim) * Yim + Temp  = ImChain + (Xre * Yim) + (Xim * Yre)
+ --
+ -- Notes
+ -- * Z input not supported !
+ -- * factor inputs X and Y are limited to 2x24 bits
+ --
+ -- If the chain input is used, i.e. when the chainin_vld is connected and not static, then
+ -- * accumulation not possible because P feedback must be disabled
+ -- * The rounding (i.e. +0.5) not possible within DSP.
+ --   But rounding bit can be injected at the first chain link where the chain input is unused.
+ --------------------------------------------------------------------------------------------------
+ G3DSP : if (OPTIMIZATION="RESOURCES" and MAX_INPUT_WIDTH>18) or OPTIMIZATION="G3DSP" generate
+  -- identifier for reports of warnings and errors
+  constant CHOICE : string := INSTANCE_NAME & "(optimization=RESOURCES, 3 DSPs):: ";
+  constant TEMP_WIDTH : positive := x_re'length + y_re'length + 1;
+  signal temp : signed(TEMP_WIDTH-1 downto 0);
+  signal temp_vld : std_logic;
+ begin
+
+  assert (NUM_INPUT_REG_X>=2 and NUM_INPUT_REG_Y>=2)
+    report CHOICE & "For high-speed the X and Y paths should have at least two input registers."
+    severity warning;
+
+  assert (chainin_re_vld/='1' and chainin_im_vld/='1') or not USE_ACCU
+    report CHOICE & "Selected optimization does not allow simultaneous chain input and accumulation."
+    severity WARNING;
+
+  assert (MAX_INPUT_WIDTH<=MAX_WIDTH_B)
+    report CHOICE & "Multiplier input X and Y width cannot exceed " & integer'image(MAX_WIDTH_B)
+    severity failure;
+
+  assert (z_vld/='1')
+    report CHOICE & "Z input not supported with selected optimization."
+    severity failure;
+
+  -- Operation:
+  -- Temp = ( Yre - Yim) * Xim  ... raw with full resolution
+  i_temp : entity work.signed_preadd_mult1add1(dsp58)
+  generic map(
+    USE_ACCU           => false,
+    NUM_SUMMAND        => 2,
+    USE_XB_INPUT       => true,
+    USE_NEGATION       => USE_NEGATION or USE_CONJUGATE_X,
+    USE_XA_NEGATION    => true,
+    USE_XB_NEGATION    => false, -- unused
+    NUM_INPUT_REG_X    => NUM_INPUT_REG_Y, -- X/Y swapped because Y requires preadder
+    NUM_INPUT_REG_Y    => NUM_INPUT_REG_X, -- X/Y swapped because Y requires preadder
+    NUM_INPUT_REG_Z    => open, -- unused
+    RELATION_CLR       => open, -- unused
+    RELATION_NEG       => RELATION_NEG,
+    NUM_OUTPUT_REG     => 1,
+    OUTPUT_SHIFT_RIGHT => 0, -- raw temporary result for following RE and IM stage
+    OUTPUT_ROUND       => false,
+    OUTPUT_CLIP        => false,
+    OUTPUT_OVERFLOW    => false
+  )
+  port map(
+    clk          => clk, -- clock
+    rst          => rst, -- reset
+    clkena       => clkena,
+    clr          => open, -- unused
+    neg          => neg_i xor x_conj_i,
+    xa           => y_im, -- first factor
+    xa_vld       => y_vld,
+    xa_neg       => not y_conj_i,
+    xb           => y_re, -- first factor
+    xb_vld       => y_vld,
+    xb_neg       => open, -- unused
+    y            => x_im, -- second factor
+    y_vld        => x_vld,
+    z            => "00", -- unused
+    z_vld        => open, -- unused
+    result       => temp, -- temporary result
+    result_vld   => temp_vld,
+    result_ovf   => open, -- not needed
+    chainin      => open, -- unused
+    chainin_vld  => open, -- unused
+    chainout     => open, -- unused
+    chainout_vld => open, -- unused
+    PIPESTAGES   => open  -- unused
+  );
+
+  -- Operation:
+  -- Re = ReChain + (Xre - Xim) * Yre + Temp   (accumulation only when chain input unused)
+  i_re : entity work.signed_preadd_mult1add1(dsp58)
+  generic map(
+    USE_ACCU           => USE_ACCU,
+    NUM_SUMMAND        => NUM_SUMMAND, -- TODO : NUM_SUMMAND
+    USE_XB_INPUT       => true,
+    USE_NEGATION       => USE_NEGATION,
+    USE_XA_NEGATION    => true,
+    USE_XB_NEGATION    => false, -- unused
+    NUM_INPUT_REG_X    => NUM_INPUT_REG_X + NUM_INPUT_REG_Z + 1,
+    NUM_INPUT_REG_Y    => NUM_INPUT_REG_Y + NUM_INPUT_REG_Z + 1,
+    NUM_INPUT_REG_Z    => NUM_INPUT_REG_Z,
+    RELATION_CLR       => RELATION_CLR,
+    RELATION_NEG       => RELATION_NEG,
+    NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
+    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
+    OUTPUT_ROUND       => OUTPUT_ROUND,
+    OUTPUT_CLIP        => OUTPUT_CLIP,
+    OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
+  )
+  port map(
+    clk          => clk,
+    rst          => rst,
+    clkena       => clkena,
+    clr          => clr, -- only relevant when accumulator is enabled
+    neg          => neg_i,
+    xa           => x_im,
+    xa_vld       => x_vld,
+    xa_neg       => not x_conj_i,
+    xb           => x_re,
+    xb_vld       => x_vld,
+    xb_neg       => open, -- unused
+    y            => y_re,
+    y_vld        => y_vld,
+    z            => temp,
+    z_vld        => temp_vld,
+    result       => result_re,
+    result_vld   => result_vld,
+    result_ovf   => result_ovf_re,
+    chainin      => chainin_re,
+    chainin_vld  => chainin_re_vld,
+    chainout     => chainout_re,
+    chainout_vld => chainout_re_vld,
+    PIPESTAGES   => PIPESTAGES
+  );
+
+  -- Operation:
+  -- Im = ImChain + ( Xre + Xim) * Yim + Temp   (accumulation only when chain input unused)
+  i_im : entity work.signed_preadd_mult1add1(dsp58)
+  generic map(
+    USE_ACCU           => USE_ACCU,
+    NUM_SUMMAND        => NUM_SUMMAND, -- TODO : NUM_SUMMAND
+    USE_XB_INPUT       => true,
+    USE_NEGATION       => USE_NEGATION or USE_CONJUGATE_Y,
+    USE_XA_NEGATION    => USE_CONJUGATE_X,
+    USE_XB_NEGATION    => false, -- unused
+    NUM_INPUT_REG_X    => NUM_INPUT_REG_X + NUM_INPUT_REG_Z + 1,
+    NUM_INPUT_REG_Y    => NUM_INPUT_REG_Y + NUM_INPUT_REG_Z + 1,
+    NUM_INPUT_REG_Z    => NUM_INPUT_REG_Z,
+    RELATION_CLR       => RELATION_CLR,
+    RELATION_NEG       => RELATION_NEG,
+    NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
+    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
+    OUTPUT_ROUND       => OUTPUT_ROUND,
+    OUTPUT_CLIP        => OUTPUT_CLIP,
+    OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
+  )
+  port map(
+    clk          => clk,
+    rst          => rst,
+    clkena       => clkena,
+    clr          => clr, -- only relevant when accumulator is enabled
+    neg          => neg_i xor y_conj_i,
+    xa           => x_im,
+    xa_vld       => x_vld,
+    xa_neg       => x_conj_i,
+    xb           => x_re,
+    xb_vld       => x_vld,
+    xb_neg       => open, -- unused
+    y            => y_im,
+    y_vld        => y_vld,
+    z            => temp,
+    z_vld        => temp_vld,
+    result       => result_im,
+    result_vld   => open, -- same as real component
+    result_ovf   => result_ovf_im,
+    chainin      => chainin_im,
+    chainin_vld  => chainin_im_vld,
+    chainout     => chainout_im,
+    chainout_vld => chainout_im_vld,
+    PIPESTAGES   => open  -- same as real component
+  );
+
+ end generate G3DSP;
+
+
+ --------------------------------------------------------------------------------------------------
+ -- Special Operation with 2 back-to-back DSP cells plus chain and Z input.
+ --
+ -- Notes
+-- * last Z input in chain not supported, when accumulation is required !
+-- * factor inputs X and Y are limited to 2x18 bits
+ --------------------------------------------------------------------------------------------------
+ G2DSP : if (OPTIMIZATION="RESOURCES" and MAX_INPUT_WIDTH<=18) or OPTIMIZATION="G2DSP" generate
+  -- identifier for reports of warnings and errors
+  constant CHOICE : string := INSTANCE_NAME & "(optimization=RESOURCES, 2 DSPs):: ";
+
+  -- Max input width
+  constant INPUT_WIDTH : positive := 18;
 
   constant DSPREG : t_dspreg := GET_NUM_DSPCPLX_REG(
     aregs => NUM_INPUT_REG_X,
@@ -94,11 +515,10 @@ architecture dsp58 of complex_mult1add1 is
   constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
   constant PRODUCT_WIDTH : natural := x_re'length + y_re'length + 1;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
-  constant GUARD_BITS_EVAL : natural := accu_guard_bits(NUM_SUMMAND,MAX_GUARD_BITS,IMPLEMENTATION);
+  constant GUARD_BITS_EVAL : natural := accu_guard_bits(NUM_SUMMAND,MAX_GUARD_BITS,CHOICE);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
   constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
   constant OUTPUT_WIDTH : positive := result_re'length;
-
 
   -- OPMODE control signal
   signal opmode : std_logic_vector(8 downto 0);
@@ -141,42 +561,33 @@ architecture dsp58 of complex_mult1add1 is
   signal accu_rnd : std_logic := '0';
   signal accu_used_re, accu_used_im : signed(ACCU_USED_WIDTH-1 downto 0);
 
-  signal clr_i, neg_i, x_conj_i, y_conj_i : std_logic := '0';
+  signal clr_i : std_logic := '0';
 
-begin
-
-  clr_i    <= clr    when USE_ACCU        else '0';
-  neg_i    <= neg    when USE_NEGATION    else '0';
-  x_conj_i <= x_conj when USE_CONJUGATE_X else '0';
-  y_conj_i <= y_conj when USE_CONJUGATE_Y else '0';
-
+ begin
 
   assert (x_re'length<=INPUT_WIDTH and x_im'length<=INPUT_WIDTH)
-    report IMPLEMENTATION & ": " & "Multiplier input X width cannot exceed " & integer'image(INPUT_WIDTH)
+    report CHOICE & "Multiplier input X width cannot exceed " & integer'image(INPUT_WIDTH)
     severity failure;
 
   assert (y_re'length<=INPUT_WIDTH and y_im'length<=INPUT_WIDTH)
-    report IMPLEMENTATION & ": " & "Multiplier input Y width cannot exceed " & integer'image(INPUT_WIDTH)
+    report CHOICE & "Multiplier input Y width cannot exceed " & integer'image(INPUT_WIDTH)
     severity failure;
 
   assert (z_re'length<=MAX_WIDTH_C and z_im'length<=MAX_WIDTH_C)
-    report IMPLEMENTATION & ": " & "Summand input Z width cannot exceed " & integer'image(MAX_WIDTH_C)
+    report CHOICE & "Summand input Z width cannot exceed " & integer'image(MAX_WIDTH_C)
     severity failure;
 
   assert (NUM_INPUT_REG_X=NUM_INPUT_REG_Y)
-    report IMPLEMENTATION & ": " & 
-           "For now the number of input registers in X and Y path must be the same."
+    report CHOICE & "For now the number of input registers in X and Y path must be the same."
     severity failure;
 
   assert GUARD_BITS_EVAL<=MAX_GUARD_BITS
-    report IMPLEMENTATION & ": " &
-           "Maximum number of accumulator bits is " & integer'image(ACCU_WIDTH) & " ." &
+    report CHOICE & "Maximum number of accumulator bits is " & integer'image(ACCU_WIDTH) & " ." &
            "Input bit widths allow only maximum number of guard bits = " & integer'image(MAX_GUARD_BITS)
     severity failure;
 
   assert OUTPUT_WIDTH<ACCU_USED_SHIFTED_WIDTH or not(OUTPUT_CLIP or OUTPUT_OVERFLOW)
-    report IMPLEMENTATION & ": " &
-           "More guard bits required for saturation/clipping and/or overflow detection." &
+    report CHOICE & "More guard bits required for saturation/clipping and/or overflow detection." &
            "  OUTPUT_WIDTH="            & integer'image(OUTPUT_WIDTH) &
            ", ACCU_USED_SHIFTED_WIDTH=" & integer'image(ACCU_USED_SHIFTED_WIDTH) &
            ", OUTPUT_CLIP="             & boolean'image(OUTPUT_CLIP) &
@@ -184,12 +595,14 @@ begin
     severity failure;
 
   assert (DSPREG.M=1)
-    report INSTANCE_NAME & ": DSP internal pipeline register after multiplier is disabled. FIX: use at least two input registers at ports X and Y."
+    report CHOICE & "DSP internal pipeline register after multiplier is disabled. FIX: use at least two input registers at ports X and Y."
     severity warning;
+
+  clr_i <= clr when USE_ACCU else '0';
 
   i_feed_re : entity work.xilinx_input_pipe
   generic map(
-    PIPEREGS_RST     => LOGICREG.A, -- TODO
+    PIPEREGS_RST     => LOGICREG.A, -- TODO : reset
     PIPEREGS_CLR     => LOGICREG.CLR,
     PIPEREGS_NEG     => LOGICREG.NEG,
     PIPEREGS_A       => LOGICREG.A,
@@ -231,9 +644,9 @@ begin
 
   i_feed_im : entity work.xilinx_input_pipe
   generic map(
-    PIPEREGS_RST     => LOGICREG.A, -- TODO
+    PIPEREGS_RST     => LOGICREG.A, -- TODO : reset
     PIPEREGS_CLR     => LOGICREG.CLR,
-    PIPEREGS_NEG     => LOGICREG.NEG,
+    PIPEREGS_NEG     => LOGICREG.B, -- misused for y_conj signal delay
     PIPEREGS_A       => LOGICREG.A,
     PIPEREGS_B       => LOGICREG.B,
     PIPEREGS_C       => LOGICREG.C,
@@ -245,12 +658,12 @@ begin
     clkena    => clkena,
     src_rst   => rst,
     src_clr   => clr_i,
-    src_neg   => neg_i, -- TODO: better y_conj_i here? with separate delay!
+    src_neg   => y_conj_i,
     src_a_vld => x_vld,
     src_b_vld => y_vld,
     src_c_vld => z_vld,
     src_d_vld => open,
-    src_a_neg => y_conj_i,
+    src_a_neg => open,
     src_d_neg => open,
     src_a     => x_im,
     src_b     => y_im,
@@ -258,12 +671,12 @@ begin
     src_d     => "00", -- unused
     dsp_rst   => open,
     dsp_clr   => open,
-    dsp_neg   => open,
+    dsp_neg   => b_conj,
     dsp_a_vld => open,
     dsp_b_vld => open,
     dsp_c_vld => open,
     dsp_d_vld => open,
-    dsp_a_neg => b_conj,
+    dsp_a_neg => open,
     dsp_d_neg => open,
     dsp_a     => dsp_a_im,
     dsp_b     => dsp_b_im,
@@ -302,7 +715,7 @@ begin
     dsp_a_conj <= a_conj;
   end generate;
 
-  i_mode : entity work.xilinx_mode_logic -- TODO : special for CPLX ?
+  i_mode : entity work.xilinx_mode_logic
   generic map(
     USE_ACCU     => USE_ACCU,
     USE_PREADDER => open, -- unused
@@ -326,7 +739,7 @@ begin
     b_vld     => dsp_b_vld,
     c_vld     => dsp_c_vld,
     d_vld     => open, -- unused
-    pcin_vld  => chainin_vld,
+    pcin_vld  => chainin_re_vld,  -- TODO: chainin_valid
     negate    => open, -- unused
     inmode    => open, -- unused
     opmode    => opmode,
@@ -515,7 +928,8 @@ begin
 
   chainout_re<= resize(signed(chainout_re_i),chainout_re'length);
   chainout_im<= resize(signed(chainout_im_i),chainout_im'length);
-  chainout_vld <= pcout_vld;
+  chainout_re_vld <= pcout_vld; -- TODO: chainout_valid
+  chainout_im_vld <= pcout_vld; -- TODO: chainout_valid
 
   -- pipelined output valid signal
   p_clk : process(clk)
@@ -582,6 +996,8 @@ begin
   );
 
   -- report constant number of pipeline register stages
-  PIPESTAGES <= NUM_INPUT_REG_X + NUM_OUTPUT_REG; -- TODO ?
+  PIPESTAGES <= NUM_INPUT_REG_X + NUM_OUTPUT_REG;
+
+ end generate G2DSP;
 
 end architecture;
