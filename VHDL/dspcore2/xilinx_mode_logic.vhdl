@@ -1,8 +1,7 @@
 ----------------------------------------------------------------------------
 -- @file       xilinx_mode_logic.vhdl
 -- @author     Fixitfetish
--- @date       25/Aug/2024
--- @version    0.20
+-- @date       15/Sep/2024
 -- @note       VHDL-2008
 -- @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --             <https://opensource.org/licenses/MIT>
@@ -13,15 +12,14 @@ library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
 library baselib;
---  use baselib.ieee_extension.all;
   use baselib.pipereg_pkg.all;
 
--- This entity implements a generic inmode, opmode and alumode logic for Xilinx Devices.
+-- This entity implements a generic inmode, opmode and alumode logic for Xilinx/AMD DSP48E2 and DSP58.
 --
 -- Special handling of CLR=1 and VLD=0
 --
--- The P accumulator register will not be cleared and/or preset with the rounding bit immediately.
--- Instead the clear operation will be postponed to the next valid cycle.
+-- If accumulation is enabled then the P accumulator register will not be cleared and/or preset with
+-- the rounding bit immediately. Instead the clear operation will be postponed to the next valid cycle.
 -- This can save power because unnecessary toggling of the P register is avoided,
 -- especially when accumulation is not needed and CLR is constant 1.
 --
@@ -46,35 +44,47 @@ library baselib;
 -- |   0   |  0 | invalid input will never contribute to output  |
 -- |   1   |  C |                                                |
 --
---  M_VLD = A_VLD or D_VLD
+--  M_VLD = (A_VLD or D_VLD) and B_VLD
 --
--- | USE_PREADDER | A_VLD | D_VLD | M_VLD | Product       | Comment                                    |
--- |:------------:|:-----:|:-----:|:-----:|:--------------|:-------------------------------------------|
--- |      0/1     |   0   |   0   |   0   | M = 0         | without valid inputs the product is zero   |
--- |      0/1     |   1   |   0   |   1   | M = AA*B      | just A contributes to product              |
--- |       1      |   0   |   1   |   1   | M = DD*B      | just D contributes to product              |
--- |       1      |   1   |   1   |   1   | M = (AA+DD)*B | full preadder and product                  |
+-- | USE_PREADDER | A_VLD | D_VLD | B_VLD | M_VLD | Product       | Comment                                      |
+-- |:------------:|:-----:|:-----:|:-----:|:-----:|:--------------|:---------------------------------------------|
+-- |      0/1     |   0   |   0   |  0/1  |   0   | M = 0         | without valid A/D inputs the product is zero |
+-- |      0/1     |  0/1  |  0/1  |   0   |   0   | M = 0         | without valid B input the product is zero    |
+-- |      0/1     |   1   |   0   |   1   |   1   | M = AA*B      | just A contributes to product                |
+-- |       1      |   0   |   1   |   1   |   1   | M = DD*B      | just D contributes to product                |
+-- |       1      |   1   |   1   |   1   |   1   | M = (AA+DD)*B | full preadder and product                    |
 --
 -- **ACCU Mode**
--- * Simultaneous accumulation of up to two out of the three possible summands: M, PCIN, CC . Third summand is the P feedback.
--- * Optional round bit addition at accumulator reset/clear .
--- * Clearing (CLR=1) with simultaneously up to three out of the four possible summands: M, PCIN, CC, RND .
+-- * Up to three simultaneous summands out of the five possible ones:
+--   - RND  : Round bit always via W multiplexer (typically either RND or P)
+--   - P    : Feedback always via W multiplexer (typically either RND or P)
+--   - M    : Product always via XY multiplexer
+--   - PCIN : Chain in always via Z multiplexer
+--   - CC   : Summand either via W, XY or Z multiplexer
+-- * Optional round bit RND addition at accumulator reset/clear .
+-- * Clearing (CLR=1) with up to three simultaneous summands.
 --
--- | ROUND | M_VLD | PCIN_VLD | C_VLD | CLEAR | Operation P              | Comment                                             |
+-- | ROUND | M_VLD | PCIN_VLD | C_VLD | CLEAR | Operation P = W + XY + Z | Comment                                             |
 -- |:-----:|:-----:|:--------:|:-----:|:-----:|:-------------------------|:----------------------------------------------------|
--- |  ---  |   0   |     0    |   0   |   1   | P = RND                  | Reset Accumulator                                   |
--- |   --- |  0/1  |     1    |   0   |   1   | P = RND +  M + PCIN      | Restart Accumulation                                |
--- |   --- |  0/1  |     0    |  0/1  |   1   | P = RND +  M +   CC      | Restart Accumulation                                |
--- |   --- |   0   |     1    |  0/1  |   1   | P = RND + CC + PCIN      | Restart Accumulation (without product M)            |
--- | false |  0/1  |     1    |  0/1  |   1   | P =  CC +  M + PCIN      | Restart Accumulation (without rounding)             |
+-- | false |   0   |     0    |   0   |   1   | P =   0                  | Reset Accumulator (without rounding)                |
+-- |  true |   0   |     0    |   0   |   1   | P = RND                  | Reset Accumulator (with round bit preset)           |
+-- | false |   1   |     1    |   1   |   1   | P =  CC +  M + PCIN      | Restart Accumulation (without rounding)             |
 -- |  true |   1   |     1    |   1   |   1   | P =  CC +  M + PCIN      | Restart Accumulation (DSP external round required)  |
--- |   --- |  0/1  |     0    |  0/1  |   0   | P =   P +  M +   CC      | Proceed Accumulation                                |
--- |   --- |  0/1  |     1    |   0   |   0   | P =   P +  M + PCIN      | Proceed Accumulation                                |
--- |   --- |   0   |     1    |   1   |   0   | P =   P + CC + PCIN      | Proceed Accumulation (without product M)            |
--- |   --- |   1   |     1    |   1   |   0   | P =   P +  M + PCIN + CC | ERROR: not possible                                 |
+-- |  true |   1   |     1    |   0   |   1   | P = RND +  M + PCIN      | Restart Accumulation (without C input)              |
+-- |  true |   1   |     0    |   1   |   1   | P = RND +  M +   CC      | Restart Accumulation (without chain input)          |
+-- |  true |   0   |     1    |   1   |   1   | P = RND + CC + PCIN      | Restart Accumulation (without product M)            |
+-- |  ---  |   0   |     0    |   0   |   0   | P =   P                  | Keep output, no change                              |
+-- |  ---  |   1   |     0    |   1   |   0   | P =   P +  M +   CC      | Proceed Accumulation (without chain input)          |
+-- |  ---  |   1   |     1    |   0   |   0   | P =   P +  M + PCIN      | Proceed Accumulation (without C input)              |
+-- |  ---  |   0   |     1    |   1   |   0   | P =   P + CC + PCIN      | Proceed Accumulation (without product M)            |
+-- |  ---  |   1   |     1    |   1   |   0   | P =   P +  M + PCIN + CC | ERROR: Accumulation with 4 summands not possible    |
 --
 -- **SUM Mode**
--- * Simultaneous addition of three out the four possible summands: M, PCIN, CC, RND .
+-- * Up to three simultaneous summands out of the four possible ones:
+--   - RND  : Round bit always via W multiplexer
+--   - M    : Product always via XY multiplexer
+--   - PCIN : Chain in always via Z multiplexer
+--   - CC   : Summand either via W, XY or Z multiplexer
 -- * ROUND=OFF : round bit is not added, i.e. RND=0
 -- * ROUND=ON : round bit is added by RND
 -- * With CLR=1 even an invalid output will be updated in every cycle, otherwise only valid values are shown at the output.
@@ -90,7 +100,7 @@ library baselib;
 -- |  true |   1   |     1    |   1   |  0/1  | P =  CC +  M + PCIN      | Sum with three summands (DSP external round required) |
 --
 -- Here assumption is the following:
--- * The DSP internal INMODE and OPMODE input register is always enabled.
+-- * The DSP internal INMODE, OPMODE and ALUMODE input registers are always enabled.
 -- * The DSP internal P output register is always enabled.
 --
 -- Refer to 
@@ -185,9 +195,6 @@ end entity;
 
 architecture macc of xilinx_mode_logic is
 
-  -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "xilinx_mode_logic(macc)";
-
   attribute dont_touch : string;
   attribute dont_touch of pcout_vld : signal is "true";
   attribute dont_touch of p_change : signal is "true";
@@ -237,6 +244,8 @@ architecture macc of xilinx_mode_logic is
   alias  add_c    is add_select(2);
   alias  add_pcin is add_select(3);
   signal add_rnd : std_logic := '0';
+
+  -- clear output register P in next cycle
   signal clear_p : std_logic := '0';
 
 begin
@@ -294,18 +303,18 @@ begin
     pipereg(clr_q(NUM_CLR_REG-1 downto 0), clr_q(NUM_CLR_REG downto 1), clk, clkena);
   end generate;
 
-  add_pcin <= pcin_vld;
-  add_c <= c_vld;
-  add_p <= not clr_q(0) when USE_ACCU else '0';
-  add_rnd <= clr_q(0) when (USE_ACCU and ENABLE_ROUND) else '1' when (ENABLE_ROUND) else '0';
-  --  add_rnd <= (not add_p) when ENABLE_ROUND else '0';
   clear_p <= clr_q(0);
+
+  add_pcin <= pcin_vld;
+  add_c    <= c_vld;
+  add_p    <= not clear_p when USE_ACCU else '0';
+  add_rnd  <= clear_p when (USE_ACCU and ENABLE_ROUND) else '1' when (ENABLE_ROUND) else '0';
 
   -- pragma translate_off (Xilinx Vivado , Synopsys)
   process(add_select)
   begin
    assert (add_select/="1111")
-   report "ERROR " & IMPLEMENTATION & " Too many simultaneous inputs to DSP internal ALU. " &
+   report xilinx_mode_logic'instance_name & " Too many simultaneous inputs to DSP internal ALU. " &
           "Probably you use accumulation simultaneously with C and CHAININ inputs which is not supported."
     severity failure;
   end process;

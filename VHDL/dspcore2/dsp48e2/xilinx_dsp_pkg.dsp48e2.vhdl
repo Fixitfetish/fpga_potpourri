@@ -1,9 +1,8 @@
 -------------------------------------------------------------------------------
 -- @file       xilinx_dsp_pkg.dsp48e2.vhdl
 -- @author     Fixitfetish
--- @date       05/Sep/2024
--- @version    0.21
--- @note       VHDL-1993
+-- @date       15/Sep/2024
+-- @note       VHDL-2008
 -- @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
@@ -46,6 +45,18 @@ package xilinx_dsp_pkg_dsp48e2 is
     INMODE  : natural range 0 to 1;
     OPMODE  : natural range 0 to 1;
     ALUMODE : natural range 0 to 1;
+  end record;
+
+  -- number of additional pipeline registers in logic in-front of DSP input.
+  type t_logicreg is
+  record
+    A   : natural;
+    B   : natural;
+    C   : natural;
+    D   : natural;
+    RST : natural;
+    CLR : natural;
+    NEG : natural;
   end record;
 
   function GET_NUM_DSP_REG(

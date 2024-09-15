@@ -1,9 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       complex_macc_chain.behave.vhdl
 --! @author     Fixitfetish
---! @date       09/Sep/2024
---! @version    0.25
---! @note       VHDL-1993
+--! @date       15/Sep/2024
+--! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
@@ -15,8 +14,8 @@ library ieee;
 library baselib;
   use baselib.ieee_extension_types.all;
 
---! N complex multiplications and sum of all product results.
---!
+-- N complex multiplications and sum of all product results.
+--
 architecture behave of complex_macc_chain is
 
   function OUTREGS(i:natural) return natural is begin
@@ -26,13 +25,15 @@ architecture behave of complex_macc_chain is
   signal result_re_i : signed_vector(0 to NUM_MULT-1)(result_re'length-1 downto 0);
   signal result_im_i : signed_vector(0 to NUM_MULT-1)(result_im'length-1 downto 0);
   signal result_vld_i : std_logic_vector(0 to NUM_MULT-1);
+  signal result_rst_i : std_logic_vector(0 to NUM_MULT-1);
   signal result_ovf_re_i : std_logic_vector(0 to NUM_MULT-1);
   signal result_ovf_im_i : std_logic_vector(0 to NUM_MULT-1);
   signal pipestages_i : integer_vector(0 to NUM_MULT-1);
 
   signal chainin_re  : signed_vector(0 to NUM_MULT)(79 downto 0);
   signal chainin_im  : signed_vector(0 to NUM_MULT)(79 downto 0);
-  signal chainin_re_vld, chainin_im_vld : std_logic_vector(0 to NUM_MULT);
+  signal chainin_re_vld : std_logic_vector(0 to NUM_MULT);
+  signal chainin_im_vld : std_logic_vector(0 to NUM_MULT);
 
  begin
 
@@ -87,6 +88,7 @@ architecture behave of complex_macc_chain is
       result_vld      => result_vld_i(n),
       result_ovf_re   => result_ovf_re_i(n),
       result_ovf_im   => result_ovf_im_i(n),
+      result_rst      => result_rst_i(n),
       chainin_re      => chainin_re(n),
       chainin_im      => chainin_im(n),
       chainin_re_vld  => chainin_re_vld(n),
@@ -103,6 +105,7 @@ architecture behave of complex_macc_chain is
   result_im <= result_im_i(NUM_MULT-1);
   result_vld <= result_vld_i(NUM_MULT-1);
   result_ovf <= result_ovf_re_i(NUM_MULT-1) or result_ovf_im_i(NUM_MULT-1);
+  result_rst <= result_rst_i(NUM_MULT-1);
   PIPESTAGES <= pipestages_i(NUM_MULT-1);
 
 end architecture;

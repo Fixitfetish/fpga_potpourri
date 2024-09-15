@@ -1,9 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       complex_macc_chain.vhdl
 --! @author     Fixitfetish
---! @date       09/Sep/2024
---! @version    0.25
---! @note       VHDL-1993
+--! @date       15/Sep/2024
+--! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
@@ -171,6 +170,8 @@ port (
   result_vld : out std_logic;
   --! Result output overflow/clipping detection
   result_ovf : out std_logic;
+  --! Pipelined output reset
+  result_rst : out std_logic;
   --! Number of pipeline stages, constant, depends on configuration and device specific implementation
   PIPESTAGES : out integer := 1
 );

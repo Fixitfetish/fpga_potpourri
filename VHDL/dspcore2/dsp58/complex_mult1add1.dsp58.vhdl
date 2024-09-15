@@ -1,9 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       complex_mult1add1.dsp58.vhdl
 --! @author     Fixitfetish
---! @date       09/Sep/2024
---! @version    0.25
---! @note       VHDL-1993
+--! @date       15/Sep/2024
+--! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
@@ -16,21 +15,37 @@ library unisim;
 
 use work.xilinx_dsp_pkg_dsp58.all;
 
--- Implementation of complex_mult1add1 for AMD/Xilinx DSP58.
+-- This is an implementation of the entity complex_mult1add1 for AMD/Xilinx DSP58.
 --
--- Notes and Limitations
--- * Maximum A and B factor input width is 2x18 bits.
--- * DSP internal accumulation not supported when both summand inputs, chain and C, are enabled.
--- * DSP internal rounding bit addition not possible when both summand inputs, chain and C, are enabled.
--- * Product negation requires additional DSP external logic which is implemented at the input.
--- * Additional negation logic includes clipping of 18-bit input to most positive value when most negative value is negated.
+-- **OPTIMIZATION="PERFORMANCE"**
+-- * This implementation requires four instances of the entity signed_preadd_mult1add1 with disabled preadder.
+-- * This implementation requires four DSP58s.
+-- * X input width is limited to 27 bits and Y input to 24 bits.
+-- * Chaining is supported.
+-- * Additional Z summand input is supported.
+-- * Accumulation is not supported when chain and Z input are used.
+-- * The number of overall pipeline stages is typically NUM_INPUT_REG_XY + 1 + NUM_OUTPUT_REG.
+--
+-- **OPTIMIZATION="RESOURCES" with x and y input width <=24 bits**
+-- * This implementation requires three instances of the entity signed_preadd_mult1add1 .
+-- * This implementation requires three DSP58s.
+-- * X and Y input width is limited to 24 bits.
+-- * Chaining is supported.
+-- * Additional Z summand input is NOT supported.
+-- * Accumulation is not supported when chain input is used.
+-- * The number of overall pipeline stages is typically NUM_INPUT_REG_XY + 2 + NUM_OUTPUT_REG.
+--
+-- **OPTIMIZATION="RESOURCES" with x and y input width <=18 bits**
+-- * This implementation instantiates the primitive DSPCPLX which requires two back-to-back DSP58s.
+-- * X and Y input width is limited to 18 bits.
+-- * Chaining is supported.
+-- * Additional Z summand input is supported.
+-- * Accumulation is not supported when chain and Z input are used.
+-- * The number of overall pipeline stages is typically NUM_INPUT_REG_XY + NUM_OUTPUT_REG.
 --
 -- Refer to Xilinx Versal ACAP DSP Engine, Architecture Manual, AM004 (v1.2.1) September 11, 2022
 --
 architecture dsp58 of complex_mult1add1 is
-
-  -- identifier for reports of warnings and errors
-  constant INSTANCE_NAME : string := complex_mult1add1'INSTANCE_NAME & ":: ";
 
   constant X_INPUT_WIDTH   : positive := maximum(x_re'length,x_im'length);
   constant Y_INPUT_WIDTH   : positive := maximum(y_re'length,y_im'length);
@@ -62,22 +77,25 @@ begin
  --------------------------------------------------------------------------------------------------
  G4DSP : if OPTIMIZATION="PERFORMANCE" or OPTIMIZATION="G4DSP" generate
   -- identifier for reports of warnings and errors
-  constant CHOICE : string := INSTANCE_NAME & "(optimization=PERFORMANCE, 4 DSPs):: ";
+  constant CHOICE : string := "(optimization=PERFORMANCE, 4 DSPs):: ";
   signal chain_re , chain_im: signed(79 downto 0);
   signal chain_re_vld, chain_im_vld : std_logic;
   signal dummy_re, dummy_im : signed(ACCU_WIDTH-1 downto 0);
  begin
 
   assert (NUM_INPUT_REG_X>=2 and NUM_INPUT_REG_Y>=2)
-    report CHOICE & "For high-speed the X and Y paths should have at least two input registers."
+    report complex_mult1add1'INSTANCE_NAME & CHOICE &
+           "For high-speed the X and Y paths should have at least two input registers."
     severity warning;
 
   assert (X_INPUT_WIDTH<=MAX_WIDTH_AD)
-    report CHOICE & "Multiplier input X width cannot exceed " & integer'image(MAX_WIDTH_AD)
+    report complex_mult1add1'INSTANCE_NAME & CHOICE &
+           "Multiplier input X width cannot exceed " & integer'image(MAX_WIDTH_AD)
     severity failure;
 
   assert (Y_INPUT_WIDTH<=MAX_WIDTH_B)
-    report CHOICE & "Multiplier input Y width cannot exceed " & integer'image(MAX_WIDTH_B) & ". Maybe swap X and Y inputs ?"
+    report complex_mult1add1'INSTANCE_NAME & CHOICE &
+           "Multiplier input Y width cannot exceed " & integer'image(MAX_WIDTH_B) & ". Maybe swap X and Y inputs ?"
     severity failure;
 
   -- Operation:  Re1 = ReChain + Xre*Yre + Zre
@@ -92,6 +110,7 @@ begin
     NUM_INPUT_REG_X    => NUM_INPUT_REG_X,
     NUM_INPUT_REG_Y    => NUM_INPUT_REG_Y,
     NUM_INPUT_REG_Z    => NUM_INPUT_REG_Z,
+    RELATION_RST       => RELATION_RST,
     RELATION_CLR       => open, -- unused
     RELATION_NEG       => RELATION_NEG,
     NUM_OUTPUT_REG     => 1,
@@ -119,6 +138,7 @@ begin
     result       => dummy_re, -- unused
     result_vld   => open, -- unused
     result_ovf   => open, -- unused
+    result_rst   => open, -- unused
     chainin      => chainin_re,
     chainin_vld  => chainin_re_vld,
     chainout     => chain_re,
@@ -138,6 +158,7 @@ begin
     NUM_INPUT_REG_X    => NUM_INPUT_REG_X + 1,
     NUM_INPUT_REG_Y    => NUM_INPUT_REG_Y + 1,
     NUM_INPUT_REG_Z    => open, -- unused
+    RELATION_RST       => RELATION_RST,
     RELATION_CLR       => RELATION_CLR,
     RELATION_NEG       => RELATION_NEG, -- TODO : neg and y_conj must have same relation. force "Y" ?
     NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
@@ -165,6 +186,7 @@ begin
     result       => result_re,
     result_vld   => result_vld,
     result_ovf   => result_ovf_re,
+    result_rst   => result_rst,
     chainin      => chain_re,
     chainin_vld  => chain_re_vld,
     chainout     => chainout_re,
@@ -184,6 +206,7 @@ begin
     NUM_INPUT_REG_X    => NUM_INPUT_REG_X,
     NUM_INPUT_REG_Y    => NUM_INPUT_REG_Y,
     NUM_INPUT_REG_Z    => NUM_INPUT_REG_Z,
+    RELATION_RST       => RELATION_RST,
     RELATION_CLR       => open, -- unused
     RELATION_NEG       => RELATION_NEG, -- TODO : fixed to "Y" ?
     NUM_OUTPUT_REG     => 1,
@@ -211,6 +234,7 @@ begin
     result       => dummy_im, -- unused
     result_vld   => open, -- unused
     result_ovf   => open, -- unused
+    result_rst   => open, -- unused
     chainin      => chainin_im,
     chainin_vld  => chainin_im_vld,
     chainout     => chain_im,
@@ -230,6 +254,7 @@ begin
     NUM_INPUT_REG_X    => NUM_INPUT_REG_X + 1,
     NUM_INPUT_REG_Y    => NUM_INPUT_REG_Y + 1,
     NUM_INPUT_REG_Z    => open, -- unused
+    RELATION_RST       => RELATION_RST,
     RELATION_CLR       => RELATION_CLR,
     RELATION_NEG       => RELATION_NEG,
     NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
@@ -257,6 +282,7 @@ begin
     result       => result_im,
     result_vld   => open, -- same as real component
     result_ovf   => result_ovf_im,
+    result_rst   => open, -- same as real component
     chainin      => chain_im,
     chainin_vld  => chain_im_vld,
     chainout     => chainout_im,
@@ -284,26 +310,30 @@ begin
  --------------------------------------------------------------------------------------------------
  G3DSP : if (OPTIMIZATION="RESOURCES" and MAX_INPUT_WIDTH>18) or OPTIMIZATION="G3DSP" generate
   -- identifier for reports of warnings and errors
-  constant CHOICE : string := INSTANCE_NAME & "(optimization=RESOURCES, 3 DSPs):: ";
+  constant CHOICE : string := "(optimization=RESOURCES, 3 DSPs):: ";
   constant TEMP_WIDTH : positive := x_re'length + y_re'length + 1;
   signal temp : signed(TEMP_WIDTH-1 downto 0);
   signal temp_vld : std_logic;
  begin
 
   assert (NUM_INPUT_REG_X>=2 and NUM_INPUT_REG_Y>=2)
-    report CHOICE & "For high-speed the X and Y paths should have at least two input registers."
+    report complex_mult1add1'INSTANCE_NAME & CHOICE &
+           "For high-speed the X and Y paths should have at least two input registers."
     severity warning;
 
   assert (chainin_re_vld/='1' and chainin_im_vld/='1') or not USE_ACCU
-    report CHOICE & "Selected optimization does not allow simultaneous chain input and accumulation."
-    severity WARNING;
+    report complex_mult1add1'INSTANCE_NAME & CHOICE &
+           "Selected optimization does not allow simultaneous chain input and accumulation."
+    severity warning;
 
   assert (MAX_INPUT_WIDTH<=MAX_WIDTH_B)
-    report CHOICE & "Multiplier input X and Y width cannot exceed " & integer'image(MAX_WIDTH_B)
+    report complex_mult1add1'INSTANCE_NAME & CHOICE &
+           "Multiplier input X and Y width cannot exceed " & integer'image(MAX_WIDTH_B)
     severity failure;
 
   assert (z_vld/='1')
-    report CHOICE & "Z input not supported with selected optimization."
+    report complex_mult1add1'INSTANCE_NAME & CHOICE &
+           "Z input not supported with selected optimization."
     severity failure;
 
   -- Operation:
@@ -319,6 +349,7 @@ begin
     NUM_INPUT_REG_X    => NUM_INPUT_REG_Y, -- X/Y swapped because Y requires preadder
     NUM_INPUT_REG_Y    => NUM_INPUT_REG_X, -- X/Y swapped because Y requires preadder
     NUM_INPUT_REG_Z    => open, -- unused
+    RELATION_RST       => RELATION_RST,
     RELATION_CLR       => open, -- unused
     RELATION_NEG       => RELATION_NEG,
     NUM_OUTPUT_REG     => 1,
@@ -346,6 +377,7 @@ begin
     result       => temp, -- temporary result
     result_vld   => temp_vld,
     result_ovf   => open, -- not needed
+    result_rst   => open, -- unused
     chainin      => open, -- unused
     chainin_vld  => open, -- unused
     chainout     => open, -- unused
@@ -366,6 +398,7 @@ begin
     NUM_INPUT_REG_X    => NUM_INPUT_REG_X + NUM_INPUT_REG_Z + 1,
     NUM_INPUT_REG_Y    => NUM_INPUT_REG_Y + NUM_INPUT_REG_Z + 1,
     NUM_INPUT_REG_Z    => NUM_INPUT_REG_Z,
+    RELATION_RST       => RELATION_RST,
     RELATION_CLR       => RELATION_CLR,
     RELATION_NEG       => RELATION_NEG,
     NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
@@ -393,6 +426,7 @@ begin
     result       => result_re,
     result_vld   => result_vld,
     result_ovf   => result_ovf_re,
+    result_rst   => result_rst,
     chainin      => chainin_re,
     chainin_vld  => chainin_re_vld,
     chainout     => chainout_re,
@@ -413,6 +447,7 @@ begin
     NUM_INPUT_REG_X    => NUM_INPUT_REG_X + NUM_INPUT_REG_Z + 1,
     NUM_INPUT_REG_Y    => NUM_INPUT_REG_Y + NUM_INPUT_REG_Z + 1,
     NUM_INPUT_REG_Z    => NUM_INPUT_REG_Z,
+    RELATION_RST       => RELATION_RST,
     RELATION_CLR       => RELATION_CLR,
     RELATION_NEG       => RELATION_NEG,
     NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
@@ -440,6 +475,7 @@ begin
     result       => result_im,
     result_vld   => open, -- same as real component
     result_ovf   => result_ovf_im,
+    result_rst   => open, -- same as real component
     chainin      => chainin_im,
     chainin_vld  => chainin_im_vld,
     chainout     => chainout_im,
@@ -459,7 +495,7 @@ begin
  --------------------------------------------------------------------------------------------------
  G2DSP : if (OPTIMIZATION="RESOURCES" and MAX_INPUT_WIDTH<=18) or OPTIMIZATION="G2DSP" generate
   -- identifier for reports of warnings and errors
-  constant CHOICE : string := INSTANCE_NAME & "(optimization=RESOURCES, 2 DSPs):: ";
+  constant CHOICE : string := "(optimization=RESOURCES, 2 DSPs):: ";
 
   -- Max input width
   constant INPUT_WIDTH : positive := 18;
@@ -469,17 +505,6 @@ begin
     bregs => NUM_INPUT_REG_Y,
     cregs => NUM_INPUT_REG_Z
   );
-
-  -- number of additional pipeline register in logic in-front of DSP input.
-  type t_logicreg is
-  record
-    A   : natural;
-    B   : natural;
-    C   : natural;
-    D   : natural;
-    CLR : natural;
-    NEG : natural;
-  end record;
 
   -- This function calculates the number registers that are required to correctly
   -- align data and control signals at the input of the DSP cell.
@@ -491,10 +516,17 @@ begin
     reg.B := NUM_INPUT_REG_Y - DSPREG.B - DSPREG.M;
     reg.C := NUM_INPUT_REG_Z - DSPREG.C;
     reg.D := 0; -- unused
+    -- Reset signal delay compensation
+    if    RELATION_RST="X"  then reg.RST := reg.A;
+    elsif RELATION_RST="Y"  then reg.RST := reg.B;
+    elsif RELATION_RST="Z"  then reg.RST := reg.C;
+    else  reg.RST := 0; end if;
+    -- Accu clear control signal delay compensation
     if    RELATION_CLR="X"  then reg.CLR := reg.A;
     elsif RELATION_CLR="Y"  then reg.CLR := reg.B;
     elsif RELATION_CLR="Z"  then reg.CLR := reg.C;
     else  reg.CLR := 0; end if;
+    -- Product negation control signal delay compensation
     if    RELATION_NEG="X" then reg.NEG := reg.A;
     elsif RELATION_NEG="Y" then reg.NEG := reg.B;
     else  reg.NEG := 0; end if;
@@ -559,50 +591,58 @@ begin
   signal accu_re, accu_im : std_logic_vector(ACCU_WIDTH-1 downto 0);
   signal accu_vld : std_logic := '0';
   signal accu_rnd : std_logic := '0';
+  signal accu_rst : std_logic := '0';
   signal accu_used_re, accu_used_im : signed(ACCU_USED_WIDTH-1 downto 0);
 
   signal clr_i : std_logic := '0';
 
  begin
 
+  assert (DSPREG.M=1)
+    report complex_mult1add1'INSTANCE_NAME & CHOICE &
+           "DSP internal pipeline register after multiplier is disabled. FIX: use at least two input registers at ports X and Y."
+    severity warning;
+
   assert (x_re'length<=INPUT_WIDTH and x_im'length<=INPUT_WIDTH)
-    report CHOICE & "Multiplier input X width cannot exceed " & integer'image(INPUT_WIDTH)
+    report complex_mult1add1'INSTANCE_NAME & CHOICE &
+           "Multiplier input X width cannot exceed " & integer'image(INPUT_WIDTH)
     severity failure;
 
   assert (y_re'length<=INPUT_WIDTH and y_im'length<=INPUT_WIDTH)
-    report CHOICE & "Multiplier input Y width cannot exceed " & integer'image(INPUT_WIDTH)
+    report complex_mult1add1'INSTANCE_NAME & CHOICE &
+           "Multiplier input Y width cannot exceed " & integer'image(INPUT_WIDTH)
     severity failure;
 
   assert (z_re'length<=MAX_WIDTH_C and z_im'length<=MAX_WIDTH_C)
-    report CHOICE & "Summand input Z width cannot exceed " & integer'image(MAX_WIDTH_C)
+    report complex_mult1add1'INSTANCE_NAME & CHOICE &
+           "Summand input Z width cannot exceed " & integer'image(MAX_WIDTH_C)
     severity failure;
 
   assert (NUM_INPUT_REG_X=NUM_INPUT_REG_Y)
-    report CHOICE & "For now the number of input registers in X and Y path must be the same."
+    report complex_mult1add1'INSTANCE_NAME & CHOICE &
+           "For now the number of input registers in X and Y path must be the same."
     severity failure;
 
   assert GUARD_BITS_EVAL<=MAX_GUARD_BITS
-    report CHOICE & "Maximum number of accumulator bits is " & integer'image(ACCU_WIDTH) & " ." &
+    report complex_mult1add1'INSTANCE_NAME & CHOICE &
+           "Maximum number of accumulator bits is " & integer'image(ACCU_WIDTH) & " ." &
            "Input bit widths allow only maximum number of guard bits = " & integer'image(MAX_GUARD_BITS)
     severity failure;
 
   assert OUTPUT_WIDTH<ACCU_USED_SHIFTED_WIDTH or not(OUTPUT_CLIP or OUTPUT_OVERFLOW)
-    report CHOICE & "More guard bits required for saturation/clipping and/or overflow detection." &
+    report complex_mult1add1'INSTANCE_NAME & CHOICE &
+           "More guard bits required for saturation/clipping and/or overflow detection." &
            "  OUTPUT_WIDTH="            & integer'image(OUTPUT_WIDTH) &
            ", ACCU_USED_SHIFTED_WIDTH=" & integer'image(ACCU_USED_SHIFTED_WIDTH) &
            ", OUTPUT_CLIP="             & boolean'image(OUTPUT_CLIP) &
            ", OUTPUT_OVERFLOW="         & boolean'image(OUTPUT_OVERFLOW)
     severity failure;
 
-  assert (DSPREG.M=1)
-    report CHOICE & "DSP internal pipeline register after multiplier is disabled. FIX: use at least two input registers at ports X and Y."
-    severity warning;
-
   clr_i <= clr when USE_ACCU else '0';
 
   i_feed_re : entity work.xilinx_input_pipe
   generic map(
-    PIPEREGS_RST     => LOGICREG.A, -- TODO : reset
+    PIPEREGS_RST     => LOGICREG.RST,
     PIPEREGS_CLR     => LOGICREG.CLR,
     PIPEREGS_NEG     => LOGICREG.NEG,
     PIPEREGS_A       => LOGICREG.A,
@@ -644,7 +684,7 @@ begin
 
   i_feed_im : entity work.xilinx_input_pipe
   generic map(
-    PIPEREGS_RST     => LOGICREG.A, -- TODO : reset
+    PIPEREGS_RST     => LOGICREG.RST,
     PIPEREGS_CLR     => LOGICREG.CLR,
     PIPEREGS_NEG     => LOGICREG.B, -- misused for y_conj signal delay
     PIPEREGS_A       => LOGICREG.A,
@@ -730,7 +770,7 @@ begin
   )
   port map(
     clk       => clk,
-    rst       => rst,
+    rst       => dsp_rst,
     clkena    => clkena,
     clr       => dsp_clr,
     neg       => open, -- unused
@@ -905,25 +945,25 @@ begin
      OPMODE_RE         => opmode,
      PCIN_IM           => chainin_im_i, -- in std_logic_vector(57 downto 0);
      PCIN_RE           => chainin_re_i, -- in std_logic_vector(57 downto 0);
-     RSTAD             => rst,
+     RSTAD             => dsp_rst,
      RSTALLCARRYIN_IM  => '1', -- unused
      RSTALLCARRYIN_RE  => '1', -- unused
-     RSTALUMODE_IM     => rst,
-     RSTALUMODE_RE     => rst,
-     RSTA_IM           => rst,
-     RSTA_RE           => rst,
-     RSTB_IM           => rst,
-     RSTB_RE           => rst,
-     RSTCONJUGATE_A    => rst,
-     RSTCONJUGATE_B    => rst,
-     RSTCTRL_IM        => rst,
-     RSTCTRL_RE        => rst,
-     RSTC_IM           => rst,
-     RSTC_RE           => rst,
-     RSTM_IM           => rst,
-     RSTM_RE           => rst,
-     RSTP_IM           => rst,
-     RSTP_RE           => rst 
+     RSTALUMODE_IM     => dsp_rst,
+     RSTALUMODE_RE     => dsp_rst,
+     RSTA_IM           => dsp_rst,
+     RSTA_RE           => dsp_rst,
+     RSTB_IM           => dsp_rst,
+     RSTB_RE           => dsp_rst,
+     RSTCONJUGATE_A    => dsp_rst,
+     RSTCONJUGATE_B    => dsp_rst,
+     RSTCTRL_IM        => dsp_rst,
+     RSTCTRL_RE        => dsp_rst,
+     RSTC_IM           => dsp_rst,
+     RSTC_RE           => dsp_rst,
+     RSTM_IM           => dsp_rst,
+     RSTM_RE           => dsp_rst,
+     RSTP_IM           => dsp_rst,
+     RSTP_RE           => dsp_rst 
   );
 
   chainout_re<= resize(signed(chainout_re_i),chainout_re'length);
@@ -935,13 +975,14 @@ begin
   p_clk : process(clk)
   begin
     if rising_edge(clk) then
-      if rst/='0' then
+      if dsp_rst/='0' then
         accu_vld <= '0';
         accu_rnd <= '0';
       elsif clkena='1' then
         accu_vld <= pcout_vld;
         accu_rnd <= p_round;
       end if; --reset
+      accu_rst <= dsp_rst;
     end if; --clock
   end process;
 
@@ -962,7 +1003,7 @@ begin
   )
   port map (
     clk         => clk,
-    rst         => rst,
+    rst         => accu_rst,
     clkena      => clkena,
     dsp_out     => accu_used_re,
     dsp_out_vld => accu_vld,
@@ -970,7 +1011,8 @@ begin
     dsp_out_rnd => accu_rnd,
     result      => result_re,
     result_vld  => result_vld,
-    result_ovf  => result_ovf_re
+    result_ovf  => result_ovf_re,
+    result_rst  => result_rst
   );
 
   -- Right-shift and clipping
@@ -984,7 +1026,7 @@ begin
   )
   port map (
     clk         => clk,
-    rst         => rst,
+    rst         => accu_rst,
     clkena      => clkena,
     dsp_out     => accu_used_im,
     dsp_out_vld => accu_vld,
@@ -992,7 +1034,8 @@ begin
     dsp_out_rnd => accu_rnd,
     result      => result_im,
     result_vld  => open, -- same as real
-    result_ovf  => result_ovf_im
+    result_ovf  => result_ovf_im,
+    result_rst  => open  -- same as real
   );
 
   -- report constant number of pipeline register stages

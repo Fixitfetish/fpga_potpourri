@@ -1,9 +1,8 @@
 -------------------------------------------------------------------------------
 -- @file       signed_preadd_mult1add1.vhdl
 -- @author     Fixitfetish
--- @date       05/Sep/2024
--- @version    0.21
--- @note       VHDL-1993
+-- @date       15/Sep/2024
+-- @note       VHDL-2008
 -- @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
@@ -58,6 +57,7 @@ library ieee;
 --   NUM_INPUT_REG_X  => natural,
 --   NUM_INPUT_REG_Y  => natural,
 --   NUM_INPUT_REG_Z  => natural,
+--   RELATION_RST     => string,
 --   RELATION_CLR     => string,
 --   RELATION_NEG     => string,
 --   NUM_OUTPUT_REG   => natural,
@@ -125,6 +125,8 @@ generic (
   NUM_INPUT_REG_Y : positive := 1;
   -- Number of registers for input Z. At least one DSP internal register is required.
   NUM_INPUT_REG_Z : positive := 1;
+  -- Defines if the RST input port is synchronous to input signal "X", "Y" or "Z".
+  RELATION_RST : string := "X";
   -- Defines if the CLR input port is synchronous to input signal "X", "Y" or "Z".
   RELATION_CLR : string := "X";
   -- Defines if the product negation input port NEG is synchronous to input signal "X" or "Y".
@@ -147,7 +149,7 @@ generic (
 port (
   -- Standard system clock
   clk          : in  std_logic;
-  -- Global pipeline reset (optional, only connect if really required!)
+  -- Synchronous reset (optional, only connect if really required!)
   rst          : in  std_logic := '0';
   -- Clock enable (optional)
   clkena       : in  std_logic := '1';
@@ -185,6 +187,8 @@ port (
   result_vld   : out std_logic;
   -- Result output overflow/clipping detection
   result_ovf   : out std_logic;
+  -- Pipelined output reset
+  result_rst   : out std_logic;
   -- Input from other chained DSP cell (optional, only used when input enabled and connected).
   -- The chain width is device specific. A maximum width of 80 bits is supported.
   -- If the device specific chain width is smaller then only the LSBs are used.
@@ -205,22 +209,23 @@ begin
 
   -- synthesis translate_off (Altera Quartus)
   -- pragma translate_off (Xilinx Vivado , Synopsys)
+  assert (RELATION_RST="X" or RELATION_RST="Y" or RELATION_RST="Z")
+    report "ERROR " & signed_preadd_mult1add1'INSTANCE_NAME & ": " & 
+           " Generic RELATION_RST must be X, Y or Z."
+    severity failure;
   assert (RELATION_CLR="X" or RELATION_CLR="Y" or RELATION_CLR="Z")
     report "ERROR " & signed_preadd_mult1add1'INSTANCE_NAME & ": " & 
            " Generic RELATION_CLR must be X, Y or Z."
     severity failure;
-
   assert (RELATION_NEG="X" or RELATION_NEG="Y")
     report "ERROR " & signed_preadd_mult1add1'INSTANCE_NAME & ": " & 
            " Generic RELATION_NEG must be X or Y."
     severity failure;
-
   assert (USE_XB_INPUT or not USE_XB_NEGATION)
     report "ERROR " & signed_preadd_mult1add1'INSTANCE_NAME & ": " &
            "Negation of input port XB not possible because input port XB is disabled." &
            "Set either USE_XB_INPUT=true or USE_XB_NEGATION=false ."
     severity failure;
-
   assert (USE_XA_NEGATION or not USE_XB_NEGATION)
     report "ERROR " & signed_preadd_mult1add1'INSTANCE_NAME & ": " & 
            "Swap XA and XB input ports and enable USE_XA_NEGATION instead of USE_XB_NEGATION to save resources and power."

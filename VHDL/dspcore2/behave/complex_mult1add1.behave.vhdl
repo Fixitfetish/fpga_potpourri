@@ -1,8 +1,7 @@
 -------------------------------------------------------------------------------
 --! @file       complex_mult1add1.behave.vhdl
 --! @author     Fixitfetish
---! @date       09/Sep/2024
---! @version    0.25
+--! @date       15/Sep/2024
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -34,8 +33,7 @@ library baselib;
 architecture behave of complex_mult1add1 is
 
   -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "complex_mult1add1(behave)";
-  constant INSTANCE_NAME : string := complex_mult1add1'INSTANCE_NAME;
+  constant INSTANCE_NAME : string := complex_mult1add1'INSTANCE_NAME & ":: ";
 
   constant ACCU_WIDTH : positive := 64;
   constant MAX_WIDTH_A : positive := 32;
@@ -77,7 +75,7 @@ architecture behave of complex_mult1add1 is
   -- derived constants
   constant PRODUCT_WIDTH : natural := MAXIMUM(x_re'length,x_im'length) + MAXIMUM(y_re'length,y_im'length) + 1;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
-  constant GUARD_BITS_EVAL : natural := accu_guard_bits(MAX_GUARD_BITS,IMPLEMENTATION);
+  constant GUARD_BITS_EVAL : natural := accu_guard_bits(MAX_GUARD_BITS,INSTANCE_NAME);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
   constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
   constant OUTPUT_WIDTH : positive := result_re'length;
@@ -123,7 +121,7 @@ architecture behave of complex_mult1add1 is
 begin
 
   assert OUTPUT_WIDTH<ACCU_USED_SHIFTED_WIDTH or not(OUTPUT_CLIP or OUTPUT_OVERFLOW)
-    report INSTANCE_NAME & ": " & "More guard bits required for saturation/clipping and/or overflow detection." &
+    report INSTANCE_NAME & "More guard bits required for saturation/clipping and/or overflow detection." &
            "  OUTPUT_WIDTH="            & integer'image(OUTPUT_WIDTH) &
            ", ACCU_USED_SHIFTED_WIDTH=" & integer'image(ACCU_USED_SHIFTED_WIDTH) &
            ", OUTPUT_CLIP="             & boolean'image(OUTPUT_CLIP) &
@@ -251,7 +249,7 @@ begin
   process(clk)
   begin
     if rising_edge(clk) then
-      if rst/='0' then
+      if pipe_rst(0)/='0' then
         accu_vld <= '0';
         accu_re <= (others=>'0');
         accu_im <= (others=>'0');
@@ -291,7 +289,7 @@ begin
   )
   port map (
     clk         => clk,
-    rst         => rst,
+    rst         => pipe_rst(0),
     clkena      => clkena,
     dsp_out     => accu_used_re,
     dsp_out_vld => accu_vld,
@@ -310,7 +308,7 @@ begin
   )
   port map (
     clk         => clk,
-    rst         => rst,
+    rst         => pipe_rst(0),
     clkena      => clkena,
     dsp_out     => accu_used_im,
     dsp_out_vld => accu_vld,
@@ -318,6 +316,8 @@ begin
     result_vld  => open, -- same as real
     result_ovf  => result_ovf_im
   );
+
+  result_rst <= pipe_rst(0) when rising_edge(clk); -- TODO: reset
 
   -- report constant number of pipeline register stages
   PIPESTAGES <= NUM_INPUT_REG_XY + NUM_OUTPUT_REG;

@@ -1,9 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       complex_macc_chain.dsp58.vhdl
 --! @author     Fixitfetish
---! @date       09/Sep/2024
---! @version    0.25
---! @note       VHDL-1993
+--! @date       15/Sep/2024
+--! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
@@ -21,13 +20,11 @@ use work.xilinx_dsp_pkg_dsp58.all;
 --
 architecture dsp58 of complex_macc_chain is
 
-  -- identifier for reports of warnings and errors
-  constant INSTANCE_NAME : string := complex_macc_chain'instance_name;
-
   constant X_INPUT_WIDTH   : positive := maximum(x_re(0)'length,x_im(0)'length);
   constant Y_INPUT_WIDTH   : positive := maximum(y_re(0)'length,y_im(0)'length);
   constant MAX_INPUT_WIDTH : positive := maximum(X_INPUT_WIDTH,Y_INPUT_WIDTH);
 
+  constant RELATION_RST : string := "X"; -- TODO : RELATION_RST
   constant RELATION_CLR : string := "X"; -- TODO : RELATION_CLR
   constant RELATION_NEG : string := "X"; -- TODO : RELATION_NEG
 
@@ -41,6 +38,7 @@ architecture dsp58 of complex_macc_chain is
   signal result_re_i : signed_vector(0 to NUM_MULT-1)(result_re'length-1 downto 0);
   signal result_im_i : signed_vector(0 to NUM_MULT-1)(result_im'length-1 downto 0);
   signal result_vld_i : std_logic_vector(0 to NUM_MULT-1);
+  signal result_rst_i : std_logic_vector(0 to NUM_MULT-1);
   signal result_ovf_re_i : std_logic_vector(0 to NUM_MULT-1);
   signal result_ovf_im_i : std_logic_vector(0 to NUM_MULT-1);
   signal pipestages_i : integer_vector(0 to NUM_MULT-1);
@@ -70,14 +68,21 @@ architecture dsp58 of complex_macc_chain is
  --------------------------------------------------------------------------------------------------
  CPLX4DSP_CHAIN : if OPTIMIZATION="PERFORMANCE" or OPTIMIZATION="CPLX4DSP" generate
   -- identifier for reports of warnings and errors
-  constant CHOICE : string := INSTANCE_NAME & " (optimization=PERFORMANCE, N*4 DSPs):: ";
+  constant CHOICE : string := "(optimization=PERFORMANCE, N*4 DSPs):: ";
  begin
 
   assert (NUM_INPUT_REG_X>=1 and NUM_INPUT_REG_Y>=1)
-    report CHOICE & "For high-speed the X and Y paths should have at least one additional input register."
+    report complex_macc_chain'instance_name & CHOICE &
+           "For high-speed the X and Y paths should have at least one additional input register."
     severity warning;
 
   LINK : for n in 0 to NUM_MULT-1 generate
+    -- Round bit addition is only required when rounding is enabled.
+    -- * USE_ACCU=false : add round bit (every cycle) in first chain link where chain input is unused
+    -- * USE_ACCU=true  : add round bit (with clr=1) in last chain link where the accumulator register is located
+    constant ADD_ROUND_BIT : boolean := OUTPUT_ROUND and 
+                                      ( (n=(NUM_MULT-1) and USE_ACCU) or (n=0 and not USE_ACCU) );
+  begin
 
     cmacc : entity work.complex_mult1add1(dsp58)
     generic map(
@@ -89,11 +94,12 @@ architecture dsp58 of complex_macc_chain is
       USE_CONJUGATE_Y    => USE_CONJUGATE_Y,
       NUM_INPUT_REG_XY   => 1 + NUM_INPUT_REG_XY + 2*n, -- minimum one input register
       NUM_INPUT_REG_Z    => 1 + NUM_INPUT_REG_Z  + 2*n, -- minimum one input register
+      RELATION_RST       => RELATION_RST,
       RELATION_CLR       => RELATION_CLR,
       RELATION_NEG       => RELATION_NEG,
       NUM_OUTPUT_REG     => 1 + OUTREGS(n), -- at least the DSP internal output register
       OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-      OUTPUT_ROUND       => (OUTPUT_ROUND and (n=(NUM_MULT-1))),
+      OUTPUT_ROUND       => ADD_ROUND_BIT,
       OUTPUT_CLIP        => (OUTPUT_CLIP and (n=(NUM_MULT-1))),
       OUTPUT_OVERFLOW    => (OUTPUT_OVERFLOW and (n=(NUM_MULT-1)))
     )
@@ -119,6 +125,7 @@ architecture dsp58 of complex_macc_chain is
       result_vld      => result_vld_i(n),
       result_ovf_re   => result_ovf_re_i(n),
       result_ovf_im   => result_ovf_im_i(n),
+      result_rst      => result_rst_i(n),
       chainin_re      => chainin_re(n),
       chainin_im      => chainin_im(n),
       chainin_re_vld  => chainin_re_vld(n),
@@ -147,18 +154,26 @@ architecture dsp58 of complex_macc_chain is
  --------------------------------------------------------------------------------------------------
  CPLX3DSP_CHAIN : if (OPTIMIZATION="RESOURCES" and MAX_INPUT_WIDTH>18) or OPTIMIZATION="CPLX3DSP" generate
   -- identifier for reports of warnings and errors
-  constant CHOICE : string := INSTANCE_NAME & " (optimization=RESOURCES, N*3 DSPs):: ";
+  constant CHOICE : string := "(optimization=RESOURCES, N*3 DSPs):: ";
  begin
 
   assert (NUM_INPUT_REG_X>=1 and NUM_INPUT_REG_Y>=1)
-    report CHOICE & "For high-speed the X and Y paths should have at least one additional input register."
+    report complex_macc_chain'instance_name & CHOICE &
+           "For high-speed the X and Y paths should have at least one additional input register."
     severity warning;
 
   assert (NUM_MULT=1 or not USE_ACCU)
-    report CHOICE & "Selected optimization with NUM_MULT>=2 does not allow accumulation. Ignoring CLR input port."
-    severity WARNING;
+    report complex_macc_chain'instance_name & CHOICE &
+           "Selected optimization with NUM_MULT>=2 does not allow accumulation. Ignoring CLR input port."
+    severity warning;
 
   LINK : for n in 0 to NUM_MULT-1 generate
+    -- Round bit addition is only required when rounding is enabled.
+    -- * USE_ACCU=false : add round bit (every cycle) in first chain link where chain input is unused
+    -- * USE_ACCU=true  : add round bit (with clr=1) only possible when NUM_MULT=1
+    constant ADD_ROUND_BIT : boolean := OUTPUT_ROUND and 
+                                      ( (NUM_MULT=1 and USE_ACCU) or (n=0 and not USE_ACCU) );
+  begin
 
     cmacc : entity work.complex_mult1add1(dsp58)
     generic map(
@@ -170,11 +185,12 @@ architecture dsp58 of complex_macc_chain is
       USE_CONJUGATE_Y    => USE_CONJUGATE_Y,
       NUM_INPUT_REG_XY   => 1 + NUM_INPUT_REG_XY + n, -- minimum one input register
       NUM_INPUT_REG_Z    => 1 + NUM_INPUT_REG_Z, -- here to configure internal pipeline register, minimum one register required
+      RELATION_RST       => RELATION_RST,
       RELATION_CLR       => RELATION_CLR,
       RELATION_NEG       => RELATION_NEG,
       NUM_OUTPUT_REG     => 1 + OUTREGS(n), -- at least the DSP internal output register
       OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-      OUTPUT_ROUND       => (OUTPUT_ROUND and (n=(NUM_MULT-1))),
+      OUTPUT_ROUND       => ADD_ROUND_BIT,
       OUTPUT_CLIP        => (OUTPUT_CLIP and (n=(NUM_MULT-1))),
       OUTPUT_OVERFLOW    => (OUTPUT_OVERFLOW and (n=(NUM_MULT-1)))
     )
@@ -200,6 +216,7 @@ architecture dsp58 of complex_macc_chain is
       result_vld      => result_vld_i(n),
       result_ovf_re   => result_ovf_re_i(n),
       result_ovf_im   => result_ovf_im_i(n),
+      result_rst      => result_rst_i(n),
       chainin_re      => chainin_re(n),
       chainin_im      => chainin_im(n),
       chainin_re_vld  => chainin_re_vld(n),
@@ -224,18 +241,26 @@ architecture dsp58 of complex_macc_chain is
  --------------------------------------------------------------------------------------------------
  CPLX2DSP_CHAIN : if (OPTIMIZATION="RESOURCES" and MAX_INPUT_WIDTH<=18) or OPTIMIZATION="CPLX2DSP" generate
   -- identifier for reports of warnings and errors
-  constant CHOICE : string := INSTANCE_NAME & "(optimization=RESOURCES, N*2 DSPs):: ";
+  constant CHOICE : string := "(optimization=RESOURCES, N*2 DSPs):: ";
  begin
 
   assert (NUM_INPUT_REG_X>=1 and NUM_INPUT_REG_Y>=1)
-    report CHOICE & "For high-speed the X and Y paths should have at least one additional input register."
+    report complex_macc_chain'instance_name & CHOICE &
+           "For high-speed the X and Y paths should have at least one additional input register."
     severity warning;
 
   assert (MAX_INPUT_WIDTH<=18)
-    report CHOICE & "Multiplier input X and Y width cannot exceed 18 bits."
+    report complex_macc_chain'instance_name & CHOICE &
+           "Multiplier input X and Y width cannot exceed 18 bits."
     severity failure;
 
   LINK : for n in 0 to NUM_MULT-1 generate
+    -- Round bit addition is only required when rounding is enabled.
+    -- * USE_ACCU=false : add round bit (every cycle) in first chain link where chain input is unused
+    -- * USE_ACCU=true  : add round bit (with clr=1) in last chain link where the accumulator register is located
+    constant ADD_ROUND_BIT : boolean := OUTPUT_ROUND and 
+                                      ( (n=(NUM_MULT-1) and USE_ACCU) or (n=0 and not USE_ACCU) );
+  begin
 
   cmacc : entity work.complex_mult1add1(dsp58)
   generic map(
@@ -247,11 +272,12 @@ architecture dsp58 of complex_macc_chain is
     USE_CONJUGATE_Y    => USE_CONJUGATE_Y,
     NUM_INPUT_REG_XY   => 1 + NUM_INPUT_REG_XY + n, -- minimum one input register
     NUM_INPUT_REG_Z    => 1 + NUM_INPUT_REG_Z  + n, -- minimum one input register
+    RELATION_RST       => RELATION_RST,
     RELATION_CLR       => RELATION_CLR,
     RELATION_NEG       => RELATION_NEG,
     NUM_OUTPUT_REG     => 1 + OUTREGS(n), -- at least the DSP internal output register
     OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-    OUTPUT_ROUND       => (OUTPUT_ROUND and (n=(NUM_MULT-1))),
+    OUTPUT_ROUND       => ADD_ROUND_BIT,
     OUTPUT_CLIP        => (OUTPUT_CLIP and (n=(NUM_MULT-1))),
     OUTPUT_OVERFLOW    => (OUTPUT_OVERFLOW and (n=(NUM_MULT-1)))
   )
@@ -277,6 +303,7 @@ architecture dsp58 of complex_macc_chain is
     result_vld      => result_vld_i(n),
     result_ovf_re   => result_ovf_re_i(n),
     result_ovf_im   => result_ovf_im_i(n),
+    result_rst      => result_rst_i(n),
     chainin_re      => chainin_re(n),
     chainin_im      => chainin_im(n),
     chainin_re_vld  => chainin_re_vld(n),
@@ -296,6 +323,7 @@ architecture dsp58 of complex_macc_chain is
   result_im <= result_im_i(NUM_MULT-1);
   result_vld <= result_vld_i(NUM_MULT-1);
   result_ovf <= result_ovf_re_i(NUM_MULT-1) or result_ovf_im_i(NUM_MULT-1);
+  result_rst <= result_rst_i(NUM_MULT-1);
   PIPESTAGES <= pipestages_i(NUM_MULT-1);
 
 end architecture;

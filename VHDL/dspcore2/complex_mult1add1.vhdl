@@ -1,9 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       complex_mult1add1.vhdl
 --! @author     Fixitfetish
---! @date       09/Sep/2024
---! @version    0.25
---! @note       VHDL-1993
+--! @date       15/Sep/2024
+--! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
@@ -100,6 +99,8 @@ generic (
   --! and NUM_INPUT_REG_Z defines the number of pipeline registers from the 1st to the 2nd stage.
   --! Try NUM_INPUT_REG_Z=2 if you face timing issues.
   NUM_INPUT_REG_Z : positive := 1;
+  --! Defines if the RST input port is synchronous to input signal "X", "Y" or "Z".
+  RELATION_RST : string := "X";
   --! Defines if the CLR input port is synchronous to input signal "X", "Y" or "Z".
   RELATION_CLR : string := "X";
   --! Defines if the input port NEG is synchronous to input signals "X" or "Y".
@@ -163,6 +164,8 @@ port (
   result_ovf_re   : out std_logic;
   --! Result output imaginary component overflow/clipping detection
   result_ovf_im   : out std_logic;
+  --! Pipelined output reset
+  result_rst      : out std_logic;
   --! @brief Input from other chained DSP cell (optional, only used when input enabled and connected).
   --! The chain width is device specific. A maximum width of 80 bits is supported.
   --! If the device specific chain width is smaller then only the LSBs are used.
@@ -188,6 +191,10 @@ begin
 
   -- synthesis translate_off (Altera Quartus)
   -- pragma translate_off (Xilinx Vivado , Synopsys)
+  assert (RELATION_RST="X" or RELATION_RST="Y" or RELATION_RST="Z")
+    report "ERROR " & complex_mult1add1'INSTANCE_NAME & ": " & 
+           " Generic RELATION_RST must be X, Y or Z."
+    severity failure;
   assert (RELATION_CLR="X" or RELATION_CLR="Y" or RELATION_CLR="Z")
     report "ERROR " & complex_mult1add1'INSTANCE_NAME & ": " & 
            " Generic RELATION_CLR must be X, Y or Z."

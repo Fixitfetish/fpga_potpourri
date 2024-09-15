@@ -1,8 +1,7 @@
 -------------------------------------------------------------------------------
 -- @file       xilinx_input_pipe.vhdl
 -- @author     Fixitfetish
--- @date       25/Aug/2024
--- @version    0.20
+-- @date       15/Sep/2024
 -- @note       VHDL-2008
 -- @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --             <https://opensource.org/licenses/MIT>
@@ -67,7 +66,7 @@ end entity;
 
 architecture rtl of xilinx_input_pipe is
 
-  signal pipe_rst   : std_logic_vector(PIPEREGS_RST downto 0) := (others=>'1');
+  signal pipe_rst   : std_logic_vector(PIPEREGS_RST downto 0) := (others=>'0');
   signal pipe_clr   : std_logic_vector(PIPEREGS_CLR downto 0) := (others=>'1');
   signal pipe_neg   : std_logic_vector(PIPEREGS_NEG downto 0) := (others=>'0');
   signal pipe_a_vld : std_logic_vector(PIPEREGS_A downto 0) := (others=>'0');
@@ -101,7 +100,7 @@ begin
     process(clk) begin
       if rising_edge(clk) then
         if srst/='0' then
-          pipe_rst(PIPEREGS_RST-1 downto 0) <= (others=>'1');
+          pipe_rst(PIPEREGS_RST-1 downto 0) <= (others=>'0');
         elsif clkena='1' then
           pipe_rst(PIPEREGS_RST-1 downto 0) <= pipe_rst(PIPEREGS_RST downto 1);
         end if;

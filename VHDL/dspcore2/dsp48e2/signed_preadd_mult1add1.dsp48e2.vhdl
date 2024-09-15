@@ -1,9 +1,8 @@
 -------------------------------------------------------------------------------
 -- @file       signed_preadd_mult1add1.dsp48e2.vhdl
 -- @author     Fixitfetish
--- @date       05/Sep/2024
--- @version    0.21
--- @note       VHDL-1993
+-- @date       15/Sep/2024
+-- @note       VHDL-2008
 -- @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
@@ -24,11 +23,6 @@ use work.xilinx_dsp_pkg_dsp48e2.all;
 --
 architecture dsp48e2 of signed_preadd_mult1add1 is
 
-  constant INSTANCE_NAME : string := signed_preadd_mult1add1'INSTANCE_NAME;
-
-  -- identifier for reports of warnings and errors
-  constant IMPLEMENTATION : string := "signed_preadd_mult1add1(dsp48e2)";
-
   constant DSPREG : t_dspreg := GET_NUM_DSP_REG(
     use_d => USE_XB_INPUT,
     use_a_neg => USE_XA_NEGATION,
@@ -37,17 +31,6 @@ architecture dsp48e2 of signed_preadd_mult1add1 is
     cregs => NUM_INPUT_REG_Z,
     dregs => NUM_INPUT_REG_X
   );
-
-  -- number of additional pipeline register in logic in-front of DSP input.
-  type t_logicreg is
-  record
-    A   : natural;
-    B   : natural;
-    C   : natural;
-    D   : natural;
-    CLR : natural;
-    NEG : natural;
-  end record;
 
   -- This function calculates the number registers that are required to correctly
   -- align data and control signals at the input of the DSP cell.
@@ -63,6 +46,11 @@ architecture dsp48e2 of signed_preadd_mult1add1 is
     else
       reg.D := 0;
     end if;
+    -- Reset signal delay compensation
+    if    RELATION_RST="X"  then reg.RST := reg.A;
+    elsif RELATION_RST="Y"  then reg.RST := reg.B;
+    elsif RELATION_RST="Z"  then reg.RST := reg.C;
+    else  reg.RST := 0; end if;
     -- Accu clear control signal delay compensation
     if    RELATION_CLR="X"  then reg.CLR := reg.A;
     elsif RELATION_CLR="XB" then reg.CLR := reg.D; -- currently not supported
@@ -72,7 +60,8 @@ architecture dsp48e2 of signed_preadd_mult1add1 is
     -- Product negation control signal delay compensation
     if    RELATION_NEG="X" then reg.NEG := reg.A;
     elsif RELATION_NEG="Y" then reg.NEG := reg.B; -- currently not supported
-      report INSTANCE_NAME & ": Relating the product negation signal to port Y is not yet supported. Use port X instead."
+      report signed_preadd_mult1add1'instance_name &
+             "Relating the product negation signal to port Y is not yet supported. Use port X instead."
       severity failure;
     else  reg.NEG := 0; end if;
     return reg;
@@ -93,7 +82,7 @@ architecture dsp48e2 of signed_preadd_mult1add1 is
   constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
   constant PRODUCT_WIDTH : natural := MAXIMUM(xa'length,xb'length) + y'length + 1;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
-  constant GUARD_BITS_EVAL : natural := accu_guard_bits(NUM_SUMMAND,MAX_GUARD_BITS,IMPLEMENTATION);
+  constant GUARD_BITS_EVAL : natural := accu_guard_bits(NUM_SUMMAND,MAX_GUARD_BITS,"signed_preadd_mult1add1");
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
   constant ACCU_USED_SHIFTED_WIDTH : natural := ACCU_USED_WIDTH - OUTPUT_SHIFT_RIGHT;
   constant OUTPUT_WIDTH : positive := result'length;
@@ -138,45 +127,51 @@ architecture dsp48e2 of signed_preadd_mult1add1 is
   signal accu : std_logic_vector(ACCU_WIDTH-1 downto 0);
   signal accu_vld : std_logic := '0';
   signal accu_rnd : std_logic := '0';
+  signal accu_rst : std_logic := '0';
   signal accu_used : signed(ACCU_USED_WIDTH-1 downto 0);
 
   signal clr_i : std_logic := '0';
 
 begin
 
+  assert (DSPREG.M=1)
+    report signed_preadd_mult1add1'instance_name &
+           "DSP internal pipeline register after multiplier is disabled. FIX: use at least two input registers at ports XA, XB and Y."
+    severity warning;
+
   assert (xa'length<=MAX_WIDTH_AD)
-    report IMPLEMENTATION & ": " & 
+    report signed_preadd_mult1add1'instance_name &
            "Preadder and Multiplier input XA width cannot exceed " & integer'image(MAX_WIDTH_AD)
     severity failure;
 
   assert (y'length<=MAX_WIDTH_B)
-    report IMPLEMENTATION & ": " & 
+    report signed_preadd_mult1add1'instance_name &
            "Multiplier input Y width cannot exceed " & integer'image(MAX_WIDTH_B)
     severity failure;
 
   assert (z'length<=MAX_WIDTH_C)
-    report IMPLEMENTATION & ": " & 
+    report signed_preadd_mult1add1'instance_name &
            "Summand input Z width cannot exceed " & integer'image(MAX_WIDTH_C)
     severity failure;
 
   assert (xb'length<=MAX_WIDTH_AD)
-    report IMPLEMENTATION & ": " & 
+    report signed_preadd_mult1add1'instance_name &
            "Preadder and Multiplier input XB width cannot exceed " & integer'image(MAX_WIDTH_AD)
     severity failure;
 
   assert (NUM_INPUT_REG_X=NUM_INPUT_REG_Y)
-    report IMPLEMENTATION & ": " & 
+    report signed_preadd_mult1add1'instance_name &
            "For now the number of input registers in X and Y path must be the same."
     severity failure;
 
   assert GUARD_BITS_EVAL<=MAX_GUARD_BITS
-    report IMPLEMENTATION & ": " &
+    report signed_preadd_mult1add1'instance_name &
            "Maximum number of accumulator bits is " & integer'image(ACCU_WIDTH) & " ." &
            "Input bit widths allow only maximum number of guard bits = " & integer'image(MAX_GUARD_BITS)
     severity failure;
 
   assert OUTPUT_WIDTH<ACCU_USED_SHIFTED_WIDTH or not(OUTPUT_CLIP or OUTPUT_OVERFLOW)
-    report IMPLEMENTATION & ": " &
+    report signed_preadd_mult1add1'instance_name &
            "More guard bits required for saturation/clipping and/or overflow detection." &
            "  OUTPUT_WIDTH="            & integer'image(OUTPUT_WIDTH) &
            ", ACCU_USED_SHIFTED_WIDTH=" & integer'image(ACCU_USED_SHIFTED_WIDTH) &
@@ -184,15 +179,11 @@ begin
            ", OUTPUT_OVERFLOW="         & boolean'image(OUTPUT_OVERFLOW)
     severity failure;
 
-  assert (DSPREG.M=1)
-    report INSTANCE_NAME & ": DSP internal pipeline register after multiplier is disabled. FIX: use at least two input registers at ports XA, XB and Y."
-    severity warning;
-
   clr_i <= clr when USE_ACCU else '0';
 
   i_feed : entity work.xilinx_input_pipe
   generic map(
-    PIPEREGS_RST     => LOGICREG.A, -- TODO
+    PIPEREGS_RST     => LOGICREG.RST,
     PIPEREGS_CLR     => LOGICREG.CLR,
     PIPEREGS_NEG     => LOGICREG.NEG,
     PIPEREGS_A       => LOGICREG.A,
@@ -265,7 +256,7 @@ begin
   )
   port map(
     clk       => clk,
-    rst       => rst,
+    rst       => dsp_rst,
     clkena    => clkena,
     clr       => dsp_clr,
     a_neg     => negate_preadd,
@@ -387,16 +378,16 @@ begin
     CEM                => CE(clkena,DSPREG.M),
     CEP                => CE(clkena and p_change,1), -- accumulate/output only valid values
     -- Reset: 1-bit (each) input: Reset
-    RSTA               => rst,
+    RSTA               => dsp_rst,
     RSTALLCARRYIN      => '1', -- unused
-    RSTALUMODE         => rst,
-    RSTB               => rst,
-    RSTC               => rst,
-    RSTCTRL            => rst,
-    RSTD               => rst,
-    RSTINMODE          => rst,
-    RSTM               => rst,
-    RSTP               => rst 
+    RSTALUMODE         => dsp_rst,
+    RSTB               => dsp_rst,
+    RSTC               => dsp_rst,
+    RSTCTRL            => dsp_rst,
+    RSTD               => dsp_rst,
+    RSTINMODE          => dsp_rst,
+    RSTM               => dsp_rst,
+    RSTP               => dsp_rst 
   );
 
   chainout<= resize(signed(chainout_i),chainout'length);
@@ -406,13 +397,14 @@ begin
   p_clk : process(clk)
   begin
     if rising_edge(clk) then
-      if rst/='0' then
+      if dsp_rst/='0' then
         accu_vld <= '0';
         accu_rnd <= '0';
       elsif clkena='1' then
         accu_vld <= pcout_vld;
         accu_rnd <= p_round;
       end if; --reset
+      accu_rst <= dsp_rst;
     end if; --clock
   end process;
 
@@ -432,13 +424,14 @@ begin
   )
   port map (
     clk         => clk,
-    rst         => rst,
+    rst         => accu_rst,
     clkena      => clkena,
     dsp_out     => accu_used,
     dsp_out_vld => accu_vld,
     dsp_out_rnd => accu_rnd,
     result      => result,
     result_vld  => result_vld,
+    result_rst  => result_rst,
     result_ovf  => result_ovf
   );
 
