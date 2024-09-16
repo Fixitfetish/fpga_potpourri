@@ -92,23 +92,24 @@ begin
   -- Operation:  Re1 = ReChain + Xre*Yre + Zre
   i_re1 : entity work.signed_preadd_mult1add1(dsp48e2)
   generic map(
-    USE_ACCU           => false,
-    NUM_SUMMAND        => 2, -- irrelevant because output logic is unused
-    USE_XB_INPUT       => false, -- unused
-    USE_NEGATION       => USE_NEGATION,
-    USE_XA_NEGATION    => open, -- unused
-    USE_XB_NEGATION    => open, -- unused
-    NUM_INPUT_REG_X    => NUM_INPUT_REG_X,
-    NUM_INPUT_REG_Y    => NUM_INPUT_REG_Y,
-    NUM_INPUT_REG_Z    => NUM_INPUT_REG_Z,
-    RELATION_RST       => RELATION_RST,
-    RELATION_CLR       => open, -- unused
-    RELATION_NEG       => RELATION_NEG,
-    NUM_OUTPUT_REG     => 1,
-    OUTPUT_SHIFT_RIGHT => 0,     -- result output unused
-    OUTPUT_ROUND       => false, -- result output unused
-    OUTPUT_CLIP        => false, -- result output unused
-    OUTPUT_OVERFLOW    => false  -- result output unused
+    NUM_ACCU_CYCLES     => open, -- accumulator disabled
+    NUM_SUMMAND_CHAININ => 2*NUM_SUMMAND_CHAININ, -- two single summands per complex chain input
+    NUM_SUMMAND_Z       => 2*NUM_SUMMAND_Z, -- two single summands per complex Z input
+    USE_XB_INPUT        => false, -- unused
+    USE_NEGATION        => USE_NEGATION,
+    USE_XA_NEGATION     => open, -- unused
+    USE_XB_NEGATION     => open, -- unused
+    NUM_INPUT_REG_X     => NUM_INPUT_REG_X,
+    NUM_INPUT_REG_Y     => NUM_INPUT_REG_Y,
+    NUM_INPUT_REG_Z     => NUM_INPUT_REG_Z,
+    RELATION_RST        => RELATION_RST,
+    RELATION_CLR        => open, -- unused
+    RELATION_NEG        => RELATION_NEG,
+    NUM_OUTPUT_REG      => 1,
+    OUTPUT_SHIFT_RIGHT  => 0,     -- result output unused
+    OUTPUT_ROUND        => false, -- result output unused
+    OUTPUT_CLIP         => false, -- result output unused
+    OUTPUT_OVERFLOW     => false  -- result output unused
   )
   port map (
     clk          => clk,
@@ -140,23 +141,24 @@ begin
   -- operation:  Re2 = Re1 - Xim*Yim   (accumulation possible)
   i_re2 : entity work.signed_preadd_mult1add1(dsp48e2)
   generic map(
-    USE_ACCU           => USE_ACCU, -- accumulator enabled in last chain link only!
-    NUM_SUMMAND        => NUM_SUMMAND, -- TODO : NUM_SUMMAND, two multiplications per complex multiplication
-    USE_XB_INPUT       => false, -- unused
-    USE_NEGATION       => true,
-    USE_XA_NEGATION    => USE_CONJUGATE_X,
-    USE_XB_NEGATION    => open, -- unused
-    NUM_INPUT_REG_X    => NUM_INPUT_REG_X + 1,
-    NUM_INPUT_REG_Y    => NUM_INPUT_REG_Y + 1,
-    NUM_INPUT_REG_Z    => open, -- unused
-    RELATION_RST       => RELATION_RST,
-    RELATION_CLR       => RELATION_CLR,
-    RELATION_NEG       => RELATION_NEG, -- TODO : neg and y_conj must have same relation. force "Y" ?
-    NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
-    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-    OUTPUT_ROUND       => OUTPUT_ROUND,
-    OUTPUT_CLIP        => OUTPUT_CLIP,
-    OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
+    NUM_ACCU_CYCLES     => NUM_ACCU_CYCLES, -- accumulator enabled in last chain link only!
+    NUM_SUMMAND_CHAININ => 2*NUM_SUMMAND_CHAININ + 2*NUM_SUMMAND_Z + 1,
+    NUM_SUMMAND_Z       => 0, -- unused
+    USE_XB_INPUT        => false, -- unused
+    USE_NEGATION        => true,
+    USE_XA_NEGATION     => USE_CONJUGATE_X,
+    USE_XB_NEGATION     => open, -- unused
+    NUM_INPUT_REG_X     => NUM_INPUT_REG_X + 1,
+    NUM_INPUT_REG_Y     => NUM_INPUT_REG_Y + 1,
+    NUM_INPUT_REG_Z     => open, -- unused
+    RELATION_RST        => RELATION_RST,
+    RELATION_CLR        => RELATION_CLR,
+    RELATION_NEG        => RELATION_NEG, -- TODO : neg and y_conj must have same relation. force "Y" ?
+    NUM_OUTPUT_REG      => NUM_OUTPUT_REG,
+    OUTPUT_SHIFT_RIGHT  => OUTPUT_SHIFT_RIGHT,
+    OUTPUT_ROUND        => OUTPUT_ROUND,
+    OUTPUT_CLIP         => OUTPUT_CLIP,
+    OUTPUT_OVERFLOW     => OUTPUT_OVERFLOW
   )
   port map (
     clk          => clk,
@@ -188,23 +190,24 @@ begin
   -- operation:  Im1 = ImChain + Xre*Yim + Zim 
   i_im1 : entity work.signed_preadd_mult1add1(dsp48e2)
   generic map(
-    USE_ACCU           => false,
-    NUM_SUMMAND        => 2, -- irrelevant because output logic is unused
-    USE_XB_INPUT       => false, -- unused
-    USE_NEGATION       => USE_CONJUGATE_Y,
-    USE_XA_NEGATION    => USE_NEGATION,
-    USE_XB_NEGATION    => open, -- unused
-    NUM_INPUT_REG_X    => NUM_INPUT_REG_X,
-    NUM_INPUT_REG_Y    => NUM_INPUT_REG_Y,
-    NUM_INPUT_REG_Z    => NUM_INPUT_REG_Z,
-    RELATION_RST       => RELATION_RST,
-    RELATION_CLR       => open, -- unused
-    RELATION_NEG       => RELATION_NEG, -- TODO : fixed to "Y" ?
-    NUM_OUTPUT_REG     => 1,
-    OUTPUT_SHIFT_RIGHT => 0,     -- result output unused
-    OUTPUT_ROUND       => false, -- result output unused
-    OUTPUT_CLIP        => false, -- result output unused
-    OUTPUT_OVERFLOW    => false  -- result output unused
+    NUM_ACCU_CYCLES     => open, -- accumulator disabled
+    NUM_SUMMAND_CHAININ => 2*NUM_SUMMAND_CHAININ, -- two single summands per complex chain input
+    NUM_SUMMAND_Z       => 2*NUM_SUMMAND_Z, -- two single summands per complex Z input
+    USE_XB_INPUT        => false, -- unused
+    USE_NEGATION        => USE_CONJUGATE_Y,
+    USE_XA_NEGATION     => USE_NEGATION,
+    USE_XB_NEGATION     => open, -- unused
+    NUM_INPUT_REG_X     => NUM_INPUT_REG_X,
+    NUM_INPUT_REG_Y     => NUM_INPUT_REG_Y,
+    NUM_INPUT_REG_Z     => NUM_INPUT_REG_Z,
+    RELATION_RST        => RELATION_RST,
+    RELATION_CLR        => open, -- unused
+    RELATION_NEG        => RELATION_NEG, -- TODO : fixed to "Y" ?
+    NUM_OUTPUT_REG      => 1,
+    OUTPUT_SHIFT_RIGHT  => 0,     -- result output unused
+    OUTPUT_ROUND        => false, -- result output unused
+    OUTPUT_CLIP         => false, -- result output unused
+    OUTPUT_OVERFLOW     => false  -- result output unused
   )
   port map (
     clk          => clk,
@@ -236,23 +239,24 @@ begin
   -- operation:  Im2 = Im1 + Xim*Yre   (accumulation possible)
   i_im2 : entity work.signed_preadd_mult1add1(dsp48e2)
   generic map(
-    USE_ACCU           => USE_ACCU, -- accumulator enabled in last chain link only!
-    NUM_SUMMAND        => NUM_SUMMAND, -- TODO : NUM_SUMMAND, two multiplications per complex multiplication
-    USE_XB_INPUT       => false, -- unused
-    USE_NEGATION       => USE_NEGATION,
-    USE_XA_NEGATION    => USE_CONJUGATE_X,
-    USE_XB_NEGATION    => open, -- unused
-    NUM_INPUT_REG_X    => NUM_INPUT_REG_X + 1,
-    NUM_INPUT_REG_Y    => NUM_INPUT_REG_Y + 1,
-    NUM_INPUT_REG_Z    => open, -- unused
-    RELATION_RST       => RELATION_RST,
-    RELATION_CLR       => RELATION_CLR,
-    RELATION_NEG       => RELATION_NEG,
-    NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
-    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-    OUTPUT_ROUND       => OUTPUT_ROUND,
-    OUTPUT_CLIP        => OUTPUT_CLIP,
-    OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
+    NUM_ACCU_CYCLES     => NUM_ACCU_CYCLES, -- accumulator enabled in last chain link only!
+    NUM_SUMMAND_CHAININ => 2*NUM_SUMMAND_CHAININ + 2*NUM_SUMMAND_Z + 1,
+    NUM_SUMMAND_Z       => 0, -- unused
+    USE_XB_INPUT        => false, -- unused
+    USE_NEGATION        => USE_NEGATION,
+    USE_XA_NEGATION     => USE_CONJUGATE_X,
+    USE_XB_NEGATION     => open, -- unused
+    NUM_INPUT_REG_X     => NUM_INPUT_REG_X + 1,
+    NUM_INPUT_REG_Y     => NUM_INPUT_REG_Y + 1,
+    NUM_INPUT_REG_Z     => open, -- unused
+    RELATION_RST        => RELATION_RST,
+    RELATION_CLR        => RELATION_CLR,
+    RELATION_NEG        => RELATION_NEG,
+    NUM_OUTPUT_REG      => NUM_OUTPUT_REG,
+    OUTPUT_SHIFT_RIGHT  => OUTPUT_SHIFT_RIGHT,
+    OUTPUT_ROUND        => OUTPUT_ROUND,
+    OUTPUT_CLIP         => OUTPUT_CLIP,
+    OUTPUT_OVERFLOW     => OUTPUT_OVERFLOW
   )
   port map (
     clk          => clk,
@@ -312,7 +316,7 @@ begin
            "For high-speed the X and Y paths should have at least two input registers."
     severity warning;
 
-  assert (chainin_re_vld/='1' and chainin_im_vld/='1') or not USE_ACCU
+  assert (chainin_re_vld/='1' and chainin_im_vld/='1') or (NUM_ACCU_CYCLES=1)
     report complex_mult1add1'INSTANCE_NAME & CHOICE &
            "Selected optimization does not allow simultaneous chain input and accumulation."
     severity warning;
@@ -331,23 +335,24 @@ begin
   -- Temp = ( Yre - Yim) * Xim  ... raw with full resolution
   i_temp : entity work.signed_preadd_mult1add1(dsp48e2)
   generic map(
-    USE_ACCU           => false,
-    NUM_SUMMAND        => 2,
-    USE_XB_INPUT       => true,
-    USE_NEGATION       => USE_NEGATION or USE_CONJUGATE_X,
-    USE_XA_NEGATION    => true,
-    USE_XB_NEGATION    => false, -- unused
-    NUM_INPUT_REG_X    => NUM_INPUT_REG_Y, -- X/Y swapped because Y requires preadder
-    NUM_INPUT_REG_Y    => NUM_INPUT_REG_X, -- X/Y swapped because Y requires preadder
-    NUM_INPUT_REG_Z    => open, -- unused
-    RELATION_RST       => RELATION_RST,
-    RELATION_CLR       => open, -- unused
-    RELATION_NEG       => RELATION_NEG,
-    NUM_OUTPUT_REG     => 1,
-    OUTPUT_SHIFT_RIGHT => 0, -- raw temporary result for following RE and IM stage
-    OUTPUT_ROUND       => false,
-    OUTPUT_CLIP        => false,
-    OUTPUT_OVERFLOW    => false
+    NUM_ACCU_CYCLES     => open, -- accumulator disabled
+    NUM_SUMMAND_CHAININ => 0, -- unused
+    NUM_SUMMAND_Z       => 0, -- unused
+    USE_XB_INPUT        => true,
+    USE_NEGATION        => USE_NEGATION or USE_CONJUGATE_X,
+    USE_XA_NEGATION     => true,
+    USE_XB_NEGATION     => false, -- unused
+    NUM_INPUT_REG_X     => NUM_INPUT_REG_Y, -- X/Y swapped because Y requires preadder
+    NUM_INPUT_REG_Y     => NUM_INPUT_REG_X, -- X/Y swapped because Y requires preadder
+    NUM_INPUT_REG_Z     => open, -- unused
+    RELATION_RST        => RELATION_RST,
+    RELATION_CLR        => open, -- unused
+    RELATION_NEG        => RELATION_NEG,
+    NUM_OUTPUT_REG      => 1,
+    OUTPUT_SHIFT_RIGHT  => 0, -- raw temporary result for following RE and IM stage
+    OUTPUT_ROUND        => false,
+    OUTPUT_CLIP         => false,
+    OUTPUT_OVERFLOW     => false
   )
   port map(
     clk          => clk, -- clock
@@ -380,23 +385,24 @@ begin
   -- Re = ReChain + (Xre - Xim) * Yre + Temp   (accumulation only when chain input unused)
   i_re : entity work.signed_preadd_mult1add1(dsp48e2)
   generic map(
-    USE_ACCU           => USE_ACCU,
-    NUM_SUMMAND        => NUM_SUMMAND, -- TODO : NUM_SUMMAND
-    USE_XB_INPUT       => true,
-    USE_NEGATION       => USE_NEGATION,
-    USE_XA_NEGATION    => true,
-    USE_XB_NEGATION    => false, -- unused
-    NUM_INPUT_REG_X    => NUM_INPUT_REG_X + NUM_INPUT_REG_Z + 1,
-    NUM_INPUT_REG_Y    => NUM_INPUT_REG_Y + NUM_INPUT_REG_Z + 1,
-    NUM_INPUT_REG_Z    => NUM_INPUT_REG_Z,
-    RELATION_RST       => RELATION_RST,
-    RELATION_CLR       => RELATION_CLR,
-    RELATION_NEG       => RELATION_NEG,
-    NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
-    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-    OUTPUT_ROUND       => OUTPUT_ROUND,
-    OUTPUT_CLIP        => OUTPUT_CLIP,
-    OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
+    NUM_ACCU_CYCLES     => NUM_ACCU_CYCLES, -- accumulator enabled in last chain link only!
+    NUM_SUMMAND_CHAININ => 2*NUM_SUMMAND_CHAININ, -- two single summands per complex chain input
+    NUM_SUMMAND_Z       => 1, -- temp contributes with two summands because of preadder but one of those is subtracted here again
+    USE_XB_INPUT        => true,
+    USE_NEGATION        => USE_NEGATION,
+    USE_XA_NEGATION     => true,
+    USE_XB_NEGATION     => false, -- unused
+    NUM_INPUT_REG_X     => NUM_INPUT_REG_X + NUM_INPUT_REG_Z + 1,
+    NUM_INPUT_REG_Y     => NUM_INPUT_REG_Y + NUM_INPUT_REG_Z + 1,
+    NUM_INPUT_REG_Z     => NUM_INPUT_REG_Z,
+    RELATION_RST        => RELATION_RST,
+    RELATION_CLR        => RELATION_CLR,
+    RELATION_NEG        => RELATION_NEG,
+    NUM_OUTPUT_REG      => NUM_OUTPUT_REG,
+    OUTPUT_SHIFT_RIGHT  => OUTPUT_SHIFT_RIGHT,
+    OUTPUT_ROUND        => OUTPUT_ROUND,
+    OUTPUT_CLIP         => OUTPUT_CLIP,
+    OUTPUT_OVERFLOW     => OUTPUT_OVERFLOW
   )
   port map(
     clk          => clk,
@@ -429,23 +435,24 @@ begin
   -- Im = ImChain + ( Xre + Xim) * Yim + Temp   (accumulation only when chain input unused)
   i_im : entity work.signed_preadd_mult1add1(dsp48e2)
   generic map(
-    USE_ACCU           => USE_ACCU,
-    NUM_SUMMAND        => NUM_SUMMAND, -- TODO : NUM_SUMMAND
-    USE_XB_INPUT       => true,
-    USE_NEGATION       => USE_NEGATION or USE_CONJUGATE_Y,
-    USE_XA_NEGATION    => USE_CONJUGATE_X,
-    USE_XB_NEGATION    => false, -- unused
-    NUM_INPUT_REG_X    => NUM_INPUT_REG_X + NUM_INPUT_REG_Z + 1,
-    NUM_INPUT_REG_Y    => NUM_INPUT_REG_Y + NUM_INPUT_REG_Z + 1,
-    NUM_INPUT_REG_Z    => NUM_INPUT_REG_Z,
-    RELATION_RST       => RELATION_RST,
-    RELATION_CLR       => RELATION_CLR,
-    RELATION_NEG       => RELATION_NEG,
-    NUM_OUTPUT_REG     => NUM_OUTPUT_REG,
-    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-    OUTPUT_ROUND       => OUTPUT_ROUND,
-    OUTPUT_CLIP        => OUTPUT_CLIP,
-    OUTPUT_OVERFLOW    => OUTPUT_OVERFLOW
+    NUM_ACCU_CYCLES     => NUM_ACCU_CYCLES, -- accumulator enabled in last chain link only!
+    NUM_SUMMAND_CHAININ => 2*NUM_SUMMAND_CHAININ, -- two single summands per complex chain input
+    NUM_SUMMAND_Z       => 1, -- temp contributes with two summands because of preadder but one of those is subtracted here again
+    USE_XB_INPUT        => true,
+    USE_NEGATION        => USE_NEGATION or USE_CONJUGATE_Y,
+    USE_XA_NEGATION     => USE_CONJUGATE_X,
+    USE_XB_NEGATION     => false, -- unused
+    NUM_INPUT_REG_X     => NUM_INPUT_REG_X + NUM_INPUT_REG_Z + 1,
+    NUM_INPUT_REG_Y     => NUM_INPUT_REG_Y + NUM_INPUT_REG_Z + 1,
+    NUM_INPUT_REG_Z     => NUM_INPUT_REG_Z,
+    RELATION_RST        => RELATION_RST,
+    RELATION_CLR        => RELATION_CLR,
+    RELATION_NEG        => RELATION_NEG,
+    NUM_OUTPUT_REG      => NUM_OUTPUT_REG,
+    OUTPUT_SHIFT_RIGHT  => OUTPUT_SHIFT_RIGHT,
+    OUTPUT_ROUND        => OUTPUT_ROUND,
+    OUTPUT_CLIP         => OUTPUT_CLIP,
+    OUTPUT_OVERFLOW     => OUTPUT_OVERFLOW
   )
   port map(
     clk          => clk,

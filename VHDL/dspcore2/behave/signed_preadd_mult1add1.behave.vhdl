@@ -1,8 +1,7 @@
 -------------------------------------------------------------------------------
 -- @file       signed_preadd_mult1add1.behave.vhdl
 -- @author     Fixitfetish
--- @date       25/Aug/2024
--- @version    0.20
+-- @date       15/Sep/2024
 -- @note       VHDL-2008
 -- @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --             <https://opensource.org/licenses/MIT>
@@ -37,6 +36,18 @@ architecture behave of signed_preadd_mult1add1 is
       res(OUTPUT_SHIFT_RIGHT-1):='1';
     end if;
     return res;
+  end function;
+
+  constant USE_ACCU : boolean := (NUM_ACCU_CYCLES>=2);
+
+  -- number of overall summands that contribute to the DSP internal accumulation register P
+  function NUM_SUMMAND return natural is
+  begin
+    if USE_XB_INPUT then
+      return (NUM_SUMMAND_CHAININ + NUM_SUMMAND_Z + 2) * NUM_ACCU_CYCLES;
+    else
+      return (NUM_SUMMAND_CHAININ + NUM_SUMMAND_Z + 1) * NUM_ACCU_CYCLES;
+    end if;
   end function;
 
   -- determine number of required additional guard bits (MSBs)
@@ -81,7 +92,7 @@ architecture behave of signed_preadd_mult1add1 is
   end function;
 
   -- derived constants
-  constant PRODUCT_WIDTH : natural := MAXIMUM(xa'length,xb'length) + y'length + 1;
+  constant PRODUCT_WIDTH : natural := MAXIMUM(xa'length,xb'length) + y'length;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
   constant GUARD_BITS_EVAL : natural := accu_guard_bits(MAX_GUARD_BITS,IMPLEMENTATION);
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;

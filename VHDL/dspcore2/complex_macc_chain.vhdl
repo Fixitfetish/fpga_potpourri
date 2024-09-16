@@ -45,8 +45,9 @@ library baselib;
 -- I1 : entity work.complex_macc_chain
 -- generic map(
 --   OPTIMIZATION       => string,   -- "PERFORMANCE" or "RESOURCES"
---   USE_ACCU           => boolean,  -- enable accumulator
 --   NUM_MULT           => positive, -- number of parallel multiplications
+--   NUM_ACCU_CYCLES    => positive, -- number of accumulation cycles
+--   NUM_SUMMAND_Z      => natural,  -- number summands at Z input
 --   USE_NEGATION       => boolean,  -- enable negation port
 --   USE_CONJUGATE_X    => boolean,  -- enable X complex conjugate port
 --   USE_CONJUGATE_Y    => boolean,  -- enable Y complex conjugate port
@@ -87,10 +88,21 @@ entity complex_macc_chain is
 generic (
   -- OPTIMIZATION can be either "PERFORMANCE" or "RESOURCES"
   OPTIMIZATION : string := "RESOURCES";
-  -- Enable accumulation over multiple cycles (enable CLR input port)
-  USE_ACCU : boolean := false;
   -- Number of parallel multiplications - mandatory generic!
   NUM_MULT : positive;
+  -- Number of cycles in which products, Z and/or chain inputs are accumulated and contribute
+  -- to the accumulation register before it is cleared.
+  -- Set 1 (default) to disable accumulation and ignore CLR input.
+  -- The number of cycles is important to determine the number of additional
+  -- guard bits (MSBs) that are required for the summation/accumulation process.
+  -- The setting is also relevant to save logic especially when saturation/clipping
+  -- and/or overflow detection is enabled.
+  NUM_ACCU_CYCLES : positive := 1;
+  -- Number of complex summands at the Z inputs that contribute to the accumulation register
+  -- in each cycle. Set 0 to disable the Z input (default).
+  -- The number of summands is important to determine the number of additional
+  -- guard bits (MSBs) that are required for the summation/accumulation process.
+  NUM_SUMMAND_Z : natural := 0;
   -- Enable negation port. If enabled then static or dynamic negation of partial
   -- products is implemented (preferably within the DSP cells otherwise in logic).
   -- Enabling the negation might have negative side effects on pipeline stages,

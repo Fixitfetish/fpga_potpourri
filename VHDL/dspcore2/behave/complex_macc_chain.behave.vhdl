@@ -18,8 +18,21 @@ library baselib;
 --
 architecture behave of complex_macc_chain is
 
-  function OUTREGS(i:natural) return natural is begin
-    if i<(NUM_MULT-1) then return 0; else return NUM_OUTPUT_REG; end if;
+  -- Accumulator is required in last chain link only
+  function ACCU_CYCLES(n:natural) return natural is
+  begin
+    if n=(NUM_MULT-1) then return NUM_ACCU_CYCLES; else return 1; end if;
+  end function;
+
+  -- all Z summands need to be considered in last chain link only
+  function SUMMAND_Z(n:natural) return natural is
+  begin
+    if n=(NUM_MULT-1) then return NUM_SUMMAND_Z; else return 0; end if;
+  end function;
+
+  -- Output registers are added in last chain link only
+  function OUTREGS(n:natural) return natural is begin
+    if n=(NUM_MULT-1) then return NUM_OUTPUT_REG; else return 0; end if;
   end function;
 
   signal result_re_i : signed_vector(0 to NUM_MULT-1)(result_re'length-1 downto 0);
@@ -49,22 +62,23 @@ architecture behave of complex_macc_chain is
     signal clr_i : std_logic;
   begin
 
-    clr_i <= clr when (USE_ACCU and (n=(NUM_MULT-1))) else '0';
+    clr_i <= clr when (NUM_ACCU_CYCLES>=2 and (n=(NUM_MULT-1))) else '0';
 
     i_cmacc : entity work.complex_mult1add1(behave)
     generic map(
-      USE_ACCU           => (USE_ACCU and (n=(NUM_MULT-1))),
-      NUM_SUMMAND        => 2 * NUM_MULT, -- TODO
-      USE_NEGATION       => USE_NEGATION,
-      USE_CONJUGATE_X    => USE_CONJUGATE_X,
-      USE_CONJUGATE_Y    => USE_CONJUGATE_Y,
-      NUM_INPUT_REG_XY   => 1 + NUM_INPUT_REG_XY + n, -- minimum one input register
-      NUM_INPUT_REG_Z    => 1 + NUM_INPUT_REG_Z  + n, -- minimum one input register
-      NUM_OUTPUT_REG     => 1 + OUTREGS(n), -- at least the DSP internal output register
-      OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-      OUTPUT_ROUND       => (OUTPUT_ROUND and (n=(NUM_MULT-1))),
-      OUTPUT_CLIP        => (OUTPUT_CLIP and (n=(NUM_MULT-1))),
-      OUTPUT_OVERFLOW    => (OUTPUT_OVERFLOW and (n=(NUM_MULT-1)))
+      NUM_ACCU_CYCLES     => ACCU_CYCLES(n),
+      NUM_SUMMAND_CHAININ => n,
+      NUM_SUMMAND_Z       => SUMMAND_Z(n),
+      USE_NEGATION        => USE_NEGATION,
+      USE_CONJUGATE_X     => USE_CONJUGATE_X,
+      USE_CONJUGATE_Y     => USE_CONJUGATE_Y,
+      NUM_INPUT_REG_XY    => 1 + NUM_INPUT_REG_XY + n, -- minimum one input register
+      NUM_INPUT_REG_Z     => 1 + NUM_INPUT_REG_Z  + n, -- minimum one input register
+      NUM_OUTPUT_REG      => 1 + OUTREGS(n), -- at least the DSP internal output register
+      OUTPUT_SHIFT_RIGHT  => OUTPUT_SHIFT_RIGHT,
+      OUTPUT_ROUND        => (OUTPUT_ROUND and (n=(NUM_MULT-1))),
+      OUTPUT_CLIP         => (OUTPUT_CLIP and (n=(NUM_MULT-1))),
+      OUTPUT_OVERFLOW     => (OUTPUT_OVERFLOW and (n=(NUM_MULT-1)))
     )
     port map(
       clk             => clk,

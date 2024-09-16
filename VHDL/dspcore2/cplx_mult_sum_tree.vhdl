@@ -19,10 +19,6 @@ library baselib;
 
 architecture tree of cplx_mult_sum is
 
-  -- Currently only a maximum of 3 chain links are supported!
-  -- Reason: number of required input pipeline registers grows significantly with every new chain link
-  constant MAX_CHAIN_LENGTH : positive := 3;
-
   constant OPTIMIZATION : string := "RESOURCES";--"PERFORMANCE"; -- TODO: OPTIMIZATION
   constant clkena : std_logic := '1'; -- TODO : CLKENA not yet supported
 
@@ -31,15 +27,21 @@ architecture tree of cplx_mult_sum is
   constant USE_CONJUGATE_Y : boolean := false;
   constant x_conj, y_conj : std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
 
+  -- Currently only a maximum of 3 chain links are supported!
+  -- Reason: number of required input pipeline registers grows significantly with every new chain link
+  constant MAX_CHAIN_LENGTH : positive := 3;
+
+  constant PRODUCT_WIDTH : natural := x(x'low).re'length + y(y'low).re'length;
+
 begin
 
   gchain : if NUM_MULT<=MAX_CHAIN_LENGTH generate
-    signal x_re  : signed_vector(0 to NUM_MULT-1)(x(x'left).re'length-1 downto 0);
-    signal x_im  : signed_vector(0 to NUM_MULT-1)(x(x'left).im'length-1 downto 0);
+    signal x_re  : signed_vector(0 to NUM_MULT-1)(x(x'low).re'length-1 downto 0);
+    signal x_im  : signed_vector(0 to NUM_MULT-1)(x(x'low).im'length-1 downto 0);
     signal x_vld : std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
     signal x_ovf : std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
-    signal y_re  : signed_vector(0 to NUM_MULT-1)(y(y'left).re'length-1 downto 0);
-    signal y_im  : signed_vector(0 to NUM_MULT-1)(y(y'left).im'length-1 downto 0);
+    signal y_re  : signed_vector(0 to NUM_MULT-1)(y(y'low).re'length-1 downto 0);
+    signal y_im  : signed_vector(0 to NUM_MULT-1)(y(y'low).im'length-1 downto 0);
     signal y_vld : std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
     signal y_ovf : std_logic_vector(0 to NUM_MULT-1) := (others=>'0');
     signal rst_i : std_logic;
@@ -64,11 +66,12 @@ begin
     end process;
   
     -- last compiled architecture (only device specific architectures shall be compiled!)
-    dspchain : entity work.complex_macc_chain--(dsp48e2) -- TODO: remove architecture
+    dspchain : entity work.complex_macc_chain(dsp48e2) -- TODO: remove architecture
     generic map(
       OPTIMIZATION       => OPTIMIZATION,
-      USE_ACCU           => false, -- unused
       NUM_MULT           => NUM_MULT,
+      NUM_ACCU_CYCLES    => 1, -- accu disabled
+      NUM_SUMMAND_Z      => 0, -- Z input unused
       USE_NEGATION       => USE_NEGATION,
       USE_CONJUGATE_X    => USE_CONJUGATE_X,
       USE_CONJUGATE_Y    => USE_CONJUGATE_Y,
@@ -119,9 +122,9 @@ begin
     begin
       -- At least two DSP pipeline stages are assumed.
       -- To relax timing the input OVF signals are merged in two steps
-      -- 1. merge overflow bits of each input, X and Y must be valid!
+      -- 1. merge overflow bits of each input pair, X and Y must be valid!
       --    (otherwise product will be invalid and not contribute to sum, hence the overflow bit is irrelevant)
-      -- 2. merge overflow bits of all NUM_MULT inputs
+      -- 2. merge overflow bits of all NUM_MULT input pairs
       process(clk)
         variable ovf1 : x_ovf'subtype;
       begin
@@ -147,30 +150,43 @@ begin
   constant NUM_MULT_1 : positive := NUM_MULT/2; -- floor(NUM_MULT/2)
   constant NUM_MULT_0 : positive := NUM_MULT - NUM_MULT_1;
 
-  -- only keep mode 'X' if set
-  impure function MODE_FILTERED return cplx_mode is begin
-    if MODE='X' then return "X"; else return "-"; end if;
+  -- only pass modes 'N' and 'X' (if set) down to leafs
+  function MODE_FILTERED return cplx_mode is
+  begin
+    if MODE='N' and MODE='X' then return "NX";
+    elsif MODE='N'           then return "N" ;
+    elsif MODE='X'           then return "X" ;
+    else return "-" ; end if;
   end function;
 
-  -- LSB extension
-  function LSBEXT return natural is begin
-    if OUTPUT_SHIFT_RIGHT=0 then return 0; else return 1; end if;
+  -- Place an additional pipeline register after the adder stage when saturation/clipping
+  -- (within output logic) is enabled. Otherwise connect to output logic directly and
+  -- use the first output register as pipeline register.
+  -- This might be required only after the final adder stage of the tree.
+  function PIPEREGS_AFTER_ADDER return natural is
+  begin
+    if MODE='S' then return 1; else return 0; end if;
   end function;
 
   -- at least one output register after each adder stage
   constant OUTREGS : natural := maximum(1, NUM_OUTPUT_REG);
 
-  signal result0 : result'subtype;
+  -- Dimension the result width of each tree branch such that overflows in the leafs are impossible.
+  -- Consider one additional guard bit for the complex multiplication.
+  -- Also consider that the shift-right and rounding is performed in the tree leafs, i.e. in the DSPs.
+  constant RESULT_WIDTH : positive := PRODUCT_WIDTH + 1 + log2ceil(NUM_MULT_0) - OUTPUT_SHIFT_RIGHT;
+
+  signal result0 : cplx(re(RESULT_WIDTH-1 downto 0),im(RESULT_WIDTH-1 downto 0));
   signal pipestages0 : integer range 0 to 31;
 
   -- maximum difference between pipeline stages
   constant MAX_PIPE_DIFF : positive := 2;
 
-  signal result1, result1_q : result'subtype;
+  signal result1, result1_q : cplx(re(RESULT_WIDTH-1 downto 0),im(RESULT_WIDTH-1 downto 0));
   signal pipestages1 : integer range 0 to 31;
 
   -- result requires one more guard bit because of final adder stage
-  signal res : cplx(re(result.re'length downto 0), im(result.im'length downto 0));
+  signal res, res_q : cplx(re(RESULT_WIDTH downto 0),im(RESULT_WIDTH downto 0));
   signal result_ovf_re, result_ovf_im : std_logic;
 
  begin
@@ -182,7 +198,7 @@ begin
     USE_NEGATION       => USE_NEGATION,
     NUM_INPUT_REG      => NUM_INPUT_REG,
     NUM_OUTPUT_REG     => 0, -- additional output registers are always implemented after every adder stage and at the end of the adder tree
-    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT-LSBEXT,
+    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     MODE               => MODE_FILTERED -- most modes must be considered in last stage only
   )
   port map(
@@ -202,7 +218,7 @@ begin
     USE_NEGATION       => USE_NEGATION,
     NUM_INPUT_REG      => NUM_INPUT_REG,
     NUM_OUTPUT_REG     => 0, -- additional output registers are always implemented after every adder stage and at the end of the adder tree
-    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT-LSBEXT,
+    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
     MODE               => MODE_FILTERED -- most modes must be considered in last stage only
   )
   port map(
@@ -248,22 +264,35 @@ begin
               im1       when result1_q.vld='1' else (others=>'0');
   end process;
 
+  pipereg : entity cplxlib.cplx_pipeline
+    generic map(
+      NUM_PIPELINE_STAGES => PIPEREGS_AFTER_ADDER,
+      MODE                => open
+    )
+    port map(
+      clk    => clk,
+      rst    => open,
+      clkena => clkena,
+      din    => res,
+      dout   => res_q
+    );
+
   -- real part output
   re_out : entity work.xilinx_output_logic
   generic map(
     PIPELINE_STAGES    => OUTREGS,
-    OUTPUT_SHIFT_RIGHT => LSBEXT,
+    OUTPUT_SHIFT_RIGHT => 0,
     OUTPUT_CLIP        => (MODE='S'),
     OUTPUT_OVERFLOW    => (MODE='O')
   )
   port map(
     clk         => clk,
-    rst         => res.rst,
+    rst         => res_q.rst,
     clkena      => clkena,
-    dsp_out     => res.re,
-    dsp_out_vld => res.vld,
-    dsp_out_ovf => res.ovf,
-    dsp_out_rnd => to_01(MODE='N'),
+    dsp_out     => res_q.re,
+    dsp_out_vld => res_q.vld,
+    dsp_out_ovf => res_q.ovf,
+    dsp_out_rnd => open, -- rounding already done in leaf DSPs
     result      => result.re,
     result_vld  => result.vld,
     result_ovf  => result_ovf_re,
@@ -274,18 +303,18 @@ begin
   im_out : entity work.xilinx_output_logic
   generic map(
     PIPELINE_STAGES    => OUTREGS,
-    OUTPUT_SHIFT_RIGHT => LSBEXT,
+    OUTPUT_SHIFT_RIGHT => 0,
     OUTPUT_CLIP        => (MODE='S'),
     OUTPUT_OVERFLOW    => (MODE='O')
   )
   port map(
     clk         => clk,
-    rst         => res.rst,
+    rst         => res_q.rst,
     clkena      => clkena,
-    dsp_out     => res.im,
-    dsp_out_vld => res.vld,
+    dsp_out     => res_q.im,
+    dsp_out_vld => res_q.vld,
     dsp_out_ovf => open, -- not needed here, already considered in real part
-    dsp_out_rnd => to_01(MODE='N'),
+    dsp_out_rnd => open, -- rounding already done in leaf DSPs
     result      => result.im,
     result_vld  => open, -- same as real part
     result_ovf  => result_ovf_im,
@@ -294,7 +323,7 @@ begin
 
   result.ovf <= result_ovf_re or result_ovf_im;
 
-  PIPESTAGES <= pipestages0 + OUTREGS;
+  PIPESTAGES <= pipestages0 + PIPEREGS_AFTER_ADDER + OUTREGS;
 
  end generate gtree;
 

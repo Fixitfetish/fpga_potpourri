@@ -50,6 +50,11 @@ architecture behave of complex_mult1add1 is
     return res;
   end function;
 
+  constant USE_ACCU : boolean := (NUM_ACCU_CYCLES>=2);
+
+  -- number of overall summands that contribute to the DSP internal accumulation register P
+  constant NUM_SUMMAND : natural := (NUM_SUMMAND_CHAININ + NUM_SUMMAND_Z + 1) * 2 * NUM_ACCU_CYCLES;
+
   --! determine number of required additional guard bits (MSBs)
   function accu_guard_bits(
     dflt : natural; -- default value when num_summand=0

@@ -22,7 +22,6 @@ architecture dsp48e2 of complex_macc_chain is
 
   constant X_INPUT_WIDTH   : positive := maximum(x_re(0)'length,x_im(0)'length);
   constant Y_INPUT_WIDTH   : positive := maximum(y_re(0)'length,y_im(0)'length);
-  constant MAX_INPUT_WIDTH : positive := maximum(X_INPUT_WIDTH,Y_INPUT_WIDTH);
 
   constant RELATION_RST : string := "X"; -- TODO : RELATION_RST
   constant RELATION_CLR : string := "X"; -- TODO : RELATION_CLR
@@ -31,8 +30,33 @@ architecture dsp48e2 of complex_macc_chain is
   constant NUM_INPUT_REG_X : natural := NUM_INPUT_REG_XY;
   constant NUM_INPUT_REG_Y : natural := NUM_INPUT_REG_XY;
 
-  function OUTREGS(i:natural) return natural is begin
-    if i<(NUM_MULT-1) then return 0; else return NUM_OUTPUT_REG; end if;
+  -- Round bit addition is only required when rounding is enabled.
+  -- * NUM_ACCU_CYCLES =1 : add round bit (every cycle) in first chain link where chain input is unused
+  -- * NUM_ACCU_CYCLES>=2 : add round bit (with clr=1) in last chain link where the accumulator register is located
+  function ADD_ROUND_BIT(n:natural) return boolean is
+  begin
+    if NUM_ACCU_CYCLES>=2 then
+      return OUTPUT_ROUND and (n=(NUM_MULT-1)); -- accu enabled
+    else
+      return OUTPUT_ROUND and (n=0); -- accu disabled
+    end if;
+  end function;
+
+  -- Accumulator is required in last chain link only
+  function ACCU_CYCLES(n:natural) return natural is
+  begin
+    if n=(NUM_MULT-1) then return NUM_ACCU_CYCLES; else return 1; end if;
+  end function;
+
+  -- all Z summands need to be considered in last chain link only
+  function SUMMAND_Z(n:natural) return natural is
+  begin
+    if n=(NUM_MULT-1) then return NUM_SUMMAND_Z; else return 0; end if;
+  end function;
+
+  -- Output registers are added in last chain link only
+  function OUTREGS(n:natural) return natural is begin
+    if n=(NUM_MULT-1) then return NUM_OUTPUT_REG; else return 0; end if;
   end function;
 
   signal result_re_i : signed_vector(0 to NUM_MULT-1)(result_re'length-1 downto 0);
@@ -66,7 +90,7 @@ architecture dsp48e2 of complex_macc_chain is
  -- * round bit and accumulate in addition to Z and chain input is possible
  -- * TODO : also allows complex preadder => different entity complex_preadd_macc !?
  --------------------------------------------------------------------------------------------------
- CPLX4DSP_CHAIN : if OPTIMIZATION="PERFORMANCE" or OPTIMIZATION="CPLX4DSP" generate
+ CPLX4DSP : if OPTIMIZATION="PERFORMANCE" or OPTIMIZATION="CPLX4DSP" generate
   -- identifier for reports of warnings and errors
   constant CHOICE : string := "(optimization=PERFORMANCE, N*4 DSPs):: ";
  begin
@@ -77,31 +101,26 @@ architecture dsp48e2 of complex_macc_chain is
     severity warning;
 
   LINK : for n in 0 to NUM_MULT-1 generate
-    -- Round bit addition is only required when rounding is enabled.
-    -- * USE_ACCU=false : add round bit (every cycle) in first chain link where chain input is unused
-    -- * USE_ACCU=true  : add round bit (with clr=1) in last chain link where the accumulator register is located
-    constant ADD_ROUND_BIT : boolean := OUTPUT_ROUND and 
-                                      ( (n=(NUM_MULT-1) and USE_ACCU) or (n=0 and not USE_ACCU) );
-  begin
 
     cmacc : entity work.complex_mult1add1(dsp48e2)
     generic map(
-      OPTIMIZATION       => "PERFORMANCE",
-      USE_ACCU           => (USE_ACCU and (n=(NUM_MULT-1))),
-      NUM_SUMMAND        => 2*NUM_MULT, -- TODO : NUM_SUMMAND
-      USE_NEGATION       => USE_NEGATION,
-      USE_CONJUGATE_X    => USE_CONJUGATE_X,
-      USE_CONJUGATE_Y    => USE_CONJUGATE_Y,
-      NUM_INPUT_REG_XY   => 1 + NUM_INPUT_REG_XY + 2*n, -- minimum one input register
-      NUM_INPUT_REG_Z    => 1 + NUM_INPUT_REG_Z  + 2*n, -- minimum one input register
-      RELATION_RST       => RELATION_RST,
-      RELATION_CLR       => RELATION_CLR,
-      RELATION_NEG       => RELATION_NEG,
-      NUM_OUTPUT_REG     => 1 + OUTREGS(n), -- at least the DSP internal output register
-      OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-      OUTPUT_ROUND       => ADD_ROUND_BIT,
-      OUTPUT_CLIP        => (OUTPUT_CLIP and (n=(NUM_MULT-1))),
-      OUTPUT_OVERFLOW    => (OUTPUT_OVERFLOW and (n=(NUM_MULT-1)))
+      OPTIMIZATION        => "PERFORMANCE",
+      NUM_ACCU_CYCLES     => ACCU_CYCLES(n),
+      NUM_SUMMAND_CHAININ => n,
+      NUM_SUMMAND_Z       => SUMMAND_Z(n),
+      USE_NEGATION        => USE_NEGATION,
+      USE_CONJUGATE_X     => USE_CONJUGATE_X,
+      USE_CONJUGATE_Y     => USE_CONJUGATE_Y,
+      NUM_INPUT_REG_XY    => 1 + NUM_INPUT_REG_XY + 2*n, -- minimum one input register
+      NUM_INPUT_REG_Z     => 1 + NUM_INPUT_REG_Z  + 2*n, -- minimum one input register
+      RELATION_RST        => RELATION_RST,
+      RELATION_CLR        => RELATION_CLR,
+      RELATION_NEG        => RELATION_NEG,
+      NUM_OUTPUT_REG      => 1 + OUTREGS(n), -- at least the DSP internal output register
+      OUTPUT_SHIFT_RIGHT  => OUTPUT_SHIFT_RIGHT,
+      OUTPUT_ROUND        => ADD_ROUND_BIT(n),
+      OUTPUT_CLIP         => (OUTPUT_CLIP and (n=(NUM_MULT-1))),
+      OUTPUT_OVERFLOW     => (OUTPUT_OVERFLOW and (n=(NUM_MULT-1)))
     )
     port map(
       clk             => clk,
@@ -138,7 +157,7 @@ architecture dsp48e2 of complex_macc_chain is
     );
 
   end generate LINK;
- end generate CPLX4DSP_CHAIN;
+ end generate CPLX4DSP;
 
  --------------------------------------------------------------------------------------------------
  -- Complex multiplier chain with with 3 DSP cells per complex multiplication
@@ -152,7 +171,7 @@ architecture dsp48e2 of complex_macc_chain is
  -- * The rounding (i.e. +0.5) not possible within DSP.
  --   But rounding bit can be injected at the first chain link where the chain input is unused.
  --------------------------------------------------------------------------------------------------
- CPLX3DSP_CHAIN : if OPTIMIZATION="RESOURCES" or OPTIMIZATION="CPLX3DSP" generate
+ CPLX3DSP : if OPTIMIZATION="RESOURCES" or OPTIMIZATION="CPLX3DSP" generate
   -- identifier for reports of warnings and errors
   constant CHOICE : string := "(optimization=RESOURCES, N*3 DSPs):: ";
  begin
@@ -162,37 +181,32 @@ architecture dsp48e2 of complex_macc_chain is
            "For high-speed the X and Y paths should have at least one additional input register."
     severity warning;
 
-  assert (NUM_MULT=1 or not USE_ACCU)
+  assert (NUM_MULT=1 or NUM_ACCU_CYCLES<=1)
     report complex_macc_chain'instance_name & CHOICE &
-           "Selected optimization with NUM_MULT>=2 does not allow accumulation. Ignoring CLR input port."
-    severity warning;
+           "Selected optimization with NUM_MULT>=2 does not allow accumulation."
+    severity failure;
 
   LINK : for n in 0 to NUM_MULT-1 generate
-    -- Round bit addition is only required when rounding is enabled.
-    -- * USE_ACCU=false : add round bit (every cycle) in first chain link where chain input is unused
-    -- * USE_ACCU=true  : add round bit (with clr=1) only possible when NUM_MULT=1
-    constant ADD_ROUND_BIT : boolean := OUTPUT_ROUND and 
-                                      ( (NUM_MULT=1 and USE_ACCU) or (n=0 and not USE_ACCU) );
-  begin
 
     cmacc : entity work.complex_mult1add1(dsp48e2)
     generic map(
-      OPTIMIZATION       => "RESOURCES",
-      USE_ACCU           => (USE_ACCU and NUM_MULT=1),
-      NUM_SUMMAND        => 2*NUM_MULT, -- TODO : NUM_SUMMAND
-      USE_NEGATION       => USE_NEGATION,
-      USE_CONJUGATE_X    => USE_CONJUGATE_X,
-      USE_CONJUGATE_Y    => USE_CONJUGATE_Y,
-      NUM_INPUT_REG_XY   => 1 + NUM_INPUT_REG_XY + n, -- minimum one input register
-      NUM_INPUT_REG_Z    => 1 + NUM_INPUT_REG_Z, -- here to configure internal pipeline register, minimum one register required
-      RELATION_RST       => RELATION_RST,
-      RELATION_CLR       => RELATION_CLR,
-      RELATION_NEG       => RELATION_NEG,
-      NUM_OUTPUT_REG     => 1 + OUTREGS(n), -- at least the DSP internal output register
-      OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-      OUTPUT_ROUND       => ADD_ROUND_BIT,
-      OUTPUT_CLIP        => (OUTPUT_CLIP and (n=(NUM_MULT-1))),
-      OUTPUT_OVERFLOW    => (OUTPUT_OVERFLOW and (n=(NUM_MULT-1)))
+      OPTIMIZATION        => "RESOURCES",
+      NUM_ACCU_CYCLES     => ACCU_CYCLES(n),
+      NUM_SUMMAND_CHAININ => n,
+      NUM_SUMMAND_Z       => 0, -- Z input not supported
+      USE_NEGATION        => USE_NEGATION,
+      USE_CONJUGATE_X     => USE_CONJUGATE_X,
+      USE_CONJUGATE_Y     => USE_CONJUGATE_Y,
+      NUM_INPUT_REG_XY    => 1 + NUM_INPUT_REG_XY + n, -- minimum one input register
+      NUM_INPUT_REG_Z     => 1 + NUM_INPUT_REG_Z, -- here to configure internal pipeline register, minimum one register required
+      RELATION_RST        => RELATION_RST,
+      RELATION_CLR        => RELATION_CLR,
+      RELATION_NEG        => RELATION_NEG,
+      NUM_OUTPUT_REG      => 1 + OUTREGS(n), -- at least the DSP internal output register
+      OUTPUT_SHIFT_RIGHT  => OUTPUT_SHIFT_RIGHT,
+      OUTPUT_ROUND        => ADD_ROUND_BIT(n),
+      OUTPUT_CLIP         => (OUTPUT_CLIP and (n=(NUM_MULT-1))),
+      OUTPUT_OVERFLOW     => (OUTPUT_OVERFLOW and (n=(NUM_MULT-1)))
     )
     port map(
       clk             => clk,
@@ -229,7 +243,7 @@ architecture dsp48e2 of complex_macc_chain is
     );
 
   end generate LINK;
- end generate CPLX3DSP_CHAIN;
+ end generate CPLX3DSP;
 
 
   result_re <= result_re_i(NUM_MULT-1);

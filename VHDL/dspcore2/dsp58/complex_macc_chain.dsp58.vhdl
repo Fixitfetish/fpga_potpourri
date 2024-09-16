@@ -31,8 +31,33 @@ architecture dsp58 of complex_macc_chain is
   constant NUM_INPUT_REG_X : natural := NUM_INPUT_REG_XY;
   constant NUM_INPUT_REG_Y : natural := NUM_INPUT_REG_XY;
 
-  function OUTREGS(i:natural) return natural is begin
-    if i<(NUM_MULT-1) then return 0; else return NUM_OUTPUT_REG; end if;
+  -- Round bit addition is only required when rounding is enabled.
+  -- * NUM_ACCU_CYCLES =1 : add round bit (every cycle) in first chain link where chain input is unused
+  -- * NUM_ACCU_CYCLES>=2 : add round bit (with clr=1) in last chain link where the accumulator register is located
+  function ADD_ROUND_BIT(n:natural) return boolean is
+  begin
+    if NUM_ACCU_CYCLES>=2 then
+      return OUTPUT_ROUND and (n=(NUM_MULT-1)); -- accu enabled
+    else
+      return OUTPUT_ROUND and (n=0); -- accu disabled
+    end if;
+  end function;
+
+  -- Accumulator is required in last chain link only
+  function ACCU_CYCLES(n:natural) return natural is
+  begin
+    if n=(NUM_MULT-1) then return NUM_ACCU_CYCLES; else return 1; end if;
+  end function;
+
+  -- all Z summands need to be considered in last chain link only
+  function SUMMAND_Z(n:natural) return natural is
+  begin
+    if n=(NUM_MULT-1) then return NUM_SUMMAND_Z; else return 0; end if;
+  end function;
+
+  -- Output registers are added in last chain link only
+  function OUTREGS(n:natural) return natural is begin
+    if n=(NUM_MULT-1) then return NUM_OUTPUT_REG; else return 0; end if;
   end function;
 
   signal result_re_i : signed_vector(0 to NUM_MULT-1)(result_re'length-1 downto 0);
@@ -66,7 +91,7 @@ architecture dsp58 of complex_macc_chain is
  -- * round bit and accumulate in addition to Z and chain input is possible
  -- * TODO : also allows complex preadder => different entity complex_preadd_macc !?
  --------------------------------------------------------------------------------------------------
- CPLX4DSP_CHAIN : if OPTIMIZATION="PERFORMANCE" or OPTIMIZATION="CPLX4DSP" generate
+ CPLX4DSP : if OPTIMIZATION="PERFORMANCE" or OPTIMIZATION="CPLX4DSP" generate
   -- identifier for reports of warnings and errors
   constant CHOICE : string := "(optimization=PERFORMANCE, N*4 DSPs):: ";
  begin
@@ -77,31 +102,26 @@ architecture dsp58 of complex_macc_chain is
     severity warning;
 
   LINK : for n in 0 to NUM_MULT-1 generate
-    -- Round bit addition is only required when rounding is enabled.
-    -- * USE_ACCU=false : add round bit (every cycle) in first chain link where chain input is unused
-    -- * USE_ACCU=true  : add round bit (with clr=1) in last chain link where the accumulator register is located
-    constant ADD_ROUND_BIT : boolean := OUTPUT_ROUND and 
-                                      ( (n=(NUM_MULT-1) and USE_ACCU) or (n=0 and not USE_ACCU) );
-  begin
 
     cmacc : entity work.complex_mult1add1(dsp58)
     generic map(
-      OPTIMIZATION       => "PERFORMANCE",
-      USE_ACCU           => (USE_ACCU and (n=(NUM_MULT-1))),
-      NUM_SUMMAND        => 2*NUM_MULT, -- TODO : NUM_SUMMAND
-      USE_NEGATION       => USE_NEGATION,
-      USE_CONJUGATE_X    => USE_CONJUGATE_X,
-      USE_CONJUGATE_Y    => USE_CONJUGATE_Y,
-      NUM_INPUT_REG_XY   => 1 + NUM_INPUT_REG_XY + 2*n, -- minimum one input register
-      NUM_INPUT_REG_Z    => 1 + NUM_INPUT_REG_Z  + 2*n, -- minimum one input register
-      RELATION_RST       => RELATION_RST,
-      RELATION_CLR       => RELATION_CLR,
-      RELATION_NEG       => RELATION_NEG,
-      NUM_OUTPUT_REG     => 1 + OUTREGS(n), -- at least the DSP internal output register
-      OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-      OUTPUT_ROUND       => ADD_ROUND_BIT,
-      OUTPUT_CLIP        => (OUTPUT_CLIP and (n=(NUM_MULT-1))),
-      OUTPUT_OVERFLOW    => (OUTPUT_OVERFLOW and (n=(NUM_MULT-1)))
+      OPTIMIZATION        => "PERFORMANCE",
+      NUM_ACCU_CYCLES     => ACCU_CYCLES(n),
+      NUM_SUMMAND_CHAININ => n,
+      NUM_SUMMAND_Z       => SUMMAND_Z(n),
+      USE_NEGATION        => USE_NEGATION,
+      USE_CONJUGATE_X     => USE_CONJUGATE_X,
+      USE_CONJUGATE_Y     => USE_CONJUGATE_Y,
+      NUM_INPUT_REG_XY    => 1 + NUM_INPUT_REG_XY + 2*n, -- minimum one input register
+      NUM_INPUT_REG_Z     => 1 + NUM_INPUT_REG_Z  + 2*n, -- minimum one input register
+      RELATION_RST        => RELATION_RST,
+      RELATION_CLR        => RELATION_CLR,
+      RELATION_NEG        => RELATION_NEG,
+      NUM_OUTPUT_REG      => 1 + OUTREGS(n), -- at least the DSP internal output register
+      OUTPUT_SHIFT_RIGHT  => OUTPUT_SHIFT_RIGHT,
+      OUTPUT_ROUND        => ADD_ROUND_BIT(n),
+      OUTPUT_CLIP         => (OUTPUT_CLIP and (n=(NUM_MULT-1))),
+      OUTPUT_OVERFLOW     => (OUTPUT_OVERFLOW and (n=(NUM_MULT-1)))
     )
     port map(
       clk             => clk,
@@ -138,7 +158,7 @@ architecture dsp58 of complex_macc_chain is
     );
 
   end generate LINK;
- end generate CPLX4DSP_CHAIN;
+ end generate CPLX4DSP;
 
  --------------------------------------------------------------------------------------------------
  -- Complex multiplier chain with with 3 DSP cells per complex multiplication
@@ -152,7 +172,7 @@ architecture dsp58 of complex_macc_chain is
  -- * The rounding (i.e. +0.5) not possible within DSP.
  --   But rounding bit can be injected at the first chain link where the chain input is unused.
  --------------------------------------------------------------------------------------------------
- CPLX3DSP_CHAIN : if (OPTIMIZATION="RESOURCES" and MAX_INPUT_WIDTH>18) or OPTIMIZATION="CPLX3DSP" generate
+ CPLX3DSP : if (OPTIMIZATION="RESOURCES" and MAX_INPUT_WIDTH>18) or OPTIMIZATION="CPLX3DSP" generate
   -- identifier for reports of warnings and errors
   constant CHOICE : string := "(optimization=RESOURCES, N*3 DSPs):: ";
  begin
@@ -162,37 +182,32 @@ architecture dsp58 of complex_macc_chain is
            "For high-speed the X and Y paths should have at least one additional input register."
     severity warning;
 
-  assert (NUM_MULT=1 or not USE_ACCU)
+  assert (NUM_MULT=1 or NUM_ACCU_CYCLES<=1)
     report complex_macc_chain'instance_name & CHOICE &
-           "Selected optimization with NUM_MULT>=2 does not allow accumulation. Ignoring CLR input port."
-    severity warning;
+           "Selected optimization with NUM_MULT>=2 does not allow accumulation."
+    severity failure;
 
   LINK : for n in 0 to NUM_MULT-1 generate
-    -- Round bit addition is only required when rounding is enabled.
-    -- * USE_ACCU=false : add round bit (every cycle) in first chain link where chain input is unused
-    -- * USE_ACCU=true  : add round bit (with clr=1) only possible when NUM_MULT=1
-    constant ADD_ROUND_BIT : boolean := OUTPUT_ROUND and 
-                                      ( (NUM_MULT=1 and USE_ACCU) or (n=0 and not USE_ACCU) );
-  begin
 
     cmacc : entity work.complex_mult1add1(dsp58)
     generic map(
-      OPTIMIZATION       => "RESOURCES",
-      USE_ACCU           => (USE_ACCU and NUM_MULT=1),
-      NUM_SUMMAND        => 2*NUM_MULT, -- TODO : NUM_SUMMAND
-      USE_NEGATION       => USE_NEGATION,
-      USE_CONJUGATE_X    => USE_CONJUGATE_X,
-      USE_CONJUGATE_Y    => USE_CONJUGATE_Y,
-      NUM_INPUT_REG_XY   => 1 + NUM_INPUT_REG_XY + n, -- minimum one input register
-      NUM_INPUT_REG_Z    => 1 + NUM_INPUT_REG_Z, -- here to configure internal pipeline register, minimum one register required
-      RELATION_RST       => RELATION_RST,
-      RELATION_CLR       => RELATION_CLR,
-      RELATION_NEG       => RELATION_NEG,
-      NUM_OUTPUT_REG     => 1 + OUTREGS(n), -- at least the DSP internal output register
-      OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-      OUTPUT_ROUND       => ADD_ROUND_BIT,
-      OUTPUT_CLIP        => (OUTPUT_CLIP and (n=(NUM_MULT-1))),
-      OUTPUT_OVERFLOW    => (OUTPUT_OVERFLOW and (n=(NUM_MULT-1)))
+      OPTIMIZATION        => "RESOURCES",
+      NUM_ACCU_CYCLES     => ACCU_CYCLES(n),
+      NUM_SUMMAND_CHAININ => n,
+      NUM_SUMMAND_Z       => 0, -- Z input not supported
+      USE_NEGATION        => USE_NEGATION,
+      USE_CONJUGATE_X     => USE_CONJUGATE_X,
+      USE_CONJUGATE_Y     => USE_CONJUGATE_Y,
+      NUM_INPUT_REG_XY    => 1 + NUM_INPUT_REG_XY + n, -- minimum one input register
+      NUM_INPUT_REG_Z     => 1 + NUM_INPUT_REG_Z, -- here to configure internal pipeline register, minimum one register required
+      RELATION_RST        => RELATION_RST,
+      RELATION_CLR        => RELATION_CLR,
+      RELATION_NEG        => RELATION_NEG,
+      NUM_OUTPUT_REG      => 1 + OUTREGS(n), -- at least the DSP internal output register
+      OUTPUT_SHIFT_RIGHT  => OUTPUT_SHIFT_RIGHT,
+      OUTPUT_ROUND        => ADD_ROUND_BIT(n),
+      OUTPUT_CLIP         => (OUTPUT_CLIP and (n=(NUM_MULT-1))),
+      OUTPUT_OVERFLOW     => (OUTPUT_OVERFLOW and (n=(NUM_MULT-1)))
     )
     port map(
       clk             => clk,
@@ -229,7 +244,7 @@ architecture dsp58 of complex_macc_chain is
     );
 
   end generate LINK;
- end generate CPLX3DSP_CHAIN;
+ end generate CPLX3DSP;
 
 
  --------------------------------------------------------------------------------------------------
@@ -239,7 +254,7 @@ architecture dsp58 of complex_macc_chain is
  -- * last Z input in chain not supported, when accumulation is required !
  -- * factor inputs X and Y are limited to 2x18 bits
  --------------------------------------------------------------------------------------------------
- CPLX2DSP_CHAIN : if (OPTIMIZATION="RESOURCES" and MAX_INPUT_WIDTH<=18) or OPTIMIZATION="CPLX2DSP" generate
+ CPLX2DSP : if (OPTIMIZATION="RESOURCES" and MAX_INPUT_WIDTH<=18) or OPTIMIZATION="CPLX2DSP" generate
   -- identifier for reports of warnings and errors
   constant CHOICE : string := "(optimization=RESOURCES, N*2 DSPs):: ";
  begin
@@ -255,68 +270,63 @@ architecture dsp58 of complex_macc_chain is
     severity failure;
 
   LINK : for n in 0 to NUM_MULT-1 generate
-    -- Round bit addition is only required when rounding is enabled.
-    -- * USE_ACCU=false : add round bit (every cycle) in first chain link where chain input is unused
-    -- * USE_ACCU=true  : add round bit (with clr=1) in last chain link where the accumulator register is located
-    constant ADD_ROUND_BIT : boolean := OUTPUT_ROUND and 
-                                      ( (n=(NUM_MULT-1) and USE_ACCU) or (n=0 and not USE_ACCU) );
-  begin
 
-  cmacc : entity work.complex_mult1add1(dsp58)
-  generic map(
-    OPTIMIZATION       => "RESOURCES",
-    USE_ACCU           => (USE_ACCU and (n=(NUM_MULT-1))),
-    NUM_SUMMAND        => 2*NUM_MULT, -- TODO : NUM_SUMMAND
-    USE_NEGATION       => USE_NEGATION,
-    USE_CONJUGATE_X    => USE_CONJUGATE_X,
-    USE_CONJUGATE_Y    => USE_CONJUGATE_Y,
-    NUM_INPUT_REG_XY   => 1 + NUM_INPUT_REG_XY + n, -- minimum one input register
-    NUM_INPUT_REG_Z    => 1 + NUM_INPUT_REG_Z  + n, -- minimum one input register
-    RELATION_RST       => RELATION_RST,
-    RELATION_CLR       => RELATION_CLR,
-    RELATION_NEG       => RELATION_NEG,
-    NUM_OUTPUT_REG     => 1 + OUTREGS(n), -- at least the DSP internal output register
-    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT,
-    OUTPUT_ROUND       => ADD_ROUND_BIT,
-    OUTPUT_CLIP        => (OUTPUT_CLIP and (n=(NUM_MULT-1))),
-    OUTPUT_OVERFLOW    => (OUTPUT_OVERFLOW and (n=(NUM_MULT-1)))
-  )
-  port map(
-    clk             => clk,
-    rst             => rst,
-    clkena          => clkena,
-    clr             => clr,
-    neg             => neg(n),
-    x_re            => x_re(n),
-    x_im            => x_im(n),
-    x_vld           => x_vld(n),
-    x_conj          => x_conj(n),
-    y_re            => y_re(n),
-    y_im            => y_im(n),
-    y_vld           => y_vld(n),
-    y_conj          => y_conj(n),
-    z_re            => z_re(n),
-    z_im            => z_im(n),
-    z_vld           => z_vld(n),
-    result_re       => result_re_i(n),
-    result_im       => result_im_i(n),
-    result_vld      => result_vld_i(n),
-    result_ovf_re   => result_ovf_re_i(n),
-    result_ovf_im   => result_ovf_im_i(n),
-    result_rst      => result_rst_i(n),
-    chainin_re      => chainin_re(n),
-    chainin_im      => chainin_im(n),
-    chainin_re_vld  => chainin_re_vld(n),
-    chainin_im_vld  => chainin_im_vld(n),
-    chainout_re     => chainin_re(n+1),
-    chainout_im     => chainin_im(n+1),
-    chainout_re_vld => chainin_re_vld(n+1),
-    chainout_im_vld => chainin_im_vld(n+1),
-    PIPESTAGES      => pipestages_i(n)
-  );
+    cmacc : entity work.complex_mult1add1(dsp58)
+    generic map(
+      OPTIMIZATION        => "RESOURCES",
+      NUM_ACCU_CYCLES     => ACCU_CYCLES(n),
+      NUM_SUMMAND_CHAININ => n,
+      NUM_SUMMAND_Z       => SUMMAND_Z(n),
+      USE_NEGATION        => USE_NEGATION,
+      USE_CONJUGATE_X     => USE_CONJUGATE_X,
+      USE_CONJUGATE_Y     => USE_CONJUGATE_Y,
+      NUM_INPUT_REG_XY    => 1 + NUM_INPUT_REG_XY + n, -- minimum one input register
+      NUM_INPUT_REG_Z     => 1 + NUM_INPUT_REG_Z  + n, -- minimum one input register
+      RELATION_RST        => RELATION_RST,
+      RELATION_CLR        => RELATION_CLR,
+      RELATION_NEG        => RELATION_NEG,
+      NUM_OUTPUT_REG      => 1 + OUTREGS(n), -- at least the DSP internal output register
+      OUTPUT_SHIFT_RIGHT  => OUTPUT_SHIFT_RIGHT,
+      OUTPUT_ROUND        => ADD_ROUND_BIT(n),
+      OUTPUT_CLIP         => (OUTPUT_CLIP and (n=(NUM_MULT-1))),
+      OUTPUT_OVERFLOW     => (OUTPUT_OVERFLOW and (n=(NUM_MULT-1)))
+    )
+    port map(
+      clk             => clk,
+      rst             => rst,
+      clkena          => clkena,
+      clr             => clr,
+      neg             => neg(n),
+      x_re            => x_re(n),
+      x_im            => x_im(n),
+      x_vld           => x_vld(n),
+      x_conj          => x_conj(n),
+      y_re            => y_re(n),
+      y_im            => y_im(n),
+      y_vld           => y_vld(n),
+      y_conj          => y_conj(n),
+      z_re            => z_re(n),
+      z_im            => z_im(n),
+      z_vld           => z_vld(n),
+      result_re       => result_re_i(n),
+      result_im       => result_im_i(n),
+      result_vld      => result_vld_i(n),
+      result_ovf_re   => result_ovf_re_i(n),
+      result_ovf_im   => result_ovf_im_i(n),
+      result_rst      => result_rst_i(n),
+      chainin_re      => chainin_re(n),
+      chainin_im      => chainin_im(n),
+      chainin_re_vld  => chainin_re_vld(n),
+      chainin_im_vld  => chainin_im_vld(n),
+      chainout_re     => chainin_re(n+1),
+      chainout_im     => chainin_im(n+1),
+      chainout_re_vld => chainin_re_vld(n+1),
+      chainout_im_vld => chainin_im_vld(n+1),
+      PIPESTAGES      => pipestages_i(n)
+    );
 
   end generate LINK;
- end generate CPLX2DSP_CHAIN;
+ end generate CPLX2DSP;
 
 
   result_re <= result_re_i(NUM_MULT-1);

@@ -78,9 +78,19 @@ architecture dsp48e2 of signed_preadd_mult1add1 is
     end if;
   end function;
 
+  -- number of overall summands that contribute to the DSP internal accumulation register P
+  function NUM_SUMMAND return natural is
+  begin
+    if USE_XB_INPUT then
+      return (NUM_SUMMAND_CHAININ + NUM_SUMMAND_Z + 2) * NUM_ACCU_CYCLES;
+    else
+      return (NUM_SUMMAND_CHAININ + NUM_SUMMAND_Z + 1) * NUM_ACCU_CYCLES;
+    end if;
+  end function;
+
   -- derived constants
   constant ROUND_ENABLE : boolean := OUTPUT_ROUND and (OUTPUT_SHIFT_RIGHT/=0);
-  constant PRODUCT_WIDTH : natural := MAXIMUM(xa'length,xb'length) + y'length + 1;
+  constant PRODUCT_WIDTH : natural := MAXIMUM(xa'length,xb'length) + y'length;
   constant MAX_GUARD_BITS : natural := ACCU_WIDTH - PRODUCT_WIDTH;
   constant GUARD_BITS_EVAL : natural := accu_guard_bits(NUM_SUMMAND,MAX_GUARD_BITS,"signed_preadd_mult1add1");
   constant ACCU_USED_WIDTH : natural := PRODUCT_WIDTH + GUARD_BITS_EVAL;
@@ -179,7 +189,7 @@ begin
            ", OUTPUT_OVERFLOW="         & boolean'image(OUTPUT_OVERFLOW)
     severity failure;
 
-  clr_i <= clr when USE_ACCU else '0';
+  clr_i <= clr when NUM_ACCU_CYCLES>1 else '0';
 
   i_feed : entity work.xilinx_input_pipe
   generic map(
@@ -243,7 +253,7 @@ begin
 
   i_mode : entity work.xilinx_mode_logic
   generic map(
-    USE_ACCU     => USE_ACCU,
+    USE_ACCU     => (NUM_ACCU_CYCLES>1),
     USE_PREADDER => ENABLE_PREADDER,
     ENABLE_ROUND => ROUND_ENABLE,
     NUM_AREG     => DSPREG.A,

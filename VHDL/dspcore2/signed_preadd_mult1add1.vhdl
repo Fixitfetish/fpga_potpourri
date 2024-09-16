@@ -49,20 +49,24 @@ library ieee;
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.vhdl}
 -- I1 : signed_preadd_mult1add1
 -- generic map(
---   NUM_SUMMAND      => natural,
---   USE_XB_INPUT     => boolean,
---   USE_NEGATION     => boolean,
---   USE_XA_NEGATION  => boolean,
---   USE_XB_NEGATION  => boolean,
---   NUM_INPUT_REG_X  => natural,
---   NUM_INPUT_REG_Y  => natural,
---   NUM_INPUT_REG_Z  => natural,
---   RELATION_RST     => string,
---   RELATION_CLR     => string,
---   RELATION_NEG     => string,
---   NUM_OUTPUT_REG   => natural,
---   ROUND_ENABLE     => boolean,
---   ROUND_BIT        => natural
+--   NUM_ACCU_CYCLES     => positive,
+--   NUM_SUMMAND_CHAININ => natural,
+--   NUM_SUMMAND_Z       => natural,
+--   USE_XB_INPUT        => boolean,
+--   USE_NEGATION        => boolean,
+--   USE_XA_NEGATION     => boolean,
+--   USE_XB_NEGATION     => boolean,
+--   NUM_INPUT_REG_X     => natural,
+--   NUM_INPUT_REG_Y     => natural,
+--   NUM_INPUT_REG_Z     => natural,
+--   RELATION_RST        => string,
+--   RELATION_CLR        => string,
+--   RELATION_NEG        => string,
+--   NUM_OUTPUT_REG      => natural,
+--   OUTPUT_SHIFT_RIGHT  => boolean,
+--   OUTPUT_ROUND        => boolean,
+--   OUTPUT_CLIP         => boolean,
+--   OUTPUT_OVERFLOW     => boolean
 -- )
 -- port map(
 --   clk          => in  std_logic,
@@ -92,20 +96,24 @@ library ieee;
 --
 entity signed_preadd_mult1add1 is
 generic (
-  -- Enable feedback of accumulator register P into DSP ALU when input port CLR=0
-  USE_ACCU : boolean := false;
-  -- The number of summands is important to determine the number of additional
-  -- guard bits (MSBs) that are required for the accumulation process. @link NUM_SUMMAND More...
-  --
-  -- The setting is relevant to save logic especially when saturation/clipping
+  -- Number of cycles in which products, Z and/or chain inputs are accumulated and contribute
+  -- to the accumulation register before it is cleared.
+  -- Set 1 (default) to disable accumulation and ignore CLR input.
+  -- The number of cycles is important to determine the number of additional
+  -- guard bits (MSBs) that are required for the summation/accumulation process.
+  -- The setting is also relevant to save logic especially when saturation/clipping
   -- and/or overflow detection is enabled.
-  -- * 0 => maximum possible, not recommended (worst case, hardware dependent)
-  -- * 1,2,3,.. => overall number of summands
-  --
-  -- Note that every single summand that contributes to the final accumulator register
-  -- counts, i.e. product results, Z and chain inputs. All summands are assumed to have
-  -- the same width as a single product.
-  NUM_SUMMAND : natural;
+  NUM_ACCU_CYCLES : positive := 1;
+  -- Number of summands at the chain input that contribute to the accumulation register
+  -- in each cycle. Set 0 to disable the chain input (default).
+  -- The number of summands is important to determine the number of additional
+  -- guard bits (MSBs) that are required for the summation/accumulation process.
+  NUM_SUMMAND_CHAININ : natural := 0;
+  -- Number of summands at the Z input that contribute to the accumulation register
+  -- in each cycle. Set 0 to disable the Z input (default).
+  -- The number of summands is important to determine the number of additional
+  -- guard bits (MSBs) that are required for the summation/accumulation process.
+  NUM_SUMMAND_Z : natural := 0;
   -- Enable additional XB preadder input. Might require more resources and power.
   USE_XB_INPUT : boolean := false;
   -- Enable NEG input port and allow dynamic product negation. Might require more resources and power.
