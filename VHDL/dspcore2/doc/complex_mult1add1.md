@@ -1,7 +1,10 @@
 # COMPLEX_MULT1ADD1
 
-This module is the basis for many other and more flexible modules like e.g.
-* complex vector multiplier
+This module multiplies two complex factors X and Y and adds one more complex summand Z.
+Several results can be accumulated over time: `P = P + X*Y + Z`.
+Furthermore, dynamic product negation and complex conjate of inputs X and Y are supported.
+The module is the basis for many other modules like e.g.
+* complex multiply accumulate
 * complex dot product
 
 Multiple instances of this module can be connected/chained in different ways to realize special operations.
@@ -13,7 +16,7 @@ Note that all DSP internal pipeline registers are transformed into input registe
 to demonstrate to concept. Implementation details are described further below. 
 
 <p align="center">
-  <img src="./complex_mult1add1.drawio.svg">
+  <img src="./complex_mult1add1.drawio.svg" width="50%">
 </p>
 
 The additional output logic is mostly implemented in logic and allows optional
@@ -28,20 +31,23 @@ The additional output logic is mostly implemented in logic and allows optional
 The Xilinx/AMD implementation is rougly as follows
 
 <p align="center">
-  <img src="./complex_mult1add1_xilinx.drawio.svg" width="50%">
+  <img src="./complex_mult1add1_xilinx.drawio.svg" width="70%">
 </p>
 
 NOTES
 * At least 2 input register are recommended for X and Y (i.e. one DSP input register and the DSP internal pipeline register M).
 * The ALU supports a maximum of 3 simultaneous summands. Input valid signals dynamically control the ALU operation.
-  - Multiplier output contributes to ALU result when inputs X and Y are valid.
-  - Z input contributes when Z is valid.
-  - Chain input contributes when CHAININ is valid.
-  - Accumulator feedback contributes when CLR=0. Round bit is added when CLR=1 and rounding is enabled.
+  - The Multiplier output only contributes to ALU result when inputs X and Y are valid.
+  - The Z input contributes when Z is valid.
+  - The Chain input contributes when CHAININ is valid.
+  - The Accumulator feedback contributes when CLR=0. Round bit is added when CLR=1 and rounding is enabled.
 * Dynamic complex conjugate of X and/or Y is supported.
 * Dynamic product negation is supported.
-* In general, leave unused inputs unconnected/open or set constant invalid and zero to save resources and to improve timing.
-* Leave unused ouptuts open or terminate with unused dummy signals.
+* In general, to save resources and to improve timing, ...
+  - set entity generics according to your needs 
+  - leave unused inputs unconnected/open or set constant invalid and zero 
+  - feed control inputs with constants if dynamic operation is not required
+  - leave unused ouptuts open or terminate with unused dummy signals
 * Typically, DSP internal round bit addition is supported.
   If DSP internal round bit addition is not possible then the round bit is added within the output logic.
   - If accumulation is possible and enabled then the round bit is added to the accu register in the first accumulation cycle when the accu is cleared.
