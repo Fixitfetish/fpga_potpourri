@@ -80,8 +80,8 @@ end entity;
 
 architecture rtl of cplx_delay_compensation is
 
-  type t_pipe_re is array(integer range <>) of signed(din.re'range);
-  type t_pipe_im is array(integer range <>) of signed(din.im'range);
+  type t_pipe_re is array(integer range <>) of din.re'subtype;
+  type t_pipe_im is array(integer range <>) of din.im'subtype;
 
   signal pipe_rst : std_logic_vector(0 to MAX_PIPELINE_STAGES) := (others=>'0');
   signal pipe_vld : std_logic_vector(0 to MAX_PIPELINE_STAGES) := (others=>'0');
