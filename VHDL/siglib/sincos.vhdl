@@ -2,7 +2,7 @@
 --! @file       sincos.vhdl
 --! @author     Fixitfetish
 --! @date       07/Nov/2024
---! @version    0.60
+--! @version    0.61
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -112,9 +112,6 @@ end entity;
 
 architecture rtl of sincos is
 
-  -- identifier for reports of warnings and errors
---  constant IMPLEMENTATION : string := sincos'INSTANCE_NAME;
-
   -- additional fractional bit in ROM to increase rounding accuracy
   function ROM_FRAC_BITS return natural is
   begin
@@ -142,34 +139,34 @@ architecture rtl of sincos is
   end;
   constant SINCOS_MAX : real := max_amplitude;
 
-  constant ROM_WIDTH : positive := 2*SINCOS_WIDTH; -- cosine and sin combined in single LUT
-  constant ROM_DEPTH_LD : positive := PHASE_MAJOR_WIDTH-2; -- only first of the four quadrants
-  constant ROM_DEPTH : positive := 2**ROM_DEPTH_LD; -- only first of the four quadrants
-  type t_lut is array(ROM_DEPTH-1 downto 0) of std_logic_vector(ROM_WIDTH-1 downto 0);
+  constant ROM_COARSE_WIDTH : positive := 2*SINCOS_WIDTH; -- cosine and sin combined in single LUT
+  constant ROM_COARSE_DEPTH_LD : positive := PHASE_MAJOR_WIDTH-2; -- only first of the four quadrants
+  constant ROM_COARSE_DEPTH : positive := 2**ROM_COARSE_DEPTH_LD; -- only first of the four quadrants
+  type t_lut_coarse is array(ROM_COARSE_DEPTH-1 downto 0) of std_logic_vector(ROM_COARSE_WIDTH-1 downto 0);
 
   -- The constant look-up table (LUT) holds the cosine and sine values of the
   -- 1st quadrant only. All values are positive, hence sign bit can be removed.
-  function init_lut return t_lut is
-    variable lut : t_lut;
+  function init_lut_coarse return t_lut_coarse is
+    variable lut : t_lut_coarse;
     variable x : real;
     variable cosx, sinx : unsigned(SINCOS_WIDTH-1 downto 0);
   begin
-    for i in 0 to ROM_DEPTH-1 loop
+    for i in 0 to ROM_COARSE_DEPTH-1 loop
       if PHASE_MINOR_WIDTH=0 then
-        x := (real(i)) * MATH_PI_OVER_2 / real(ROM_DEPTH);
+        x := (real(i)) * MATH_PI_OVER_2 / real(ROM_COARSE_DEPTH);
       else
-        x := (real(i)+0.5) * MATH_PI_OVER_2 / real(ROM_DEPTH);
+        x := (real(i)+0.5) * MATH_PI_OVER_2 / real(ROM_COARSE_DEPTH);
       end if;
       cosx := to_unsigned(integer(SINCOS_MAX*cos(x)),SINCOS_WIDTH);
       sinx := to_unsigned(integer(SINCOS_MAX*sin(x)),SINCOS_WIDTH);
-      lut(i)(ROM_WIDTH/2-1 downto 0) := std_logic_vector(cosx);
-      lut(i)(ROM_WIDTH-1 downto ROM_WIDTH/2) := std_logic_vector(sinx);
+      lut(i)(ROM_COARSE_WIDTH/2-1 downto 0) := std_logic_vector(cosx);
+      lut(i)(ROM_COARSE_WIDTH-1 downto ROM_COARSE_WIDTH/2) := std_logic_vector(sinx);
     end loop;
     return lut;
   end;
 
-  -- Look-up table ROM
-  constant ROM : t_lut := init_lut;
+  -- Look-up table for coarse ROM
+  constant ROM_COARSE : t_lut_coarse := init_lut_coarse;
 --  attribute rom_style : string;
 --  attribute rom_style of LUT : constant is "block";
 
@@ -177,7 +174,7 @@ architecture rtl of sincos is
   record
     vld  : std_logic; -- valid
     quad : unsigned(1 downto 0); -- quadrant, 0=1st, 3=4th
-    addr : unsigned(PHASE_MAJOR_WIDTH-3 downto 0); -- ROM addr
+    addr : unsigned(PHASE_MAJOR_WIDTH-3 downto 0); -- coarse phase
     frac : unsigned(PHASE_MINOR_WIDTH-1 downto 0); -- fractional phase
   end record;
   signal rom_in, rom_in_q : r_rom_in;
@@ -186,7 +183,7 @@ architecture rtl of sincos is
   constant OUTPUT_LSB_EXT : natural := maximum(maximum(PHASE_MINOR_WIDTH-4,4),ROM_FRAC_BITS);
 
   -- bit width of slope integer part
-  constant SLOPE_INT_WIDTH : positive := OUTPUT_WIDTH - ROM_DEPTH_LD;
+  constant SLOPE_INT_WIDTH : positive := OUTPUT_WIDTH - ROM_COARSE_DEPTH_LD;
 
   -- bit width of slope fractional part
   constant SLOPE_FRAC_WIDTH : positive := OUTPUT_LSB_EXT;
@@ -194,18 +191,18 @@ architecture rtl of sincos is
   -- overall slope bit width
   constant SLOPE_WIDTH : positive := SLOPE_INT_WIDTH + SLOPE_FRAC_WIDTH;
 
-  type r_rom_out is
+  type r_rom_coarse_out is
   record
     vld  : std_logic; -- valid
     quad : unsigned(1 downto 0); -- quadrant
     frac : unsigned(PHASE_MINOR_WIDTH-1 downto 0); -- fractional phase
-    data : std_logic_vector(ROM_WIDTH-1 downto 0); -- value from LUT-ROM
+    data : std_logic_vector(ROM_COARSE_WIDTH-1 downto 0); -- value from LUT-ROM
     major_cos : signed(SINCOS_WIDTH downto 0); -- major cosine value from LUT-ROM
     major_sin : signed(SINCOS_WIDTH downto 0); -- major sine value from LUT-ROM
     deriv_cos : signed(SLOPE_WIDTH-1 downto 0); -- derivative of cosine
     deriv_sin : signed(SLOPE_WIDTH-1 downto 0); -- derivative of sine
   end record;
-  signal rom_out : r_rom_out;
+  signal rom_coarse_out : r_rom_coarse_out;
 
 begin
 
@@ -219,58 +216,58 @@ begin
     rom_in.frac <= unsigned(phase(PHASE_MINOR_WIDTH-1 downto 0)) - 2**(PHASE_MINOR_WIDTH-1);
   end generate;
 
-  p_rom: process(clk)
+  p_rom_coarse: process(clk)
   begin
     if rising_edge(clk) then
       if clkena='1' then
-        -- ROM with input and output register
+        -- ROM_COARSE with input and output register
         rom_in_q <= rom_in;
-        rom_out.data <= ROM(to_integer(rom_in_q.addr));
-        rom_out.quad <= rom_in_q.quad;
-        rom_out.frac <= rom_in_q.frac;
-        rom_out.vld  <= rom_in_q.vld;
+        rom_coarse_out.data <= ROM_COARSE(to_integer(rom_in_q.addr));
+        rom_coarse_out.quad <= rom_in_q.quad;
+        rom_coarse_out.frac <= rom_in_q.frac;
+        rom_coarse_out.vld  <= rom_in_q.vld;
       end if;
     end if;
   end process;
 
-  p_rom_out: process(rom_out.data, rom_out.quad)
+  p_rom_coarse_out: process(rom_coarse_out.data, rom_coarse_out.quad)
     variable cos_p, cos_n, sin_p, sin_n : signed(SINCOS_WIDTH downto 0);
     variable cos_p_rnd, cos_n_rnd, sin_p_rnd, sin_n_rnd : signed(SLOPE_WIDTH-1 downto 0);
   begin
     -- add sign bit and convert to signed (i.e. add MSB '0')
-    cos_p := signed(resize(unsigned(rom_out.data(ROM_WIDTH/2-1 downto 0)),SINCOS_WIDTH+1));
-    sin_p := signed(resize(unsigned(rom_out.data(ROM_WIDTH-1 downto ROM_WIDTH/2)),SINCOS_WIDTH+1));
+    cos_p := signed(resize(unsigned(rom_coarse_out.data(ROM_COARSE_WIDTH/2-1 downto 0)),SINCOS_WIDTH+1));
+    sin_p := signed(resize(unsigned(rom_coarse_out.data(ROM_COARSE_WIDTH-1 downto ROM_COARSE_WIDTH/2)),SINCOS_WIDTH+1));
     -- negative cosine and sine values
     cos_n := -cos_p;
     sin_n := -sin_p;
     -- shift and round
-    cos_p_rnd := resize(shift_right_round(cos_p,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS+1,nearest),SLOPE_WIDTH);
-    cos_n_rnd := resize(shift_right_round(cos_n,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS+1,nearest),SLOPE_WIDTH);
-    sin_p_rnd := resize(shift_right_round(sin_p,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS+1,nearest),SLOPE_WIDTH);
-    sin_n_rnd := resize(shift_right_round(sin_n,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS+1,nearest),SLOPE_WIDTH);
+    cos_p_rnd := resize(shift_right_round(cos_p,ROM_COARSE_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS+1,nearest),SLOPE_WIDTH);
+    cos_n_rnd := resize(shift_right_round(cos_n,ROM_COARSE_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS+1,nearest),SLOPE_WIDTH);
+    sin_p_rnd := resize(shift_right_round(sin_p,ROM_COARSE_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS+1,nearest),SLOPE_WIDTH);
+    sin_n_rnd := resize(shift_right_round(sin_n,ROM_COARSE_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS+1,nearest),SLOPE_WIDTH);
 
     -- major : final coarse cosine and sine values
     -- deriv : temporary derivative for interpolation
-    if rom_out.quad=0 then    -- 1st quadrant
-      rom_out.major_cos <= cos_p;
-      rom_out.major_sin <= sin_p;
-      rom_out.deriv_cos <= sin_n_rnd;
-      rom_out.deriv_sin <= cos_p_rnd;
-    elsif rom_out.quad=1 then -- 2nd quadrant
-      rom_out.major_cos <= sin_n;
-      rom_out.major_sin <= cos_p;
-      rom_out.deriv_cos <= cos_n_rnd;
-      rom_out.deriv_sin <= sin_n_rnd;
-    elsif rom_out.quad=2 then -- 3rd quadrant
-      rom_out.major_cos <= cos_n;
-      rom_out.major_sin <= sin_n;
-      rom_out.deriv_cos <= sin_p_rnd;
-      rom_out.deriv_sin <= cos_n_rnd;
+    if rom_coarse_out.quad=0 then    -- 1st quadrant
+      rom_coarse_out.major_cos <= cos_p;
+      rom_coarse_out.major_sin <= sin_p;
+      rom_coarse_out.deriv_cos <= sin_n_rnd;
+      rom_coarse_out.deriv_sin <= cos_p_rnd;
+    elsif rom_coarse_out.quad=1 then -- 2nd quadrant
+      rom_coarse_out.major_cos <= sin_n;
+      rom_coarse_out.major_sin <= cos_p;
+      rom_coarse_out.deriv_cos <= cos_n_rnd;
+      rom_coarse_out.deriv_sin <= sin_n_rnd;
+    elsif rom_coarse_out.quad=2 then -- 3rd quadrant
+      rom_coarse_out.major_cos <= cos_n;
+      rom_coarse_out.major_sin <= sin_n;
+      rom_coarse_out.deriv_cos <= sin_p_rnd;
+      rom_coarse_out.deriv_sin <= cos_n_rnd;
     else -- 4th quadrant
-      rom_out.major_cos <= sin_p;
-      rom_out.major_sin <= cos_n;
-      rom_out.deriv_cos <= cos_p_rnd;
-      rom_out.deriv_sin <= sin_p_rnd;
+      rom_coarse_out.major_cos <= sin_p;
+      rom_coarse_out.major_sin <= cos_n;
+      rom_coarse_out.deriv_cos <= cos_p_rnd;
+      rom_coarse_out.deriv_sin <= sin_p_rnd;
     end if;
   end process;
 
@@ -298,10 +295,10 @@ begin
     signal interpol_in : a_interpol(1 to PHASE_MINOR_WIDTH);
     signal interpol : a_interpol(0 to PHASE_MINOR_WIDTH);
     signal interpol_pipe : a_interpol(0 to PHASE_MINOR_WIDTH-1);
-    signal rom_out_q : r_rom_out;
+    signal rom_out_q : r_rom_coarse_out;
   begin
    PIPESTAGES <= (4 + PHASE_MINOR_WIDTH) when OPTIMIZATION="TIMING" else (4 + (PHASE_MINOR_WIDTH+1)/2);
-   rom_out_q <= rom_out when rising_edge(clk);
+   rom_out_q <= rom_coarse_out when rising_edge(clk);
 
    g_interpol_in : for n in 1 to PHASE_MINOR_WIDTH generate
      -- The first interpolation result interpol(0) is always registered.
@@ -386,9 +383,9 @@ begin
         dout_cos <= (others=>'-');
         dout_sin <= (others=>'-');
       elsif clkena='1' then
-        dout_vld <= rom_out.vld;
-        dout_cos <= rom_out.major_cos(OUTPUT_WIDTH+ROM_FRAC_BITS-1 downto ROM_FRAC_BITS);
-        dout_sin <= rom_out.major_sin(OUTPUT_WIDTH+ROM_FRAC_BITS-1 downto ROM_FRAC_BITS);
+        dout_vld <= rom_coarse_out.vld;
+        dout_cos <= rom_coarse_out.major_cos(OUTPUT_WIDTH+ROM_FRAC_BITS-1 downto ROM_FRAC_BITS);
+        dout_sin <= rom_coarse_out.major_sin(OUTPUT_WIDTH+ROM_FRAC_BITS-1 downto ROM_FRAC_BITS);
       end if;
      end if; -- clock
     end process;
