@@ -1,11 +1,11 @@
 ---------------------------------------------------------------------------------------------------
--- FILE    : cplx_logger.vhdl   
+-- FILE    : cplx_logger.vhdl
 -- AUTHOR  : Fixitfetish
--- DATE    : 26/May/2017
--- VERSION : 0.40
--- VHDL    : 1993
+-- DATE    : 07/Nov/2024
+-- VERSION : 0.50
+-- VHDL    : 2008
 -- LICENSE : MIT License
--------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
 library ieee;
   use ieee.std_logic_1164.all;
   use ieee.numeric_std.all;
@@ -29,7 +29,7 @@ generic(
 port(
   clk    : in  std_logic;
   rst    : in  std_logic;
-  din    : in  cplx_vector(0 to NUM_CPLX-1) := cplx_vector_reset(18,NUM_CPLX,"R"); -- default when open
+  din    : in  cplx_vector(0 to NUM_CPLX-1);
   finish : in  std_logic := '0'
 );
 end entity;
@@ -53,21 +53,21 @@ architecture sim of cplx_logger is
   procedure cplx_write(
     constant DEC : in boolean;
     variable l : inout line;
-    variable d : in cplx
+    variable din : in cplx
   ) is
     variable v_val : integer;
   begin
-    write(l,hexstr_validate(hexstr_from_sl(d.rst),STR_INVALID),right,3);
-    write(l,hexstr_validate(hexstr_from_sl(d.vld),STR_INVALID),right,4);
-    write(l,hexstr_validate(hexstr_from_sl(d.ovf),STR_INVALID),right,4);
+    write(l,hexstr_validate(hexstr_from_sl(din.rst),STR_INVALID),right,3);
+    write(l,hexstr_validate(hexstr_from_sl(din.vld),STR_INVALID),right,4);
+    write(l,hexstr_validate(hexstr_from_sl(din.ovf),STR_INVALID),right,4);
     if DEC then
-      v_val := to_integer(d.re);
+      v_val := to_integer(din.re);
       write_str(l,integer'image(v_val),right,8);
-      v_val := to_integer(d.im);
+      v_val := to_integer(din.im);
       write_str(l,integer'image(v_val),right,8);
     else
-      write_str(l,hexstr_from_signed(d.re),right,8);
-      write_str(l,hexstr_from_signed(d.im),right,8);
+      write_str(l,hexstr_from_signed(din.re),right,8);
+      write_str(l,hexstr_from_signed(din.im),right,8);
     end if;
     write_str(l," ",right,3); -- trailing spaces
   end procedure;
@@ -100,7 +100,7 @@ begin
 
   p_log: process(clk)
     variable v_oline : line;
-    variable v_din : cplx18;
+    variable v_din : din'subtype'element;
   begin
     if rising_edge(clk) then
       if rst='0' and (LOG_INVALID or din(0).vld='1') then
