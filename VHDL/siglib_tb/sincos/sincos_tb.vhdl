@@ -72,7 +72,7 @@ begin
     end loop;
 
     phase_vld <= '0';
-    for n in 0 to 10 loop
+    for n in 0 to 20 loop
       wait until rising_edge(clk);
     end loop;
 
@@ -83,12 +83,13 @@ begin
     wait;
   end process;
 
-  i_sincos : entity siglib.sincos
+  i_dut : entity siglib.sincos
   generic map (
     PHASE_MAJOR_WIDTH => PHASE_MAJOR_WIDTH,
     PHASE_MINOR_WIDTH => PHASE_MINOR_WIDTH,
     OUTPUT_WIDTH => OUTPUT_WIDTH,
-    FRACTIONAL_SCALING => 1.0
+    FRACTIONAL_SCALING => 1.0,
+    OPTIMIZATION => open
   )
   port map (
     clk        => clk,

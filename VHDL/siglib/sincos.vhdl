@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       sincos.vhdl
 --! @author     Fixitfetish
---! @date       27/Nov/2021
---! @version    0.50
+--! @date       07/Nov/2024
+--! @version    0.60
 --! @note       VHDL-1993
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -17,11 +17,11 @@ library baselib;
  use baselib.ieee_extension.all;
 
 --! @brief Configurable look-up based phase to sine and cosine generator.
---! Optionally interpolation/approximation can be enabled.
+--! Additional interpolation/approximation is supported as well.
 --! 
 --! The phase input can be either signed or unsigned
---! * SIGNED with range -N/2 to N/2-1 (i.e. -pi to pi)
---! * UNSIGNED with range 0 to N-1 (i.e. 0 to 2pi)
+--! * SIGNED with range -N/2 to N/2-1, i.e. interval [-pi, pi)
+--! * UNSIGNED with range 0 to N-1, i.e. interval [0, 2*pi)
 --!
 --! The phase input is specified by two separate values
 --! * PHASE_WIDTH = PHASE_MAJOR_WIDTH + PHASE_MINOR_WIDTH
@@ -54,18 +54,20 @@ library baselib;
 --!
 --! where pi/2 is roughly 201/128 = "11001001" (or 25/16 = "11001").
 --! To improve the accuracy the interpolation/approximation is performed
---! based on the major phase +0.5 either
+--! based on the major phase +0.5, and then either
 --! forward or backward dependent on the value of the minor phase.
---! * Backward : when 0.0 < minor phase < 0.5
---! * Forward  : when 0.5 < minor phase < 1.0
+--! * Backward : when minor phase is within interval [0, 0.5)
+--! * Forward  : when minor phase is within interval [0.5, 1.0)
 --!
 --! Note that PHASE_WIDTH <= OUTPUT_WIDTH+2 should apply because otherwise the
 --! required phase resolution at the input exceeds the feasible accuracy at the output.
 --!
 --! The overall number of pipeline stages is reported at the constant output
 --! port PIPESTAGES. The pipeline stages are calculated as follows:
---! * PHASE_MINOR_WIDTH=0   =>  PIPESTAGES=3
---! * PHASE_MINOR_WIDTH>=1  =>  PIPESTAGES=4 + ceil(PHASE_MINOR_WIDTH/2)
+--! * PHASE_MINOR_WIDTH=0   =>  PIPESTAGES = 3
+--! * PHASE_MINOR_WIDTH>=1
+--!   - OPTIMIZATION/="TIMING" => PIPESTAGES = 4 + ceil(PHASE_MINOR_WIDTH/2)
+--!   - OPTIMIZATION="TIMING"  => PIPESTAGES = 4 + PHASE_MINOR_WIDTH
 --!
 entity sincos is
 generic (
@@ -80,7 +82,9 @@ generic (
   OUTPUT_WIDTH : positive := 18;
   --! @brief Static fractional down-scaling influences the values in the LUT-ROM.
   --! For values below 0.5 consider reduction of OUTPUT_WIDTH with potential FPGA resource savings.
-  FRACTIONAL_SCALING : std.standard.real range 0.0 to 1.0 := 1.0
+  FRACTIONAL_SCALING : std.standard.real range 0.0 to 1.0 := 1.0;
+  --! Valid values for the optimization are "" or "TIMING"
+  OPTIMIZATION : string := ""
 );
 port (
   --! Standard system clock
@@ -100,7 +104,7 @@ port (
   --! Sine output
   dout_sin   : out signed(OUTPUT_WIDTH-1 downto 0);
   --! Number of pipeline stages, constant, depends on configuration
-  PIPESTAGES : out natural
+  PIPESTAGES : out natural := 1
 );
 end entity;
 
@@ -203,28 +207,6 @@ architecture rtl of sincos is
   end record;
   signal rom_out : r_rom_out;
 
-  type r_interpol is
-  record
-    vld  : std_logic; -- valid
-    cos  : signed(OUTPUT_LSB_EXT+OUTPUT_WIDTH-1 downto 0);
-    sin  : signed(OUTPUT_LSB_EXT+OUTPUT_WIDTH-1 downto 0);
-    frac : unsigned(PHASE_MINOR_WIDTH-1 downto 0);
-    slope_cos : signed(SLOPE_WIDTH-1 downto 0);
-    slope_sin : signed(SLOPE_WIDTH-1 downto 0);
-  end record;
-  constant DEFAULT_INTERPOL : r_interpol := (
-    vld  => '0',
-    cos  => (others=>'-'),
-    sin  => (others=>'-'),
-    frac => (others=>'0'),
-    slope_cos => (others=>'-'),
-    slope_sin => (others=>'-')
-  );
-  type a_interpol is array(integer range <>) of r_interpol;
-  signal interpol_in : a_interpol(1 to PHASE_MINOR_WIDTH);
-  signal interpol : a_interpol(0 to PHASE_MINOR_WIDTH);
-  signal interpol_pipe : a_interpol(0 to PHASE_MINOR_WIDTH-1);
-
 begin
 
   -- derive ROM address from phase input
@@ -253,6 +235,7 @@ begin
 
   p_rom_out: process(rom_out.data, rom_out.quad)
     variable cos_p, cos_n, sin_p, sin_n : signed(SINCOS_WIDTH downto 0);
+    variable cos_p_rnd, cos_n_rnd, sin_p_rnd, sin_n_rnd : signed(SLOPE_WIDTH-1 downto 0);
   begin
     -- add sign bit and convert to signed (i.e. add MSB '0')
     cos_p := signed(resize(unsigned(rom_out.data(ROM_WIDTH/2-1 downto 0)),SINCOS_WIDTH+1));
@@ -260,54 +243,80 @@ begin
     -- negative cosine and sine values
     cos_n := -cos_p;
     sin_n := -sin_p;
+    -- shift and round
+    cos_p_rnd := resize(shift_right_round(cos_p,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS+1,nearest),SLOPE_WIDTH);
+    cos_n_rnd := resize(shift_right_round(cos_n,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS+1,nearest),SLOPE_WIDTH);
+    sin_p_rnd := resize(shift_right_round(sin_p,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS+1,nearest),SLOPE_WIDTH);
+    sin_n_rnd := resize(shift_right_round(sin_n,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS+1,nearest),SLOPE_WIDTH);
 
     -- major : final coarse cosine and sine values
     -- deriv : temporary derivative for interpolation
     if rom_out.quad=0 then    -- 1st quadrant
       rom_out.major_cos <= cos_p;
       rom_out.major_sin <= sin_p;
-      rom_out.deriv_cos <= resize(shift_right_round(sin_n,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS,floor),SLOPE_WIDTH);
-      rom_out.deriv_sin <= resize(shift_right_round(cos_p,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS,floor),SLOPE_WIDTH);
+      rom_out.deriv_cos <= sin_n_rnd;
+      rom_out.deriv_sin <= cos_p_rnd;
     elsif rom_out.quad=1 then -- 2nd quadrant
       rom_out.major_cos <= sin_n;
       rom_out.major_sin <= cos_p;
-      rom_out.deriv_cos <= resize(shift_right_round(cos_n,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS,floor),SLOPE_WIDTH);
-      rom_out.deriv_sin <= resize(shift_right_round(sin_n,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS,floor),SLOPE_WIDTH);
+      rom_out.deriv_cos <= cos_n_rnd;
+      rom_out.deriv_sin <= sin_n_rnd;
     elsif rom_out.quad=2 then -- 3rd quadrant
       rom_out.major_cos <= cos_n;
       rom_out.major_sin <= sin_n;
-      rom_out.deriv_cos <= resize(shift_right_round(sin_p,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS,floor),SLOPE_WIDTH);
-      rom_out.deriv_sin <= resize(shift_right_round(cos_n,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS,floor),SLOPE_WIDTH);
+      rom_out.deriv_cos <= sin_p_rnd;
+      rom_out.deriv_sin <= cos_n_rnd;
     else -- 4th quadrant
       rom_out.major_cos <= sin_p;
       rom_out.major_sin <= cos_n;
-      rom_out.deriv_cos <= resize(shift_right_round(cos_p,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS,floor),SLOPE_WIDTH);
-      rom_out.deriv_sin <= resize(shift_right_round(sin_p,ROM_DEPTH_LD-SLOPE_FRAC_WIDTH+ROM_FRAC_BITS,floor),SLOPE_WIDTH);
+      rom_out.deriv_cos <= cos_p_rnd;
+      rom_out.deriv_sin <= sin_p_rnd;
     end if;
   end process;
 
   -- NOTE:
   -- Interpolation/Approximation is only enabled when PHASE_MINOR_WIDTH>0
   g_interpolation_on : if PHASE_MINOR_WIDTH>=1 generate
+    type r_interpol is
+    record
+      vld  : std_logic; -- valid
+      cos  : signed(OUTPUT_LSB_EXT+OUTPUT_WIDTH-1 downto 0);
+      sin  : signed(OUTPUT_LSB_EXT+OUTPUT_WIDTH-1 downto 0);
+      frac : unsigned(PHASE_MINOR_WIDTH-1 downto 0);
+      slope_cos : signed(SLOPE_WIDTH-1 downto 0);
+      slope_sin : signed(SLOPE_WIDTH-1 downto 0);
+    end record;
+    constant DEFAULT_INTERPOL : r_interpol := (
+      vld  => '0',
+      cos  => (others=>'-'),
+      sin  => (others=>'-'),
+      frac => (others=>'0'),
+      slope_cos => (others=>'-'),
+      slope_sin => (others=>'-')
+    );
+    type a_interpol is array(integer range <>) of r_interpol;
+    signal interpol_in : a_interpol(1 to PHASE_MINOR_WIDTH);
+    signal interpol : a_interpol(0 to PHASE_MINOR_WIDTH);
+    signal interpol_pipe : a_interpol(0 to PHASE_MINOR_WIDTH-1);
     signal rom_out_q : r_rom_out;
   begin
-   PIPESTAGES <= 4 + (PHASE_MINOR_WIDTH+1)/2;
+   PIPESTAGES <= (4 + PHASE_MINOR_WIDTH) when OPTIMIZATION="TIMING" else (4 + (PHASE_MINOR_WIDTH+1)/2);
    rom_out_q <= rom_out when rising_edge(clk);
 
    g_interpol_in : for n in 1 to PHASE_MINOR_WIDTH generate
-     -- The interpol(0) results is always registered, afterwards the result of every second interpolation stage is registered.
-     interpol_in(n) <= interpol_pipe(n-1) when ( n=1 or ((n+PHASE_MINOR_WIDTH) mod 2)=1 ) else
+     -- The first interpolation result interpol(0) is always registered.
+     -- When OPTIMIZATION="TIMING" is enabled then the result of every following interpolation stage is registered.
+     -- Otherwise the result of every second following interpolation stage is registered.
+     interpol_in(n) <= interpol_pipe(n-1) when ( OPTIMIZATION="TIMING" or n=1 or ((n+PHASE_MINOR_WIDTH) mod 2)=1) else
                        interpol(n-1);
    end generate;
 
    p_interpol: process(interpol_in, rom_out_q)
     variable v_slope_cos, v_slope_sin : signed(SLOPE_WIDTH-1 downto 0);
    begin
-     v_slope_cos := shift_right_round(rom_out_q.deriv_cos,1,nearest);
-     v_slope_sin := shift_right_round(rom_out_q.deriv_sin,1,nearest);
      -- multiply with pi/2 ~ 201/128 = "11001001"
-     v_slope_cos := v_slope_cos + shift_right(v_slope_cos,1) + shift_right(v_slope_cos,4) + shift_right(v_slope_cos,7);
-     v_slope_sin := v_slope_sin + shift_right(v_slope_sin,1) + shift_right(v_slope_sin,4) + shift_right(v_slope_sin,7);
+     v_slope_cos := rom_out_q.deriv_cos + shift_right(rom_out_q.deriv_cos,1) + shift_right(rom_out_q.deriv_cos,4) + shift_right(rom_out_q.deriv_cos,7);
+     v_slope_sin := rom_out_q.deriv_sin + shift_right(rom_out_q.deriv_sin,1) + shift_right(rom_out_q.deriv_sin,4) + shift_right(rom_out_q.deriv_sin,7);
      if rom_out_q.frac(rom_out_q.frac'left)='0' then
        -- forward interpolation: standard derivative
        interpol(0).slope_cos  <=  v_slope_cos;
@@ -343,11 +352,20 @@ begin
      if rising_edge(clk) then
       if rst='1' then
         interpol_pipe <= (others=>DEFAULT_INTERPOL);
+      elsif clkena='1' then
+        interpol_pipe(0 to PHASE_MINOR_WIDTH-1) <= interpol(0 to PHASE_MINOR_WIDTH-1);
+      end if;
+    end if; -- clock
+   end process;
+
+   p_dout: process(clk)
+   begin
+     if rising_edge(clk) then
+      if rst='1' then
         dout_vld <= '0';
         dout_cos <= (others=>'-');
         dout_sin <= (others=>'-');
       elsif clkena='1' then
-        interpol_pipe(0 to PHASE_MINOR_WIDTH-1) <= interpol(0 to PHASE_MINOR_WIDTH-1);
         dout_vld <= interpol(PHASE_MINOR_WIDTH).vld;
         dout_cos <= resize(shift_right_round(interpol(PHASE_MINOR_WIDTH).cos,OUTPUT_LSB_EXT,nearest),OUTPUT_WIDTH);
         dout_sin <= resize(shift_right_round(interpol(PHASE_MINOR_WIDTH).sin,OUTPUT_LSB_EXT,nearest),OUTPUT_WIDTH);
