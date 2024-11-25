@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 --! @file       cplx_exp.vhdl
 --! @author     Fixitfetish
---! @date       27/Nov/2021
---! @version    0.50
+--! @date       07/Nov/2024
+--! @version    0.52
 --! @note       VHDL-2008
 --! @copyright  <https://en.wikipedia.org/wiki/MIT_License> ,
 --!             <https://opensource.org/licenses/MIT>
@@ -41,7 +41,8 @@ library cplxlib;
 --!   PHASE_MAJOR_WIDTH  => positive, -- Major phase resolution in bits
 --!   PHASE_MINOR_WIDTH  => natural,  -- Minor phase resolution in bits
 --!   OUTPUT_WIDTH       => positive, -- Output resolution of real and imaginary component in bits
---!   OUTPUT_SHIFT_RIGHT => boolean   -- Divide output by 2 (-6.02dB)
+--!   FRACTIONAL_SCALING => real,     -- Static fractional down-scaling
+--!   OPTIMIZATION       => string    -- optional optimization setting
 --! )
 --! port map(
 --!   clk        => in  std_logic, -- clock
@@ -65,9 +66,11 @@ generic (
   --! @brief Output resolution of real and imaginary component in bits. 
   --! This resolution influences the width of the generated look-up table ROM.
   OUTPUT_WIDTH : positive := 18;
-  --! @brief Divide output by 2 (-6.02dB), i.e. a MSB guard bit is added.  
-  --! The output resolution is one bit less but the amplitude is more accurate.
-  OUTPUT_SHIFT_RIGHT : boolean := false
+  --! @brief Static fractional down-scaling influences the values in the LUT-ROM.
+  --! For values below 0.5 consider reduction of OUTPUT_WIDTH with potential FPGA resource savings.
+  FRACTIONAL_SCALING : std.standard.real range 0.0 to 1.0 := 1.0;
+  --! Valid values for the optimization are "" or "TIMING"
+  OPTIMIZATION : string := ""
 );
 port (
   --! Standard system clock
@@ -83,7 +86,7 @@ port (
   --! Complex result output
   dout       : out cplx;
   --! Number of pipeline stages, constant, depends on configuration
-  PIPESTAGES : out natural
+  PIPESTAGES : out natural := 1
 );
 end entity;
 
@@ -103,7 +106,8 @@ begin
     PHASE_MAJOR_WIDTH  => PHASE_MAJOR_WIDTH,
     PHASE_MINOR_WIDTH  => PHASE_MINOR_WIDTH,
     OUTPUT_WIDTH       => OUTPUT_WIDTH,
-    OUTPUT_SHIFT_RIGHT => OUTPUT_SHIFT_RIGHT
+    FRACTIONAL_SCALING => FRACTIONAL_SCALING,
+    OPTIMIZATION       => OPTIMIZATION
   )
   port map (
     clk        => clk,
