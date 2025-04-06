@@ -1,17 +1,17 @@
 -------------------------------------------------------------------------------
---! @file       pkg.vhdl
---! @note       VHDL2008
+-- @file       pkg.vhdl
+-- @note       VHDL2008
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
---! @brief AXI4 Streaming interface package
---! * defines partly unconstrained AXI4 base types
---! * see also AMBA AXI-Stream Protocol Specification:  https://developer.arm.com/documentation/ihi0051/a
+-- AXI4 Streaming interface package
+-- * defines partly unconstrained AXI4 base types
+-- * see also AMBA AXI-Stream Protocol Specification:  https://developer.arm.com/documentation/ihi0051/a
 package pkg is
 
-  --! unconstrained AXI4 streaming channel for any data width (source is the AXI master)
+  -- unconstrained AXI4 streaming channel for any data width (source is the AXI master)
   type axi4s is record
     -- TDATA is the primary payload that is used to provide the data that is passing across
     -- the interface. The width of the data payload is an integer number of bytes, i.e. a multiple of 8 bits.
@@ -41,7 +41,7 @@ package pkg is
     tvalid : std_logic;
   end record;
 
-  --! General unconstrained AXI4 streaming vector type (preferably "to" direction)
+  -- General unconstrained AXI4 streaming vector type (preferably "to" direction)
   type a_axi4s is array (integer range <>) of axi4s;
 
   ----------
