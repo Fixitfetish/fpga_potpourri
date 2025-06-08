@@ -62,6 +62,37 @@ The basic AXI handshaking and reset rules are described in the specification IHI
   In the receiver derive that signal directly from the stream input port and ensure that the input is
   always taken over with each transfer.
 
+```
+  -- Ensure bubble free AXI operation and enforce upstream pipeline flushing during reset.
+  us_ready <= (ds_ready or not ds_valid) or not aresetn;
+
+  -- New upstream transfer will happen at the next clock edge.
+  -- Data must be accepted because upstream transmitter will provide new data in next cycle.
+  us_transfer <= us_ready and us_valid;
+
+  process(aclk)
+  begin
+    if rising_edge(aclk) then
+     if aresetn='0' then
+       -- This optional AXI reset should be avoided and only be used carefully, e.g. to initiate
+       -- AXI pipeline flushing. According to AXI standard pull the valid signal LOW during reset.
+       ds_valid <= '0';
+     else
+       -- By default reset ds_valid when downstream receiver accepts data in the same cycle.
+       -- Overwrite ds_valid further below when new data is available.
+       if ds_ready='1' then
+         ds_valid <= '0';
+       end if;
+
+       -- Accept and process upstream data 
+       if us_transfer='1' then
+         -- Here, update ds_valid and ds_data dependent on new upstream data.
+       end if;
+     end if;
+    end if;
+  end process; 
+```
+
 ## Address Extension
 
 In some cases it is useful to provide a start address before a stream starts.
@@ -103,7 +134,8 @@ Thus, the receiver request/ready rate will be divided and slow down by 50%.
 Consideration
 
 * If the receiver is always ready to accept data (ds_ready=1) and the transmitter can always
-  provide data (us_valid=1) then you can set a defined data rate based on the AXI clock frequency.
+  provide data (us_valid=1) then you can define the data rate by dividing the AXI clock frequency
+  in the flow control logic.
 * The gates must be open if AXI pipeline flushing or pre-filling is required.
 
 
