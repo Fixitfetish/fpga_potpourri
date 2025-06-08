@@ -50,6 +50,7 @@ The basic AXI handshaking and reset rules are described in the specification IHI
 
 ## Best Practice
 
+* Assert the outgoing TREADY and ignore the incoming TVALID during reset to flush the upstream pipeline.
 * Adjust the data width to the actually required throughput and avoid an unnecessary wide bus
   with only few valid cycles. Upsize as late as possible and downsize as soon as possible.
   This will reduce FPGA resources required for routing and pipelining and most-likely makes
@@ -77,6 +78,34 @@ If for one TID multiple address transfers occur in a row without data transfers 
 is overwritten and only the last transferred address is relevant.
 
 <div align="center"> <img src="./figures/address_extension.drawio.svg" width="70%"> </div>
+
+
+## Flow Control
+
+AXI data transfers can be paused when the outgoing upstream ready signal towards the transmitter
+and the outgoing downstream valid signal towards the receiver are pulled LOW at the same time.
+Hence, if you gate both signals synchronously then you can throttle the data transfer rate.
+
+<div align="center"> <img src="./axi_flow_control.drawio.svg"> </div>
+
+1. Transmitter Throttle:
+Use the incoming upstream valid signal as clock enable for the gate control logic.
+Example: Assume that the receiver is always ready to accept data (ds_ready=1) and the gate control
+logic output toggles with every clock enable.
+Thus, the transmitter valid rate will be divided and slow down by 50%. 
+
+2. Receiver Throttle:
+Use the incoming downstream ready signal as clock enable for the gate control logic.
+Example: Assume that the transmitter can always provide data (us_valid=1) and the gate control
+logic output toggles with every clock enable.
+Thus, the receiver request/ready rate will be divided and slow down by 50%. 
+
+Consideration
+
+* If the receiver is always ready to accept data (ds_ready=1) and the transmitter can always
+  provide data (us_valid=1) then you can set a defined data rate based on the AXI clock frequency.
+* The gates must be open if AXI pipeline flushing or pre-filling is required.
+
 
 ## Package
 
