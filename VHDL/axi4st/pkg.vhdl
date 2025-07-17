@@ -6,8 +6,8 @@
 --             <https://opensource.org/licenses/MIT>
 -------------------------------------------------------------------------------
 library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
 
 -- AXI4 Streaming interface package
 -- * defines partly unconstrained AXI4 base types

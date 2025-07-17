@@ -118,7 +118,7 @@ AXI data transfers can be paused when the outgoing upstream ready signal towards
 and the outgoing downstream valid signal towards the receiver are pulled LOW at the same time.
 Hence, if you gate both signals synchronously then you can throttle the data transfer rate.
 
-<div align="center"> <img src="./axi_flow_control.drawio.svg"> </div>
+<div align="center"> <img src="./figures/flow_control.drawio.svg"> </div>
 
 1. Transmitter Throttle:
 Use the incoming upstream valid signal as clock enable for the gate control logic.
