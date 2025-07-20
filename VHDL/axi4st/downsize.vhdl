@@ -11,7 +11,7 @@ library ieee;
 
 use work.pkg.all;
 
--- Downsize the master data width by an integer ratio (1,2,3,4,5,..) for slaves with smaller data width.
+-- Downsize the upstream transmitter data width by an integer ratio (1,2,3,4,5,..) for downstream receivers with smaller data width.
 --
 -- **Extensions to the AXI4-Stream standard**
 -- * According to the AXI4-Streaming specification an item is 8 bits (1 byte) wide.

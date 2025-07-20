@@ -5,7 +5,7 @@
 * [Overview](#overview)
 * [Handshaking and Reset Rules](#handshaking-and-reset-rules)
 * [Best Practice](#best-practice)
-* [Address Extension](#address-extension)
+* [Proprietary Extensions](#proprietary-extensions)
 * [Package](#package)
   - [Types](#types)
   - [Reset and Default Values](#reset-and-default-values)
@@ -14,12 +14,15 @@
   - [Pipelining](#pipelining)
   - [Upsizing](#upsizing)
   - [Downsizing](#downsizing)
+  - [FIFO](#fifo)
+  - [Flow Control](#flow-control)
   - [Arbiter](#arbiter)
   - [Demultiplexer](#demultiplexer)
   - [Packet Former](#packet-former)
   - [AXI4MM Conversion](#axi4mm-conversion)
 
 ## References
+* [Wikipedia](https://en.wikipedia.org/wiki/Advanced_eXtensible_Interface)
 
 * [AMBA 4 AXI4-Stream Protocol Specification](https://developer.arm.com/documentation/ihi0051/a/?lang=en)
 
@@ -27,6 +30,9 @@
 
 This library includes types, functions, modules, etc. for AXI4 conform streaming from
 a Transmitter (Master) to a Receiver (Slave).
+Each AXI module typically has two types of interface ports: 
+* an **upstream** (slave) interface port, where an upstream transmitter (also called master, writer or provider) connects
+* a **downstream** (master) interface port, where a downstream receiver (also called slave, reader or consumer) connects
 
 ## Handshaking and Reset Rules
 
@@ -62,7 +68,14 @@ The basic AXI handshaking and reset rules are described in the specification IHI
   always taken over with each transfer.
 * If required, assert the outgoing READY and discard incoming valid data on the upstream side during
   reset to flush the upstream pipeline.
+* Since (global) resets often cause timing issues avoid using them and use pipeline flushing instead.
+  Only when an AXI module has internal memory that can't be reset by flushing mechanisms connect a reset.
+  Here some examples:
+  - Classic AXI pipeline registers can be flushed and do not necessarily need a reset.
+  - Typically upsizing requires a reset but downsizing not.
+  - AXI FIFOs can be flushed.
 
+Here a VHDL template ...
 ```
   -- Ensure bubble free AXI operation and enforce upstream pipeline flushing during reset.
   us_ready <= (ds_ready or not ds_valid) or not aresetn;
@@ -80,21 +93,57 @@ The basic AXI handshaking and reset rules are described in the specification IHI
        ds_valid <= '0';
      else
        -- By default reset ds_valid when downstream receiver accepts data in the same cycle.
-       -- Overwrite ds_valid further below when new data is available.
+       -- Overwrite ds_valid below when new data is available.
        if ds_ready='1' then
          ds_valid <= '0';
        end if;
 
-       -- Accept and process upstream data 
+       -- Accept and process upstream data
        if us_transfer='1' then
-         -- Here, update ds_valid and ds_data dependent on new upstream data.
+         -- Here, take over upstream data and update ds_valid and ds_data dependent on new upstream data.
        end if;
      end if;
     end if;
-  end process; 
+  end process;
 ```
 
-## Address Extension
+## Proprietary Extensions
+
+In addition to the official AXI4 Streaming standard some more features are supported.
+
+### Pipelined Reset
+
+The pipelined active-high TRESET is useful to avoid timing issues with the global ARESETN.
+The pipelined reset shall only be used when it is not possible to completely reset
+a module with flushing mechanisms. For example, an upsize module typically needs
+to reset internal states while a downsize module does not.
+Note that standard pipeline registers typically do not require a reset because flushing is possible.
+
+* The transmitter must ensure TVALID=0 when TRESET=1.
+* TRESET shall not be gated with TVALID because in this case TRESET would not propagate downstream if TVALID is low.
+
+### Item sizes other than a byte
+
+According to the AXI4-Streaming specification an item is 8 bits (1 byte) wide.
+However, this library allows any item width.
+Each TSTRB/TKEEP bit corresponds to one item, hence the TDATA width must be a multiple of the TSTRB/TKEEP width.
+
+### Number of items
+
+The AXI4-Streaming specification defines/recommends a 2^n number of items (bytes) in TDATA
+with e.g. downsize and upsize ratios being a power-of-2.
+However, this library allows any positive integer number of items in TDATA and
+therefore also any positive integer downsize or upsize ratio.
+The width of the TSTRB and TKEEP signal defines the number of items.
+
+### Auxiliary Signal
+
+Sometimes the TUSER signal is not sufficient to add auxiliary information to the stream.
+In addition to the TUSER signal also an optional auxiliary std_logic_vector can be attached to the standard AXI4_S record.
+However, the handshaking of the attached auxiliary stream is bound to the related main AXI4 stream.
+Any data can be mapped to this vector but not all AXI4 modules might support this feature.
+
+### Address Extension
 
 In some cases it is useful to provide a start address before a stream starts.
 Therefore, an AXI4 streaming compatible but proprietary extension is available which is defined as follows:
@@ -112,7 +161,72 @@ is overwritten and only the last transferred address is relevant.
 <div align="center"> <img src="./figures/address_extension.drawio.svg" width="70%"> </div>
 
 
-## Flow Control
+## Package
+
+The [VHDL Package](./pkg.vhdl) includes useful types, constants, functions and procedures.
+
+### Types
+
+* type **axi4_s** : record, unconstrained AXI4 streaming channel for any data width (source is the AXI transmitter/master)
+* type **a_axi4_s** is array (integer range <>) of axi4s : General unconstrained AXI4 streaming vector type
+
+### Reset and Default Values
+
+* function **invalid**(s: axi4_s) return axi4s: Force invalid AXI4 streaming channel, TVALID=0 and TRESET=0
+* function **invalid**(s: a_axi4_s) return a_axi4s : Force invalid AXI4 streaming channel, TVALID=0 and TRESET=0
+* function **reset**(s: axi4_s) return axi4s: Reset AXI4 streaming channel, TVALID=0 and TRESET=1
+* function **reset**(s: a_axi4_s) return a_axi4s : Reset AXI4 streaming vector, TVALID=0 and TRESET=1
+* function **reset_axi4_s**(...) return axi4s : Constant reset value of streaming channel with specific item width
+
+### Conversion
+
+* function  **length** : number of overall bits in the AXI4 stream record, including the valid (but without the ready)
+* function  **to_record** : split a SLV into AXI4 streaming channel record elements
+* function  **to_slv** : concatenate all AXI4 streaming channel record elements into a SLV
+* function  **dest_id_resize** : Pad or trim TID or TDEST signal
+* function  **user_resize** : Pad or trim TUSER signal.
+* procedure **bypass** : Stream bypass with interface adjustments -> padding, trimming and some error checks.
+                         (procedure expects a variable as output)
+
+## Modules
+
+### Pipelining
+
+Different pipeline stages are supported and can be combined as needed.
+Dependent on the stage type the stage might require more resources and/or add logical levels to timing critical paths. 
+
+Without pipeline register
+* BYPASS: pass through all AXI signals without modifications
+* DECOUPLE: The optional ARESETN can be used to decouple the downstream receiver from the upstream transmitter side.
+  This is useful to flush AXI pipelines and avoid unstable ready and valid signals during reset.
+  Upstream TREADY=1 enables upstream pipeline flushing.
+  Forcing downstream TRESET=1 will inject the reset into the downstream pipeline.
+  Forcing downstream TVALID=0 will inject invalid data into the downstream pipeline.
+
+Not bubble-free, i.e. invalid data can remain in the pipeline stage
+* SIMPLE: Pass through TREADY and use TREADY as clock enable for pipeline register.  
+* GATING: Pass through TREADY and use TREADY and upstream TVALID as clock enable for pipeline register.
+          Only valid data will be registered which reduces toggling rate and power consumption.
+
+Bubble-free, i.e. pipeline stage removes cycles of invalid data
+* PRIMING: Upstream TREADY will be 1 when downstream TREADY=1 and TVALID=0. (fill register until valid)
+* PRIMEGATING: combination of PRIMING and GATING
+* READY-BREAKUP: Add a pipeline register into the TREADY path to relax the timing of the TREADY path.
+  Note that this requires a bit more complicated logic with registers and multiplexers also in the data path. 
+
+### Upsizing
+
+Upsize the upstream transmitter data width by an integer ratio (1,2,3,4,5,..) for downstream receivers with larger data width.
+
+### Downsizing
+
+Downsize the upstream transmitter data width by an integer ratio (1,2,3,4,5,..) for downstream receivers with smaller data width.
+
+### FIFO
+
+under construction ...
+
+### Flow Control
 
 AXI data transfers can be paused when the outgoing upstream ready signal towards the transmitter
 and the outgoing downstream valid signal towards the receiver are pulled LOW at the same time.
@@ -134,70 +248,42 @@ Thus, the receiver request/ready rate will be divided and slow down by 50%.
 
 Consideration
 
-* If the receiver is always ready to accept data (ds_ready=1) and the transmitter can always
-  provide data (us_valid=1) then you can define the data rate by dividing the AXI clock frequency
-  in the flow control logic.
+* If the downstream receiver is always ready to accept data (ds_ready=1) and the upstream transmitter
+  can always provide data (us_valid=1) then you can define the data rate by dividing the AXI clock
+  frequency in the flow control logic.
 * The gates must be open if AXI pipeline flushing or pre-filling is required.
-
-
-## Package
-
-The [VHDL Package](./pkg.vhdl) includes useful types, constants, functions and procedures.
-
-### Types
-
-* type **axi4s** : record, unconstrained AXI4 streaming channel for any data width (source is the AXI master)
-* type **a_axi4s** is array (integer range <>) of axi4s : General unconstrained AXI4 streaming vector type
-
-### Reset and Default Values
-
-* function **reset**(s: axi4s) return axi4s: Reset AXI4 streaming channel
-* function **reset**(s: a_axi4s) return a_axi4s : Reset AXI4 streaming vector
-* function **reset_axi4s**(...) return axi4s : Constant reset value of streaming channel with specific width of elements
-
-### Conversion
-
-* function  **length** : number of overall bits in the AXI4 stream record, including the valid (but without the ready)
-* function  **to_record** : split a SLV into AXI4 streaming channel record elements
-* function  **to_slv** : concatenate all AXI4 streaming channel record elements into a SLV
-* function  **dest_id_resize** : Pad or trim TID or TDEST signal
-* function  **user_resize** : Pad or trim TUSER signal.
-* procedure **bypass** : Stream bypass with interface adjustments -> padding, trimming and some error checks.
-                         (procedure expects variables as input and output)
-
-## Modules
-
-### Pipelining
-
-### Upsizing
-
-### Downsizing
 
 ### Arbiter
 
+under construction ...
+
 ### Demultiplexer
+
+under construction ...
 
 ### Packet Former
 
-### AXI4S Master to AXI4MM Slave Conversion
+under construction ...
+
+### AXI4ST Transmitter/Master to AXI4MM Receiver/Slave Conversion
 
 This conversion is useful to write/read a continuous data block or stream to/from memory.
-Only a start address is required before the block/stream begins, hence the AXI4S [Address Extension](#address-extension) is mandatory.
+Only a start address is required before the block/stream begins, hence the AXI4ST [Address Extension](#address-extension) is mandatory.
 
 #### to_axi4mm_write
 
-This module converts an AXI4S input stream into an AXI4MM write access (channels AW and W).
-AXI4S and AXI4MM data width must be the same, hence typically you have to upsize or downsize
-the AXI4S input to match the AXI4MM data width.
+This module converts an AXI4ST input stream into an AXI4MM write access (channels AW and W).
+AXI4ST and AXI4MM data width must be the same, hence typically you have to upsize or downsize
+the AXI4ST input to match the AXI4MM data width.
 Efficient AXI4MM transfers require burst support, hence the input stream should be buffered and split into packets/bursts.
 This module intentionally does not include any buffers because each use case requires a different buffering concept.
-Hence, an additional AXI4S buffer should be placed at the input of this module, e.g. the axi4s.packet_former .
+Hence, an additional AXI4ST buffer should be placed at the input of this module, e.g. the axi4st.packet_former .
 
 #### to_axi4mm_read
 
-This module converts an AXI4S input stream into an AXI4MM read access (channel AR) and an AXI4MM read response (channel R) into an AXI4S output stream.
+This module converts an AXI4ST input stream into an AXI4MM read access (channel AR) and an AXI4MM read response (channel R) into an AXI4ST output stream.
 
 
-### AXI4MM Master to AXI4S Slave Conversion
+### AXI4MM Transmitter/Master to AXI4ST Receiver/Slave Conversion
 
 Currently, there is no use case for such a conversion. Hence, the development of modules like **from_axi4mm_write** or **from_axi4mm_read** is deferred.
