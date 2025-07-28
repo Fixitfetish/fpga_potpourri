@@ -10,7 +10,7 @@ library ieee;
   use ieee.numeric_std.all;
 
 -- Test Transmitter/Master for simulation purposes.
-entity test_master is
+entity test_transmitter is
 generic(
   TDEST              : natural := 0;
   TID                : natural := 0;
@@ -36,7 +36,7 @@ end entity;
 
 -------------------------------------------------------------------------------
 
-architecture rtl of test_master is
+architecture rtl of test_transmitter is
 
   constant IS_ADDR_HEADER : boolean := (ADDR_HEADER>=0);
 
@@ -70,6 +70,7 @@ begin
     variable v_cnt : unsigned(ITEM_WIDTH-1 downto 0);
   begin
     if rising_edge(clk) then
+      m_stream.treset <= '0';
       if rst='1' then
         m_stream <= work.pkg.reset(m_stream);
         m_stream.tuser <= (others=>'0');
