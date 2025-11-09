@@ -3,6 +3,7 @@
   <Mappings Location="VHDL/axi4st" Library="axi4st"/>
   <Mappings Location="VHDL/baselib" Library="baselib"/>
   <Mappings Location="VHDL/cplxlib" Library="cplxlib"/>
+  <Mappings Location="VHDL/dlylib" Library="dlylib"/>
   <Mappings Location="VHDL/dspcore" Library="dspcore"/>
   <Mappings Location="VHDL/dsplib" Library="dsplib"/>
   <Mappings Location="Common Libraries/IEEE" Library="ieee"/>
