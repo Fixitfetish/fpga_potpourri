@@ -26,10 +26,10 @@ use work.pkg.all;
 -- Only when packing is enabled and invalid units are removed the TREADY towards master might be set earlier.
 --
 -- **Limitations**
--- * DEST width at input and output should match, otherwise output DEST will be trimmed or padded
--- * ID width at input and output should match, otherwise output ID will be trimmed or padded
+-- * TDEST width at input and output should match, otherwise output TDEST will be trimmed or padded
+-- * TID width at input and output should match, otherwise output TID will be trimmed or padded
 -- * Master and slave interface can have different user signal length but at both interfaces the
---   user'length must be a multiple of strb'length ... unless USER_IGNORE=true.
+--   TUSER'length must be a multiple of TSTRB'length ... unless TUSER_IGNORE=true.
 --   The user signal will trimmed or padded if the lengths do not match.
 entity downsize is
 generic (
@@ -38,7 +38,7 @@ generic (
   INPUT_PIPESTAGES : a_pipestage := (0=>bypass);
   -- Enable AXI pipeline output register(s). Multiple different stages can be configured
   -- but the first stage should always be ready_breakup, priming or primegating.
-  -- At lest one stage is highly recommended.
+  -- At least one stage is highly recommended.
   OUTPUT_PIPESTAGES : a_pipestage := (0=>priming);
   -- If packing is enabled then downsized units consisting of just null items (TKEEP and TLAST deasserted) are removed and not passed to the output.
   -- Note that in this case every LAST input transfer cannot consist of all null items.
