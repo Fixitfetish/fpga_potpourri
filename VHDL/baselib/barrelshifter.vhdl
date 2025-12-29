@@ -13,7 +13,8 @@ library ieee;
 -- The barrelshifter shifts a DIN vector of any size left or right.
 -- The configurable barrel size allows grouping of bits into barrels. 
 -- The width of the SHIFT and DIN_EXT inputs define the maximum possible number of barrels to shift. 
--- The shifter is implemented as recursive loop performing first the coarse and then the fine shifts.
+-- The shifter is implemented as recursive loop performing first the coarse and then the fine shifts
+-- because this order can significantly reduce the number of pipeline registers in larger shifters. 
 -- Parameters help to optimize the implemention and timing for a certain type of HW.
 --
 -- Example 1: Circular shift of 23 bits by 0 to 11 bits to the right.
@@ -38,30 +39,33 @@ generic(
 );
 port(
   -- clock
-  clk        : in  std_logic;
+  clk         : in  std_logic;
   -- Synchronous reset, optional, only use when really required otherwise leave open
-  rst        : in  std_logic := '0';
+  rst         : in  std_logic := '0';
   -- Clock enable, optional, do not connect or leave open if unused
-  ce         : in  std_logic := '1';
+  ce          : in  std_logic := '1';
   -- The shift value defines by how many barrels the input is shifted left or right.
-  shift      : in  unsigned;
+  -- The value cannot exceed the number of DIN_EXT barrels.
+  shift       : in  unsigned;
   -- Data input vector. Length must be a multiple of the shifter barrel size.
-  din        : in  std_logic_vector;
+  din         : in  std_logic_vector;
   -- Data input extension vector, extends data input to the right for left shifts and
   -- to the left for right shifts. Length must be a multiple of the shifter barrel size
   -- and not larger than DIN. Length also indirectly limits the possible number of shifts. 
-  din_ext    : in  std_logic_vector;
+  din_ext     : in  std_logic_vector;
   -- Data input valid signal, optional
-  din_vld    : in  std_logic := '1';
+  din_vld     : in  std_logic := '1';
   -- Data output vector. Same length as data input vector.
-  dout       : out std_logic_vector;
+  dout        : out std_logic_vector;
   -- Data output valid signal, optional
-  dout_vld   : out std_logic;
-  -- Number of overall pipeline registers including input and output registers. Constant signal!
-  PIPESTAGES : out integer
+  dout_vld    : out std_logic;
+  -- Error flag when shift value is larger than expected, optional, leave open if unused
+  shift_error : out boolean;
+  -- Number of overall pipeline registers including input and output registers.
+  -- Optional constant signal that might useful for delay compensation or reporting. 
+  PIPESTAGES  : out integer
 );
 begin
-
   -- synthesis translate_off (Altera Quartus)
   -- pragma translate_off (Xilinx Vivado , Synopsys)
   assert (din'length mod SHIFTER_BARREL_SIZE)=0 and (din_ext'length mod SHIFTER_BARREL_SIZE)=0
@@ -70,12 +74,13 @@ begin
   assert (din'length >= din_ext'length)
     report barrelshifter'INSTANCE_NAME & " Input extension vector cannot be larger than the input vector."
     severity failure;
-  assert (2**shift'length >= din_ext'length/SHIFTER_BARREL_SIZE)
-    report barrelshifter'INSTANCE_NAME & " SHIFT input range too small for provided input extension vector length"
-    severity failure;
+  assert (2**shift'length > din_ext'length/SHIFTER_BARREL_SIZE)
+    report barrelshifter'INSTANCE_NAME & " SHIFT input range 0 to " & integer'image(2**shift'length-1) & 
+           " is too small for provided input extension vector length of " & 
+           integer'image(din_ext'length/SHIFTER_BARREL_SIZE) & " barrels."
+    severity warning;
   -- synthesis translate_on (Altera Quartus)
   -- pragma translate_on (Xilinx Vivado , Synopsys)
-
 end entity;
 
 architecture rtl of barrelshifter is
@@ -109,8 +114,8 @@ architecture rtl of barrelshifter is
   -- Number of input units, rounded up, ceil(BARRELS_IN/BARRELS_PER_UNIT)
   constant UNITS_IN : positive := (BARRELS_IN + BARRELS_PER_UNIT - 1) / BARRELS_PER_UNIT;
 
-  -- Number of extension input units, rounded up, ceil(MAX_SHIFT/BARRELS_PER_UNIT)
-  constant UNITS_EXT : positive := (MAX_SHIFT + BARRELS_PER_UNIT - 1) / BARRELS_PER_UNIT;
+  -- Number of extension input units, rounded up so that the last unit is always incomplete
+  constant UNITS_EXT : positive := (BARRELS_EXT + BARRELS_PER_UNIT) / BARRELS_PER_UNIT;
 
   type t_barrel is array(integer range <>) of std_logic_vector(SHIFTER_BARREL_SIZE-1 downto 0);
   type t_unit is array(integer range <>) of t_barrel(BARRELS_PER_UNIT-1 downto 0);
@@ -119,6 +124,8 @@ architecture rtl of barrelshifter is
   signal din_barrel : t_barrel(BARRELS_IN - 1 downto 0) := (others=>(others=>'0'));
   signal din_barrel_ext : t_barrel(BARRELS_EXT - 1 downto 0);
   signal dout_barrel : t_barrel(BARRELS_IN - 1 downto 0);
+
+  -- after shifting keep only barrels of first extended unit
   signal dout_barrel_ext : t_barrel(BARRELS_PER_UNIT - 1 downto 0);
 
   -- zero padded input and extension units before shifter stage
@@ -140,6 +147,7 @@ architecture rtl of barrelshifter is
     variable t : t_barrel(UNITS_IN*BARRELS_PER_UNIT-1 downto -UNITS_IN*BARRELS_PER_UNIT) := (others=>(others=>'-'));
     variable r : t_unit(UNITS_IN-1 downto -UNITS_IN);
   begin
+    -- concatenate barrels
     if RIGHT_SHIFT then
       -- right-shift, extend to the left
       t(b_ext'length-1 downto 0) := b_ext;
@@ -149,9 +157,11 @@ architecture rtl of barrelshifter is
       t(b'length-1 downto 0) := b;
       t(-1 downto -b_ext'length) := b_ext;
     end if;
+    -- map barrels into units
     for u in UNITS_IN-1 downto -UNITS_IN loop
       r(u) := t((u+1)*BARRELS_PER_UNIT-1 downto u*BARRELS_PER_UNIT);
     end loop;
+    -- cut out relevant units
     if RIGHT_SHIFT then
       return r(UNITS_EXT-1 downto -UNITS_IN);
     else
@@ -198,12 +208,12 @@ begin
           din_barrel_vld <= '0';
           din_barrel <= (others=>(others=>'-'));
           din_barrel_ext <= (others=>(others=>'-'));
-          shift_i <= (others=>'-');
+          shift_i <= (others=>'0');
         elsif ce='1' then
           din_barrel_vld <= din_vld;
           din_barrel <= slv2barrel(din);
           din_barrel_ext <= slv2barrel(din_ext);
-          shift_i <= resize(shift,shift_i'length);
+          shift_i <= resize(shift, shift_i'length);
         end if;
       end if;
     end process;
@@ -211,8 +221,11 @@ begin
     din_barrel_vld <= din_vld;
     din_barrel <= slv2barrel(din);
     din_barrel_ext <= slv2barrel(din_ext);
-    shift_i <= resize(shift,shift_i'length);
+    shift_i <= resize(shift, shift_i'length);
   end generate;
+
+  -- maximum shift value is limited by DIN_EXT length
+  shift_error <= (shift > MAX_SHIFT);
 
   -- concatenate barrels dependent on shift direction and map into units with zero-padding
   din_unit <= barrel2unit(b=>din_barrel, b_ext=>din_barrel_ext);
@@ -229,50 +242,60 @@ begin
     s := to_integer(shift_right(shift_i,BARRELS_PER_UNIT_LOG2));
     if RIGHT_SHIFT then
       -- shift right
-      dout_unit := din_unit(s+UNITS_IN downto s);
-      -- get left-aligned main data part
-      temp_barrel := unit2barrel(dout_unit(dout_unit'high-1 downto 0));
+      dout_unit := din_unit(s + UNITS_IN downto s);
+      -- get left-aligned main data part on right side
+      temp_barrel := unit2barrel(dout_unit(dout_unit'left - 1 downto dout_unit'right));
       -- remove potential padded barrels at the right end
-      dout_barrel <= temp_barrel(temp_barrel'high downto temp_barrel'high - BARRELS_IN + 1);
-      -- get right-aligned data extension
-      dout_barrel_ext <= unit2barrel(dout_unit(dout_unit'high downto dout_unit'high));
+      dout_barrel <= temp_barrel(temp_barrel'left downto temp_barrel'left - BARRELS_IN + 1);
+      -- get right-aligned data extension on left side
+      dout_barrel_ext <= unit2barrel(dout_unit(dout_unit'left downto dout_unit'left));
     else
       -- shift left
-      dout_unit := din_unit(din_unit'high-s downto din_unit'high-s-UNITS_IN);
-      -- get right-aligned main data part
-      temp_barrel := unit2barrel(dout_unit(dout_unit'high downto 1));
+      dout_unit := din_unit(din_unit'high - s downto din_unit'high - s - UNITS_IN);
+      -- get right-aligned main data part on left side
+      temp_barrel := unit2barrel(dout_unit(dout_unit'left downto 1 + dout_unit'right));
       -- remove potential padded barrels at the left end
-      dout_barrel <= temp_barrel(BARRELS_IN-1 downto 0);
-      -- get left-aligned data extension
-      dout_barrel_ext <= unit2barrel(dout_unit(0 downto 0));
+      dout_barrel <= temp_barrel(temp_barrel'right + BARRELS_IN - 1 downto temp_barrel'right);
+      -- get left-aligned data extension on right side
+      dout_barrel_ext <= unit2barrel(dout_unit(dout_unit'right downto dout_unit'right));
     end if;
   end process;
 
-  g_barrel : if LOGIC_LEVELS > 1 generate
+  substage : if LOGIC_LEVELS > 1 generate
     -- Another recursive shifter sub-stage is requrired.
-    -- Reduce input extension vector und shift value.
+    -- Reduce input extension vector and shift value.
+
+    -- Only keep extension barrels that are still relevant.
+    signal extension : t_barrel(BARRELS_PER_UNIT-2 downto 0);
+  begin
+    extension <= dout_barrel_ext(dout_barrel_ext'left - 1 downto dout_barrel_ext'right) when RIGHT_SHIFT else
+                 dout_barrel_ext(dout_barrel_ext'left downto 1 + dout_barrel_ext'right);
+    
     shifter : entity work.barrelshifter
     generic map(
-      SHIFTER_BARREL_SIZE => SHIFTER_BARREL_SIZE,
+      SHIFTER_BARREL_SIZE         => SHIFTER_BARREL_SIZE,
       SHIFTS_PER_LOGIC_LEVEL_LOG2 => SHIFTS_PER_LOGIC_LEVEL_LOG2,
-      MAX_LOGIC_LEVELS => MAX_LOGIC_LEVELS,
-      INPUT_REG => (((LOGIC_LEVELS-1) mod MAX_LOGIC_LEVELS) = 0),
-      RIGHT_SHIFT => RIGHT_SHIFT
+      MAX_LOGIC_LEVELS            => MAX_LOGIC_LEVELS,
+      INPUT_REG                   => (((LOGIC_LEVELS-1) mod MAX_LOGIC_LEVELS) = 0),
+      RIGHT_SHIFT                 => RIGHT_SHIFT
     )
     port map(
-      clk        => clk,
-      rst        => rst,
-      ce         => ce,
-      shift      => shift_i(BARRELS_PER_UNIT_LOG2-1 downto 0), -- remaining shifts
-      din        => barrel2slv(dout_barrel),
-      din_ext    => barrel2slv(dout_barrel_ext),
-      din_vld    => din_barrel_vld,
-      dout       => dout,
-      dout_vld   => dout_vld,
-      PIPESTAGES => PIPESTAGES_i
+      clk         => clk,
+      rst         => rst,
+      ce          => ce,
+      shift       => shift_i(BARRELS_PER_UNIT_LOG2-1 downto 0), -- remaining shifts
+      din         => barrel2slv(dout_barrel),
+      din_ext     => barrel2slv(extension),
+      din_vld     => din_barrel_vld,
+      dout        => dout,
+      dout_vld    => dout_vld,
+      shift_error => open, -- by design error is not possible in recursive sub-stages
+      PIPESTAGES  => PIPESTAGES_i
     );
-  else generate
-    -- The recursive loop ends here. After the last shifter stage always place an output register.
+  end generate;
+
+  oreg : if LOGIC_LEVELS = 1 generate
+    -- The recursive loop ends here. After the last shifter stage always place a final output register.
     process(clk)
     begin
       if rising_edge(clk) then
