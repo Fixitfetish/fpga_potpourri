@@ -18,17 +18,17 @@ library ieee;
 -- Parameters help to optimize the implemention and timing for a certain type of HW.
 --
 -- Example 1: Circular shift of 23 bits by 0 to 11 bits to the right.
--- * set RIGHT_SHIFT=true and SHIFTER_BARREL_SIZE=1
+-- * set RIGHT_SHIFT=true and BARREL_SIZE=1
 -- * DIN width = 23 bits, DIN_EXT=DIN(10 downto 0), SHIFT width = 4 bits
 --
 -- Example 2: A vector of 19 bytes need to be shifted logically by 0 to 6 bytes to the left.
--- * set RIGHT_SHIFT=false and SHIFTER_BARREL_SIZE=8
+-- * set RIGHT_SHIFT=false and BARREL_SIZE=8
 -- * DIN width = 19*8=152 bits, DIN_EXT=(47 downto 0=>'0'), SHIFT width = 3 bits
 entity barrelshifter is
 generic(
   -- Shifter barrel size in number of bits. Example: for byte-wise shifts the barrel size is 8.
-  SHIFTER_BARREL_SIZE : positive := 1;
-  -- Max number of shifts per logic level (e.g. a 6LUT supports 4 shifts, so the LOG2 value is 2)
+  BARREL_SIZE : positive := 1;
+  -- Max number of shifts per logic level (e.g. a LUT6 supports 4 shifts, so the LOG2 value is 2)
   SHIFTS_PER_LOGIC_LEVEL_LOG2 : positive := 2;
   -- Maximum number of shifter logic levels/stages between pipeline registers
   MAX_LOGIC_LEVELS : positive := 2;
@@ -63,21 +63,21 @@ port(
   shift_error : out boolean;
   -- Number of overall pipeline registers including input and output registers.
   -- Optional constant signal that might useful for delay compensation or reporting. 
-  PIPESTAGES  : out integer
+  PIPESTAGES  : out integer range 0 to 63
 );
 begin
-  -- synthesis translate_off (Altera Quartus)
   -- pragma translate_off (Xilinx Vivado , Synopsys)
-  assert (din'length mod SHIFTER_BARREL_SIZE)=0 and (din_ext'length mod SHIFTER_BARREL_SIZE)=0
+  -- synthesis translate_off (Altera Quartus)
+  assert (din'length mod BARREL_SIZE)=0 and (din_ext'length mod BARREL_SIZE)=0
     report barrelshifter'INSTANCE_NAME & " Length of both input vectors must be a multiple of the shifter barrel size."
     severity failure;
   assert (din'length >= din_ext'length)
     report barrelshifter'INSTANCE_NAME & " Input extension vector cannot be larger than the input vector."
     severity failure;
-  assert (2**shift'length > din_ext'length/SHIFTER_BARREL_SIZE)
+  assert (2**shift'length > din_ext'length/BARREL_SIZE)
     report barrelshifter'INSTANCE_NAME & " SHIFT input range 0 to " & integer'image(2**shift'length-1) & 
            " is too small for provided input extension vector length of " & 
-           integer'image(din_ext'length/SHIFTER_BARREL_SIZE) & " barrels."
+           integer'image(din_ext'length/BARREL_SIZE) & " barrels."
     severity warning;
   -- synthesis translate_on (Altera Quartus)
   -- pragma translate_on (Xilinx Vivado , Synopsys)
@@ -86,10 +86,10 @@ end entity;
 architecture rtl of barrelshifter is
 
   -- Number of barrels in input vector
-  constant BARRELS_IN : positive := din'length / SHIFTER_BARREL_SIZE;
+  constant BARRELS_IN : positive := din'length / BARREL_SIZE;
 
   -- Number of barrels in input extension vector
-  constant BARRELS_EXT : positive := din_ext'length / SHIFTER_BARREL_SIZE;
+  constant BARRELS_EXT : positive := din_ext'length / BARREL_SIZE;
 
   -- Maximum number of possible shifts is derived from the length of the input extension vector and the width of the shift value.
   constant MAX_SHIFT : positive := minimum(BARRELS_EXT, 2**shift'length-1);
@@ -117,12 +117,14 @@ architecture rtl of barrelshifter is
   -- Number of extension input units, rounded up so that the last unit is always incomplete
   constant UNITS_EXT : positive := (BARRELS_EXT + BARRELS_PER_UNIT) / BARRELS_PER_UNIT;
 
-  type t_barrel is array(integer range <>) of std_logic_vector(SHIFTER_BARREL_SIZE-1 downto 0);
+  type t_barrel is array(integer range <>) of std_logic_vector(BARREL_SIZE-1 downto 0);
   type t_unit is array(integer range <>) of t_barrel(BARRELS_PER_UNIT-1 downto 0);
 
   signal din_barrel_vld : std_logic;
   signal din_barrel : t_barrel(BARRELS_IN - 1 downto 0) := (others=>(others=>'0'));
   signal din_barrel_ext : t_barrel(BARRELS_EXT - 1 downto 0);
+
+  -- output barrels after shifter stage without any extension barrels
   signal dout_barrel : t_barrel(BARRELS_IN - 1 downto 0);
 
   -- after shifting keep only barrels of first extended unit
@@ -134,10 +136,10 @@ architecture rtl of barrelshifter is
   -- convert SLV into vector of barrels
   function slv2barrel(slv:std_logic_vector) return t_barrel is
     alias v : std_logic_vector(slv'length-1 downto 0) is slv; -- default range
-    variable r : t_barrel(v'length/SHIFTER_BARREL_SIZE-1 downto 0);
+    variable r : t_barrel(v'length/BARREL_SIZE-1 downto 0);
   begin
     for b in r'range loop
-      r(b) := v((b+1)*SHIFTER_BARREL_SIZE-1 downto b*SHIFTER_BARREL_SIZE);
+      r(b) := v((b+1)*BARREL_SIZE-1 downto b*BARREL_SIZE);
     end loop;
     return r;
   end function;
@@ -183,10 +185,10 @@ architecture rtl of barrelshifter is
   -- convert barrels into SLV
   function barrel2slv(b:t_barrel) return std_logic_vector is
     alias xb : t_barrel(b'length-1 downto 0) is b; -- default range
-    variable slv : std_logic_vector(SHIFTER_BARREL_SIZE*b'length-1 downto 0);
+    variable slv : std_logic_vector(BARREL_SIZE*b'length-1 downto 0);
   begin
     for i in xb'range loop
-      slv((i+1)*SHIFTER_BARREL_SIZE-1 downto i*SHIFTER_BARREL_SIZE) := xb(i);
+      slv((i+1)*BARREL_SIZE-1 downto i*BARREL_SIZE) := xb(i);
     end loop;
     return slv;
   end function;
@@ -194,8 +196,8 @@ architecture rtl of barrelshifter is
   -- number of overall remaining shifts
   signal shift_i : unsigned(SHIFT_WIDTH-1 downto 0);
 
-  -- number of pipeline registers in sub-stages
-  signal PIPESTAGES_i : integer range 0 to SHIFT_WIDTH + 1;
+  -- number of pipeline registers in sub-stages, constant signal
+  signal PIPESTAGES_i : integer range 0 to 63; 
 
 begin
 
@@ -224,7 +226,7 @@ begin
     shift_i <= resize(shift, shift_i'length);
   end generate;
 
-  -- maximum shift value is limited by DIN_EXT length
+  -- maximum shift value is limited by number of barrels in input DIN_EXT
   shift_error <= (shift > MAX_SHIFT);
 
   -- concatenate barrels dependent on shift direction and map into units with zero-padding
@@ -234,29 +236,33 @@ begin
   p_shift : process(din_unit, shift_i)
     -- number of shifts within single logic level
     variable s : integer range 0 to UNITS_EXT-1 := 0;
-    -- Blocks after shifter stage, only one extension unit required (either left or right)
+    -- Units after shifter stage, only one extension unit required (either left or right)
     variable dout_unit : t_unit(UNITS_IN downto 0);
     -- shifted barrels still including padded barrels
     variable temp_barrel : t_barrel(UNITS_IN*BARRELS_PER_UNIT-1 downto 0);
   begin
-    s := to_integer(shift_right(shift_i,BARRELS_PER_UNIT_LOG2));
+    s := to_integer(shift_right(shift_i, BARRELS_PER_UNIT_LOG2));
     if RIGHT_SHIFT then
-      -- shift right
-      dout_unit := din_unit(s + UNITS_IN downto s);
-      -- get left-aligned main data part on right side
+      -- shift right with for loop to work-around Vivado 2025.1 error: "[Synth 8-561] range expression could not be resolved to a constant"
+      for u in dout_unit'range loop
+        dout_unit(u) := din_unit(u + s);
+      end loop;
+      -- get left-aligned main units on right side
       temp_barrel := unit2barrel(dout_unit(dout_unit'left - 1 downto dout_unit'right));
-      -- remove potential padded barrels at the right end
+      -- remove all padded barrels at the right end
       dout_barrel <= temp_barrel(temp_barrel'left downto temp_barrel'left - BARRELS_IN + 1);
-      -- get right-aligned data extension on left side
+      -- get right-aligned extension barrels on left side
       dout_barrel_ext <= unit2barrel(dout_unit(dout_unit'left downto dout_unit'left));
     else
-      -- shift left
-      dout_unit := din_unit(din_unit'high - s downto din_unit'high - s - UNITS_IN);
-      -- get right-aligned main data part on left side
+      -- shift left with for loop to work-around Vivado 2025.1 error: "[Synth 8-561] range expression could not be resolved to a constant"
+      for u in dout_unit'range loop
+        dout_unit(u) := din_unit(din_unit'high + u - UNITS_IN - s);
+      end loop;
+      -- get right-aligned main units on left side
       temp_barrel := unit2barrel(dout_unit(dout_unit'left downto 1 + dout_unit'right));
-      -- remove potential padded barrels at the left end
+      -- remove all padded barrels at the left end
       dout_barrel <= temp_barrel(temp_barrel'right + BARRELS_IN - 1 downto temp_barrel'right);
-      -- get left-aligned data extension on right side
+      -- get left-aligned extension barrels on right side
       dout_barrel_ext <= unit2barrel(dout_unit(dout_unit'right downto dout_unit'right));
     end if;
   end process;
@@ -267,13 +273,20 @@ begin
 
     -- Only keep extension barrels that are still relevant.
     signal extension : t_barrel(BARRELS_PER_UNIT-2 downto 0);
+    signal extension_slv : std_logic_vector(extension'length*BARREL_SIZE-1 downto 0);
+    signal dout_slv : std_logic_vector(dout_barrel'length*BARREL_SIZE-1 downto 0);
   begin
     extension <= dout_barrel_ext(dout_barrel_ext'left - 1 downto dout_barrel_ext'right) when RIGHT_SHIFT else
                  dout_barrel_ext(dout_barrel_ext'left downto 1 + dout_barrel_ext'right);
+
+    -- use intermediate SLV signals as work-around to avoid Vivado 2025.1 warning at port mapping below: 
+    -- "[Synth 8-9112] actual for formal port 'din' is neither a static name nor a globally static expression"
+    extension_slv <= barrel2slv(extension);
+    dout_slv <= barrel2slv(dout_barrel);
     
     shifter : entity work.barrelshifter
     generic map(
-      SHIFTER_BARREL_SIZE         => SHIFTER_BARREL_SIZE,
+      BARREL_SIZE                 => BARREL_SIZE,
       SHIFTS_PER_LOGIC_LEVEL_LOG2 => SHIFTS_PER_LOGIC_LEVEL_LOG2,
       MAX_LOGIC_LEVELS            => MAX_LOGIC_LEVELS,
       INPUT_REG                   => (((LOGIC_LEVELS-1) mod MAX_LOGIC_LEVELS) = 0),
@@ -284,12 +297,12 @@ begin
       rst         => rst,
       ce          => ce,
       shift       => shift_i(BARRELS_PER_UNIT_LOG2-1 downto 0), -- remaining shifts
-      din         => barrel2slv(dout_barrel),
-      din_ext     => barrel2slv(extension),
+      din         => dout_slv,
+      din_ext     => extension_slv,
       din_vld     => din_barrel_vld,
       dout        => dout,
       dout_vld    => dout_vld,
-      shift_error => open, -- by design error is not possible in recursive sub-stages
+      shift_error => open, -- by design, error is not possible in recursive sub-stages
       PIPESTAGES  => PIPESTAGES_i
     );
   end generate;
