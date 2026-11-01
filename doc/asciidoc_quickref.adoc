@@ -1,0 +1,288 @@
+= AsciiDoc Quick Reference
+Author Name <author.email@example.com>
+v1.0, 2025-01-31
+:toc: left
+:toclevels: 3
+:sectnums:
+:imagesdir: ./images
+:url-docs: docs.asciidoctor.org
+:experimental:
+:kroki-server-url: https://kroki.io
+
+
+// Optional Preamble (a paragraph before the first section)
+This document serves as a comprehensive example of the most common AsciiDoc syntax features.
+It demonstrates document structure, text formatting, lists, blocks, tables, and links.
+
+== References
+
+* Detailed AsciiDoc Language Documentation https://docs.asciidoctor.org/asciidoc/latest/ .
+  On the top right you can download the full documentation as PDF.  
+
+
+
+== Line Breaks and Paragraphs
+
+AsciiDoc uses plain text conventions that are easy to read and write.
+
+It's recommended to follow the one-sentence-per-line rule for better version control diffs.
+
+A paragraph is simply one or more lines of text separated by a blank line.
+Line breaks within a paragraph are ignored, enabling precise line-by-line editing in source control systems.
+
+Hard line breaks can be inserted using a ` +` (plus sign followed by a space) + 
+at the end of a line.
+
+[%hardbreaks]
+Hard line breaks can also be applied to all
+lines of a block following 
+the `[%hardbreaks]` option.
+
+[discrete]
+=== Discrete Heading
+This heading is independent and does not belong to the previous section or start a new one.
+Furthermore, it does not appear in the TOC.
+
+
+
+== Text Formatting
+
+You can apply inline text formatting using markup:
+
+* *Bold text* ( `\*bold*` ) or **very bold text** ( `\\**very bold**` ).
+* _Italic text_ ( `\_italic_` ) or __very italic text__ ( `\\__very italic__` ).
+* `Monospace text` ( `{empty}`monospace`` ) is used for code snippets.
+* *_Bold italic_* (`\*\_Bold italic_*`) combinations work.
+* Super^script^ and Sub~script~ are possible using `^` and `~`.
+* [fuchsia]#This text is fuchsia.# [yellow maroon-background]#Yellow text color on a maroon background.# +
+  Standard colors are: aqua, black, blue, fuchsia, gray, green, lime, maroon, navy, olive, purple, red, silver, teal, white, yellow
+
+
+
+== Lists
+
+AsciiDoc supports unordered lists, ordered lists, checklists and description lists.
+
+=== Unordered Lists
+
+* An item starting with an asterisk (`*`).
+  ** A nested item using two asterisks.
+     *** A deeper level.
+* Another item.
+
+=== Ordered Lists
+
+In ordered lists you can use different numbering styles using the attribute list before the list items.
+[%autowidth, options="header"]
+|===
+| Attr. Value  | Style                       | Example Output
+| [arabic]     | Arabic Numerals (default)   | 1. 2. 3.
+| [loweralpha] | Lowercase Letters           | a. b. c.
+| [upperalpha] | Uppercase Letters           | A. B. C.
+| [lowerroman] | Lowercase Roman Numerals    | i. ii. iii.
+| [upperroman] | Uppercase Roman Numerals    | I. II. III.
+| [lowergreek] | Lowercase Greek Letters     | α. β. γ.
+| [decimal]    | Zero-padded Arabic Numerals | 01. 02. 03.
+|=== 
+
+[upperalpha,start=3]
+. First item in the list.
+. Second item.
+[lowerroman]
+  .. subitem
+. Third item.
+
+=== Checklists
+
+* [*] checked
+* [x] also checked
+* [ ] not checked
+* normal list item
+
+or even interactive:
+[%interactive]
+* [*] checked
+* [x] also checked
+* [ ] not checked
+* normal list item
+
+=== Description Lists
+
+Operating System:: The software that manages computer hardware and software resources.
+Kernel:: The core part of the OS.
+Shell:: The command-line interpreter.
+
+[horizontal]
+Attributes:: Key-value pairs enclosed in square brackets on a line above a block or element.
+Blocks:: Delimited sections using specific markers like `----` or `====`.
+
+
+
+== Blocks and Admonitions
+
+Admonitions draw attention to specific information using standard types: NOTE, TIP, IMPORTANT, WARNING, and CAUTION.
+
+TIP: Remember to follow the one-sentence-per-line rule for better version control diffs.
+
+.An example block title
+====
+This is an example block. Example blocks are typically used to demonstrate a concept that should be treated as output or a figure within the document flow.
+====
+
+[quote, Abraham Lincoln, The Gettysburg Address]
+____
+Four score and seven years ago our fathers brought forth on this continent, a new nation, conceived in Liberty, and dedicated to the proposition that all men are created equal.
+____
+
+=== Collapsible / Expand
+
+.Click to reveal the answer
+[%collapsible]
+====
+This is the answer.
+====
+
+=== Source Code
+
+Source blocks are used for syntax-highlighted code examples.
+
+.A Ruby source code example with callouts
+[source,ruby]
+----
+def hello name = 'World' // <1>
+  puts "Hello, #{name}!"  // <2>
+end
+----
+<1> Defines a default value for the name variable.
+<2> Prints the greeting to standard output.
+
+
+
+## Links & Cross References
+
+External links are automatically rendered if they start with a known protocol (like `http:` or `https:`).
+Visit the https://docs.asciidoctor.org/asciidoc/latest/[Asciidoctor Documentation website].
+You can use `link:URL[text]` for more control.
+
+https://docs.asciidoctor.org/asciidoc/latest/
+
+Internal cross-references use `<<section-anchor, optional text>>` or `xref:section-anchor[]`.
+The `xref` syntax is generally preferred in modern toolchains.
+See the discussion on lists in <<Lists>>.
+Xref to a specific anchor within the document: anchor:installation-anchor[]
+See installation instructions in xref:installation-anchor[].
+
+== Tables
+
+Tables can be created using pipe characters (`|`) with a flexible syntax.
+
+[cols="1,2,3",options="header"]
+|===
+| Header 1 | Header 2 | Header 3
+| Cell A1 | Cell A2 | Cell A3
+| Cell B1 | Cell B2 | Cell B3
+| Cell C1 | Cell C2 | Cell C3
+|===
+
+The stripes attribute in an AsciiDoc table controls the alternating background colors of the table rows (often referred to as "zebra stripping"). The valid values for the stripes attribute are:
+
+[stripes="even"]
+|===
+| Value | Description
+
+|none   | No striping is applied (default behavior if stripes is not present).
+|all    | Every row, including header/footer rows, gets alternating colors.
+|odd    | Only odd-numbered data rows are shaded.
+|even   | Only even-numbered data rows are shaded.
+|hover  | Rows change color when the user hovers their mouse cursor over them (requires support in the Asciidoctor theme/stylesheet).
+|===
+
+[options="header"]
+|===
+| Header 1 | Header 2 | Header 3
+2+| This cell spans two columns using the **2+\|** specifier | Normal Text 
+| Normal Text | Normal Text
+.2+^| centered cell with two rows using the **.2+^\|** specifier
+| Normal Text | Normal Text
+| Normal Text | Normal Text | Normal Text
+2.2+>| test
+| Normal Text 
+.| Normal Text  
+.2+| cell spans two rows using the **.2+** specifier before the pipe.
+|===
+
+This table demonstrates various cell merging techniques:
+
+* **Horizontal Merging:** Using a number prefix and the `*` operator (e.g., `2*|`).
+* **Vertical Merging:** Using a number prefix and the `+` operator (e.g., `2+<|`).
+* **Combined Merging:** Using both operators (e.g., `2.3+^|`).
+* **Alignment:** Using operators like `<` (left), `^` (center), `>` (right).
+
+.Complex Cell Merging Table
+[cols="15%,^25%,^25%,35%", options="header", stripes="even", grid="all"]
+|===
+| Project Phase | Status Summary | Key Personnel | Target Dates
+
+2*| **Phase A: Design & Planning** (This header spans 2 columns horizontally)
+| Green 🟢 | Leads A/B
+| 2025 Q1
+
+.3+^| This Cell Spans 3 Rows Vertically and is Centered
+| **Phase B: Implementation** | On Track | Dev Team
+| 2025 Q2
+
+| **Phase C: Testing** | Yellow ⚠️ | QA Team
+| 2025 Q3
+
+| **Phase D: Deployment** | Red 🔴 | Operations
+| 2025 Q4
+
+4+>| **Overall Project Status: At Risk** (This footer row spans all 4 columns and is right-aligned)
+
+|===
+
+
+
+== Images
+
+You can include images with titles and attributes.
+
+.A title for the image
+image::asciidoc-logo.png[Asciidoc logo, 200, 100]
+
+=== Draw.io / Diagrams.net
+
+It is recommended to save diagrams as editable SVG `*.drawio.svg`.
+
+* widely used scalable format
+* non-binary single source file
+* easy recognizable that file can be edited with Drawio
+
+=== KROKI Diagrams
+
+https://kroki.io/[KROKI] offers and creates a large variety of diagrams from textual descriptions. 
+
+In the document attributes a Kroki server must be configured: for example the public `:kroki-server-url: <https://kroki.io>` .
+Instead, for privacy reasons, also a local Kroki server can be used. 
+
+Tools that process and render the AsciiDoc must have the Kroki feature enabled (e.g. AsciiDoctor in VSCODE).
+
+.Graphviz Example
+[graphviz]
+....
+digraph { rankdir=LR a -> b -> c}
+....
+
+.Wavedrom Example
+[wavedrom]
+....
+{ signal: [
+  { name: "clk",         wave: "p.....|..." },
+  { name: "Data",        wave: "x.345x|=.x", data: ["head", "body", "tail", "data"] },
+  { name: "Request",     wave: "0.1..0|1.0" },
+  {},
+  { name: "Acknowledge", wave: "1.....|01." }
+]}
+....
+
+// This is a comment line and will not be rendered in the output.
